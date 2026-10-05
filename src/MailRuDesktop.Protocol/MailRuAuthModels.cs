@@ -34,8 +34,15 @@ public sealed record MailRuAuthChallenge(
     MailRuChallengeKind Kind,
     string Url,
     string SeedCookieHeader,
-    string? DiagnosticReason);
+    string? DiagnosticReason,
+    string SessionId);
 
 public sealed record MailRuChallengeCompletion(
+    string SessionId,
+    string AccountCookieHeader,
+    string MailCookieHeader,
     string WebCookieHeader,
-    string TouchCookieHeader);
+    string TouchCookieHeader,
+    string AjCookieHeader,
+    string FinalUrl,
+    string? ReCaptchaResponse);
