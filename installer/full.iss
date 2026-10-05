@@ -42,11 +42,15 @@ VersionInfoVersion={#AppVersion}
 VersionInfoProductName={#AppName}
 VersionInfoDescription=MailRu Desktop full installer
 
+[Tasks]
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+
 [Files]
 Source: "{#PublishDir}\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{autoprograms}\\MailRu Desktop"; Filename: "{app}\\{#AppExeName}"; WorkingDir: "{app}"
+Name: "{userdesktop}\\MailRu Desktop"; Filename: "{app}\\{#AppExeName}"; WorkingDir: "{app}"; Tasks: desktopicon
 
 ; Canonical application-owned registry root. If the application stores settings
 ; here in the future, uninstall removes the entire key.
