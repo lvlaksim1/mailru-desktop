@@ -14,6 +14,10 @@ public partial class MainWindow : Window
     private readonly List<string> _attachmentPaths = [];
     private string? _accessToken;
     private string? _refreshToken;
+    private string? _webToken;
+    private string? _searchToken;
+    private string? _webCookieHeader;
+    private string? _touchCookieHeader;
     private string? _activeLogin;
     private int _currentFolderId;
     private bool _loadingFolder;
@@ -75,6 +79,10 @@ public partial class MainWindow : Window
 
         _accessToken = authorization.AccessToken;
         _refreshToken = authorization.RefreshToken;
+        _webToken = authorization.WebToken;
+        _searchToken = authorization.SearchToken;
+        _webCookieHeader = authorization.WebCookieHeader;
+        _touchCookieHeader = authorization.TouchCookieHeader;
         _activeLogin = authorization.Login;
         LoginComboBox.Text = authorization.Login;
         AuthStatusText.Text = "Сохранённая авторизация восстановлена";
@@ -121,29 +129,50 @@ public partial class MainWindow : Window
 
             PasswordBox.Clear();
 
-            if (!result.Success || string.IsNullOrWhiteSpace(result.AccessToken))
+            if (!result.Success)
             {
                 _accessToken = null;
                 _refreshToken = null;
+                _webToken = null;
+                _searchToken = null;
+                _webCookieHeader = null;
+                _touchCookieHeader = null;
                 _activeLogin = null;
-                AuthStatusText.Text = $"Ошибка: {result.ErrorCode ?? "unknown"}";
+                AuthStatusText.Text = $"Ошибка: {TranslateAuthError(result.ErrorCode)}";
                 return;
             }
 
             _accessToken = result.AccessToken;
             _refreshToken = result.RefreshToken;
+            _webToken = result.WebToken;
+            _searchToken = result.SearchToken;
+            _webCookieHeader = result.WebCookieHeader;
+            _touchCookieHeader = result.TouchCookieHeader;
             _activeLogin = login;
 
-            _authStore.Save(login, result.AccessToken, result.RefreshToken);
+            _authStore.Save(
+                login,
+                result.AccessToken,
+                result.RefreshToken,
+                result.WebToken,
+                result.SearchToken,
+                result.WebCookieHeader,
+                result.TouchCookieHeader);
             RefreshSavedLogins();
 
-            AuthStatusText.Text = "Авторизация успешна и сохранена";
+            AuthStatusText.Text = string.IsNullOrWhiteSpace(_accessToken)
+                ? "Авторизация успешна и сохранена · web/touch"
+                : "Авторизация успешна и сохранена";
             await LoadFolderAsync(0);
         }
         catch (Exception ex)
         {
             _accessToken = null;
             _refreshToken = null;
+            _webToken = null;
+            _searchToken = null;
+            _webCookieHeader = null;
+            _touchCookieHeader = null;
             _activeLogin = null;
             PasswordBox.Clear();
             AuthStatusText.Text = "Ошибка";
@@ -175,7 +204,8 @@ public partial class MainWindow : Window
 
     private async Task LoadFolderAsync(int folderId)
     {
-        if (string.IsNullOrWhiteSpace(_accessToken))
+        if (string.IsNullOrWhiteSpace(_accessToken) &&
+            string.IsNullOrWhiteSpace(_webToken))
         {
             AuthStatusText.Text = "Сначала выполните вход";
             return;
@@ -192,7 +222,7 @@ public partial class MainWindow : Window
 
         try
         {
-            var raw = await _mailRu.GetFolderThreadsAsync(_accessToken, folderId);
+            var raw = await LoadFolderRawAsync(folderId);
             ResponseTextBox.Text = raw;
 
             var snapshot = MailRuThreadStatusParser.Parse(raw, folderId);
@@ -373,4 +403,53 @@ public partial class MainWindow : Window
             AttachButton.IsEnabled = true;
         }
     }
+
+    private async Task<string> LoadFolderRawAsync(int folderId)
+    {
+        Exception? mobileFailure = null;
+
+        if (!string.IsNullOrWhiteSpace(_accessToken))
+        {
+            try
+            {
+                return await _mailRu.GetFolderThreadsAsync(_accessToken, folderId);
+            }
+            catch (Exception ex)
+            {
+                mobileFailure = ex;
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(_webToken) &&
+            !string.IsNullOrWhiteSpace(_activeLogin))
+        {
+            return await _mailRu.GetFolderThreadsWebAsync(
+                _webToken,
+                _activeLogin,
+                _webCookieHeader,
+                folderId);
+        }
+
+        if (mobileFailure is not null)
+            throw mobileFailure;
+
+        throw new InvalidOperationException(
+            "Для этой сохранённой сессии нет доступного токена списка писем. Выполните вход ещё раз.");
+    }
+
+    private static string TranslateAuthError(string? code) =>
+        code switch
+        {
+            "captcha_required" => "требуется CAPTCHA",
+            "recaptcha_required" => "требуется reCAPTCHA",
+            "two_factor_required" => "требуется двухфакторная проверка",
+            "account_recovery_required" => "Mail.ru требует восстановление/дополнительную проверку",
+            "account_blocked" => "аккаунт заблокирован",
+            "invalid_credentials" => "неверный логин или пароль",
+            "web_session_token_missing" => "сессия создана, но API-token не найден",
+            "token_missing" => "токен не получен",
+            null or "" => "неизвестная ошибка",
+            _ => code
+        };
+
 }
