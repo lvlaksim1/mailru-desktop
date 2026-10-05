@@ -43,7 +43,10 @@ public static class MailRuEndpointCatalog
 
         new("web.threads.golang", "GET", "e.mail.ru", "/api/v1/threads/status/golang", EndpointEvidence.ExternalConfirmed, "Thread listing"),
         new("web.threads.thread", "GET", "e.mail.ru", "/api/v1/threads/thread", EndpointEvidence.ExternalConfirmed, "Fetch thread"),
-        new("web.messages.search", "GET", "e.mail.ru", "/api/v1/messages/search", EndpointEvidence.ExternalConfirmed, "Message search"),
+        new("web.messages.message", "GET", "e.mail.ru", "/api/v1/messages/message", EndpointEvidence.ExternalConfirmed, "Fetch full message without touch token"),
+        new("web.messages.search", "GET/POST", "e.mail.ru", "/api/v1/messages/search", EndpointEvidence.ExternalConfirmed, "Message search/filter"),
+        new("web.messages.move", "POST", "e.mail.ru", "/api/v1/messages/move", EndpointEvidence.ExternalConfirmed, "Move messages using web session"),
+        new("web.messages.delete", "POST", "e.mail.ru", "/api/v1/messages/delete", EndpointEvidence.ExternalConfirmed, "Delete messages using web session"),
         new("web.folders.add", "POST", "e.mail.ru", "/api/v1/folders/add", EndpointEvidence.ExternalConfirmed, "Create folder"),
         new("web.folders.clear", "POST", "e.mail.ru", "/api/v1/folders/clear", EndpointEvidence.ExternalConfirmed, "Clear folder"),
         new("web.k8s.send", "POST", "e.mail.ru", "/api/v1/k8s/messages/send", EndpointEvidence.ExternalConfirmed, "Richer compose/send API"),
@@ -361,6 +364,151 @@ public sealed class MailRuClient : IDisposable
             throw new MailRuProtocolException($"Web thread status request failed with HTTP {(int)response.StatusCode}.");
 
         return payload;
+    }
+
+    public async Task<string> GetFullMessageWebAsync(
+        string webToken,
+        string email,
+        string messageId,
+        string? cookieHeader,
+        int folderId = 0,
+        CancellationToken cancellationToken = default)
+    {
+        RequireToken(webToken);
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentException("Email is required.", nameof(email));
+        if (string.IsNullOrWhiteSpace(messageId))
+            throw new ArgumentException("Message id is required.", nameof(messageId));
+
+        // This is the same web-family route used by older working Mail.ru clients.
+        // read=0 + mark_read=false deliberately requests the body without mutating
+        // the unread state.
+        var messageUri = BuildAbsoluteUri(
+            new Uri("https://e.mail.ru/api/v1/messages/message"),
+            new Dictionary<string, string?>
+            {
+                ["ajax_call"] = "1",
+                ["x-email"] = email,
+                ["email"] = email,
+                ["htmlencoded"] = "false",
+                ["multi_msg_prev"] = "0",
+                ["multi_msg_past"] = "0",
+                ["sortby"] = "D",
+                ["NewAttachViewer"] = "1",
+                ["AvStatusBar"] = "1",
+                ["let_body_type"] = "let_body_plain",
+                ["log"] = "0",
+                ["bulk_show_images"] = "0",
+                ["folder"] = folderId.ToString(CultureInfo.InvariantCulture),
+                ["wrap_body"] = "0",
+                ["id"] = messageId,
+                ["NoMSG"] = "true",
+                ["read"] = "0",
+                ["mark_read"] = "false",
+                ["api"] = "1",
+                ["token"] = webToken
+            });
+
+        using (var request = CreateBrowserRequest(HttpMethod.Get, messageUri, cookieHeader))
+        using (var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false))
+        {
+            var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            if (response.IsSuccessStatusCode && !string.IsNullOrWhiteSpace(payload))
+                return payload;
+        }
+
+        // Some web generations expose the same data through threads/thread.
+        var threadUri = BuildAbsoluteUri(
+            new Uri("https://e.mail.ru/api/v1/threads/thread"),
+            new Dictionary<string, string?>
+            {
+                ["ajax_call"] = "1",
+                ["offset"] = "0",
+                ["limit"] = "50",
+                ["htmlencoded"] = "false",
+                ["cache"] = "false",
+                ["api"] = "1",
+                ["token"] = webToken,
+                ["id"] = messageId,
+                ["email"] = email,
+                ["x-email"] = email
+            });
+
+        using var fallbackRequest = CreateBrowserRequest(HttpMethod.Get, threadUri, cookieHeader);
+        using var fallbackResponse = await _http.SendAsync(fallbackRequest, cancellationToken).ConfigureAwait(false);
+        var fallbackPayload = await fallbackResponse.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+        if (!fallbackResponse.IsSuccessStatusCode)
+            throw new MailRuProtocolException($"Web full-message request failed with HTTP {(int)fallbackResponse.StatusCode}.");
+
+        return fallbackPayload;
+    }
+
+    public async Task<MailRuCommandResult> MoveWebMessagesToFolderAsync(
+        string webToken,
+        string email,
+        IReadOnlyCollection<string> ids,
+        int destinationFolderId,
+        string? cookieHeader,
+        CancellationToken cancellationToken = default)
+    {
+        RequireToken(webToken);
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentException("Email is required.", nameof(email));
+        if (ids is null || ids.Count == 0)
+            throw new ArgumentException("At least one message id is required.", nameof(ids));
+
+        var uri = BuildAbsoluteUri(
+            new Uri("https://e.mail.ru/api/v1/messages/move"),
+            new Dictionary<string, string?>
+            {
+                ["email"] = email,
+                ["token"] = webToken
+            });
+
+        using var request = CreateBrowserRequest(HttpMethod.Post, uri, cookieHeader);
+        request.Content = JsonContent.Create(new
+        {
+            email_ids = ids,
+            folder_id = destinationFolderId.ToString(CultureInfo.InvariantCulture)
+        });
+
+        using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        return new MailRuCommandResult(
+            response.IsSuccessStatusCode && (HasStatus200(payload) || string.IsNullOrWhiteSpace(payload)),
+            payload);
+    }
+
+    public async Task<MailRuCommandResult> DeleteWebMessagesAsync(
+        string webToken,
+        string email,
+        IReadOnlyCollection<string> ids,
+        string? cookieHeader,
+        CancellationToken cancellationToken = default)
+    {
+        RequireToken(webToken);
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentException("Email is required.", nameof(email));
+        if (ids is null || ids.Count == 0)
+            throw new ArgumentException("At least one message id is required.", nameof(ids));
+
+        var uri = BuildAbsoluteUri(
+            new Uri("https://e.mail.ru/api/v1/messages/delete"),
+            new Dictionary<string, string?>
+            {
+                ["email"] = email,
+                ["token"] = webToken
+            });
+
+        using var request = CreateBrowserRequest(HttpMethod.Post, uri, cookieHeader);
+        request.Content = JsonContent.Create(new { email_ids = ids });
+
+        using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        return new MailRuCommandResult(
+            response.IsSuccessStatusCode && (HasStatus200(payload) || string.IsNullOrWhiteSpace(payload)),
+            payload);
     }
 
     public async Task<string> GetFullMessageTouchAsync(
