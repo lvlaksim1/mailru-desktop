@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MailRu Desktop"
         Icon="{StaticResource AppIcon}"
-        Height="760" Width="1180"
-        MinHeight="620" MinWidth="900">
+        Height="780" Width="1240"
+        MinHeight="640" MinWidth="980">
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -26,17 +26,20 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <TextBox x:Name="LoginTextBox"
-                     Grid.Column="0"
-                     Margin="0,0,10,0"
-                     Padding="8"
-                     ToolTip="Mail.ru login"/>
+            <ComboBox x:Name="LoginComboBox"
+                      Grid.Column="0"
+                      Margin="0,0,10,0"
+                      Padding="6"
+                      IsEditable="True"
+                      IsTextSearchEnabled="True"
+                      SelectionChanged="LoginComboBox_SelectionChanged"
+                      ToolTip="Логин Mail.ru. Сохранённые авторизации доступны в списке."/>
 
             <PasswordBox x:Name="PasswordBox"
                          Grid.Column="1"
                          Margin="0,0,10,0"
                          Padding="8"
-                         ToolTip="Пароль хранится только в памяти процесса"/>
+                         ToolTip="Пароль не сохраняется. Сохраняются только защищённые Windows токены."/>
 
             <Button x:Name="AuthenticateButton"
                     Grid.Column="2"
@@ -62,41 +65,56 @@
 
                     <Grid Grid.Row="0" Margin="0,0,0,12">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="120"/>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <TextBox x:Name="FolderIdTextBox"
-                                 Grid.Column="0"
-                                 Padding="8"
-                                 Text="0"
-                                 ToolTip="Числовой ID папки Mail.ru"/>
-
-                        <Button x:Name="LoadFolderButton"
-                                Grid.Column="1"
-                                Margin="10,0,0,0"
-                                Padding="18,8"
-                                Click="LoadFolderButton_Click"
-                                Content="Загрузить папку"/>
+                        <Button x:Name="RefreshFolderButton"
+                                Grid.Column="0"
+                                Padding="16,8"
+                                Click="RefreshFolderButton_Click"
+                                Content="Обновить"/>
 
                         <TextBlock x:Name="FolderStatusText"
-                                   Grid.Column="2"
+                                   Grid.Column="1"
                                    Margin="14,0,0,0"
                                    VerticalAlignment="Center"
                                    Foreground="Gray"
-                                   Text="A-level threads/status/smart"/>
+                                   Text="Авторизуйтесь для загрузки почты"/>
                     </Grid>
 
                     <Grid Grid.Row="1">
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="190"/>
+                            <ColumnDefinition Width="8"/>
                             <ColumnDefinition Width="3*"/>
                             <ColumnDefinition Width="8"/>
                             <ColumnDefinition Width="2*"/>
                         </Grid.ColumnDefinitions>
 
+                        <Border Grid.Column="0"
+                                BorderBrush="#D6DCE5"
+                                BorderThickness="1"
+                                Padding="8">
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Top"
+                                           Margin="6,4,6,10"
+                                           FontWeight="SemiBold"
+                                           Text="Папки"/>
+                                <ListBox x:Name="FolderListBox"
+                                         BorderThickness="0"
+                                         DisplayMemberPath="DisplayName"
+                                         SelectionChanged="FolderListBox_SelectionChanged"/>
+                            </DockPanel>
+                        </Border>
+
+                        <GridSplitter Grid.Column="1"
+                                      Width="8"
+                                      HorizontalAlignment="Stretch"
+                                      VerticalAlignment="Stretch"/>
+
                         <DataGrid x:Name="MessagesGrid"
-                                  Grid.Column="0"
+                                  Grid.Column="2"
                                   AutoGenerateColumns="False"
                                   IsReadOnly="True"
                                   SelectionMode="Single"
@@ -105,7 +123,7 @@
                                   SelectionChanged="MessagesGrid_SelectionChanged">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="" Width="28" Binding="{Binding UnreadMark}"/>
-                                <DataGridTextColumn Header="Отправитель" Width="180" Binding="{Binding SenderDisplay}"/>
+                                <DataGridTextColumn Header="Отправитель" Width="170" Binding="{Binding SenderDisplay}"/>
                                 <DataGridTextColumn Header="Тема" Width="*" Binding="{Binding Subject}"/>
                                 <DataGridTextColumn Header="Дата" Width="125" Binding="{Binding DateDisplay}"/>
                                 <DataGridTextColumn Header="" Width="32" Binding="{Binding AttachmentMark}"/>
@@ -114,12 +132,12 @@
                             </DataGrid.Columns>
                         </DataGrid>
 
-                        <GridSplitter Grid.Column="1"
+                        <GridSplitter Grid.Column="3"
                                       Width="8"
                                       HorizontalAlignment="Stretch"
                                       VerticalAlignment="Stretch"/>
 
-                        <Border Grid.Column="2"
+                        <Border Grid.Column="4"
                                 BorderBrush="#D6DCE5"
                                 BorderThickness="1"
                                 Padding="16">
@@ -132,7 +150,8 @@
                                                Text="Выберите письмо"/>
                                     <TextBlock x:Name="SelectedSenderText"
                                                Margin="0,8,0,0"
-                                               FontWeight="SemiBold"/>
+                                               FontWeight="SemiBold"
+                                               TextWrapping="Wrap"/>
                                     <TextBlock x:Name="SelectedDateText"
                                                Margin="0,3,0,0"
                                                Foreground="Gray"/>
@@ -146,7 +165,7 @@
                                     <TextBlock Margin="0,18,0,0"
                                                Foreground="#8A5A00"
                                                TextWrapping="Wrap"
-                                               Text="Полное тело письма пока не запрашивается: endpoint чтения ещё не переведён в уровень A."/>
+                                               Text="Полное тело письма пока не запрашивается: endpoint чтения будет следующим этапом."/>
                                 </StackPanel>
                             </ScrollViewer>
                         </Border>
@@ -156,7 +175,7 @@
                               Margin="0,10,0,0"
                               Header="Диагностика · raw JSON">
                         <TextBox x:Name="ResponseTextBox"
-                                 Height="170"
+                                 Height="150"
                                  FontFamily="Consolas"
                                  FontSize="12"
                                  AcceptsReturn="True"
