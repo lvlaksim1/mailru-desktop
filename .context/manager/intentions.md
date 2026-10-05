@@ -17,15 +17,17 @@ status: completed
 ## I-005 — installer/update release channel
 status: completed
 
-Current release: `v0.1.7`. Release workflow `37380041150` succeeded; Setup + Update are release assets; Actions artifacts are absent and older binary Releases are pruned.
+Current release: `v0.1.8`. Release workflow `37385570525` succeeded; Setup + Update are release assets; Actions artifacts are absent and older binary Releases are pruned.
 
 ## I-006 — full-message read and attachments
 status: active — owner validation pending
 
-## I-007 — robust account/challenge authorization
-status: active — corrected implementation, owner validation pending
+## I-007 — Hackus-equivalent account/challenge authorization
+status: active — implementation complete, owner validation pending
 
-v0.1.7 replaces the incorrect “browser session -> export cookies -> new HTTP client” approach. The original Hackus-style HTTP session now remains alive from the first `POST /cgi-bin/auth` through challenge completion and token derivation. Manual WebView2 challenge completion feeds its result back into that same session. reCAPTCHA attempts the exact Hackus continuation shape: same cookies + repeated `POST /cgi-bin/auth` + `g-recaptcha-response`.
+Commitment: preserve the Hackus auth/challenge state machine and change only the CAPTCHA solver source from external service to manual user solving. No alternate browser-login architecture.
+
+v0.1.8 implements CreateSession ordering, GetReCaptchaSiteKey, same-session CreateSession(g-recaptcha-response), GetVerificationType, GetCaptchaImage, SubmitCaptchaAnswer and CreateSessionByLink. WebView2 is only the manual reCAPTCHA solver and is prevented from completing the login itself.
 
 ## I-008 — incoming message actions
 status: active — owner validation pending
