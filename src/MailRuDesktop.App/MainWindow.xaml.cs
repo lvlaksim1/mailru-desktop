@@ -1147,6 +1147,7 @@ public partial class MainWindow : Window
             MailRuChallengeKind.ReCaptcha => "Требуется reCAPTCHA — пройдите проверку в открывшемся окне",
             MailRuChallengeKind.Captcha => "Требуется CAPTCHA — пройдите проверку в открывшемся окне",
             MailRuChallengeKind.TwoFactor => "Требуется двухфакторная проверка — завершите её в открывшемся окне",
+            MailRuChallengeKind.InteractiveLogin => "Требуется подтверждение входа Mail.ru — завершите вход в открывшемся окне",
             _ => "Требуется дополнительная проверка Mail.ru"
         };
 
