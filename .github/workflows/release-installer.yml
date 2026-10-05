@@ -1,0 +1,84 @@
+name: Build Installer Release
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  release:
+    if: github.event.issue.user.login == 'lvlaksim1' && github.event.issue.title == '[BUILD_RELEASE]'
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Parse release request
+        id: request
+        shell: pwsh
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          $request = $env:ISSUE_BODY | ConvertFrom-Json
+          $version = [string]$request.version
+          if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'version must be semantic X.Y.Z' }
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Publish self-contained Windows app
+        shell: pwsh
+        run: dotnet publish src/MailRuDesktop.App/MailRuDesktop.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:DebugType=None -p:DebugSymbols=false -p:Version=${{ steps.request.outputs.version }} -o publish
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup -y --no-progress
+
+      - name: Build full and update installers
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          $iscc = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'
+          if (-not (Test-Path $iscc)) { $iscc = Join-Path $env:ProgramFiles 'Inno Setup 6\ISCC.exe' }
+          & $iscc installer/full.iss "/DAppVersion=${{ steps.request.outputs.version }}" "/DPublishDir=$pwd\publish" "/DOutputDir=$pwd\dist"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & $iscc installer/update.iss "/DAppVersion=${{ steps.request.outputs.version }}" "/DPublishDir=$pwd\publish" "/DOutputDir=$pwd\dist"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Verify installers
+        shell: pwsh
+        run: |
+          $v = '${{ steps.request.outputs.version }}'
+          $full = "dist\MailRuDesktop_Setup_v$v.exe"
+          $update = "dist\MailRuDesktop_Update_v$v.exe"
+          if (-not (Test-Path $full)) { throw 'Full installer missing' }
+          if (-not (Test-Path $update)) { throw 'Update installer missing' }
+          Get-Item $full, $update | Select-Object Name, Length
+
+      - name: Create GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $v = '${{ steps.request.outputs.version }}'
+          $tag = "v$v"
+          $full = "dist\MailRuDesktop_Setup_v$v.exe"
+          $update = "dist\MailRuDesktop_Update_v$v.exe"
+          gh release create $tag $full $update --target "${{ github.event.repository.default_branch }}" --title "MailRu Desktop v$v" --notes "Native Windows build. Use MailRuDesktop_Setup for the first installation. Existing installations should use MailRuDesktop_Update."
+
+      - name: Report release
+        if: success()
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $v = '${{ steps.request.outputs.version }}'
+          $repo = '${{ github.repository }}'
+          $body = "RELEASED: v$v`nhttps://github.com/$repo/releases/tag/v$v`nFULL: https://github.com/$repo/releases/download/v$v/MailRuDesktop_Setup_v$v.exe`nUPDATE: https://github.com/$repo/releases/download/v$v/MailRuDesktop_Update_v$v.exe"
+          gh issue comment ${{ github.event.issue.number }} --body $body
+          gh issue close ${{ github.event.issue.number }} --reason completed

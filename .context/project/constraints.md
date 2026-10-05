@@ -13,3 +13,11 @@ Owner directives:
 - Never commit real passwords, access/refresh tokens, mailbox content, HAR/PCAP captures containing private data, or other secrets.
 - Keep the GitHub repository public unless the Owner explicitly changes that policy.
 - Do not accumulate build artifacts in Git; CI should not upload unnecessary artifacts.
+
+Release/install policy:
+
+- First installation is distributed as a single Windows full installer named `MailRuDesktop_Setup_vX.Y.Z.exe`.
+- Subsequent application updates must be distributed as single update installers named `MailRuDesktop_Update_vX.Y.Z.exe`; the user should not need to uninstall/reinstall the full application.
+- Install into the current-user profile under `%LOCALAPPDATA%\\Programs\\MailRuDesktop` so normal installation/update does not require administrator rights.
+- Preserve user settings and working data across update installers.
+- GitHub Release assets are authoritative distributables and must be tied to an immutable version tag.
