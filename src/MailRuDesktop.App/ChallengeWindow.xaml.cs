@@ -28,12 +28,15 @@ public partial class ChallengeWindow : Window
             MailRuChallengeKind.ReCaptcha => "Mail.ru требует reCAPTCHA",
             MailRuChallengeKind.Captcha => "Mail.ru требует CAPTCHA",
             MailRuChallengeKind.TwoFactor => "Mail.ru требует двухфакторную проверку",
+            MailRuChallengeKind.InteractiveLogin => "Подтверждение входа Mail.ru",
             _ => "Дополнительная проверка Mail.ru"
         };
 
-        HintText.Text =
-            "Пройдите проверку вручную в этом окне. MailRu Desktop не передаёт CAPTCHA " +
-            "сторонним сервисам. После успешного входа сессия будет сохранена Windows DPAPI.";
+        HintText.Text = challenge.Kind == MailRuChallengeKind.InteractiveLogin
+            ? "Завершите обычный вход Mail.ru в этом окне. Если Mail.ru запросит CAPTCHA или " +
+              "двухфакторную проверку, пройдите её здесь. После успешного входа сессия будет сохранена."
+            : "Пройдите проверку вручную в этом окне. MailRu Desktop не передаёт CAPTCHA " +
+              "сторонним сервисам. После успешного входа сессия будет сохранена Windows DPAPI.";
 
         Loaded += ChallengeWindow_Loaded;
         Closed += ChallengeWindow_Closed;
