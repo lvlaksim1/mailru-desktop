@@ -26,8 +26,7 @@ public enum MailRuChallengeKind
 {
     ReCaptcha,
     Captcha,
-    TwoFactor,
-    InteractiveLogin
+    TwoFactor
 }
 
 public sealed record MailRuAuthChallenge(
