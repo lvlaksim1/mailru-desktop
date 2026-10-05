@@ -9,7 +9,10 @@ A native Windows desktop mail client built from scratch around reverse-engineere
 - Official Mail.ru mail-client documentation is not a protocol source for this project.
 - Protocol truth comes from observed traffic, verified working legacy code, and independently reverse-engineered implementations.
 - Third-party projects are research sources only; their code is not copied into this product.
-- Secrets, passwords, access tokens, mailbox contents, captures, and binary build artifacts must never be committed.
+- Secrets, passwords, access tokens, mailbox contents, captures, and generated binary build artifacts must never be committed.
+- Repository history must contain source, protocol evidence and genuinely required project assets only.
+- GitHub Actions must not upload build artifacts. Release binaries are published only as release assets.
+- Only the newest binary GitHub Release is retained; older source tags may remain because they are tiny and preserve provenance.
 
 ## Architecture
 
@@ -47,12 +50,28 @@ Current UI:
 
 The password is never persisted. The access token currently lives in process memory only; Windows-protected token persistence is a planned increment.
 
+## Installation and uninstall hygiene
+
+The application is a per-user install and does not require administrator rights.
+
+- Program files: `%LOCALAPPDATA%\Programs\MailRuDesktop`
+- Start-menu shortcut: the current user's Start Menu Programs area.
+- Canonical future runtime data root: `%LOCALAPPDATA%\MailRuDesktop`
+- Compatibility cleanup also covers `%APPDATA%\MailRuDesktop`
+- Canonical app-owned registry root: `HKCU\Software\MailRuDesktop`
+
+The application must not write mutable runtime state into the program directory. Tokens, settings, cache and logs must live only under the application-owned data root above.
+
+Uninstall removes application-installed files and shortcuts, recursively removes both application-owned data roots, and removes the application-owned registry key. Automatic installer logging is disabled so ordinary installs do not leave an Inno Setup log in the user's temp directory.
+
+Windows itself may retain OS-managed forensic/history data such as Prefetch, event logs, download/browser history, or a shortcut the user manually pinned. Those are not application-owned data and are not deleted by the uninstaller.
+
 ## Releases
 
 - First installation: `MailRuDesktop_Setup_vX.Y.Z.exe`
 - Normal upgrades: `MailRuDesktop_Update_vX.Y.Z.exe`
 
-Updates install over the current-user installation and preserve user data.
+Updates install over the current-user installation and preserve application data. Each new release automatically deletes older GitHub Release objects and their large binary assets while preserving the old Git tags.
 
 ## Build
 
@@ -65,7 +84,7 @@ Requirements:
 dotnet build src/MailRuDesktop.App/MailRuDesktop.App.csproj -c Release
 ```
 
-CI performs restore/build only and uploads no unnecessary artifacts.
+CI performs restore/build only and uploads no workflow artifacts. Publish/dist outputs and common binary/archive formats are ignored by Git.
 
 ## Status
 
