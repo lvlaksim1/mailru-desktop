@@ -56,7 +56,7 @@ public static class MailRuEndpointCatalog
 public sealed record MailRuClientOptions
 {
     public Uri BaseUri { get; init; } = new("https://aj-https.mail.ru");
-    public string UserAgent { get; init; } = "mobmail android 11.13.0.29089 ru.mail.mailapp";
+    public string UserAgent { get; init; } = MailRuFixedProfile.UserAgent;
     public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds(30);
 }
 
@@ -66,16 +66,31 @@ public sealed record MailRuAuthResult(
     string? RefreshToken,
     string? ErrorCode)
 {
+    public MailRuAuthState State { get; init; } =
+        Success ? MailRuAuthState.Success : MailRuAuthState.Unknown;
     public string? WebToken { get; init; }
     public string? SearchToken { get; init; }
     public string? WebCookieHeader { get; init; }
     public string? TouchCookieHeader { get; init; }
+    public MailRuAuthChallenge? Challenge { get; init; }
+    public string? DiagnosticReason { get; init; }
 
     public bool HasMailboxCredential =>
         !string.IsNullOrWhiteSpace(AccessToken) ||
-        !string.IsNullOrWhiteSpace(WebToken);
+        !string.IsNullOrWhiteSpace(WebToken) ||
+        !string.IsNullOrWhiteSpace(SearchToken);
 
-    public static MailRuAuthResult Failed(string code) => new(false, null, null, code);
+    public static MailRuAuthResult Failed(
+        string code,
+        MailRuAuthState state = MailRuAuthState.Unknown,
+        string? diagnosticReason = null,
+        MailRuAuthChallenge? challenge = null) =>
+        new(false, null, null, code)
+        {
+            State = state,
+            DiagnosticReason = diagnosticReason,
+            Challenge = challenge
+        };
 }
 
 public sealed record MailRuOutgoingMessage(
@@ -181,28 +196,44 @@ public sealed class MailRuClient : IDisposable
                 mobileError = $"http_{(int)response.StatusCode}";
             }
         }
-        catch (HttpRequestException)
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
         {
             mobileError = "mobile_auth_http_error";
         }
 
-        // Hackus demonstrates that a missing mobile access_token is not necessarily
-        // an authentication failure. Establish the cookie session as a second,
-        // independent credential path and derive touch/web API tokens from it.
+        // Always start the web/touch path from a fresh cookie jar. This is an
+        // independent session and may expose a Mail.ru challenge even when the
+        // mobile endpoint already returned an access token.
         var web = await MailRuWebSessionAuthenticator.AuthenticateAsync(
             login,
             password,
             _options.Timeout,
             cancellationToken).ConfigureAwait(false);
 
-        if (!string.IsNullOrWhiteSpace(accessToken) || web.Success)
+        if (!string.IsNullOrWhiteSpace(accessToken))
         {
             return new MailRuAuthResult(true, accessToken, refreshToken, null)
             {
+                State = MailRuAuthState.Success,
+                WebToken = web.Success ? web.WebToken : null,
+                SearchToken = web.Success ? web.SearchToken : null,
+                WebCookieHeader = web.Success ? web.WebCookieHeader : null,
+                TouchCookieHeader = web.Success ? web.TouchCookieHeader : null,
+                Challenge = web.Challenge,
+                DiagnosticReason = web.DiagnosticReason
+            };
+        }
+
+        if (web.Success)
+        {
+            return new MailRuAuthResult(true, null, null, null)
+            {
+                State = MailRuAuthState.Success,
                 WebToken = web.WebToken,
                 SearchToken = web.SearchToken,
                 WebCookieHeader = web.WebCookieHeader,
-                TouchCookieHeader = web.TouchCookieHeader
+                TouchCookieHeader = web.TouchCookieHeader,
+                DiagnosticReason = web.DiagnosticReason
             };
         }
 
@@ -213,7 +244,45 @@ public sealed class MailRuClient : IDisposable
             error = mobileError ?? "token_missing";
         }
 
-        return MailRuAuthResult.Failed(error);
+        return MailRuAuthResult.Failed(
+            error ?? "unknown_auth_result",
+            web.State,
+            web.DiagnosticReason,
+            web.Challenge);
+    }
+
+    public async Task<MailRuAuthResult> CompleteChallengeAsync(
+        string login,
+        MailRuChallengeCompletion completion,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(login))
+            throw new ArgumentException("Login is required.", nameof(login));
+
+        var web = await MailRuWebSessionAuthenticator.CompleteFromCookieHeadersAsync(
+            login,
+            completion.WebCookieHeader,
+            completion.TouchCookieHeader,
+            _options.Timeout,
+            cancellationToken).ConfigureAwait(false);
+
+        if (!web.Success)
+        {
+            return MailRuAuthResult.Failed(
+                web.ErrorCode ?? "web_session_token_missing",
+                web.State,
+                web.DiagnosticReason);
+        }
+
+        return new MailRuAuthResult(true, null, null, null)
+        {
+            State = MailRuAuthState.Success,
+            WebToken = web.WebToken,
+            SearchToken = web.SearchToken,
+            WebCookieHeader = web.WebCookieHeader,
+            TouchCookieHeader = web.TouchCookieHeader,
+            DiagnosticReason = web.DiagnosticReason
+        };
     }
 
     public async Task<string> GetFolderThreadsAsync(
@@ -336,6 +405,8 @@ public sealed class MailRuClient : IDisposable
         string? subject = null,
         bool attachmentsOnly = false,
         int count = 100,
+        DateTime? dateFrom = null,
+        DateTime? dateTo = null,
         CancellationToken cancellationToken = default)
     {
         RequireToken(searchToken);
@@ -356,21 +427,32 @@ public sealed class MailRuClient : IDisposable
             ["q_query"] = string.IsNullOrWhiteSpace(query) ? null : query,
             ["q_from"] = string.IsNullOrWhiteSpace(sender) ? null : sender,
             ["q_subj"] = string.IsNullOrWhiteSpace(subject) ? null : subject,
-            ["q_attach"] = attachmentsOnly ? "1" : null
+            ["q_attach"] = attachmentsOnly ? "1" : null,
+            ["ddb"] = dateFrom?.Day.ToString(CultureInfo.InvariantCulture),
+            ["dmb"] = dateFrom?.Month.ToString(CultureInfo.InvariantCulture),
+            ["dyb"] = dateFrom?.Year.ToString(CultureInfo.InvariantCulture),
+            ["dde"] = dateTo?.Day.ToString(CultureInfo.InvariantCulture),
+            ["dme"] = dateTo?.Month.ToString(CultureInfo.InvariantCulture),
+            ["dye"] = dateTo?.Year.ToString(CultureInfo.InvariantCulture)
         };
 
         var uri = BuildAbsoluteUri(new Uri("https://touch.mail.ru/cgi-bin/gosearch"), parameters);
         using var request = CreateBrowserRequest(HttpMethod.Get, uri, cookieHeader);
         using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
-        return await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+        if (!response.IsSuccessStatusCode)
+            throw new MailRuProtocolException($"Search request failed with HTTP {(int)response.StatusCode}.");
+
+        return payload;
     }
 
-    public async Task<MailRuCommandResult> MoveTouchMessagesAsync(
+    public async Task<MailRuCommandResult> MoveTouchMessagesToFolderAsync(
         string searchToken,
         string email,
         IReadOnlyCollection<string> ids,
+        int destinationFolderId,
         string? cookieHeader,
-        bool permanentlyDelete = false,
         CancellationToken cancellationToken = default)
     {
         RequireToken(searchToken);
@@ -386,7 +468,40 @@ public sealed class MailRuClient : IDisposable
 
         request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            ["__urlp"] = permanentlyDelete ? "/messages/remove" : "/messages/move",
+            ["__urlp"] = "/messages/move",
+            ["ids"] = JsonSerializer.Serialize(ids),
+            ["folder"] = destinationFolderId.ToString(CultureInfo.InvariantCulture),
+            ["email"] = email,
+            ["htmlencoded"] = "false",
+            ["token"] = searchToken
+        });
+
+        using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        return new MailRuCommandResult(response.IsSuccessStatusCode && HasStatus200(payload), payload);
+    }
+
+    public async Task<MailRuCommandResult> RemoveTouchMessagesAsync(
+        string searchToken,
+        string email,
+        IReadOnlyCollection<string> ids,
+        string? cookieHeader,
+        CancellationToken cancellationToken = default)
+    {
+        RequireToken(searchToken);
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentException("Email is required.", nameof(email));
+        if (ids is null || ids.Count == 0)
+            throw new ArgumentException("At least one message id is required.", nameof(ids));
+
+        using var request = CreateBrowserRequest(
+            HttpMethod.Post,
+            new Uri("https://touch.mail.ru/api/v1"),
+            cookieHeader);
+
+        request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["__urlp"] = "/messages/remove",
             ["ids"] = JsonSerializer.Serialize(ids),
             ["folder"] = "500002",
             ["email"] = email,
@@ -398,6 +513,42 @@ public sealed class MailRuClient : IDisposable
         var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         return new MailRuCommandResult(response.IsSuccessStatusCode && HasStatus200(payload), payload);
     }
+
+    public async Task<byte[]> DownloadIncomingAttachmentAsync(
+        MailRuIncomingAttachment attachment,
+        string? cookieHeader,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(attachment);
+
+        if (!Uri.TryCreate(attachment.DownloadUrl, UriKind.Absolute, out var uri) ||
+            uri.Scheme != Uri.UriSchemeHttps)
+        {
+            throw new MailRuProtocolException("Attachment download URL is not a valid HTTPS URL.");
+        }
+
+        using var request = CreateBrowserRequest(HttpMethod.Get, uri, cookieHeader);
+        using var response = await _http.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            cancellationToken).ConfigureAwait(false);
+
+        if (!response.IsSuccessStatusCode)
+            throw new MailRuProtocolException($"Attachment download failed with HTTP {(int)response.StatusCode}.");
+
+        return await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    public Task<MailRuCommandResult> MoveTouchMessagesAsync(
+        string searchToken,
+        string email,
+        IReadOnlyCollection<string> ids,
+        string? cookieHeader,
+        bool permanentlyDelete = false,
+        CancellationToken cancellationToken = default) =>
+        permanentlyDelete
+            ? RemoveTouchMessagesAsync(searchToken, email, ids, cookieHeader, cancellationToken)
+            : MoveTouchMessagesToFolderAsync(searchToken, email, ids, 500002, cookieHeader, cancellationToken);
 
     public async Task<string> GetContactsTouchAsync(
         string searchToken,
@@ -550,16 +701,13 @@ public sealed class MailRuClient : IDisposable
         return request;
     }
 
-    private static HttpRequestMessage CreateBrowserRequest(
+    private HttpRequestMessage CreateBrowserRequest(
         HttpMethod method,
         Uri uri,
         string? cookieHeader)
     {
         var request = new HttpRequestMessage(method, uri);
-        request.Headers.TryAddWithoutValidation(
-            "User-Agent",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
-            "(KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36");
+        request.Headers.TryAddWithoutValidation("User-Agent", _options.UserAgent);
 
         if (!string.IsNullOrWhiteSpace(cookieHeader))
             request.Headers.TryAddWithoutValidation("Cookie", cookieHeader);
