@@ -53,8 +53,8 @@ public partial class MainWindow : Window
 
         if (!string.IsNullOrWhiteSpace(_authStore.LastLogin))
         {
-            LoginComboBox.Text = _authStore.LastLogin;
             RestoreSavedAuthorization(_authStore.LastLogin);
+            RefreshSavedLogins();
         }
 
         Loaded += MainWindow_Loaded;
@@ -101,13 +101,23 @@ public partial class MainWindow : Window
 
     private void RefreshSavedLogins()
     {
-        var current = LoginComboBox.Text;
+        var current =
+            _activeLogin ??
+            LoginComboBox.SelectedItem as string ??
+            LoginComboBox.Text;
+
         _updatingAccountSelection = true;
         try
         {
-            LoginComboBox.ItemsSource = _authStore.Logins;
-            if (!string.IsNullOrWhiteSpace(current))
-                LoginComboBox.Text = current;
+            var logins = _authStore.Logins;
+            LoginComboBox.ItemsSource = logins;
+
+            if (!string.IsNullOrWhiteSpace(current) &&
+                logins.Contains(current, StringComparer.OrdinalIgnoreCase))
+            {
+                LoginComboBox.SelectedItem = logins.First(login =>
+                    string.Equals(login, current, StringComparison.OrdinalIgnoreCase));
+            }
         }
         finally
         {
