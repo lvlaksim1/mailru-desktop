@@ -195,9 +195,7 @@ public partial class MainWindow : Window
                 var baseRefreshToken = result.RefreshToken;
                 var baseMobileSuccess = result.Success;
 
-                for (var challengeRound = 0;
-                     result.Challenge is not null && challengeRound < 3;
-                     challengeRound++)
+                while (result.Challenge is not null)
                 {
                     AuthStatusText.Text = ChallengeStatus(result.Challenge.Kind);
 
@@ -271,12 +269,6 @@ public partial class MainWindow : Window
                     return;
                 }
 
-                if (result.Challenge is not null && !result.Success)
-                {
-                    AuthStatusText.Text =
-                        "Mail.ru повторно запросил проверку. Запустите добавление аккаунта ещё раз.";
-                    return;
-                }
             }
 
             if (!result.Success)
