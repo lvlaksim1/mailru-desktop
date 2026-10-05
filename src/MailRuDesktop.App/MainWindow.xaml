@@ -1,8 +1,10 @@
 <Window x:Class="MailRuDesktop.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MailRu Desktop" Height="720" Width="1080"
-        MinHeight="580" MinWidth="820">
+        Title="MailRu Desktop"
+        Icon="{StaticResource AppIcon}"
+        Height="760" Width="1180"
+        MinHeight="620" MinWidth="900">
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -34,7 +36,7 @@
                          Grid.Column="1"
                          Margin="0,0,10,0"
                          Padding="8"
-                         ToolTip="Password is kept in memory only"/>
+                         ToolTip="Пароль хранится только в памяти процесса"/>
 
             <Button x:Name="AuthenticateButton"
                     Grid.Column="2"
@@ -50,11 +52,12 @@
         </Grid>
 
         <TabControl Grid.Row="2">
-            <TabItem Header="Папка / protocol view">
+            <TabItem Header="Почта">
                 <Grid Margin="12">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <Grid Grid.Row="0" Margin="0,0,0,12">
@@ -68,7 +71,7 @@
                                  Grid.Column="0"
                                  Padding="8"
                                  Text="0"
-                                 ToolTip="Mail.ru folder numeric id"/>
+                                 ToolTip="Числовой ID папки Mail.ru"/>
 
                         <Button x:Name="LoadFolderButton"
                                 Grid.Column="1"
@@ -77,23 +80,92 @@
                                 Click="LoadFolderButton_Click"
                                 Content="Загрузить папку"/>
 
-                        <TextBlock Grid.Column="2"
+                        <TextBlock x:Name="FolderStatusText"
+                                   Grid.Column="2"
                                    Margin="14,0,0,0"
                                    VerticalAlignment="Center"
                                    Foreground="Gray"
-                                   Text="Сырой A-level threads/status/smart для проверки схемы"/>
+                                   Text="A-level threads/status/smart"/>
                     </Grid>
 
-                    <TextBox x:Name="ResponseTextBox"
-                             Grid.Row="1"
-                             FontFamily="Consolas"
-                             FontSize="13"
-                             AcceptsReturn="True"
-                             AcceptsTab="True"
-                             HorizontalScrollBarVisibility="Auto"
-                             VerticalScrollBarVisibility="Auto"
-                             IsReadOnly="True"
-                             TextWrapping="NoWrap"/>
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="2*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <DataGrid x:Name="MessagesGrid"
+                                  Grid.Column="0"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  SelectionMode="Single"
+                                  HeadersVisibility="Column"
+                                  GridLinesVisibility="Horizontal"
+                                  SelectionChanged="MessagesGrid_SelectionChanged">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="" Width="28" Binding="{Binding UnreadMark}"/>
+                                <DataGridTextColumn Header="Отправитель" Width="180" Binding="{Binding SenderDisplay}"/>
+                                <DataGridTextColumn Header="Тема" Width="*" Binding="{Binding Subject}"/>
+                                <DataGridTextColumn Header="Дата" Width="125" Binding="{Binding DateDisplay}"/>
+                                <DataGridTextColumn Header="" Width="32" Binding="{Binding AttachmentMark}"/>
+                                <DataGridTextColumn Header="" Width="32" Binding="{Binding FlagMark}"/>
+                                <DataGridTextColumn Header="Размер" Width="80" Binding="{Binding SizeDisplay}"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <GridSplitter Grid.Column="1"
+                                      Width="8"
+                                      HorizontalAlignment="Stretch"
+                                      VerticalAlignment="Stretch"/>
+
+                        <Border Grid.Column="2"
+                                BorderBrush="#D6DCE5"
+                                BorderThickness="1"
+                                Padding="16">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel>
+                                    <TextBlock x:Name="SelectedSubjectText"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               TextWrapping="Wrap"
+                                               Text="Выберите письмо"/>
+                                    <TextBlock x:Name="SelectedSenderText"
+                                               Margin="0,8,0,0"
+                                               FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="SelectedDateText"
+                                               Margin="0,3,0,0"
+                                               Foreground="Gray"/>
+                                    <Separator Margin="0,12,0,12"/>
+                                    <TextBlock x:Name="SelectedSnippetText"
+                                               TextWrapping="Wrap"/>
+                                    <TextBlock x:Name="SelectedMetaText"
+                                               Margin="0,14,0,0"
+                                               Foreground="Gray"
+                                               TextWrapping="Wrap"/>
+                                    <TextBlock Margin="0,18,0,0"
+                                               Foreground="#8A5A00"
+                                               TextWrapping="Wrap"
+                                               Text="Полное тело письма пока не запрашивается: endpoint чтения ещё не переведён в уровень A."/>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Border>
+                    </Grid>
+
+                    <Expander Grid.Row="2"
+                              Margin="0,10,0,0"
+                              Header="Диагностика · raw JSON">
+                        <TextBox x:Name="ResponseTextBox"
+                                 Height="170"
+                                 FontFamily="Consolas"
+                                 FontSize="12"
+                                 AcceptsReturn="True"
+                                 AcceptsTab="True"
+                                 HorizontalScrollBarVisibility="Auto"
+                                 VerticalScrollBarVisibility="Auto"
+                                 IsReadOnly="True"
+                                 TextWrapping="NoWrap"/>
+                    </Expander>
                 </Grid>
             </TabItem>
 

@@ -1,5 +1,7 @@
 using System.IO;
+using System.Reflection;
 using System.Windows;
+using System.Windows.Controls;
 using MailRuDesktop.Protocol;
 using Microsoft.Win32;
 
@@ -14,6 +16,13 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        var version = Assembly.GetExecutingAssembly().GetName().Version;
+        var displayVersion = version is null
+            ? "dev"
+            : $"{version.Major}.{version.Minor}.{Math.Max(version.Build, 0)}";
+        Title = $"MailRu Desktop v{displayVersion}";
+
         Closed += (_, _) => _mailRu.Dispose();
     }
 
@@ -69,20 +78,73 @@ public partial class MainWindow : Window
         }
 
         LoadFolderButton.IsEnabled = false;
-        ResponseTextBox.Text = "Загрузка...";
+        FolderStatusText.Text = "Загрузка...";
+        MessagesGrid.ItemsSource = null;
+        ClearSelectedMessage();
 
         try
         {
-            ResponseTextBox.Text = await _mailRu.GetFolderThreadsAsync(_accessToken, folderId);
+            var raw = await _mailRu.GetFolderThreadsAsync(_accessToken, folderId);
+            ResponseTextBox.Text = raw;
+
+            var snapshot = MailRuThreadStatusParser.Parse(raw);
+            MessagesGrid.ItemsSource = snapshot.Messages;
+
+            var total = snapshot.MessagesTotal?.ToString() ?? "?";
+            var unread = snapshot.MessagesUnread?.ToString() ?? "?";
+            FolderStatusText.Text =
+                $"Всего: {total} · непрочитанных: {unread} · разобрано: {snapshot.Messages.Count}";
+
+            if (snapshot.Messages.Count > 0)
+                MessagesGrid.SelectedIndex = 0;
+            else
+                SelectedSubjectText.Text = "Письма не распознаны — смотрите raw JSON";
         }
         catch (Exception ex)
         {
+            FolderStatusText.Text = "Ошибка";
             ResponseTextBox.Text = ex.Message;
         }
         finally
         {
             LoadFolderButton.IsEnabled = true;
         }
+    }
+
+    private void MessagesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message)
+        {
+            ClearSelectedMessage();
+            return;
+        }
+
+        SelectedSubjectText.Text = message.Subject;
+        SelectedSenderText.Text = string.IsNullOrWhiteSpace(message.SenderEmail)
+            ? message.SenderDisplay
+            : $"{message.SenderDisplay} <{message.SenderEmail}>";
+        SelectedDateText.Text = message.DateDisplay;
+        SelectedSnippetText.Text = message.Snippet;
+
+        var markers = new List<string>();
+        if (message.Unread) markers.Add("непрочитано");
+        if (message.Flagged) markers.Add("помечено");
+        if (message.HasAttachment) markers.Add("есть вложения");
+
+        SelectedMetaText.Text =
+            $"ID: {message.Id}" +
+            (message.FolderId is null ? string.Empty : $" · папка: {message.FolderId}") +
+            (string.IsNullOrWhiteSpace(message.SizeDisplay) ? string.Empty : $" · {message.SizeDisplay}") +
+            (markers.Count == 0 ? string.Empty : $" · {string.Join(", ", markers)}");
+    }
+
+    private void ClearSelectedMessage()
+    {
+        SelectedSubjectText.Text = "Выберите письмо";
+        SelectedSenderText.Text = string.Empty;
+        SelectedDateText.Text = string.Empty;
+        SelectedSnippetText.Text = string.Empty;
+        SelectedMetaText.Text = string.Empty;
     }
 
     private void AttachButton_Click(object sender, RoutedEventArgs e)
