@@ -219,153 +219,170 @@ internal static class MailRuWebSessionAuthenticator
         string? reCaptchaToken,
         CancellationToken cancellationToken)
     {
-        await session.WaitBeforeRequestAsync(cancellationToken).ConfigureAwait(false);
+        var attempts = reCaptchaToken is null ? 1 : 3;
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, AjAuthUri);
-        request.Headers.TryAddWithoutValidation("User-Agent", MailRuFixedProfile.UserAgent);
-
-        var form = new Dictionary<string, string>
+        for (var attempt = 0; attempt < attempts; attempt++)
         {
-            ["Login"] = session.Login,
-            ["Password"] = session.Password
-        };
-        if (!string.IsNullOrWhiteSpace(reCaptchaToken))
-            form["g-recaptcha-response"] = reCaptchaToken;
+            await session.WaitBeforeRequestAsync(cancellationToken).ConfigureAwait(false);
 
-        request.Content = new FormUrlEncodedContent(form);
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Post, AjAuthUri);
+                request.Headers.TryAddWithoutValidation("User-Agent", MailRuFixedProfile.UserAgent);
 
-        HttpResponseMessage response;
-        try
-        {
-            response = await session.Http.SendAsync(
-                request,
-                HttpCompletionOption.ResponseHeadersRead,
-                cancellationToken).ConfigureAwait(false);
-        }
-        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
-        {
-            return MailRuWebSessionResult.Failed(
-                MailRuAuthState.NetworkError,
-                "web_auth_http_error",
-                ex.GetType().Name,
-                pendingSessionId: session.Id);
-        }
+                var form = new Dictionary<string, string>
+                {
+                    ["Login"] = session.Login,
+                    ["Password"] = session.Password
+                };
 
-        string location;
-        string payload;
-        int statusCode;
+                if (reCaptchaToken is not null)
+                    form["g-recaptcha-response"] = reCaptchaToken;
 
-        using (response)
-        {
-            statusCode = (int)response.StatusCode;
-            location = response.Headers.Location?.ToString() ?? string.Empty;
-            payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-        }
+                request.Content = new FormUrlEncodedContent(form);
 
-        var combined = location + "\n" + payload;
+                using var response = await session.Http.SendAsync(
+                    request,
+                    HttpCompletionOption.ResponseHeadersRead,
+                    cancellationToken).ConfigureAwait(false);
 
-        if (combined.Contains("user is blocked", StringComparison.OrdinalIgnoreCase) ||
-            combined.Contains("blocked", StringComparison.OrdinalIgnoreCase) ||
-            location.Contains("ukey", StringComparison.OrdinalIgnoreCase))
-        {
-            return MailRuWebSessionResult.Failed(
-                MailRuAuthState.Blocked,
-                "account_blocked",
-                $"blocked; http={statusCode}; redirect={SanitizeLocation(location)}",
-                pendingSessionId: session.Id);
-        }
+                var location = response.Headers.Location?.ToString() ?? string.Empty;
+                session.LastLocation = location;
 
-        if (location.Contains("recovery", StringComparison.OrdinalIgnoreCase))
-        {
-            return MailRuWebSessionResult.Failed(
-                MailRuAuthState.RecoveryRequired,
-                "account_recovery_required",
-                $"recovery; http={statusCode}; redirect={SanitizeLocation(location)}",
-                pendingSessionId: session.Id);
-        }
+                // Ordering intentionally mirrors Hackus CreateSession().
+                if (location.Contains("user/login?login", StringComparison.OrdinalIgnoreCase))
+                {
+                    var kind = await ClassifyChallengeAsync(session, cancellationToken).ConfigureAwait(false);
 
-        if (combined.Contains("recaptcha", StringComparison.OrdinalIgnoreCase))
-        {
-            var challengeUrl = NormalizeChallengeUrl(location, "https://account.mail.ru/");
-            var diagnostic =
-                $"recaptcha; http={statusCode}; redirect={SanitizeLocation(challengeUrl)}";
+                    if (kind == MailRuChallengeKind.TwoFactor)
+                    {
+                        return MailRuWebSessionResult.Failed(
+                            MailRuAuthState.TwoFactor,
+                            "two_factor_required",
+                            $"two_factor; redirect={SanitizeLocation(location)}",
+                            pendingSessionId: session.Id);
+                    }
 
-            session.Kind = MailRuChallengeKind.ReCaptcha;
+                    var challenge = await BuildImageCaptchaChallengeAsync(
+                        session,
+                        cancellationToken).ConfigureAwait(false);
 
-            var challenge = new MailRuAuthChallenge(
-                MailRuChallengeKind.ReCaptcha,
-                challengeUrl,
-                BuildSeedCookieHeader(session.Cookies, challengeUrl),
-                diagnostic,
-                session.Id);
+                    if (challenge is null)
+                    {
+                        return MailRuWebSessionResult.Failed(
+                            MailRuAuthState.ProtocolError,
+                            "captcha_image_missing",
+                            "hackus_get_captcha_image_failed",
+                            pendingSessionId: session.Id);
+                    }
 
-            return MailRuWebSessionResult.Failed(
-                MailRuAuthState.ReCaptcha,
-                "recaptcha_required",
-                diagnostic,
-                challenge,
-                session.Id);
-        }
+                    session.Kind = MailRuChallengeKind.Captcha;
+                    session.LastChallenge = challenge;
 
-        if (location.Contains("user/login?login", StringComparison.OrdinalIgnoreCase))
-        {
-            var kind = await ClassifyChallengeAsync(session, cancellationToken).ConfigureAwait(false);
-            var state = kind == MailRuChallengeKind.Captcha
-                ? MailRuAuthState.Captcha
-                : MailRuAuthState.TwoFactor;
-            var code = kind == MailRuChallengeKind.Captcha
-                ? "captcha_required"
-                : "two_factor_required";
-            var challengeUrl = NormalizeChallengeUrl(location, "https://account.mail.ru/");
-            var diagnostic =
-                $"{kind}; http={statusCode}; redirect={SanitizeLocation(challengeUrl)}";
+                    return MailRuWebSessionResult.Failed(
+                        MailRuAuthState.Captcha,
+                        "captcha_required",
+                        $"captcha; redirect={SanitizeLocation(location)}",
+                        challenge,
+                        session.Id);
+                }
 
-            session.Kind = kind;
+                if (location.Contains("recaptcha", StringComparison.OrdinalIgnoreCase))
+                {
+                    var challengeUrl = NormalizeChallengeUrl(
+                        location,
+                        "https://account.mail.ru/");
 
-            var challenge = new MailRuAuthChallenge(
-                kind,
-                challengeUrl,
-                BuildSeedCookieHeader(session.Cookies, challengeUrl),
-                diagnostic,
-                session.Id);
+                    var siteKey = await GetReCaptchaSiteKeyAsync(
+                        session,
+                        challengeUrl,
+                        cancellationToken).ConfigureAwait(false);
 
-            return MailRuWebSessionResult.Failed(
-                state,
-                code,
-                diagnostic,
-                challenge,
-                session.Id);
-        }
+                    if (string.IsNullOrWhiteSpace(siteKey))
+                    {
+                        return MailRuWebSessionResult.Failed(
+                            MailRuAuthState.ProtocolError,
+                            "recaptcha_sitekey_missing",
+                            $"recaptcha_sitekey_missing; redirect={SanitizeLocation(challengeUrl)}",
+                            pendingSessionId: session.Id);
+                    }
 
-        if (location.Contains("inbox", StringComparison.OrdinalIgnoreCase))
-        {
-            return new MailRuWebSessionResult(
-                true,
-                MailRuAuthState.Success,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                $"auth_redirected_to_inbox; http={statusCode}",
-                session.Id);
-        }
+                    var challenge = new MailRuAuthChallenge(
+                        MailRuChallengeKind.ReCaptcha,
+                        challengeUrl,
+                        BuildSeedCookieHeader(session.Cookies, challengeUrl),
+                        $"recaptcha; redirect={SanitizeLocation(challengeUrl)}",
+                        session.Id,
+                        siteKey);
 
-        if (combined.Contains("invalid username or password", StringComparison.OrdinalIgnoreCase) ||
-            location.Contains("fail", StringComparison.OrdinalIgnoreCase))
-        {
-            return MailRuWebSessionResult.Failed(
-                MailRuAuthState.InvalidCredentials,
-                "invalid_credentials",
-                $"credentials_rejected; http={statusCode}; redirect={SanitizeLocation(location)}",
-                pendingSessionId: session.Id);
+                    session.Kind = MailRuChallengeKind.ReCaptcha;
+                    session.LastChallenge = challenge;
+
+                    return MailRuWebSessionResult.Failed(
+                        MailRuAuthState.ReCaptcha,
+                        "recaptcha_required",
+                        challenge.DiagnosticReason,
+                        challenge,
+                        session.Id);
+                }
+
+                if (location.Contains("fail", StringComparison.OrdinalIgnoreCase))
+                {
+                    return MailRuWebSessionResult.Failed(
+                        MailRuAuthState.InvalidCredentials,
+                        "invalid_credentials",
+                        $"location={SanitizeLocation(location)}",
+                        pendingSessionId: session.Id);
+                }
+
+                if (location.Contains("recovery", StringComparison.OrdinalIgnoreCase) ||
+                    location.Contains("ukey", StringComparison.OrdinalIgnoreCase))
+                {
+                    return MailRuWebSessionResult.Failed(
+                        MailRuAuthState.Blocked,
+                        "account_blocked",
+                        $"location={SanitizeLocation(location)}",
+                        pendingSessionId: session.Id);
+                }
+
+                if (location.Contains("inbox", StringComparison.OrdinalIgnoreCase))
+                {
+                    return new MailRuWebSessionResult(
+                        true,
+                        MailRuAuthState.Success,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        $"location={SanitizeLocation(location)}",
+                        session.Id);
+                }
+
+                return MailRuWebSessionResult.Failed(
+                    MailRuAuthState.ProtocolError,
+                    "unknown_auth_result",
+                    $"location={SanitizeLocation(location)}",
+                    pendingSessionId: session.Id);
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                if (attempt + 1 >= attempts)
+                {
+                    return MailRuWebSessionResult.Failed(
+                        MailRuAuthState.NetworkError,
+                        "web_auth_http_error",
+                        ex.GetType().Name,
+                        pendingSessionId: session.Id);
+                }
+            }
         }
 
         return MailRuWebSessionResult.Failed(
-            MailRuAuthState.Unknown,
-            "unknown_auth_result",
-            $"unknown_auth_result; http={statusCode}; redirect={SanitizeLocation(location)}; body={SanitizeBodyHint(payload)}",
+            MailRuAuthState.NetworkError,
+            "web_auth_http_error",
+            "create_session_retry_exhausted",
             pendingSessionId: session.Id);
     }
 
