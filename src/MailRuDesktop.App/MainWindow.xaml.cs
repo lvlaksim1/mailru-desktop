@@ -23,6 +23,7 @@ public partial class MainWindow : Window
     private bool _loadingFolder;
     private bool _updatingFolderSelection;
     private bool _updatingAccountSelection;
+    private bool _lastFolderUsedTouchSearch;
 
     public MainWindow()
     {
@@ -225,7 +226,9 @@ public partial class MainWindow : Window
             var raw = await LoadFolderRawAsync(folderId);
             ResponseTextBox.Text = raw;
 
-            var snapshot = MailRuThreadStatusParser.Parse(raw, folderId);
+            var snapshot = _lastFolderUsedTouchSearch
+                ? MailRuTouchSearchParser.Parse(raw)
+                : MailRuThreadStatusParser.Parse(raw, folderId);
             _currentFolderId = snapshot.SelectedFolderId ?? folderId;
             MessagesGrid.ItemsSource = snapshot.Messages;
 
@@ -406,7 +409,9 @@ public partial class MainWindow : Window
 
     private async Task<string> LoadFolderRawAsync(int folderId)
     {
+        _lastFolderUsedTouchSearch = false;
         Exception? mobileFailure = null;
+        Exception? webFailure = null;
 
         if (!string.IsNullOrWhiteSpace(_accessToken))
         {
@@ -423,17 +428,33 @@ public partial class MainWindow : Window
         if (!string.IsNullOrWhiteSpace(_webToken) &&
             !string.IsNullOrWhiteSpace(_activeLogin))
         {
-            return await _mailRu.GetFolderThreadsWebAsync(
-                _webToken,
-                _activeLogin,
-                _webCookieHeader,
-                folderId);
+            try
+            {
+                return await _mailRu.GetFolderThreadsWebAsync(
+                    _webToken,
+                    _activeLogin,
+                    _webCookieHeader,
+                    folderId);
+            }
+            catch (Exception ex)
+            {
+                webFailure = ex;
+            }
         }
 
-        if (mobileFailure is not null)
-            throw mobileFailure;
+        if (!string.IsNullOrWhiteSpace(_searchToken) &&
+            !string.IsNullOrWhiteSpace(_activeLogin))
+        {
+            _lastFolderUsedTouchSearch = true;
+            return await _mailRu.SearchTouchAsync(
+                _searchToken,
+                _activeLogin,
+                _touchCookieHeader,
+                query: "*",
+                count: 200);
+        }
 
-        throw new InvalidOperationException(
+        throw webFailure ?? mobileFailure ?? new InvalidOperationException(
             "Для этой сохранённой сессии нет доступного токена списка писем. Выполните вход ещё раз.");
     }
 
