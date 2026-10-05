@@ -4,21 +4,16 @@ This is a convenience/emergency summary, not the primary manager continuity mech
 
 ## Last completed work
 
-Created `lvlaksim1/mailru-desktop` through Repo Factory with the Project Manager profile and published the initial native/protocol bootstrap.
+Created and published the first Windows release channel.
 
-Current product commit: `1420d1619c16deb2dce150cd8882ee86431b2465`.
+Release-pipeline commit: `0cc323a0e8c9a409261b2e7a1bbf809bd3145295`.
 
-Implemented:
+GitHub Release `v0.1.0` contains:
 
-- .NET 8 + WPF native application;
-- isolated `MailRuDesktop.Protocol` transport;
-- A/B/C reverse endpoint registry;
-- A-level auth, smart thread status, attachment upload, send and schedule transports;
-- login and raw folder probe UI;
-- compose UI with multi-file attachment upload and immediate send;
-- public Windows CI with no artifact upload.
+- `MailRuDesktop_Setup_v0.1.0.exe` — full first-install package;
+- `MailRuDesktop_Update_v0.1.0.exe` — in-place update package.
 
-Latest product CI run `37335834260` completed successfully.
+The installer targets `%LOCALAPPDATA%\Programs\MailRuDesktop` and does not require administrator rights for normal installation. The update package refuses to act as a first installer when the application is absent.
 
 ## Verified current state
 
@@ -26,6 +21,8 @@ The application compiles on Windows. The compose flow is wired only to A-level v
 
 The project intentionally does not use IMAP/SMTP or app-specific passwords and does not treat official Mail.ru mail-client documentation as protocol authority.
 
+The Owner requires subsequent updates to be delivered as update installers rather than requiring full reinstall.
+
 ## Next operation
 
-Implement typed smart-thread parsing and structured mailbox rendering, then ingest fresh traffic evidence to validate full-message and mutation endpoint families.
+Implement typed smart-thread parsing and structured mailbox rendering, then ingest fresh traffic evidence to validate full-message and mutation endpoint families. Preserve the established update-installer release path for every new version.

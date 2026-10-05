@@ -47,3 +47,19 @@ statement: Product commit `1420d1619c16deb2dce150cd8882ee86431b2465` adds a comp
 source: product commit `1420d1619c16deb2dce150cd8882ee86431b2465`; CI run `37335834260`.
 authority: verified-ci
 supersedes: none
+
+## B-007 — installer and update policy is implemented
+
+statement: First installation is distributed as `MailRuDesktop_Setup_vX.Y.Z.exe`; subsequent releases must provide `MailRuDesktop_Update_vX.Y.Z.exe` for in-place update without uninstall/reinstall. Both are produced by the repository release workflow and published as GitHub Release assets.
+
+source: direct Owner directive; repository commit `0cc323a0e8c9a409261b2e7a1bbf809bd3145295`; GitHub Release `v0.1.0`.
+authority: owner-directive + verified-repository
+supersedes: no previous release packaging policy
+
+## B-008 — v0.1.0 release published
+
+statement: GitHub Release `v0.1.0` is published with a full installer and update installer. The full installer asset is `MailRuDesktop_Setup_v0.1.0.exe` (51,038,338 bytes, SHA-256 `4be3fbd03c72b55dbfdd1999d44b8834c988f90551c14631db36639366aa821c`). The update installer asset is `MailRuDesktop_Update_v0.1.0.exe` (51,038,697 bytes, SHA-256 `978c9753a3237668bcdeaa6d706a931d25872a3f8041fe6df8bc24bfd253bf43`).
+
+source: GitHub Release API for release id `403897280`.
+authority: verified-repository
+supersedes: none

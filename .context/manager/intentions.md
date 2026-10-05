@@ -31,3 +31,11 @@ status: completed
 commitment: Wire immediate compose and multi-file attachment upload to the locally verified `aj-https.mail.ru` transport without enabling unverified mutation/search routes.
 
 verification: product commit `1420d1619c16deb2dce150cd8882ee86431b2465`; CI run `37335834260` concluded success.
+
+## I-005 — establish installer/update release channel
+
+status: completed
+
+commitment: Produce a full Windows installer for first installation and establish a durable release workflow where future versions are delivered as update installers for existing installations.
+
+verification: repository commit `0cc323a0e8c9a409261b2e7a1bbf809bd3145295`; GitHub Release `v0.1.0` contains both `MailRuDesktop_Setup_v0.1.0.exe` and `MailRuDesktop_Update_v0.1.0.exe`.
