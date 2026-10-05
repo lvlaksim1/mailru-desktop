@@ -5,32 +5,25 @@ Visibility: public
 Product authority: `main`
 Manager-state authority: `main`
 
-Current public release: `v0.1.6`
+Current public release: `v0.1.7`
 
 Verified release evidence:
 
-- product CI for v0.1.6 head `40d032d583773d17ed2d560edf87ef446cad493e` — success
-- release workflow `37375038704` — success
-- release assets: `MailRuDesktop_Setup_v0.1.6.exe` and `MailRuDesktop_Update_v0.1.6.exe`
+- product CI run `37379908035` — success
+- release workflow `37380041150` — success
+- release assets: `MailRuDesktop_Setup_v0.1.7.exe` and `MailRuDesktop_Update_v0.1.7.exe`
 - GitHub Actions artifacts: none
 - older binary Releases pruned; source tags retained
 
-v0.1.6 product state:
+v0.1.7 authorization change:
 
-- user-visible touch-session dependency removed from normal UX;
-- full-message reading prefers e.mail.ru web token/cookies and falls back to touch internally;
-- full-message parser supports nested web body shapes and attachment metadata;
-- attachment download prefers web-session cookies and preserves original filename/MIME;
-- message move/delete prefer e.mail.ru web-session operations, with touch fallback;
-- filters are integrated above the message list; separate Search tab removed;
-- permanent delete button is absent outside Trash; the Trash button becomes “Удалить навсегда” inside folder 500002;
-- account UI is now saved-account selector + “Добавить аккаунт” modal login/password form;
-- large in-window MailRu Desktop title removed;
-- Settings tab added with System/Light/Dark theme persisted across restarts;
-- WebView reader explicitly follows selected theme and no longer defaults to an unexpected black background in light mode;
-- CAPTCHA/challenge classification precedes generic invalid-password classification;
-- disputed aj/web invalid-password results after mobile token-missing fall back to interactive real Mail.ru browser login instead of reporting a false bad password;
-- interactive login/challenge uses a fresh isolated WebView2 session and supports CAPTCHA/2FA in the real Mail.ru flow;
-- passwords remain unsaved; durable authorization state remains DPAPI-protected.
+- challenge handling now preserves the original `HttpClient + HttpClientHandler + CookieContainer` across the whole login flow;
+- a pending auth session is retained in memory until CAPTCHA/2FA completes or expires;
+- WebView2 only supplies the user's manual challenge result and resulting Mail.ru cookies back into that original session;
+- for reCAPTCHA, the client attempts to read `g-recaptcha-response` from the challenge page and repeats `POST https://aj-https.mail.ru/cgi-bin/auth` with that response, matching the Hackus continuation step while keeping the same cookie jar;
+- after challenge completion, web token and touch token are derived using that same original cookie session;
+- browser-result cookies from account/mail/e/touch/aj hosts are merged back into the original cookie container before validation;
+- repeated Mail.ru challenges can be handled for several rounds in the same logical login flow;
+- auth-related HTTP calls in this continuation flow are spaced by at least five seconds.
 
-Runtime data: `%LOCALAPPDATA%\MailRuDesktop`.
+The v0.1.6 mailbox/UI changes remain in place: web-first full-message/attachment operations, integrated filters, modal Add Account, theme settings, Trash-only permanent delete, and DPAPI-protected saved authorization.
