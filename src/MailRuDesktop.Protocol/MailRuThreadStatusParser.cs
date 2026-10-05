@@ -229,7 +229,8 @@ public static class MailRuThreadStatusParser
                 continue;
             }
 
-            result.Add(ParseBaseMessage(threadId, message));
+            var messageId = TryReadId(message, out var nestedId) ? nestedId : threadId;
+            result.Add(ParseBaseMessage(messageId, message));
         }
 
         return result;
@@ -274,7 +275,8 @@ public static class MailRuThreadStatusParser
         if (thread.TryGetProperty("base_message", out var baseMessage) &&
             baseMessage.ValueKind == JsonValueKind.Object)
         {
-            result.Add(ParseBaseMessage(threadId, baseMessage));
+            var messageId = TryReadId(baseMessage, out var nestedId) ? nestedId : threadId;
+            result.Add(ParseBaseMessage(messageId, baseMessage));
             return;
         }
 
