@@ -30,6 +30,7 @@ internal static class MailRuWebSessionAuthenticator
 {
     private static readonly Uri AjAuthUri = new("https://aj-https.mail.ru/cgi-bin/auth");
     private static readonly Uri AccountCopperUri = new("https://account.mail.ru/api/v1/user/copper");
+    private static readonly Uri CaptchaImageUri = new("https://c.mail.ru/c/6");
     private static readonly Uri InboxUri = new("https://e.mail.ru/inbox/");
     private static readonly Uri TouchTokensUri = new("https://touch.mail.ru/api/v1/tokens");
 
@@ -61,29 +62,6 @@ internal static class MailRuWebSessionAuthenticator
             return initial;
 
         return initial with { PendingSessionId = sessionId };
-    }
-
-    public static MailRuAuthChallenge? PromotePendingSessionToInteractiveLogin(
-        string pendingSessionId,
-        string login,
-        string diagnostic)
-    {
-        if (!Pending.TryGetValue(pendingSessionId, out var session))
-            return null;
-
-        var url =
-            "https://account.mail.ru/login?to=" +
-            Uri.EscapeDataString("https://e.mail.ru/inbox/") +
-            "&login=" + Uri.EscapeDataString(login);
-
-        session.Kind = MailRuChallengeKind.InteractiveLogin;
-
-        return new MailRuAuthChallenge(
-            MailRuChallengeKind.InteractiveLogin,
-            url,
-            BuildSeedCookieHeader(session.Cookies, url),
-            diagnostic,
-            pendingSessionId);
     }
 
     public static void ReleaseSession(string? sessionId)
