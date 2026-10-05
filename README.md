@@ -29,7 +29,10 @@ The UI is intentionally thin. Mail.ru protocol behavior must stay testable witho
 Implemented in the protocol layer:
 
 - mobile-style authentication through `aj-https.mail.ru/cgi-bin/auth`;
+- Hackus-derived cookie-session fallback when the mobile response has no `access_token`;
+- touch/web token derivation for cookie sessions;
 - folder/thread status through `/api/v1/m/threads/status/smart`;
+- web-thread and touch-search fallbacks for accounts without a mobile access token;
 - tolerant parsing of the currently observed smart-thread response;
 - attachment upload through `/api/v1/messages/attaches/add`;
 - send through `/api/v1/messages/send`;
@@ -37,8 +40,9 @@ Implemented in the protocol layer:
 
 Current UI:
 
-- login using the verified mobile-style auth flow;
-- structured mailbox list for a numeric folder id;
+- login using the verified mobile-style auth flow with cookie-session fallback;
+- saved-account selector with Windows-protected authorization state;
+- real folder sidebar for the verified smart response;
 - sender, subject, date, size, unread/star/attachment indicators;
 - metadata/snippet preview for the selected item;
 - expandable raw JSON diagnostics for reverse-engineering;
@@ -48,7 +52,7 @@ Current UI:
 - version shown in the native window title;
 - project-owned cloud/envelope application mark.
 
-The password is never persisted. The access token currently lives in process memory only; Windows-protected token persistence is a planned increment.
+The password is never persisted. Access, refresh, web and touch tokens plus session cookie headers are protected with Windows DPAPI for the current Windows user and survive application restarts and update installs.
 
 ## Installation and uninstall hygiene
 
@@ -56,7 +60,7 @@ The application is a per-user install and does not require administrator rights.
 
 - Program files: `%LOCALAPPDATA%\Programs\MailRuDesktop`
 - Start-menu shortcut: the current user's Start Menu Programs area.
-- Canonical future runtime data root: `%LOCALAPPDATA%\MailRuDesktop`
+- Runtime data root: `%LOCALAPPDATA%\MailRuDesktop`
 - Compatibility cleanup also covers `%APPDATA%\MailRuDesktop`
 - Canonical app-owned registry root: `HKCU\Software\MailRuDesktop`
 
