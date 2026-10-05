@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Net;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -13,14 +14,16 @@ internal sealed record MailRuWebSessionResult(
     string? TouchCookieHeader,
     string? ErrorCode,
     MailRuAuthChallenge? Challenge,
-    string? DiagnosticReason)
+    string? DiagnosticReason,
+    string? PendingSessionId = null)
 {
     public static MailRuWebSessionResult Failed(
         MailRuAuthState state,
         string code,
         string? diagnostic = null,
-        MailRuAuthChallenge? challenge = null) =>
-        new(false, state, null, null, null, null, code, challenge, diagnostic);
+        MailRuAuthChallenge? challenge = null,
+        string? pendingSessionId = null) =>
+        new(false, state, null, null, null, null, code, challenge, diagnostic, pendingSessionId);
 }
 
 internal static class MailRuWebSessionAuthenticator
@@ -30,40 +33,161 @@ internal static class MailRuWebSessionAuthenticator
     private static readonly Uri InboxUri = new("https://e.mail.ru/inbox/");
     private static readonly Uri TouchTokensUri = new("https://touch.mail.ru/api/v1/tokens");
 
+    private static readonly ConcurrentDictionary<string, PendingSession> Pending = new();
+    private static readonly TimeSpan PendingLifetime = TimeSpan.FromMinutes(15);
+
     public static async Task<MailRuWebSessionResult> AuthenticateAsync(
         string login,
         string password,
         TimeSpan timeout,
         CancellationToken cancellationToken)
     {
-        // Deliberately start every login attempt with a brand-new cookie jar.
-        // A failed challenge must never contaminate a later login attempt.
-        var cookies = new CookieContainer();
-        using var handler = new HttpClientHandler
-        {
-            AllowAutoRedirect = false,
-            UseCookies = true,
-            CookieContainer = cookies,
-            AutomaticDecompression = DecompressionMethods.All
-        };
-        using var http = new HttpClient(handler)
-        {
-            Timeout = timeout
-        };
+        CleanupExpired();
 
-        using var authRequest = new HttpRequestMessage(HttpMethod.Post, AjAuthUri);
-        authRequest.Headers.TryAddWithoutValidation("User-Agent", MailRuFixedProfile.UserAgent);
-        authRequest.Content = new FormUrlEncodedContent(new Dictionary<string, string>
-        {
-            ["Login"] = login,
-            ["Password"] = password
-        });
+        var sessionId = Guid.NewGuid().ToString("N");
+        var session = new PendingSession(sessionId, login, password, timeout);
+        Pending[sessionId] = session;
 
-        HttpResponseMessage authResponse;
+        var initial = await CreateSessionAsync(session, null, cancellationToken).ConfigureAwait(false);
+
+        if (initial.Success)
+        {
+            var result = await DeriveTokensFromSameSessionAsync(session, cancellationToken).ConfigureAwait(false);
+            ReleaseSession(sessionId);
+            return result;
+        }
+
+        if (initial.Challenge is not null)
+            return initial;
+
+        return initial with { PendingSessionId = sessionId };
+    }
+
+    public static MailRuAuthChallenge? PromotePendingSessionToInteractiveLogin(
+        string pendingSessionId,
+        string login,
+        string diagnostic)
+    {
+        if (!Pending.TryGetValue(pendingSessionId, out var session))
+            return null;
+
+        var url =
+            "https://account.mail.ru/login?to=" +
+            Uri.EscapeDataString("https://e.mail.ru/inbox/") +
+            "&login=" + Uri.EscapeDataString(login);
+
+        session.Kind = MailRuChallengeKind.InteractiveLogin;
+
+        return new MailRuAuthChallenge(
+            MailRuChallengeKind.InteractiveLogin,
+            url,
+            BuildSeedCookieHeader(session.Cookies, url),
+            diagnostic,
+            pendingSessionId);
+    }
+
+    public static void ReleaseSession(string? sessionId)
+    {
+        if (string.IsNullOrWhiteSpace(sessionId))
+            return;
+
+        if (Pending.TryRemove(sessionId, out var session))
+            session.Dispose();
+    }
+
+    public static async Task<MailRuWebSessionResult> CompleteChallengeAsync(
+        string login,
+        MailRuChallengeCompletion completion,
+        CancellationToken cancellationToken)
+    {
+        CleanupExpired();
+
+        if (!Pending.TryGetValue(completion.SessionId, out var session))
+        {
+            return MailRuWebSessionResult.Failed(
+                MailRuAuthState.ProtocolError,
+                "challenge_session_expired",
+                "pending_auth_session_not_found");
+        }
+
+        if (!string.Equals(session.Login, login, StringComparison.OrdinalIgnoreCase))
+        {
+            ReleaseSession(completion.SessionId);
+            return MailRuWebSessionResult.Failed(
+                MailRuAuthState.ProtocolError,
+                "challenge_session_mismatch",
+                "pending_auth_login_mismatch");
+        }
+
+        MergeBrowserCookies(session.Cookies, completion);
+
         try
         {
-            authResponse = await http.SendAsync(
-                authRequest,
+            if (session.Kind == MailRuChallengeKind.ReCaptcha &&
+                !string.IsNullOrWhiteSpace(completion.ReCaptchaResponse))
+            {
+                var continued = await CreateSessionAsync(
+                    session,
+                    completion.ReCaptchaResponse,
+                    cancellationToken).ConfigureAwait(false);
+
+                if (!continued.Success)
+                {
+                    if (continued.Challenge is not null)
+                        return continued;
+
+                    return continued;
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(completion.FinalUrl) &&
+                     Uri.TryCreate(completion.FinalUrl, UriKind.Absolute, out var finalUri) &&
+                     finalUri.Host.EndsWith("mail.ru", StringComparison.OrdinalIgnoreCase))
+            {
+                await FollowBrowserResultAsync(session, finalUri, cancellationToken).ConfigureAwait(false);
+            }
+
+            var result = await DeriveTokensFromSameSessionAsync(session, cancellationToken).ConfigureAwait(false);
+
+            if (result.Success)
+                ReleaseSession(completion.SessionId);
+
+            return result;
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            return MailRuWebSessionResult.Failed(
+                MailRuAuthState.NetworkError,
+                "challenge_completion_http_error",
+                ex.GetType().Name,
+                pendingSessionId: completion.SessionId);
+        }
+    }
+
+    private static async Task<MailRuWebSessionResult> CreateSessionAsync(
+        PendingSession session,
+        string? reCaptchaToken,
+        CancellationToken cancellationToken)
+    {
+        await session.WaitBeforeRequestAsync(cancellationToken).ConfigureAwait(false);
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, AjAuthUri);
+        request.Headers.TryAddWithoutValidation("User-Agent", MailRuFixedProfile.UserAgent);
+
+        var form = new Dictionary<string, string>
+        {
+            ["Login"] = session.Login,
+            ["Password"] = session.Password
+        };
+        if (!string.IsNullOrWhiteSpace(reCaptchaToken))
+            form["g-recaptcha-response"] = reCaptchaToken;
+
+        request.Content = new FormUrlEncodedContent(form);
+
+        HttpResponseMessage response;
+        try
+        {
+            response = await session.Http.SendAsync(
+                request,
                 HttpCompletionOption.ResponseHeadersRead,
                 cancellationToken).ConfigureAwait(false);
         }
@@ -72,20 +196,19 @@ internal static class MailRuWebSessionAuthenticator
             return MailRuWebSessionResult.Failed(
                 MailRuAuthState.NetworkError,
                 "web_auth_http_error",
-                ex.GetType().Name);
+                ex.GetType().Name,
+                pendingSessionId: session.Id);
         }
 
         string location;
         string payload;
         int statusCode;
 
-        using (authResponse)
+        using (response)
         {
-            statusCode = (int)authResponse.StatusCode;
-            location = authResponse.Headers.Location?.ToString() ?? string.Empty;
-            payload = await authResponse.Content
-                .ReadAsStringAsync(cancellationToken)
-                .ConfigureAwait(false);
+            statusCode = (int)response.StatusCode;
+            location = response.Headers.Location?.ToString() ?? string.Empty;
+            payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         }
 
         var combined = location + "\n" + payload;
@@ -97,7 +220,8 @@ internal static class MailRuWebSessionAuthenticator
             return MailRuWebSessionResult.Failed(
                 MailRuAuthState.Blocked,
                 "account_blocked",
-                $"blocked; http={statusCode}; redirect={SanitizeLocation(location)}");
+                $"blocked; http={statusCode}; redirect={SanitizeLocation(location)}",
+                pendingSessionId: session.Id);
         }
 
         if (location.Contains("recovery", StringComparison.OrdinalIgnoreCase))
@@ -105,7 +229,8 @@ internal static class MailRuWebSessionAuthenticator
             return MailRuWebSessionResult.Failed(
                 MailRuAuthState.RecoveryRequired,
                 "account_recovery_required",
-                $"recovery; http={statusCode}; redirect={SanitizeLocation(location)}");
+                $"recovery; http={statusCode}; redirect={SanitizeLocation(location)}",
+                pendingSessionId: session.Id);
         }
 
         if (combined.Contains("recaptcha", StringComparison.OrdinalIgnoreCase))
@@ -113,22 +238,27 @@ internal static class MailRuWebSessionAuthenticator
             var challengeUrl = NormalizeChallengeUrl(location, "https://account.mail.ru/");
             var diagnostic =
                 $"recaptcha; http={statusCode}; redirect={SanitizeLocation(challengeUrl)}";
+
+            session.Kind = MailRuChallengeKind.ReCaptcha;
+
             var challenge = new MailRuAuthChallenge(
                 MailRuChallengeKind.ReCaptcha,
                 challengeUrl,
-                BuildSeedCookieHeader(cookies, challengeUrl),
-                diagnostic);
+                BuildSeedCookieHeader(session.Cookies, challengeUrl),
+                diagnostic,
+                session.Id);
 
             return MailRuWebSessionResult.Failed(
                 MailRuAuthState.ReCaptcha,
                 "recaptcha_required",
                 diagnostic,
-                challenge);
+                challenge,
+                session.Id);
         }
 
         if (location.Contains("user/login?login", StringComparison.OrdinalIgnoreCase))
         {
-            var kind = await ClassifyChallengeAsync(http, cancellationToken).ConfigureAwait(false);
+            var kind = await ClassifyChallengeAsync(session, cancellationToken).ConfigureAwait(false);
             var state = kind == MailRuChallengeKind.Captcha
                 ? MailRuAuthState.Captcha
                 : MailRuAuthState.TwoFactor;
@@ -138,102 +268,65 @@ internal static class MailRuWebSessionAuthenticator
             var challengeUrl = NormalizeChallengeUrl(location, "https://account.mail.ru/");
             var diagnostic =
                 $"{kind}; http={statusCode}; redirect={SanitizeLocation(challengeUrl)}";
+
+            session.Kind = kind;
+
             var challenge = new MailRuAuthChallenge(
                 kind,
                 challengeUrl,
-                BuildSeedCookieHeader(cookies, challengeUrl),
-                diagnostic);
+                BuildSeedCookieHeader(session.Cookies, challengeUrl),
+                diagnostic,
+                session.Id);
 
             return MailRuWebSessionResult.Failed(
                 state,
                 code,
                 diagnostic,
-                challenge);
+                challenge,
+                session.Id);
         }
 
-        // Mail.ru auth pages can contain a generic "invalid password" string even
-        // while the real redirect is a CAPTCHA/challenge. Only classify invalid
-        // credentials after all challenge/blocked/recovery states were excluded.
+        if (location.Contains("inbox", StringComparison.OrdinalIgnoreCase))
+        {
+            return new MailRuWebSessionResult(
+                true,
+                MailRuAuthState.Success,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                $"auth_redirected_to_inbox; http={statusCode}",
+                session.Id);
+        }
+
         if (combined.Contains("invalid username or password", StringComparison.OrdinalIgnoreCase) ||
             location.Contains("fail", StringComparison.OrdinalIgnoreCase))
         {
             return MailRuWebSessionResult.Failed(
                 MailRuAuthState.InvalidCredentials,
                 "invalid_credentials",
-                $"credentials_rejected; http={statusCode}; redirect={SanitizeLocation(location)}");
+                $"credentials_rejected; http={statusCode}; redirect={SanitizeLocation(location)}",
+                pendingSessionId: session.Id);
         }
 
-        // Mail.ru variants do not always use exactly the same successful redirect.
-        // The actual token probes are therefore authoritative after the known
-        // challenge/failure states have been removed.
-        var tokenResult = await DeriveTokensAsync(
-            http,
-            login,
-            cookies.GetCookieHeader(InboxUri),
-            cookies.GetCookieHeader(TouchTokensUri),
-            cancellationToken).ConfigureAwait(false);
-
-        if (tokenResult.Success)
-            return tokenResult;
-
-        if (location.Contains("inbox", StringComparison.OrdinalIgnoreCase))
-        {
-            return MailRuWebSessionResult.Failed(
-                MailRuAuthState.ProtocolError,
-                "web_session_token_missing",
-                $"inbox_session_without_api_token; http={statusCode}; redirect={SanitizeLocation(location)}");
-        }
-
-        // Preserve an actionable, sanitized reason for reverse-engineering.
         return MailRuWebSessionResult.Failed(
             MailRuAuthState.Unknown,
             "unknown_auth_result",
-            $"unknown_auth_result; http={statusCode}; redirect={SanitizeLocation(location)}; body={SanitizeBodyHint(payload)}");
+            $"unknown_auth_result; http={statusCode}; redirect={SanitizeLocation(location)}; body={SanitizeBodyHint(payload)}",
+            pendingSessionId: session.Id);
     }
 
-    public static async Task<MailRuWebSessionResult> CompleteFromCookieHeadersAsync(
-        string login,
-        string webCookieHeader,
-        string touchCookieHeader,
-        TimeSpan timeout,
+    private static async Task<MailRuWebSessionResult> DeriveTokensFromSameSessionAsync(
+        PendingSession session,
         CancellationToken cancellationToken)
     {
-        using var handler = new HttpClientHandler
-        {
-            AllowAutoRedirect = true,
-            UseCookies = false,
-            AutomaticDecompression = DecompressionMethods.All
-        };
-        using var http = new HttpClient(handler)
-        {
-            Timeout = timeout
-        };
+        var webToken = await TryGetWebTokenAsync(session, cancellationToken).ConfigureAwait(false);
+        var searchToken = await TryGetSearchTokenAsync(session, cancellationToken).ConfigureAwait(false);
 
-        return await DeriveTokensAsync(
-            http,
-            login,
-            webCookieHeader,
-            touchCookieHeader,
-            cancellationToken).ConfigureAwait(false);
-    }
-
-    private static async Task<MailRuWebSessionResult> DeriveTokensAsync(
-        HttpClient http,
-        string login,
-        string webCookieHeader,
-        string touchCookieHeader,
-        CancellationToken cancellationToken)
-    {
-        var webToken = await TryGetWebTokenAsync(
-            http,
-            webCookieHeader,
-            cancellationToken).ConfigureAwait(false);
-
-        var searchToken = await TryGetSearchTokenAsync(
-            http,
-            login,
-            touchCookieHeader,
-            cancellationToken).ConfigureAwait(false);
+        var webCookieHeader = session.Cookies.GetCookieHeader(InboxUri);
+        var touchCookieHeader = session.Cookies.GetCookieHeader(TouchTokensUri);
 
         if (string.IsNullOrWhiteSpace(webToken) &&
             string.IsNullOrWhiteSpace(searchToken))
@@ -241,7 +334,8 @@ internal static class MailRuWebSessionAuthenticator
             return MailRuWebSessionResult.Failed(
                 MailRuAuthState.ProtocolError,
                 "web_session_token_missing",
-                "cookie_session_present_but_no_web_or_touch_token");
+                "same_cookie_session_present_but_no_web_or_touch_token",
+                pendingSessionId: session.Id);
         }
 
         return new MailRuWebSessionResult(
@@ -253,18 +347,21 @@ internal static class MailRuWebSessionAuthenticator
             touchCookieHeader,
             null,
             null,
-            null);
+            "tokens_derived_from_original_cookie_session",
+            session.Id);
     }
 
     private static async Task<MailRuChallengeKind> ClassifyChallengeAsync(
-        HttpClient http,
+        PendingSession session,
         CancellationToken cancellationToken)
     {
         try
         {
+            await session.WaitBeforeRequestAsync(cancellationToken).ConfigureAwait(false);
+
             using var request = new HttpRequestMessage(HttpMethod.Get, AccountCopperUri);
             request.Headers.TryAddWithoutValidation("User-Agent", MailRuFixedProfile.UserAgent);
-            using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            using var response = await session.Http.SendAsync(request, cancellationToken).ConfigureAwait(false);
             var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
             return payload.Contains("captcha", StringComparison.OrdinalIgnoreCase)
@@ -273,31 +370,27 @@ internal static class MailRuWebSessionAuthenticator
         }
         catch
         {
-            // Hackus falls back to TwoFactor when the copper probe cannot
-            // positively identify the legacy image CAPTCHA.
             return MailRuChallengeKind.TwoFactor;
         }
     }
 
     private static async Task<string?> TryGetSearchTokenAsync(
-        HttpClient http,
-        string login,
-        string cookieHeader,
+        PendingSession session,
         CancellationToken cancellationToken)
     {
         try
         {
+            await session.WaitBeforeRequestAsync(cancellationToken).ConfigureAwait(false);
+
             var builder = new UriBuilder(TouchTokensUri)
             {
-                Query = "email=" + Uri.EscapeDataString(login)
+                Query = "email=" + Uri.EscapeDataString(session.Login)
             };
 
             using var request = new HttpRequestMessage(HttpMethod.Get, builder.Uri);
             request.Headers.TryAddWithoutValidation("User-Agent", MailRuFixedProfile.UserAgent);
-            if (!string.IsNullOrWhiteSpace(cookieHeader))
-                request.Headers.TryAddWithoutValidation("Cookie", cookieHeader);
 
-            using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            using var response = await session.Http.SendAsync(request, cancellationToken).ConfigureAwait(false);
             var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
             using var document = JsonDocument.Parse(payload);
@@ -312,18 +405,17 @@ internal static class MailRuWebSessionAuthenticator
     }
 
     private static async Task<string?> TryGetWebTokenAsync(
-        HttpClient http,
-        string cookieHeader,
+        PendingSession session,
         CancellationToken cancellationToken)
     {
         try
         {
+            await session.WaitBeforeRequestAsync(cancellationToken).ConfigureAwait(false);
+
             using var request = new HttpRequestMessage(HttpMethod.Get, InboxUri);
             request.Headers.TryAddWithoutValidation("User-Agent", MailRuFixedProfile.UserAgent);
-            if (!string.IsNullOrWhiteSpace(cookieHeader))
-                request.Headers.TryAddWithoutValidation("Cookie", cookieHeader);
 
-            using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            using var response = await session.Http.SendAsync(request, cancellationToken).ConfigureAwait(false);
             var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
             var markerIndex = payload.IndexOf(
@@ -355,6 +447,75 @@ internal static class MailRuWebSessionAuthenticator
         }
     }
 
+    private static async Task FollowBrowserResultAsync(
+        PendingSession session,
+        Uri uri,
+        CancellationToken cancellationToken)
+    {
+        var current = uri;
+
+        for (var i = 0; i < 6; i++)
+        {
+            await session.WaitBeforeRequestAsync(cancellationToken).ConfigureAwait(false);
+
+            using var request = new HttpRequestMessage(HttpMethod.Get, current);
+            request.Headers.TryAddWithoutValidation("User-Agent", MailRuFixedProfile.UserAgent);
+
+            using var response = await session.Http.SendAsync(
+                request,
+                HttpCompletionOption.ResponseHeadersRead,
+                cancellationToken).ConfigureAwait(false);
+
+            if (response.Headers.Location is null)
+                return;
+
+            current = response.Headers.Location.IsAbsoluteUri
+                ? response.Headers.Location
+                : new Uri(current, response.Headers.Location);
+        }
+    }
+
+    private static void MergeBrowserCookies(
+        CookieContainer cookies,
+        MailRuChallengeCompletion completion)
+    {
+        ImportCookieHeader(cookies, new Uri("https://account.mail.ru/"), completion.AccountCookieHeader);
+        ImportCookieHeader(cookies, new Uri("https://mail.ru/"), completion.MailCookieHeader);
+        ImportCookieHeader(cookies, new Uri("https://e.mail.ru/"), completion.WebCookieHeader);
+        ImportCookieHeader(cookies, new Uri("https://touch.mail.ru/"), completion.TouchCookieHeader);
+        ImportCookieHeader(cookies, new Uri("https://aj-https.mail.ru/"), completion.AjCookieHeader);
+    }
+
+    private static void ImportCookieHeader(CookieContainer cookies, Uri uri, string header)
+    {
+        if (string.IsNullOrWhiteSpace(header))
+            return;
+
+        try
+        {
+            cookies.SetCookies(uri, header);
+        }
+        catch
+        {
+            foreach (var part in header.Split(
+                         ';',
+                         StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                var separator = part.IndexOf('=');
+                if (separator <= 0)
+                    continue;
+
+                try
+                {
+                    cookies.SetCookies(uri, part);
+                }
+                catch
+                {
+                }
+            }
+        }
+    }
+
     private static string BuildSeedCookieHeader(CookieContainer cookies, string challengeUrl)
     {
         var parts = new HashSet<string>(StringComparer.Ordinal);
@@ -373,7 +534,9 @@ internal static class MailRuWebSessionAuthenticator
                 continue;
 
             var header = cookies.GetCookieHeader(uri);
-            foreach (var part in header.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            foreach (var part in header.Split(
+                         ';',
+                         StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             {
                 if (!string.IsNullOrWhiteSpace(part))
                     parts.Add(part);
@@ -381,6 +544,20 @@ internal static class MailRuWebSessionAuthenticator
         }
 
         return string.Join("; ", parts);
+    }
+
+    private static void CleanupExpired()
+    {
+        var now = DateTimeOffset.UtcNow;
+
+        foreach (var pair in Pending)
+        {
+            if (now - pair.Value.CreatedAtUtc > PendingLifetime &&
+                Pending.TryRemove(pair.Key, out var expired))
+            {
+                expired.Dispose();
+            }
+        }
     }
 
     private static string NormalizeChallengeUrl(string location, string fallback)
@@ -449,5 +626,60 @@ internal static class MailRuWebSessionAuthenticator
 
         value = null;
         return false;
+    }
+
+    private sealed class PendingSession : IDisposable
+    {
+        private DateTimeOffset _lastRequestAt = DateTimeOffset.MinValue;
+
+        public PendingSession(
+            string id,
+            string login,
+            string password,
+            TimeSpan timeout)
+        {
+            Id = id;
+            Login = login;
+            Password = password;
+            CreatedAtUtc = DateTimeOffset.UtcNow;
+            Cookies = new CookieContainer();
+            Handler = new HttpClientHandler
+            {
+                AllowAutoRedirect = false,
+                UseCookies = true,
+                CookieContainer = Cookies,
+                AutomaticDecompression = DecompressionMethods.All
+            };
+            Http = new HttpClient(Handler)
+            {
+                Timeout = timeout
+            };
+        }
+
+        public string Id { get; }
+        public string Login { get; }
+        public string Password { get; }
+        public DateTimeOffset CreatedAtUtc { get; }
+        public CookieContainer Cookies { get; }
+        public HttpClientHandler Handler { get; }
+        public HttpClient Http { get; }
+        public MailRuChallengeKind Kind { get; set; } = MailRuChallengeKind.InteractiveLogin;
+
+        public async Task WaitBeforeRequestAsync(CancellationToken cancellationToken)
+        {
+            var elapsed = DateTimeOffset.UtcNow - _lastRequestAt;
+            var remaining = TimeSpan.FromSeconds(5) - elapsed;
+
+            if (remaining > TimeSpan.Zero)
+                await Task.Delay(remaining, cancellationToken).ConfigureAwait(false);
+
+            _lastRequestAt = DateTimeOffset.UtcNow;
+        }
+
+        public void Dispose()
+        {
+            Http.Dispose();
+            Handler.Dispose();
+        }
     }
 }
