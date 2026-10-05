@@ -1108,8 +1108,10 @@ public partial class MainWindow : Window
         if (!_readerReady || MessageWebView.CoreWebView2 is null)
             return;
 
-        var background = ThemeManager.IsDarkEffective ? "#202124" : "#FFFFFF";
-        var foreground = ThemeManager.IsDarkEffective ? "#E8EAED" : "#202124";
+        var background = ThemeManager.ReaderBackgroundHtml;
+        var foreground = ThemeManager.ReaderForegroundHtml;
+        var muted = ThemeManager.ReaderMutedHtml;
+        var link = ThemeManager.ReaderLinkHtml;
 
         var document =
             "<!doctype html><html><head><meta charset=\"utf-8\">" +
@@ -1119,8 +1121,8 @@ public partial class MainWindow : Window
             "body { font-family: Segoe UI, Arial, sans-serif; font-size: 14px; margin: 14px; overflow-wrap: anywhere; }" +
             "img { max-width: 100%; height: auto; }" +
             "pre { white-space: pre-wrap; }" +
-            "blockquote { border-left: 3px solid #777; margin-left: 8px; padding-left: 10px; }" +
-            "a { color: #4EA1FF; text-decoration: none; }" +
+            $"blockquote {{ border-left: 3px solid {muted}; margin-left: 8px; padding-left: 10px; color: {muted}; }}" +
+            $"a {{ color: {link}; text-decoration: none; }}" +
             "</style></head><body>" +
             body +
             "</body></html>";
