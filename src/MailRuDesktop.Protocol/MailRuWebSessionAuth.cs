@@ -90,14 +90,6 @@ internal static class MailRuWebSessionAuthenticator
 
         var combined = location + "\n" + payload;
 
-        if (combined.Contains("invalid username or password", StringComparison.OrdinalIgnoreCase) ||
-            location.Contains("fail", StringComparison.OrdinalIgnoreCase))
-        {
-            return MailRuWebSessionResult.Failed(
-                MailRuAuthState.InvalidCredentials,
-                "invalid_credentials");
-        }
-
         if (combined.Contains("user is blocked", StringComparison.OrdinalIgnoreCase) ||
             combined.Contains("blocked", StringComparison.OrdinalIgnoreCase) ||
             location.Contains("ukey", StringComparison.OrdinalIgnoreCase))
@@ -157,6 +149,18 @@ internal static class MailRuWebSessionAuthenticator
                 code,
                 diagnostic,
                 challenge);
+        }
+
+        // Mail.ru auth pages can contain a generic "invalid password" string even
+        // while the real redirect is a CAPTCHA/challenge. Only classify invalid
+        // credentials after all challenge/blocked/recovery states were excluded.
+        if (combined.Contains("invalid username or password", StringComparison.OrdinalIgnoreCase) ||
+            location.Contains("fail", StringComparison.OrdinalIgnoreCase))
+        {
+            return MailRuWebSessionResult.Failed(
+                MailRuAuthState.InvalidCredentials,
+                "invalid_credentials",
+                $"credentials_rejected; http={statusCode}; redirect={SanitizeLocation(location)}");
         }
 
         // Mail.ru variants do not always use exactly the same successful redirect.
