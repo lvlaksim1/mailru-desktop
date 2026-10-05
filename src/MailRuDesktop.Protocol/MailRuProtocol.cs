@@ -143,96 +143,15 @@ public sealed class MailRuClient : IDisposable
         if (string.IsNullOrEmpty(password))
             throw new ArgumentException("Password is required.", nameof(password));
 
-        string? accessToken = null;
-        string? refreshToken = null;
-        string? mobileError = null;
-
-        try
-        {
-            var uri = BuildUri("/cgi-bin/auth", new Dictionary<string, string?>
-            {
-                ["mp"] = "android",
-                ["udid"] = "mailru_app"
-            });
-
-            using var request = CreateRequest(HttpMethod.Post, uri);
-            request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
-            {
-                ["Password"] = password,
-                ["Login"] = login,
-                ["oauth2"] = "1",
-                ["useragent"] = "android",
-                ["mobile"] = "1",
-                ["mob_json"] = "1",
-                ["simple"] = "1"
-            });
-
-            using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-
-            if (response.IsSuccessStatusCode)
-            {
-                try
-                {
-                    using var document = JsonDocument.Parse(payload);
-                    if (TryFindString(document.RootElement, "access_token", out var parsedAccess) &&
-                        !string.IsNullOrWhiteSpace(parsedAccess))
-                    {
-                        accessToken = parsedAccess;
-                        TryFindString(document.RootElement, "refresh_token", out refreshToken);
-                    }
-                    else
-                    {
-                        mobileError = TryFindString(document.RootElement, "error", out var parsedError) &&
-                                      !string.IsNullOrWhiteSpace(parsedError)
-                            ? parsedError
-                            : "token_missing";
-                    }
-                }
-                catch (JsonException)
-                {
-                    mobileError = "token_missing";
-                }
-            }
-            else
-            {
-                mobileError = $"http_{(int)response.StatusCode}";
-            }
-        }
-        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
-        {
-            mobileError = "mobile_auth_http_error";
-        }
-
-        // Owner safety rule: never issue adjacent Mail.ru requests faster than
-        // one request per five seconds. The Hackus-style auth session applies
-        // the same spacing internally.
-        await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken).ConfigureAwait(false);
-
-        // Start the Hackus web/auth path from a fresh cookie dictionary, exactly
-        // as Hackus Reset() does before Login().
+        // Authentication/challenge intentionally starts exactly from the
+        // Hackus-style Reset() -> CreateSession() path. There is no preliminary
+        // mobile/OAuth probe here: it changes the request sequence and can
+        // provoke a different Mail.ru challenge state before the verified flow.
         var web = await MailRuWebSessionAuthenticator.AuthenticateAsync(
             login,
             password,
             _options.Timeout,
             cancellationToken).ConfigureAwait(false);
-
-        if (!string.IsNullOrWhiteSpace(accessToken))
-        {
-            if (!web.Success && web.Challenge is null)
-                MailRuWebSessionAuthenticator.ReleaseSession(web.PendingSessionId);
-
-            return new MailRuAuthResult(true, accessToken, refreshToken, null)
-            {
-                State = MailRuAuthState.Success,
-                WebToken = web.Success ? web.WebToken : null,
-                SearchToken = web.Success ? web.SearchToken : null,
-                WebCookieHeader = web.Success ? web.WebCookieHeader : null,
-                TouchCookieHeader = web.Success ? web.TouchCookieHeader : null,
-                Challenge = web.Challenge,
-                DiagnosticReason = web.DiagnosticReason
-            };
-        }
 
         if (web.Success)
         {
@@ -247,18 +166,11 @@ public sealed class MailRuClient : IDisposable
             };
         }
 
-        var error = web.ErrorCode;
-        if (string.IsNullOrWhiteSpace(error) ||
-            string.Equals(error, "web_session_token_missing", StringComparison.OrdinalIgnoreCase))
-        {
-            error = mobileError ?? "token_missing";
-        }
-
         if (web.Challenge is null)
             MailRuWebSessionAuthenticator.ReleaseSession(web.PendingSessionId);
 
         return MailRuAuthResult.Failed(
-            error ?? "unknown_auth_result",
+            web.ErrorCode ?? "unknown_auth_result",
             web.State,
             web.DiagnosticReason,
             web.Challenge);
