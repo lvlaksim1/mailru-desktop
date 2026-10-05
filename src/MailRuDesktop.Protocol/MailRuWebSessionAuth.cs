@@ -187,8 +187,6 @@ internal static class MailRuWebSessionAuthenticator
 
             using var request = new HttpRequestMessage(HttpMethod.Get, builder.Uri);
             request.Headers.TryAddWithoutValidation("User-Agent", BrowserUserAgent);
-            if (!string.IsNullOrWhiteSpace(cookieHeader))
-                request.Headers.TryAddWithoutValidation("Cookie", cookieHeader);
 
             using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
             var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
@@ -213,8 +211,6 @@ internal static class MailRuWebSessionAuthenticator
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, InboxUri);
             request.Headers.TryAddWithoutValidation("User-Agent", BrowserUserAgent);
-            if (!string.IsNullOrWhiteSpace(cookieHeader))
-                request.Headers.TryAddWithoutValidation("Cookie", cookieHeader);
 
             using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
             var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
