@@ -25,7 +25,10 @@ public static class MailRuEndpointCatalog
 {
     public static IReadOnlyList<EndpointDefinition> All { get; } =
     [
-        new("auth.mobile", "POST", "aj-https.mail.ru", "/cgi-bin/auth", EndpointEvidence.VerifiedLocal, "Mobile-style authentication"),
+        new("auth.mobile", "POST", "aj-https.mail.ru", "/cgi-bin/auth", EndpointEvidence.VerifiedLocal, "Mobile OAuth-style authentication"),
+        new("auth.web-session", "POST", "aj-https.mail.ru", "/cgi-bin/auth", EndpointEvidence.ExternalConfirmed, "Hackus cookie-session authentication fallback"),
+        new("auth.challenge.copper", "GET/POST", "account.mail.ru", "/api/v1/user/copper", EndpointEvidence.ExternalConfirmed, "Classify or submit account challenge"),
+        new("auth.captcha.image", "GET", "c.mail.ru", "/c/6", EndpointEvidence.ExternalConfirmed, "Legacy image CAPTCHA payload"),
         new("threads.status.smart", "GET", "aj-https.mail.ru", "/api/v1/m/threads/status/smart", EndpointEvidence.VerifiedLocal, "Folder/thread status"),
         new("messages.attach.add", "POST", "aj-https.mail.ru", "/api/v1/messages/attaches/add", EndpointEvidence.VerifiedLocal, "Upload attachment"),
         new("messages.send", "POST", "aj-https.mail.ru", "/api/v1/messages/send", EndpointEvidence.VerifiedLocal, "Send message"),
@@ -63,6 +66,15 @@ public sealed record MailRuAuthResult(
     string? RefreshToken,
     string? ErrorCode)
 {
+    public string? WebToken { get; init; }
+    public string? SearchToken { get; init; }
+    public string? WebCookieHeader { get; init; }
+    public string? TouchCookieHeader { get; init; }
+
+    public bool HasMailboxCredential =>
+        !string.IsNullOrWhiteSpace(AccessToken) ||
+        !string.IsNullOrWhiteSpace(WebToken);
+
     public static MailRuAuthResult Failed(string code) => new(false, null, null, code);
 }
 
@@ -113,54 +125,95 @@ public sealed class MailRuClient : IDisposable
         if (string.IsNullOrEmpty(password))
             throw new ArgumentException("Password is required.", nameof(password));
 
-        var uri = BuildUri("/cgi-bin/auth", new Dictionary<string, string?>
-        {
-            ["mp"] = "android",
-            ["udid"] = "mailru_app"
-        });
+        string? accessToken = null;
+        string? refreshToken = null;
+        string? mobileError = null;
 
-        using var request = CreateRequest(HttpMethod.Post, uri);
-        request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
-        {
-            ["Password"] = password,
-            ["Login"] = login,
-            ["oauth2"] = "1",
-            ["useragent"] = "android",
-            ["mobile"] = "1",
-            ["mob_json"] = "1",
-            ["simple"] = "1"
-        });
-
-        using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
-        var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-
-        if (!response.IsSuccessStatusCode)
-            return MailRuAuthResult.Failed($"http_{(int)response.StatusCode}");
-
-        JsonDocument document;
         try
         {
-            document = JsonDocument.Parse(payload);
-        }
-        catch (JsonException)
-        {
-            return MailRuAuthResult.Failed("malformed_json");
-        }
-
-        using (document)
-        {
-            if (!TryFindString(document.RootElement, "access_token", out var accessToken) ||
-                string.IsNullOrWhiteSpace(accessToken))
+            var uri = BuildUri("/cgi-bin/auth", new Dictionary<string, string?>
             {
-                var error = TryFindString(document.RootElement, "error", out var parsedError)
-                    ? parsedError
-                    : "token_missing";
-                return MailRuAuthResult.Failed(string.IsNullOrWhiteSpace(error) ? "token_missing" : error!);
-            }
+                ["mp"] = "android",
+                ["udid"] = "mailru_app"
+            });
 
-            TryFindString(document.RootElement, "refresh_token", out var refreshToken);
-            return new MailRuAuthResult(true, accessToken, refreshToken, null);
+            using var request = CreateRequest(HttpMethod.Post, uri);
+            request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["Password"] = password,
+                ["Login"] = login,
+                ["oauth2"] = "1",
+                ["useragent"] = "android",
+                ["mobile"] = "1",
+                ["mob_json"] = "1",
+                ["simple"] = "1"
+            });
+
+            using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+            if (response.IsSuccessStatusCode)
+            {
+                try
+                {
+                    using var document = JsonDocument.Parse(payload);
+                    if (TryFindString(document.RootElement, "access_token", out var parsedAccess) &&
+                        !string.IsNullOrWhiteSpace(parsedAccess))
+                    {
+                        accessToken = parsedAccess;
+                        TryFindString(document.RootElement, "refresh_token", out refreshToken);
+                    }
+                    else
+                    {
+                        mobileError = TryFindString(document.RootElement, "error", out var parsedError) &&
+                                      !string.IsNullOrWhiteSpace(parsedError)
+                            ? parsedError
+                            : "token_missing";
+                    }
+                }
+                catch (JsonException)
+                {
+                    mobileError = "token_missing";
+                }
+            }
+            else
+            {
+                mobileError = $"http_{(int)response.StatusCode}";
+            }
         }
+        catch (HttpRequestException)
+        {
+            mobileError = "mobile_auth_http_error";
+        }
+
+        // Hackus demonstrates that a missing mobile access_token is not necessarily
+        // an authentication failure. Establish the cookie session as a second,
+        // independent credential path and derive touch/web API tokens from it.
+        var web = await MailRuWebSessionAuthenticator.AuthenticateAsync(
+            login,
+            password,
+            _options.Timeout,
+            cancellationToken).ConfigureAwait(false);
+
+        if (!string.IsNullOrWhiteSpace(accessToken) || web.Success)
+        {
+            return new MailRuAuthResult(true, accessToken, refreshToken, null)
+            {
+                WebToken = web.WebToken,
+                SearchToken = web.SearchToken,
+                WebCookieHeader = web.WebCookieHeader,
+                TouchCookieHeader = web.TouchCookieHeader
+            };
+        }
+
+        var error = web.ErrorCode;
+        if (string.IsNullOrWhiteSpace(error) ||
+            string.Equals(error, "web_session_token_missing", StringComparison.OrdinalIgnoreCase))
+        {
+            error = mobileError ?? "token_missing";
+        }
+
+        return MailRuAuthResult.Failed(error);
     }
 
     public async Task<string> GetFolderThreadsAsync(
@@ -195,6 +248,183 @@ public sealed class MailRuClient : IDisposable
             throw new MailRuProtocolException($"Thread status request failed with HTTP {(int)response.StatusCode}.");
 
         return payload;
+    }
+
+    public async Task<string> GetFolderThreadsWebAsync(
+        string webToken,
+        string email,
+        string? cookieHeader,
+        int folderId,
+        int offset = 0,
+        int limit = 200,
+        CancellationToken cancellationToken = default)
+    {
+        RequireToken(webToken);
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentException("Email is required.", nameof(email));
+        if (offset < 0) throw new ArgumentOutOfRangeException(nameof(offset));
+        if (limit is < 1 or > 1000) throw new ArgumentOutOfRangeException(nameof(limit));
+
+        var uri = BuildAbsoluteUri(
+            new Uri("https://e.mail.ru/api/v1/threads/status/golang"),
+            new Dictionary<string, string?>
+            {
+                ["ajax_call"] = "1",
+                ["x-email"] = email,
+                ["email"] = email,
+                ["sort"] = "{\"type\":\"date\",\"order\":\"desc\"}",
+                ["offset"] = offset.ToString(CultureInfo.InvariantCulture),
+                ["limit"] = limit.ToString(CultureInfo.InvariantCulture),
+                ["folder"] = folderId.ToString(CultureInfo.InvariantCulture),
+                ["htmlencoded"] = "false",
+                ["last_modified"] = "-1",
+                ["filters"] = "{}",
+                ["nolog"] = "0",
+                ["sortby"] = "D",
+                ["api"] = "1",
+                ["token"] = webToken
+            });
+
+        using var request = CreateBrowserRequest(HttpMethod.Get, uri, cookieHeader);
+        using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+        if (!response.IsSuccessStatusCode)
+            throw new MailRuProtocolException($"Web thread status request failed with HTTP {(int)response.StatusCode}.");
+
+        return payload;
+    }
+
+    public async Task<string> GetFullMessageTouchAsync(
+        string searchToken,
+        string email,
+        string messageId,
+        string? cookieHeader,
+        CancellationToken cancellationToken = default)
+    {
+        RequireToken(searchToken);
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentException("Email is required.", nameof(email));
+        if (string.IsNullOrWhiteSpace(messageId))
+            throw new ArgumentException("Message id is required.", nameof(messageId));
+
+        var uri = BuildAbsoluteUri(
+            new Uri("https://touch.mail.ru/api/v1/messages/message"),
+            new Dictionary<string, string?>
+            {
+                ["id"] = messageId,
+                ["email"] = email,
+                ["token"] = searchToken
+            });
+
+        using var request = CreateBrowserRequest(HttpMethod.Get, uri, cookieHeader);
+        using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+        if (!response.IsSuccessStatusCode)
+            throw new MailRuProtocolException($"Full-message request failed with HTTP {(int)response.StatusCode}.");
+
+        return payload;
+    }
+
+    public async Task<string> SearchTouchAsync(
+        string searchToken,
+        string email,
+        string? cookieHeader,
+        string? query = null,
+        string? sender = null,
+        string? subject = null,
+        bool attachmentsOnly = false,
+        int count = 100,
+        CancellationToken cancellationToken = default)
+    {
+        RequireToken(searchToken);
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentException("Email is required.", nameof(email));
+        if (count is < 1 or > 1000)
+            throw new ArgumentOutOfRangeException(nameof(count));
+
+        var parameters = new Dictionary<string, string?>
+        {
+            ["token"] = searchToken,
+            ["json"] = "1",
+            ["ajax_call"] = "1",
+            ["page"] = "1",
+            ["q_folder"] = "all",
+            ["count"] = count.ToString(CultureInfo.InvariantCulture),
+            ["x-email"] = email,
+            ["q_query"] = string.IsNullOrWhiteSpace(query) ? null : query,
+            ["q_from"] = string.IsNullOrWhiteSpace(sender) ? null : sender,
+            ["q_subj"] = string.IsNullOrWhiteSpace(subject) ? null : subject,
+            ["q_attach"] = attachmentsOnly ? "1" : null
+        };
+
+        var uri = BuildAbsoluteUri(new Uri("https://touch.mail.ru/cgi-bin/gosearch"), parameters);
+        using var request = CreateBrowserRequest(HttpMethod.Get, uri, cookieHeader);
+        using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        return await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<MailRuCommandResult> MoveTouchMessagesAsync(
+        string searchToken,
+        string email,
+        IReadOnlyCollection<string> ids,
+        string? cookieHeader,
+        bool permanentlyDelete = false,
+        CancellationToken cancellationToken = default)
+    {
+        RequireToken(searchToken);
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentException("Email is required.", nameof(email));
+        if (ids is null || ids.Count == 0)
+            throw new ArgumentException("At least one message id is required.", nameof(ids));
+
+        using var request = CreateBrowserRequest(
+            HttpMethod.Post,
+            new Uri("https://touch.mail.ru/api/v1"),
+            cookieHeader);
+
+        request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["__urlp"] = permanentlyDelete ? "/messages/remove" : "/messages/move",
+            ["ids"] = JsonSerializer.Serialize(ids),
+            ["folder"] = "500002",
+            ["email"] = email,
+            ["htmlencoded"] = "false",
+            ["token"] = searchToken
+        });
+
+        using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        return new MailRuCommandResult(response.IsSuccessStatusCode && HasStatus200(payload), payload);
+    }
+
+    public async Task<string> GetContactsTouchAsync(
+        string searchToken,
+        string email,
+        string? cookieHeader,
+        CancellationToken cancellationToken = default)
+    {
+        RequireToken(searchToken);
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentException("Email is required.", nameof(email));
+
+        var route =
+            "/k8s/ab/smart?fields=[\"emails\"]&filter={\"flags\":{\"has_mailbox\":null}}" +
+            "&email=" + Uri.EscapeDataString(email) +
+            "&htmlencoded=false&token=" + Uri.EscapeDataString(searchToken);
+
+        using var request = CreateBrowserRequest(
+            HttpMethod.Post,
+            new Uri("https://touch.mail.ru/api/v1"),
+            cookieHeader);
+        request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["__urlp"] = route
+        });
+
+        using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        return await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<string> UploadAttachmentAsync(
@@ -318,6 +548,34 @@ public sealed class MailRuClient : IDisposable
         var request = new HttpRequestMessage(method, uri);
         request.Headers.TryAddWithoutValidation("User-Agent", _options.UserAgent);
         return request;
+    }
+
+    private static HttpRequestMessage CreateBrowserRequest(
+        HttpMethod method,
+        Uri uri,
+        string? cookieHeader)
+    {
+        var request = new HttpRequestMessage(method, uri);
+        request.Headers.TryAddWithoutValidation(
+            "User-Agent",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
+            "(KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36");
+
+        if (!string.IsNullOrWhiteSpace(cookieHeader))
+            request.Headers.TryAddWithoutValidation("Cookie", cookieHeader);
+
+        return request;
+    }
+
+    private static Uri BuildAbsoluteUri(
+        Uri baseUri,
+        IReadOnlyDictionary<string, string?> query)
+    {
+        var builder = new UriBuilder(baseUri);
+        builder.Query = string.Join("&", query
+            .Where(pair => pair.Value is not null)
+            .Select(pair => $"{Uri.EscapeDataString(pair.Key)}={Uri.EscapeDataString(pair.Value!)}"));
+        return builder.Uri;
     }
 
     private Uri BuildUri(string relativePath, IReadOnlyDictionary<string, string?> query)
