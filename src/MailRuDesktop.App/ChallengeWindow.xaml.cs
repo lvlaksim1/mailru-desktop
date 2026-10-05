@@ -107,8 +107,12 @@ public partial class ChallengeWindow : Window
                 " HTMLFormElement.prototype.submit = function() { if (send()) return; return nativeSubmit.apply(this, arguments); };" +
                 " const nativeRequestSubmit = HTMLFormElement.prototype.requestSubmit;" +
                 " if (nativeRequestSubmit) HTMLFormElement.prototype.requestSubmit = function() { if (send()) return; return nativeRequestSubmit.apply(this, arguments); };" +
-                " new MutationObserver(send).observe(document.documentElement, {subtree:true, childList:true, attributes:true, characterData:true});" +
                 " setInterval(send, 25);" +
+                " const arm = () => {" +
+                "  if (!document.documentElement) { setTimeout(arm, 10); return; }" +
+                "  new MutationObserver(send).observe(document.documentElement, {subtree:true, childList:true, attributes:true, characterData:true});" +
+                " };" +
+                " arm();" +
                 "})();");
 
             Browser.NavigationCompleted += Browser_NavigationCompleted;
