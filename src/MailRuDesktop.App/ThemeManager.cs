@@ -14,6 +14,7 @@ internal static class ThemeManager
 
     public static AppThemeMode CurrentMode { get; private set; } = AppThemeMode.System;
     public static bool IsDarkEffective { get; private set; }
+    public static event EventHandler? ThemeChanged;
 
     public static string ReaderBackgroundHtml => IsDarkEffective ? "#1E1E1E" : "#FFFFFF";
     public static string ReaderForegroundHtml => IsDarkEffective ? "#F2F2F2" : "#202124";
@@ -100,6 +101,8 @@ internal static class ThemeManager
 
         foreach (Window window in Application.Current.Windows)
             ApplyNativeWindowTheme(window);
+
+        ThemeChanged?.Invoke(null, EventArgs.Empty);
     }
 
     private static void OnWindowLoaded(object sender, RoutedEventArgs e)
