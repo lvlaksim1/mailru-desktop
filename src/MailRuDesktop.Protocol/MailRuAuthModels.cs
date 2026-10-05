@@ -34,6 +34,7 @@ public sealed record MailRuAuthChallenge(
     string? Url,
     string? SiteKey,
     string? CaptchaImageBase64,
+    string? SeedCookieHeader,
     string? DiagnosticReason);
 
 public sealed record MailRuChallengeCompletion(
