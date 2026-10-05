@@ -31,20 +31,12 @@ public enum MailRuChallengeKind
 
 public sealed record MailRuAuthChallenge(
     MailRuChallengeKind Kind,
-    string Url,
-    string SeedCookieHeader,
-    string? DiagnosticReason,
     string SessionId,
-    string? SiteKey = null,
-    string? CaptchaImageBase64 = null);
+    string? Url,
+    string? SiteKey,
+    string? CaptchaImageBase64,
+    string? DiagnosticReason);
 
 public sealed record MailRuChallengeCompletion(
     string SessionId,
-    string AccountCookieHeader,
-    string MailCookieHeader,
-    string WebCookieHeader,
-    string TouchCookieHeader,
-    string AjCookieHeader,
-    string FinalUrl,
-    string? ReCaptchaResponse,
-    string? Answer = null);
+    string Answer);
