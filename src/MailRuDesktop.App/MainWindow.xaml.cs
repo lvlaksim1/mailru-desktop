@@ -42,6 +42,7 @@ public partial class MainWindow : Window
 
         ThemeManager.Apply(_settingsStore.LoadTheme());
         SelectThemeComboBox(ThemeManager.CurrentMode);
+        ThemeManager.ThemeChanged += ThemeManager_ThemeChanged;
 
         var version = Assembly.GetExecutingAssembly().GetName().Version;
         var displayVersion = version is null
@@ -58,7 +59,11 @@ public partial class MainWindow : Window
         }
 
         Loaded += MainWindow_Loaded;
-        Closed += (_, _) => _mailRu.Dispose();
+        Closed += (_, _) =>
+        {
+            ThemeManager.ThemeChanged -= ThemeManager_ThemeChanged;
+            _mailRu.Dispose();
+        };
     }
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -1128,6 +1133,29 @@ public partial class MainWindow : Window
             "</body></html>";
 
         MessageWebView.NavigateToString(document);
+    }
+
+    private void ThemeManager_ThemeChanged(object? sender, EventArgs e)
+    {
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.BeginInvoke(() => ThemeManager_ThemeChanged(sender, e));
+            return;
+        }
+
+        if (_currentFullMessage is not null)
+        {
+            if (!string.IsNullOrWhiteSpace(_currentFullMessage.Html))
+                ShowReaderHtml(_currentFullMessage.Html);
+            else
+                ShowReaderText(_currentFullMessage.Text);
+        }
+        else
+        {
+            ShowReaderText(MessagesGrid.SelectedItem is MailRuMessageSummary message
+                ? message.Snippet
+                : "Выберите письмо.");
+        }
     }
 
     private void ThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
