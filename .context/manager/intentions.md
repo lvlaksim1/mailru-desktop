@@ -1,61 +1,42 @@
 # Manager intentions and commitments
 
 ## I-001 — bootstrap repository and first protocol slice
-
 status: completed
 
-verification: repository `lvlaksim1/mailru-desktop`; product commit `48adb2ba1236a2e49b39562b5ddd7ee53c5556af`; CI run `37335195622`.
+## I-002 — mailbox list/folder MVP
+status: completed
 
-## I-002 — turn raw thread status into mailbox MVP
-
-status: completed for list/folder MVP
-
-commitment: Render the verified smart-thread response as a usable mailbox and keep protocol parsing outside WPF.
-
-progress: v0.1.2 fixed the live `folders_content -> threads -> base_message` shape, added a real folder sidebar, accurate folder counters and a usable structured list. v0.1.4 additionally wires full-message reading through the touch endpoint for owner validation.
+v0.1.2 established live folders and structured messages. v0.1.6 integrates filtering into the mailbox view.
 
 ## I-003 — expand reverse API coverage
+status: active — owner runtime validation pending
 
-status: active — implementation present, owner validation pending
+v0.1.6 shifts normal incoming-mail operations away from mandatory touch credentials where a web-session mechanism is available. Web full-message, attachment download, move and delete are preferred; touch remains an internal fallback.
 
-commitment: Reconcile externally discovered Mail.ru endpoint families against owner VBA and fresh local traffic, and promote only locally reproduced operations to A-level evidence.
-
-progress: v0.1.4 exposes touch full-message, incoming attachment download, server search, contacts, move-to-Trash and permanent remove. All remain B-level until current owner runtime reproduces them.
-
-## I-004 — expose verified send flow in UI
-
+## I-004 — verified send flow
 status: completed
 
-verification: product commit `1420d1619c16deb2dce150cd8882ee86431b2465`; CI run `37335834260`.
-
-## I-005 — establish installer/update release channel
-
+## I-005 — installer/update release channel
 status: completed
 
-verification: current release is `v0.1.4`; release workflow `37367733108` succeeded; Setup + Update are release assets; Actions artifacts are absent; older binary Releases are pruned.
+Current release: `v0.1.6`. Release workflow `37375038704` succeeded, Setup + Update are release assets, Actions artifacts are absent and older binary Releases are pruned.
 
-## I-006 — identify and verify full-message read
-
-status: active — UI implementation complete, owner validation pending
-
-commitment: Determine the live full-message/thread schema, attachment representation and read-state side effects.
-
-progress: v0.1.4 wires Hackus-derived `GET touch.mail.ru/api/v1/messages/message` into the reading pane and parses HTML/text, correspondents and attachments while preserving raw diagnostics. Promotion to A-level awaits live owner reproduction.
-
-## I-007 — eliminate false token_missing login failures
-
-status: active — interactive challenge implementation complete, owner validation pending
-
-commitment: Treat missing mobile token as a state transition rather than a terminal failure; support cookie-session challenges and preserve successful authorization securely.
-
-progress: v0.1.4 adds explicit state machine including reCAPTCHA, CAPTCHA, 2FA, Blocked and recovery. Challenge completion is manual inside an isolated embedded Mail.ru WebView2 session; no external CAPTCHA solver is used. New login attempts start with a fresh cookie-session. Unknown auth outcomes are saved as sanitized diagnostic reasons.
-
-## I-008 — incoming mail operations
-
+## I-006 — full-message read and attachments
 status: active — implementation complete, owner validation pending
 
-commitment: Provide controlled desktop operations for incoming mail using reverse-engineered touch/web APIs.
+v0.1.6 uses e.mail.ru web full-message routes first, supports nested `body.text/body.html`, parses `attaches.list`, preserves name/MIME and downloads using authenticated web cookies. Touch read remains fallback only.
 
-scope implemented in v0.1.4: direct attachment download with original filename/MIME, server search, contacts, move to Trash, move to selected folder and permanent remove.
+## I-007 — robust account/challenge authorization
+status: active — implementation complete, owner validation pending
 
-completion contract: owner reproduces each operation successfully on disposable/current account data and response behavior is promoted to A-level evidence.
+Challenge/Blocked/recovery classification precedes invalid-password classification. If lightweight aj auth says token-missing while the auxiliary web probe says invalid credentials, v0.1.6 opens the real Mail.ru browser login flow instead of issuing a false wrong-password result. CAPTCHA/2FA can be completed interactively. Every explicit login starts from a fresh cookie session.
+
+## I-008 — incoming message actions
+status: active — owner validation pending
+
+Move to folder/Trash and permanent delete prefer e.mail.ru web-session operations. Permanent delete is exposed only while viewing Trash.
+
+## I-009 — desktop UX/settings
+status: completed for requested v0.1.6 scope
+
+Saved-account selector + modal Add Account flow, integrated filtering, persistent System/Light/Dark themes, and theme-aware message reader are implemented.
