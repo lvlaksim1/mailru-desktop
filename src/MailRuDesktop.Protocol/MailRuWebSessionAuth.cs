@@ -669,8 +669,11 @@ internal static class MailRuWebSessionAuthenticator
         PendingSession session,
         CancellationToken cancellationToken)
     {
-        var webToken = await TryGetWebTokenAsync(session, cancellationToken).ConfigureAwait(false);
+        // Hackus calls GetSearchToken immediately after Login() succeeds.
         var searchToken = await TryGetSearchTokenAsync(session, cancellationToken).ConfigureAwait(false);
+        // Web token is an additional MailRu Desktop credential, derived only
+        // after the Hackus post-login step.
+        var webToken = await TryGetWebTokenAsync(session, cancellationToken).ConfigureAwait(false);
 
         var webCookieHeader = session.Cookies.GetCookieHeader(InboxUri);
         var touchCookieHeader = session.Cookies.GetCookieHeader(TouchTokensUri);
