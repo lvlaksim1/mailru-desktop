@@ -136,6 +136,7 @@ internal static class MailRuWebSessionAuthenticator
                     if (continued.Challenge is not null)
                         return continued;
 
+                    ReleaseSession(completion.SessionId);
                     return continued;
                 }
             }
@@ -148,9 +149,7 @@ internal static class MailRuWebSessionAuthenticator
 
             var result = await DeriveTokensFromSameSessionAsync(session, cancellationToken).ConfigureAwait(false);
 
-            if (result.Success)
-                ReleaseSession(completion.SessionId);
-
+            ReleaseSession(completion.SessionId);
             return result;
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
