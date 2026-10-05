@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text.Json;
 using System.Windows;
 using MailRuDesktop.Protocol;
 using Microsoft.Web.WebView2.Core;
@@ -21,6 +22,7 @@ public partial class ChallengeWindow : Window
             "MailRuDesktop",
             "WebView2Challenge",
             Guid.NewGuid().ToString("N"));
+
         InitializeComponent();
 
         TitleText.Text = challenge.Kind switch
@@ -32,11 +34,11 @@ public partial class ChallengeWindow : Window
             _ => "Дополнительная проверка Mail.ru"
         };
 
-        HintText.Text = challenge.Kind == MailRuChallengeKind.InteractiveLogin
-            ? "Завершите обычный вход Mail.ru в этом окне. Если Mail.ru запросит CAPTCHA или " +
-              "двухфакторную проверку, пройдите её здесь. После успешного входа сессия будет сохранена."
-            : "Пройдите проверку вручную в этом окне. MailRu Desktop не передаёт CAPTCHA " +
-              "сторонним сервисам. После успешного входа сессия будет сохранена Windows DPAPI.";
+        HintText.Text = challenge.Kind == MailRuChallengeKind.ReCaptcha
+            ? "Пройдите reCAPTCHA вручную. После этого MailRu Desktop передаст ответ проверки " +
+              "обратно в ту же HTTP-сессию, в которой началась авторизация."
+            : "Завершите проверку Mail.ru в этом окне. Cookies будут возвращены в ту же " +
+              "HTTP-сессию авторизации, а не в новую сессию.";
 
         Loaded += ChallengeWindow_Loaded;
         Closed += ChallengeWindow_Closed;
@@ -97,7 +99,15 @@ public partial class ChallengeWindow : Window
             if (name.Length == 0)
                 continue;
 
-            foreach (var domain in new[] { challengeHost, ".mail.ru" }.Distinct(StringComparer.OrdinalIgnoreCase))
+            foreach (var domain in new[]
+                     {
+                         challengeHost,
+                         ".mail.ru",
+                         "account.mail.ru",
+                         "e.mail.ru",
+                         "touch.mail.ru",
+                         "aj-https.mail.ru"
+                     }.Distinct(StringComparer.OrdinalIgnoreCase))
             {
                 try
                 {
@@ -111,8 +121,6 @@ public partial class ChallengeWindow : Window
                 }
                 catch
                 {
-                    // A duplicate/host-specific cookie may be rejected for one
-                    // domain but still be valid for the other.
                 }
             }
         }
@@ -130,6 +138,7 @@ public partial class ChallengeWindow : Window
         if (uri.Host.Equals("e.mail.ru", StringComparison.OrdinalIgnoreCase) &&
             !uri.AbsolutePath.Contains("login", StringComparison.OrdinalIgnoreCase))
         {
+            StatusText.Text = "Mail.ru подтвердил вход. Проверяю сессию...";
             await CompleteAsync();
             return;
         }
@@ -150,29 +159,87 @@ public partial class ChallengeWindow : Window
             return;
 
         _completing = true;
-        StatusText.Text = "Получение сессионных cookies...";
+        StatusText.Text = "Возвращаю результат проверки в исходную сессию...";
 
         try
         {
-            var webHeader = await BuildCookieHeaderAsync("https://e.mail.ru/");
-            var touchHeader = await BuildCookieHeaderAsync("https://touch.mail.ru/");
+            var finalUrl = Browser.Source?.ToString() ?? _challenge.Url;
+            var reachedMailbox =
+                Uri.TryCreate(finalUrl, UriKind.Absolute, out var current) &&
+                current.Host.Equals("e.mail.ru", StringComparison.OrdinalIgnoreCase) &&
+                !current.AbsolutePath.Contains("login", StringComparison.OrdinalIgnoreCase);
 
-            if (string.IsNullOrWhiteSpace(webHeader) &&
-                string.IsNullOrWhiteSpace(touchHeader))
+            var reCaptchaResponse = await ReadReCaptchaResponseAsync();
+
+            if (_challenge.Kind == MailRuChallengeKind.ReCaptcha &&
+                string.IsNullOrWhiteSpace(reCaptchaResponse) &&
+                !reachedMailbox)
             {
-                StatusText.Text = "Сессионные cookies ещё не получены. Завершите проверку Mail.ru.";
+                StatusText.Text =
+                    "Ответ reCAPTCHA ещё не получен. Завершите проверку и нажмите «Продолжить».";
                 _completing = false;
                 return;
             }
 
-            Completion = new MailRuChallengeCompletion(webHeader, touchHeader);
+            var accountHeader = await BuildCookieHeaderAsync("https://account.mail.ru/");
+            var mailHeader = await BuildCookieHeaderAsync("https://mail.ru/");
+            var webHeader = await BuildCookieHeaderAsync("https://e.mail.ru/");
+            var touchHeader = await BuildCookieHeaderAsync("https://touch.mail.ru/");
+            var ajHeader = await BuildCookieHeaderAsync("https://aj-https.mail.ru/");
+
+            if (string.IsNullOrWhiteSpace(accountHeader) &&
+                string.IsNullOrWhiteSpace(mailHeader) &&
+                string.IsNullOrWhiteSpace(webHeader) &&
+                string.IsNullOrWhiteSpace(touchHeader) &&
+                string.IsNullOrWhiteSpace(ajHeader))
+            {
+                StatusText.Text =
+                    "Сессионные cookies ещё не получены. Завершите проверку Mail.ru.";
+                _completing = false;
+                return;
+            }
+
+            Completion = new MailRuChallengeCompletion(
+                _challenge.SessionId,
+                accountHeader,
+                mailHeader,
+                webHeader,
+                touchHeader,
+                ajHeader,
+                finalUrl,
+                reCaptchaResponse);
+
             DialogResult = true;
             Close();
         }
         catch (Exception ex)
         {
-            StatusText.Text = "Не удалось получить сессию: " + ex.Message;
+            StatusText.Text = "Не удалось получить результат проверки: " + ex.Message;
             _completing = false;
+        }
+    }
+
+    private async Task<string?> ReadReCaptchaResponseAsync()
+    {
+        if (Browser.CoreWebView2 is null)
+            return null;
+
+        const string script =
+            "(() => {" +
+            " const a = document.querySelector('[name=\"g-recaptcha-response\"]');" +
+            " if (a && a.value) return a.value;" +
+            " try { if (typeof grecaptcha !== 'undefined' && grecaptcha.getResponse) return grecaptcha.getResponse(); } catch(e) {}" +
+            " return '';" +
+            "})()";
+
+        try
+        {
+            var json = await Browser.CoreWebView2.ExecuteScriptAsync(script);
+            return JsonSerializer.Deserialize<string>(json);
+        }
+        catch
+        {
+            return null;
         }
     }
 
@@ -184,7 +251,9 @@ public partial class ChallengeWindow : Window
             "; ",
             cookies
                 .Where(cookie => !string.IsNullOrWhiteSpace(cookie.Name))
-                .GroupBy(cookie => cookie.Name, StringComparer.OrdinalIgnoreCase)
+                .GroupBy(
+                    cookie => cookie.Name + "\n" + cookie.Domain + "\n" + cookie.Path,
+                    StringComparer.OrdinalIgnoreCase)
                 .Select(group => group.First())
                 .Select(cookie => $"{cookie.Name}={cookie.Value}"));
     }
@@ -199,8 +268,6 @@ public partial class ChallengeWindow : Window
         {
         }
 
-        // The challenge browser is intentionally ephemeral. The durable
-        // authorization lives in DPAPI-protected auth.json, not in WebView2.
         try
         {
             if (Directory.Exists(_profilePath))
@@ -208,9 +275,6 @@ public partial class ChallengeWindow : Window
         }
         catch
         {
-            // WebView2 may release its profile a moment after window close.
-            // The application uninstaller removes the parent data directory.
         }
     }
-
 }
