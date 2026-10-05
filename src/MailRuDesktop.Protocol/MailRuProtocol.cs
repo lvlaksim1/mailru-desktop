@@ -215,6 +215,9 @@ public sealed class MailRuClient : IDisposable
 
         if (!string.IsNullOrWhiteSpace(accessToken))
         {
+            if (!web.Success && web.Challenge is null)
+                MailRuWebSessionAuthenticator.ReleaseSession(web.PendingSessionId);
+
             return new MailRuAuthResult(true, accessToken, refreshToken, null)
             {
                 State = MailRuAuthState.Success,
@@ -247,26 +250,27 @@ public sealed class MailRuClient : IDisposable
         // omitted the token, prefer an interactive Mail.ru login over a false
         // "wrong password" result.
         if (web.State == MailRuAuthState.InvalidCredentials &&
-            string.Equals(mobileError, "token_missing", StringComparison.OrdinalIgnoreCase))
+            string.Equals(mobileError, "token_missing", StringComparison.OrdinalIgnoreCase) &&
+            !string.IsNullOrWhiteSpace(web.PendingSessionId))
         {
-            var browserLoginUrl =
-                "https://account.mail.ru/login?to=" +
-                Uri.EscapeDataString("https://e.mail.ru/inbox/") +
-                "&login=" + Uri.EscapeDataString(login);
-
             var diagnostic =
                 "aj_web_probe_reported_invalid_after_mobile_token_missing; " +
-                "falling_back_to_interactive_mailru_login";
+                "continuing_same_cookie_session_in_interactive_mailru_login";
 
-            return MailRuAuthResult.Failed(
-                "interactive_login_required",
-                MailRuAuthState.Unknown,
-                diagnostic,
-                new MailRuAuthChallenge(
-                    MailRuChallengeKind.InteractiveLogin,
-                    browserLoginUrl,
-                    string.Empty,
-                    diagnostic));
+            var challenge =
+                MailRuWebSessionAuthenticator.PromotePendingSessionToInteractiveLogin(
+                    web.PendingSessionId,
+                    login,
+                    diagnostic);
+
+            if (challenge is not null)
+            {
+                return MailRuAuthResult.Failed(
+                    "interactive_login_required",
+                    MailRuAuthState.Unknown,
+                    diagnostic,
+                    challenge);
+            }
         }
 
         var error = web.ErrorCode;
@@ -275,6 +279,9 @@ public sealed class MailRuClient : IDisposable
         {
             error = mobileError ?? "token_missing";
         }
+
+        if (web.Challenge is null)
+            MailRuWebSessionAuthenticator.ReleaseSession(web.PendingSessionId);
 
         return MailRuAuthResult.Failed(
             error ?? "unknown_auth_result",
@@ -291,11 +298,9 @@ public sealed class MailRuClient : IDisposable
         if (string.IsNullOrWhiteSpace(login))
             throw new ArgumentException("Login is required.", nameof(login));
 
-        var web = await MailRuWebSessionAuthenticator.CompleteFromCookieHeadersAsync(
+        var web = await MailRuWebSessionAuthenticator.CompleteChallengeAsync(
             login,
-            completion.WebCookieHeader,
-            completion.TouchCookieHeader,
-            _options.Timeout,
+            completion,
             cancellationToken).ConfigureAwait(false);
 
         if (!web.Success)
