@@ -11,7 +11,7 @@ permissions:
 jobs:
   release:
     if: github.event.issue.user.login == 'lvlaksim1' && github.event.issue.title == '[BUILD_RELEASE]'
-    runs-on: windows-latest
+    runs-on: windows-2022
 
     steps:
       - uses: actions/checkout@v4
