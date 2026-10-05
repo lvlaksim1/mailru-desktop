@@ -15,7 +15,9 @@ public partial class MainWindow : Window
 {
     private readonly MailRuClient _mailRu = new();
     private readonly AuthorizationStore _authStore = new();
+    private readonly AppSettingsStore _settingsStore = new();
     private readonly List<string> _attachmentPaths = [];
+    private List<MailRuMessageSummary> _currentMessages = [];
 
     private string? _accessToken;
     private string? _refreshToken;
@@ -37,6 +39,9 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        ThemeManager.Apply(_settingsStore.LoadTheme());
+        SelectThemeComboBox(ThemeManager.CurrentMode);
 
         var version = Assembly.GetExecutingAssembly().GetName().Version;
         var displayVersion = version is null
@@ -128,7 +133,7 @@ public partial class MainWindow : Window
         _activeLogin = authorization.Login;
 
         LoginComboBox.Text = authorization.Login;
-        AuthStatusText.Text = "Сохранённая авторизация восстановлена";
+        AuthStatusText.Text = "Авторизация активна";
         _authStore.MarkLastUsed(authorization.Login);
         return true;
     }
@@ -145,36 +150,26 @@ public partial class MainWindow : Window
             await LoadFolderAsync(0);
     }
 
-    private async void AuthenticateButton_Click(object sender, RoutedEventArgs e)
+    private async void AddAccountButton_Click(object sender, RoutedEventArgs e)
     {
-        var login = LoginComboBox.Text.Trim();
-        if (login.Length == 0)
+        var dialog = new AddAccountWindow
         {
-            AuthStatusText.Text = "Введите логин";
-            return;
-        }
+            Owner = this
+        };
 
-        if (PasswordBox.Password.Length == 0 && RestoreSavedAuthorization(login))
-        {
-            await LoadFolderAsync(0);
+        if (dialog.ShowDialog() != true)
             return;
-        }
 
-        if (PasswordBox.Password.Length == 0)
-        {
-            AuthStatusText.Text = "Введите пароль";
-            return;
-        }
+        await AuthenticateAccountAsync(dialog.Login, dialog.Password);
+    }
 
-        AuthenticateButton.IsEnabled = false;
+    private async Task AuthenticateAccountAsync(string login, string password)
+    {
+        AddAccountButton.IsEnabled = false;
         AuthStatusText.Text = "Авторизация...";
         ResponseTextBox.Clear();
 
-        var password = PasswordBox.Password;
-        PasswordBox.Clear();
-
-        // Explicitly discard the runtime state before a fresh login attempt.
-        // The protocol layer also creates a fresh cookie jar.
+        // Every explicit login starts from a clean runtime/cookie state.
         ClearRuntimeAuthorization();
 
         try
@@ -228,7 +223,7 @@ public partial class MainWindow : Window
                 }
                 else if (!result.Success)
                 {
-                    AuthStatusText.Text = "Авторизация отменена на этапе дополнительной проверки";
+                    AuthStatusText.Text = "Авторизация отменена";
                     return;
                 }
             }
@@ -243,10 +238,18 @@ public partial class MainWindow : Window
             SaveAuthorization(login);
             RefreshSavedLogins();
 
-            AuthStatusText.Text = string.IsNullOrWhiteSpace(_searchToken)
-                ? "Авторизация сохранена · расширенные функции требуют дополнительной проверки"
-                : "Авторизация успешна и сохранена";
+            _updatingAccountSelection = true;
+            try
+            {
+                LoginComboBox.SelectedItem = login;
+                LoginComboBox.Text = login;
+            }
+            finally
+            {
+                _updatingAccountSelection = false;
+            }
 
+            AuthStatusText.Text = "Авторизация активна";
             await LoadFolderAsync(0);
         }
         catch (Exception ex)
@@ -258,7 +261,7 @@ public partial class MainWindow : Window
         }
         finally
         {
-            AuthenticateButton.IsEnabled = true;
+            AddAccountButton.IsEnabled = true;
         }
     }
 
@@ -354,7 +357,9 @@ public partial class MainWindow : Window
                 : MailRuThreadStatusParser.Parse(raw, folderId);
 
             _currentFolderId = snapshot.SelectedFolderId ?? folderId;
-            MessagesGrid.ItemsSource = snapshot.Messages;
+            _currentMessages = snapshot.Messages.ToList();
+            ApplyFilters();
+            UpdateTrashButtonMode();
 
             if (snapshot.Folders.Count > 0)
             {
@@ -382,7 +387,7 @@ public partial class MainWindow : Window
             FolderStatusText.Text =
                 $"Всего: {total} · непрочитанных: {unread} · показано: {snapshot.Messages.Count}";
 
-            if (snapshot.Messages.Count > 0)
+            if (_currentMessages.Count > 0)
                 MessagesGrid.SelectedIndex = 0;
             else
                 SelectedSubjectText.Text = "В папке нет распознанных писем";
@@ -448,26 +453,65 @@ public partial class MainWindow : Window
     {
         var generation = ++_messageLoadGeneration;
 
-        if (string.IsNullOrWhiteSpace(_searchToken) ||
-            string.IsNullOrWhiteSpace(_activeLogin))
+        if (string.IsNullOrWhiteSpace(_activeLogin))
+        {
+            ShowReaderText(message.Snippet);
+            return;
+        }
+
+        Exception? webFailure = null;
+        string? raw = null;
+
+        if (!string.IsNullOrWhiteSpace(_webToken))
+        {
+            try
+            {
+                raw = await _mailRu.GetFullMessageWebAsync(
+                    _webToken,
+                    _activeLogin,
+                    message.Id,
+                    _webCookieHeader,
+                    _currentFolderId);
+            }
+            catch (Exception ex)
+            {
+                webFailure = ex;
+                DiagnosticLog.Write("full_message_web", ex.GetType().Name + ": " + ex.Message);
+            }
+        }
+
+        if (raw is null && !string.IsNullOrWhiteSpace(_searchToken))
+        {
+            try
+            {
+                raw = await _mailRu.GetFullMessageTouchAsync(
+                    _searchToken,
+                    _activeLogin,
+                    message.Id,
+                    _touchCookieHeader);
+            }
+            catch (Exception ex)
+            {
+                DiagnosticLog.Write("full_message_fallback", ex.GetType().Name + ": " + ex.Message);
+                if (webFailure is null)
+                    webFailure = ex;
+            }
+        }
+
+        if (generation != _messageLoadGeneration)
+            return;
+
+        if (raw is null)
         {
             ShowReaderText(
                 (string.IsNullOrWhiteSpace(message.Snippet) ? string.Empty : message.Snippet + "\n\n") +
-                "Полное чтение требует touch-сессии. Выполните вход ещё раз и завершите дополнительную проверку Mail.ru.");
+                "Полное содержимое сейчас недоступно для этой сохранённой авторизации. " +
+                "Повторно добавьте аккаунт, если сессия устарела.");
             return;
         }
 
         try
         {
-            var raw = await _mailRu.GetFullMessageTouchAsync(
-                _searchToken,
-                _activeLogin,
-                message.Id,
-                _touchCookieHeader);
-
-            if (generation != _messageLoadGeneration)
-                return;
-
             var full = MailRuFullMessageParser.Parse(raw, message.Id);
             _currentFullMessage = full;
             ResponseTextBox.Text = raw;
@@ -493,18 +537,18 @@ public partial class MainWindow : Window
 
             if (!string.IsNullOrWhiteSpace(full.Html))
                 ShowReaderHtml(full.Html);
-            else
+            else if (!string.IsNullOrWhiteSpace(full.Text))
                 ShowReaderText(full.Text);
+            else
+                ShowReaderText(message.Snippet);
         }
         catch (Exception ex)
         {
-            if (generation != _messageLoadGeneration)
-                return;
-
             ShowReaderText(
                 (string.IsNullOrWhiteSpace(message.Snippet) ? string.Empty : message.Snippet + "\n\n") +
-                "Не удалось получить полное письмо: " + ex.Message);
-            DiagnosticLog.Write("full_message", ex.GetType().Name + ": " + ex.Message);
+                "Не удалось разобрать полное письмо: " + ex.Message);
+            ResponseTextBox.Text = raw;
+            DiagnosticLog.Write("full_message_parse", ex.GetType().Name + ": " + ex.Message);
         }
     }
 
@@ -533,7 +577,7 @@ public partial class MainWindow : Window
 
             var bytes = await _mailRu.DownloadIncomingAttachmentAsync(
                 attachment,
-                _touchCookieHeader);
+                _webCookieHeader ?? _touchCookieHeader);
 
             await File.WriteAllBytesAsync(dialog.FileName, bytes);
             FolderStatusText.Text =
@@ -551,67 +595,104 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void SearchButton_Click(object sender, RoutedEventArgs e)
+    private void ApplyFilterButton_Click(object sender, RoutedEventArgs e)
     {
-        if (!RequireTouchSession("Поиск"))
-            return;
-
-        SearchStatusText.Text = "Поиск...";
-
-        try
-        {
-            var raw = await _mailRu.SearchTouchAsync(
-                _searchToken!,
-                _activeLogin!,
-                _touchCookieHeader,
-                query: SearchQueryTextBox.Text.Trim(),
-                sender: SearchSenderTextBox.Text.Trim(),
-                subject: SearchSubjectTextBox.Text.Trim(),
-                attachmentsOnly: SearchAttachmentsCheckBox.IsChecked == true,
-                count: 250,
-                dateFrom: SearchFromDatePicker.SelectedDate,
-                dateTo: SearchToDatePicker.SelectedDate);
-
-            var snapshot = MailRuTouchSearchParser.Parse(raw);
-            SearchResultsGrid.ItemsSource = snapshot.Messages;
-            SearchStatusText.Text =
-                $"Найдено: {snapshot.MessagesTotal ?? snapshot.Messages.Count} · показано: {snapshot.Messages.Count}";
-        }
-        catch (Exception ex)
-        {
-            SearchStatusText.Text = "Ошибка поиска: " + ex.Message;
-            DiagnosticLog.Write("search", ex.GetType().Name + ": " + ex.Message);
-        }
+        ApplyFilters();
     }
 
-    private async void OpenSearchResultButton_Click(object sender, RoutedEventArgs e)
+    private void ResetFilterButton_Click(object sender, RoutedEventArgs e)
     {
-        if (SearchResultsGrid.SelectedItem is not MailRuMessageSummary message)
+        FilterSenderTextBox.Clear();
+        FilterSubjectTextBox.Clear();
+        FilterQueryTextBox.Clear();
+        FilterAttachmentsCheckBox.IsChecked = false;
+        FilterFromDatePicker.SelectedDate = null;
+        FilterToDatePicker.SelectedDate = null;
+        ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        IEnumerable<MailRuMessageSummary> filtered = _currentMessages;
+
+        var sender = FilterSenderTextBox.Text.Trim();
+        if (!string.IsNullOrWhiteSpace(sender))
         {
-            SearchStatusText.Text = "Выберите письмо.";
-            return;
+            filtered = filtered.Where(message =>
+                message.SenderDisplay.Contains(sender, StringComparison.CurrentCultureIgnoreCase) ||
+                message.SenderEmail.Contains(sender, StringComparison.CurrentCultureIgnoreCase));
         }
 
-        MainTabs.SelectedItem = MailTab;
-        DisplaySummary(message);
-        await LoadFullMessageAsync(message);
+        var subject = FilterSubjectTextBox.Text.Trim();
+        if (!string.IsNullOrWhiteSpace(subject))
+        {
+            filtered = filtered.Where(message =>
+                message.Subject.Contains(subject, StringComparison.CurrentCultureIgnoreCase));
+        }
+
+        var query = FilterQueryTextBox.Text.Trim();
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            filtered = filtered.Where(message =>
+                message.Subject.Contains(query, StringComparison.CurrentCultureIgnoreCase) ||
+                message.Snippet.Contains(query, StringComparison.CurrentCultureIgnoreCase) ||
+                message.SenderDisplay.Contains(query, StringComparison.CurrentCultureIgnoreCase) ||
+                message.SenderEmail.Contains(query, StringComparison.CurrentCultureIgnoreCase));
+        }
+
+        if (FilterAttachmentsCheckBox.IsChecked == true)
+            filtered = filtered.Where(message => message.HasAttachment);
+
+        if (FilterFromDatePicker.SelectedDate is DateTime from)
+        {
+            var fromOffset = new DateTimeOffset(from.Date);
+            filtered = filtered.Where(message =>
+                message.DateUnix is null ||
+                DateTimeOffset.FromUnixTimeSeconds(message.DateUnix.Value).ToLocalTime() >= fromOffset);
+        }
+
+        if (FilterToDatePicker.SelectedDate is DateTime to)
+        {
+            var toOffset = new DateTimeOffset(to.Date.AddDays(1));
+            filtered = filtered.Where(message =>
+                message.DateUnix is null ||
+                DateTimeOffset.FromUnixTimeSeconds(message.DateUnix.Value).ToLocalTime() < toOffset);
+        }
+
+        var list = filtered.ToList();
+        MessagesGrid.ItemsSource = list;
+        FilterStatusText.Text = list.Count == _currentMessages.Count
+            ? string.Empty
+            : $"Показано по фильтру: {list.Count} из {_currentMessages.Count}";
     }
 
     private async void LoadContactsButton_Click(object sender, RoutedEventArgs e)
     {
-        if (!RequireTouchSession("Контакты"))
-            return;
-
         ContactsStatusText.Text = "Загрузка...";
 
         try
         {
-            var raw = await _mailRu.GetContactsTouchAsync(
-                _searchToken!,
-                _activeLogin!,
-                _touchCookieHeader);
+            IReadOnlyList<string> contacts;
 
-            var contacts = MailRuContactsParser.ParseEmails(raw);
+            if (!string.IsNullOrWhiteSpace(_searchToken) &&
+                !string.IsNullOrWhiteSpace(_activeLogin))
+            {
+                var raw = await _mailRu.GetContactsTouchAsync(
+                    _searchToken,
+                    _activeLogin,
+                    _touchCookieHeader);
+                contacts = MailRuContactsParser.ParseEmails(raw);
+            }
+            else
+            {
+                contacts = _currentMessages
+                    .Select(message => message.SenderEmail)
+                    .Where(email => !string.IsNullOrWhiteSpace(email))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .OrderBy(email => email, StringComparer.CurrentCultureIgnoreCase)
+                    .ToArray();
+            }
+
             ContactsListBox.ItemsSource = contacts;
             ContactsStatusText.Text = $"Контактов: {contacts.Count}";
         }
@@ -665,7 +746,10 @@ public partial class MainWindow : Window
             return;
         }
 
-        await MoveMessagesAsync([message.Id], 500002, "Перемещение в корзину");
+        if (_currentFolderId == 500002)
+            await DeleteSelectedPermanentlyAsync(message);
+        else
+            await MoveMessagesAsync([message.Id], 500002, "Перемещение в корзину");
     }
 
     private async Task MoveMessagesAsync(
@@ -673,19 +757,41 @@ public partial class MainWindow : Window
         int destinationFolderId,
         string operationName)
     {
-        if (!RequireTouchSession(operationName))
+        if (string.IsNullOrWhiteSpace(_activeLogin))
+        {
+            AuthStatusText.Text = "Выберите или добавьте аккаунт.";
             return;
+        }
 
         try
         {
             FolderStatusText.Text = operationName + "...";
+            MailRuCommandResult result;
 
-            var result = await _mailRu.MoveTouchMessagesToFolderAsync(
-                _searchToken!,
-                _activeLogin!,
-                ids,
-                destinationFolderId,
-                _touchCookieHeader);
+            if (!string.IsNullOrWhiteSpace(_webToken))
+            {
+                result = await _mailRu.MoveWebMessagesToFolderAsync(
+                    _webToken,
+                    _activeLogin,
+                    ids,
+                    destinationFolderId,
+                    _webCookieHeader);
+            }
+            else if (!string.IsNullOrWhiteSpace(_searchToken))
+            {
+                result = await _mailRu.MoveTouchMessagesToFolderAsync(
+                    _searchToken,
+                    _activeLogin,
+                    ids,
+                    destinationFolderId,
+                    _touchCookieHeader);
+            }
+            else
+            {
+                FolderStatusText.Text =
+                    "Для операции требуется обновить авторизацию аккаунта.";
+                return;
+            }
 
             ResponseTextBox.Text = result.RawResponse;
 
@@ -706,15 +812,9 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void DeleteMessageButton_Click(object sender, RoutedEventArgs e)
+    private async Task DeleteSelectedPermanentlyAsync(MailRuMessageSummary message)
     {
-        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message)
-        {
-            FolderStatusText.Text = "Выберите письмо.";
-            return;
-        }
-
-        if (!RequireTouchSession("Удаление"))
+        if (string.IsNullOrWhiteSpace(_activeLogin))
             return;
 
         if (MessageBox.Show(
@@ -730,15 +830,32 @@ public partial class MainWindow : Window
         try
         {
             FolderStatusText.Text = "Окончательное удаление...";
+            MailRuCommandResult result;
 
-            var result = await _mailRu.RemoveTouchMessagesAsync(
-                _searchToken!,
-                _activeLogin!,
-                [message.Id],
-                _touchCookieHeader);
+            if (!string.IsNullOrWhiteSpace(_webToken))
+            {
+                result = await _mailRu.DeleteWebMessagesAsync(
+                    _webToken,
+                    _activeLogin,
+                    [message.Id],
+                    _webCookieHeader);
+            }
+            else if (!string.IsNullOrWhiteSpace(_searchToken))
+            {
+                result = await _mailRu.RemoveTouchMessagesAsync(
+                    _searchToken,
+                    _activeLogin,
+                    [message.Id],
+                    _touchCookieHeader);
+            }
+            else
+            {
+                FolderStatusText.Text =
+                    "Для операции требуется обновить авторизацию аккаунта.";
+                return;
+            }
 
             ResponseTextBox.Text = result.RawResponse;
-
             if (!result.Success)
             {
                 FolderStatusText.Text = "Mail.ru отклонил удаление.";
@@ -756,17 +873,10 @@ public partial class MainWindow : Window
         }
     }
 
-    private bool RequireTouchSession(string operation)
+    private void UpdateTrashButtonMode()
     {
-        if (!string.IsNullOrWhiteSpace(_searchToken) &&
-            !string.IsNullOrWhiteSpace(_activeLogin))
-        {
-            return true;
-        }
-
-        var text = $"{operation}: требуется touch-сессия. Выполните вход и завершите дополнительную проверку Mail.ru.";
-        AuthStatusText.Text = text;
-        return false;
+        TrashMessageButton.Content =
+            _currentFolderId == 500002 ? "Удалить навсегда" : "В корзину";
     }
 
     private void ClearSelectedMessage()
@@ -955,20 +1065,63 @@ public partial class MainWindow : Window
         if (!_readerReady || MessageWebView.CoreWebView2 is null)
             return;
 
+        var background = ThemeManager.IsDarkEffective ? "#202124" : "#FFFFFF";
+        var foreground = ThemeManager.IsDarkEffective ? "#E8EAED" : "#202124";
+
         var document =
             "<!doctype html><html><head><meta charset=\"utf-8\">" +
             "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; img-src data:; style-src 'unsafe-inline';\">" +
             "<style>" +
-            "body { font-family: Segoe UI, Arial, sans-serif; font-size: 14px; margin: 14px; color: #202124; overflow-wrap: anywhere; }" +
+            $"html, body {{ background-color: {background}; color: {foreground}; }}" +
+            "body { font-family: Segoe UI, Arial, sans-serif; font-size: 14px; margin: 14px; overflow-wrap: anywhere; }" +
             "img { max-width: 100%; height: auto; }" +
             "pre { white-space: pre-wrap; }" +
-            "blockquote { border-left: 3px solid #ddd; margin-left: 8px; padding-left: 10px; color: #555; }" +
-            "a { color: #0b57d0; text-decoration: none; }" +
+            "blockquote { border-left: 3px solid #777; margin-left: 8px; padding-left: 10px; }" +
+            "a { color: #4EA1FF; text-decoration: none; }" +
             "</style></head><body>" +
             body +
             "</body></html>";
 
         MessageWebView.NavigateToString(document);
+    }
+
+    private void ThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (ThemeComboBox.SelectedItem is not ComboBoxItem item ||
+            item.Tag is not string tag ||
+            !Enum.TryParse<AppThemeMode>(tag, true, out var mode))
+        {
+            return;
+        }
+
+        ThemeManager.Apply(mode);
+        _settingsStore.SaveTheme(mode);
+
+        if (_currentFullMessage is not null)
+        {
+            if (!string.IsNullOrWhiteSpace(_currentFullMessage.Html))
+                ShowReaderHtml(_currentFullMessage.Html);
+            else
+                ShowReaderText(_currentFullMessage.Text);
+        }
+        else
+        {
+            ShowReaderText(MessagesGrid.SelectedItem is MailRuMessageSummary message
+                ? message.Snippet
+                : "Выберите письмо.");
+        }
+    }
+
+    private void SelectThemeComboBox(AppThemeMode mode)
+    {
+        foreach (var item in ThemeComboBox.Items.OfType<ComboBoxItem>())
+        {
+            if (string.Equals(item.Tag?.ToString(), mode.ToString(), StringComparison.OrdinalIgnoreCase))
+            {
+                ThemeComboBox.SelectedItem = item;
+                break;
+            }
+        }
     }
 
     private static string SafeFileName(string value)
