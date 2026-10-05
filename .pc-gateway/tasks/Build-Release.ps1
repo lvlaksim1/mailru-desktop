@@ -53,7 +53,10 @@ try {
     if ($null -eq $gh) { $gh = Get-Command gh -ErrorAction SilentlyContinue }
     if ($null -eq $gh) { throw 'GitHub CLI (gh) is not installed on the Windows runner.' }
 
-    & $gh.FullName auth status -h github.com 2>&1 | Write-Host
+    $ghPath = if ($gh.PSObject.Properties['Source']) { [string]$gh.Source } else { [string]$gh.FullName }
+    $dotnetPath = if ($dotnet.PSObject.Properties['Source']) { [string]$dotnet.Source } else { [string]$dotnet.FullName }
+
+    & $ghPath auth status -h github.com 2>&1 | Write-Host
     if ($LASTEXITCODE -ne 0) { throw 'GitHub CLI is not authenticated on the Windows runner.' }
 
     $programFilesX86 = [Environment]::GetFolderPath('ProgramFilesX86')
@@ -97,7 +100,7 @@ try {
 
     Write-Host "Publishing MailRu Desktop v$version..."
     $publishArgs = @('publish', $project, '-c', 'Release', '-r', 'win-x64', '--self-contained', 'true', '-p:PublishSingleFile=false', '-p:DebugType=None', '-p:DebugSymbols=false', "-p:Version=$version", '-o', $publish)
-    & $dotnet.FullName @publishArgs
+    & $dotnetPath @publishArgs
     if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed with exit code $LASTEXITCODE." }
 
     Write-Host 'Building full installer...'
@@ -121,27 +124,27 @@ try {
     $updateHash = (Get-FileHash -LiteralPath $update -Algorithm SHA256).Hash.ToLowerInvariant()
 
     $tag = "v$version"
-    $existing = & $gh.FullName release view $tag --repo $expectedRepo --json tagName 2>$null
+    $existing = & $ghPath release view $tag --repo $expectedRepo --json tagName 2>$null
     if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace([string]$existing)) {
         Write-Host "Removing an existing incomplete release $tag before publishing..."
-        & $gh.FullName release delete $tag --repo $expectedRepo --yes
+        & $ghPath release delete $tag --repo $expectedRepo --yes
         if ($LASTEXITCODE -ne 0) { throw "Could not delete existing release $tag." }
     }
 
     Write-Host "Publishing GitHub release $tag..."
     $notes = "MailRu Desktop $tag. Use Setup for first installation and Update for an existing installation."
     $releaseArgs = @('release','create',$tag,$setup,$update,'--repo',$expectedRepo,'--target',[string]$request.source_ref,'--title',"MailRu Desktop $tag",'--notes',$notes)
-    & $gh.FullName @releaseArgs
+    & $ghPath @releaseArgs
     if ($LASTEXITCODE -ne 0) { throw "gh release create failed with exit code $LASTEXITCODE." }
 
-    $releaseJson = & $gh.FullName release list --repo $expectedRepo --limit 100 --json tagName
+    $releaseJson = & $ghPath release list --repo $expectedRepo --limit 100 --json tagName
     if ($LASTEXITCODE -ne 0) { throw 'Could not enumerate releases for retention cleanup.' }
     $releases = $releaseJson | ConvertFrom-Json
     foreach ($release in $releases) {
         $oldTag = [string]$release.tagName
         if ($oldTag -and $oldTag -ne $tag) {
             Write-Host "Deleting old binary release $oldTag..."
-            & $gh.FullName release delete $oldTag --repo $expectedRepo --yes
+            & $ghPath release delete $oldTag --repo $expectedRepo --yes
             if ($LASTEXITCODE -ne 0) { throw "Failed to prune old release $oldTag." }
         }
     }
