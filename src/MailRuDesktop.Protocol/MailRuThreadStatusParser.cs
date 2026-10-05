@@ -133,6 +133,9 @@ public static class MailRuThreadStatusParser
                 ? new List<MailRuMessageSummary>()
                 : ParseThreads(selectedContent.Value);
 
+            if (messages.Count == 0)
+                CollectThreads(body, messages, new HashSet<string>(StringComparer.Ordinal));
+
             messages.Sort((left, right) =>
                 Nullable.Compare(right.DateUnix, left.DateUnix));
 
@@ -141,9 +144,24 @@ public static class MailRuThreadStatusParser
                 : folders.FirstOrDefault(folder => folder.Id == selectedFolderId.Value);
 
             var total = selectedFolder?.MessagesTotal ??
-                        (selectedContent is null ? null : FindInteger(selectedContent.Value, "messages_total"));
+                        (selectedContent is null
+                            ? FindInteger(body, "messages_total")
+                            : FindInteger(selectedContent.Value, "messages_total"));
             var unread = selectedFolder?.MessagesUnread ??
-                         (selectedContent is null ? null : FindInteger(selectedContent.Value, "messages_unread"));
+                         (selectedContent is null
+                             ? FindInteger(body, "messages_unread")
+                             : FindInteger(selectedContent.Value, "messages_unread"));
+
+            if (folders.Count == 0 && selectedFolderId is not null)
+            {
+                folders.Add(new MailRuFolderSummary(
+                    selectedFolderId.Value,
+                    selectedFolderId.Value == 0 ? "inbox" : "folder",
+                    selectedFolderId.Value == 0 ? "Входящие" : $"Папка {selectedFolderId.Value}",
+                    unread ?? 0,
+                    total ?? messages.Count,
+                    true));
+            }
 
             return new MailRuFolderSnapshot(
                 selectedFolderId,
@@ -215,6 +233,70 @@ public static class MailRuThreadStatusParser
         }
 
         return result;
+    }
+
+    private static void CollectThreads(
+        JsonElement element,
+        List<MailRuMessageSummary> result,
+        HashSet<string> seenIds)
+    {
+        if (element.ValueKind == JsonValueKind.Object)
+        {
+            if (element.TryGetProperty("threads", out var threads) &&
+                threads.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var thread in threads.EnumerateArray())
+                    TryAddThread(thread, result, seenIds);
+            }
+
+            foreach (var property in element.EnumerateObject())
+                CollectThreads(property.Value, result, seenIds);
+        }
+        else if (element.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in element.EnumerateArray())
+                CollectThreads(item, result, seenIds);
+        }
+    }
+
+    private static void TryAddThread(
+        JsonElement thread,
+        List<MailRuMessageSummary> result,
+        HashSet<string> seenIds)
+    {
+        if (thread.ValueKind != JsonValueKind.Object ||
+            !TryReadId(thread, out var threadId) ||
+            !seenIds.Add(threadId))
+        {
+            return;
+        }
+
+        if (thread.TryGetProperty("base_message", out var baseMessage) &&
+            baseMessage.ValueKind == JsonValueKind.Object)
+        {
+            result.Add(ParseBaseMessage(threadId, baseMessage));
+            return;
+        }
+
+        if (thread.TryGetProperty("messages", out var messages) &&
+            messages.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var message in messages.EnumerateArray())
+            {
+                if (message.ValueKind != JsonValueKind.Object)
+                    continue;
+
+                var messageId = TryReadId(message, out var nestedId) ? nestedId : threadId;
+                result.Add(ParseBaseMessage(messageId, message));
+                return;
+            }
+        }
+
+        if (thread.TryGetProperty("subject", out _) ||
+            thread.TryGetProperty("snippet", out _))
+        {
+            result.Add(ParseBaseMessage(threadId, thread));
+        }
     }
 
     private static MailRuMessageSummary ParseBaseMessage(string id, JsonElement message)
