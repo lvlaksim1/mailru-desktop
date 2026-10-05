@@ -41,12 +41,16 @@ VersionInfoVersion={#AppVersion}
 VersionInfoProductName={#AppName}
 VersionInfoDescription=MailRu Desktop update installer
 
+[Tasks]
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+
 [Files]
 Source: "{#PublishDir}\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; Recreate the shortcut on every update so shell metadata/icon changes are refreshed.
 [Icons]
 Name: "{autoprograms}\\MailRu Desktop"; Filename: "{app}\\{#AppExeName}"; WorkingDir: "{app}"
+Name: "{userdesktop}\\MailRu Desktop"; Filename: "{app}\\{#AppExeName}"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Registry]
 Root: HKCU; Subkey: "Software\\MailRuDesktop"; Flags: uninsdeletekey
