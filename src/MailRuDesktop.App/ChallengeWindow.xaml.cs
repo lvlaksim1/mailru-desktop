@@ -8,6 +8,7 @@ namespace MailRuDesktop.App;
 public partial class ChallengeWindow : Window
 {
     private readonly MailRuAuthChallenge _challenge;
+    private readonly string _profilePath;
     private bool _completing;
 
     public MailRuChallengeCompletion? Completion { get; private set; }
@@ -15,6 +16,11 @@ public partial class ChallengeWindow : Window
     public ChallengeWindow(MailRuAuthChallenge challenge)
     {
         _challenge = challenge;
+        _profilePath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "MailRuDesktop",
+            "WebView2Challenge",
+            Guid.NewGuid().ToString("N"));
         InitializeComponent();
 
         TitleText.Text = challenge.Kind switch
@@ -30,22 +36,18 @@ public partial class ChallengeWindow : Window
             "сторонним сервисам. После успешного входа сессия будет сохранена Windows DPAPI.";
 
         Loaded += ChallengeWindow_Loaded;
+        Closed += ChallengeWindow_Closed;
     }
 
     private async void ChallengeWindow_Loaded(object sender, RoutedEventArgs e)
     {
         try
         {
-            var dataRoot = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "MailRuDesktop",
-                "WebView2");
-
-            Directory.CreateDirectory(dataRoot);
+            Directory.CreateDirectory(_profilePath);
 
             var environment = await CoreWebView2Environment.CreateAsync(
                 browserExecutableFolder: null,
-                userDataFolder: dataRoot);
+                userDataFolder: _profilePath);
 
             await Browser.EnsureCoreWebView2Async(environment);
 
@@ -183,4 +185,29 @@ public partial class ChallengeWindow : Window
                 .Select(group => group.First())
                 .Select(cookie => $"{cookie.Name}={cookie.Value}"));
     }
+
+    private void ChallengeWindow_Closed(object? sender, EventArgs e)
+    {
+        try
+        {
+            Browser.Dispose();
+        }
+        catch
+        {
+        }
+
+        // The challenge browser is intentionally ephemeral. The durable
+        // authorization lives in DPAPI-protected auth.json, not in WebView2.
+        try
+        {
+            if (Directory.Exists(_profilePath))
+                Directory.Delete(_profilePath, recursive: true);
+        }
+        catch
+        {
+            // WebView2 may release its profile a moment after window close.
+            // The application uninstaller removes the parent data directory.
+        }
+    }
+
 }
