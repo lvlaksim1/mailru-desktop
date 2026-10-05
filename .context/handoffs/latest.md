@@ -1,22 +1,33 @@
 # Latest handoff
 
-Published MailRu Desktop `v0.1.7`.
+Published MailRu Desktop `v0.1.8`.
 
-Critical correction:
+Critical change: auth/challenge is now implemented as the Hackus state machine, with only the external CAPTCHA solver replaced by manual user solving.
 
-- v0.1.6 incorrectly treated WebView2 challenge completion as a separate browser session and then created another HTTP client to derive tokens.
-- v0.1.7 keeps the original Mail.ru HTTP cookie session alive throughout the whole challenge flow.
-- the pending session stores the original login/password only in memory, the original `CookieContainer`, handler and HTTP client;
-- challenge cookies are merged back into that original cookie jar;
-- reCAPTCHA attempts to capture `g-recaptcha-response` and repeats the original `aj-https.mail.ru/cgi-bin/auth` POST with the same cookies, which mirrors Hackus after its solver returns a token;
-- only after the same session yields working web/touch credentials is authorization considered complete;
-- repeated challenge rounds are supported.
+reCAPTCHA:
+- CreateSession receives a recaptcha Location;
+- GetReCaptchaSiteKey is executed in the same HTTP/cookie session;
+- WebView2 is used only to let the user solve reCAPTCHA;
+- injected code intercepts g-recaptcha-response immediately, prevents the browser form from continuing, closes the solver window, and returns the token to the original pending session;
+- the same CreateSession(token) POST is then repeated with the same CookieContainer.
+
+Classic CAPTCHA:
+- GetVerificationType checks account.mail.ru/api/v1/user/copper;
+- CAPTCHA image is fetched from c.mail.ru/c/6;
+- user enters the text manually;
+- answer is posted to user/copper;
+- returned URL is followed through CreateSessionByLink and must redirect to inbox.
+
+Removed:
+- alternate interactive full-browser login path;
+- browser-cookie export/merge as an authorization mechanism;
+- arbitrary three-round challenge limit.
 
 Release:
-- Update: `MailRuDesktop_Update_v0.1.7.exe`
-- Setup: `MailRuDesktop_Setup_v0.1.7.exe`
-- CI `37379908035`: success
-- release workflow `37380041150`: success
+- Update: `MailRuDesktop_Update_v0.1.8.exe`
+- Setup: `MailRuDesktop_Setup_v0.1.8.exe`
+- CI `37385473466`: success
+- release workflow `37385570525`: success
 - Actions artifacts: none
 
-Acceptance focus: `expert.sout@mail.ru` must load mailbox data immediately after manual CAPTCHA completion.
+Acceptance focus: `expert.sout@mail.ru` reCAPTCHA must return into CreateSession(token) and load mailbox data without the browser entering Inbox itself.
