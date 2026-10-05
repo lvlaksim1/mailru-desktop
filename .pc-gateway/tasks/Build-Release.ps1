@@ -139,7 +139,7 @@ try {
 }
 catch {
     $message = $_.Exception.Message
-    Write-Error $message
     try { Write-Result -Status 'error' -ErrorText $message } catch {}
+    Write-Host ("Build-Release failed: {0}" -f $message)
     exit 1
 }
