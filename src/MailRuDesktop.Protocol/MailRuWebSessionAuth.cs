@@ -99,7 +99,7 @@ internal static class MailRuWebSessionAuthenticator
 
         if (session.Kind == MailRuChallengeKind.ReCaptcha)
         {
-            var token = completion.Answer ?? completion.ReCaptchaResponse;
+            var token = completion.Answer;
 
             if (string.IsNullOrWhiteSpace(token))
             {
@@ -335,11 +335,11 @@ internal static class MailRuWebSessionAuthenticator
 
                     var challenge = new MailRuAuthChallenge(
                         MailRuChallengeKind.ReCaptcha,
-                        challengeUrl,
-                        BuildSeedCookieHeader(session.Cookies, challengeUrl),
-                        $"recaptcha; redirect={SanitizeLocation(challengeUrl)}",
                         session.Id,
-                        siteKey);
+                        challengeUrl,
+                        siteKey,
+                        null,
+                        $"recaptcha; redirect={SanitizeLocation(challengeUrl)}");
 
                     session.Kind = MailRuChallengeKind.ReCaptcha;
                     session.LastChallenge = challenge;
@@ -472,12 +472,11 @@ internal static class MailRuWebSessionAuthenticator
 
         return new MailRuAuthChallenge(
             MailRuChallengeKind.Captcha,
-            string.Empty,
-            string.Empty,
-            "Hackus: GetCaptchaImage -> manual answer -> SubmitCaptchaAnswer -> CreateSessionByLink",
             session.Id,
             null,
-            Convert.ToBase64String(image));
+            null,
+            Convert.ToBase64String(image),
+            "Hackus: GetCaptchaImage -> manual answer -> SubmitCaptchaAnswer -> CreateSessionByLink");
     }
 
     private static async Task<byte[]?> GetCaptchaImageAsync(
@@ -824,36 +823,6 @@ internal static class MailRuWebSessionAuthenticator
         {
             return null;
         }
-    }
-
-    private static string BuildSeedCookieHeader(CookieContainer cookies, string challengeUrl)
-    {
-        var parts = new HashSet<string>(StringComparer.Ordinal);
-
-        foreach (var candidate in new[]
-                 {
-                     challengeUrl,
-                     "https://account.mail.ru/",
-                     "https://mail.ru/",
-                     "https://e.mail.ru/",
-                     "https://touch.mail.ru/",
-                     "https://aj-https.mail.ru/"
-                 })
-        {
-            if (!Uri.TryCreate(candidate, UriKind.Absolute, out var uri))
-                continue;
-
-            var header = cookies.GetCookieHeader(uri);
-            foreach (var part in header.Split(
-                         ';',
-                         StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-            {
-                if (!string.IsNullOrWhiteSpace(part))
-                    parts.Add(part);
-            }
-        }
-
-        return string.Join("; ", parts);
     }
 
     private static void CleanupExpired()
