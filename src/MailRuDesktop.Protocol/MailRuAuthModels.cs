@@ -25,18 +25,27 @@ public enum MailRuAuthState
 public enum MailRuChallengeKind
 {
     ReCaptcha,
-    Captcha
+    Captcha,
+    TwoFactor,
+    InteractiveLogin
 }
 
 public sealed record MailRuAuthChallenge(
     MailRuChallengeKind Kind,
+    string Url,
+    string SeedCookieHeader,
+    string? DiagnosticReason,
     string SessionId,
-    string? Url,
-    string? SiteKey,
-    string? CaptchaImageBase64,
-    string? SeedCookieHeader,
-    string? DiagnosticReason);
+    string? SiteKey = null,
+    string? CaptchaImageBase64 = null);
 
 public sealed record MailRuChallengeCompletion(
     string SessionId,
-    string Answer);
+    string AccountCookieHeader,
+    string MailCookieHeader,
+    string WebCookieHeader,
+    string TouchCookieHeader,
+    string AjCookieHeader,
+    string FinalUrl,
+    string? ReCaptchaResponse,
+    string? Answer = null);
