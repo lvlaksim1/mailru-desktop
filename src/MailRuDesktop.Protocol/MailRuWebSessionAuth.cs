@@ -709,7 +709,34 @@ internal static class MailRuWebSessionAuthenticator
             Id = id;
             Login = login;
             Password = password;
+            Timeout = timeout;
             CreatedAtUtc = DateTimeOffset.UtcNow;
+            ResetTransport();
+        }
+
+        public string Id { get; }
+        public string Login { get; }
+        public string Password { get; }
+        public TimeSpan Timeout { get; }
+        public DateTimeOffset CreatedAtUtc { get; }
+        public CookieContainer Cookies { get; private set; } = null!;
+        public HttpClientHandler Handler { get; private set; } = null!;
+        public HttpClient Http { get; private set; } = null!;
+        public MailRuChallengeKind Kind { get; set; } = MailRuChallengeKind.ReCaptcha;
+        public string? LastLocation { get; set; }
+        public MailRuAuthChallenge? LastChallenge { get; set; }
+
+        public void ResetTransport()
+        {
+            try
+            {
+                Http?.Dispose();
+                Handler?.Dispose();
+            }
+            catch
+            {
+            }
+
             Cookies = new CookieContainer();
             Handler = new HttpClientHandler
             {
@@ -718,20 +745,16 @@ internal static class MailRuWebSessionAuthenticator
                 CookieContainer = Cookies,
                 AutomaticDecompression = DecompressionMethods.All
             };
+
             Http = new HttpClient(Handler)
             {
-                Timeout = timeout
+                Timeout = Timeout
             };
-        }
 
-        public string Id { get; }
-        public string Login { get; }
-        public string Password { get; }
-        public DateTimeOffset CreatedAtUtc { get; }
-        public CookieContainer Cookies { get; }
-        public HttpClientHandler Handler { get; }
-        public HttpClient Http { get; }
-        public MailRuChallengeKind Kind { get; set; } = MailRuChallengeKind.InteractiveLogin;
+            LastLocation = null;
+            LastChallenge = null;
+            _lastRequestAt = DateTimeOffset.MinValue;
+        }
 
         public async Task WaitBeforeRequestAsync(CancellationToken cancellationToken)
         {
@@ -750,4 +773,5 @@ internal static class MailRuWebSessionAuthenticator
             Handler.Dispose();
         }
     }
+
 }
