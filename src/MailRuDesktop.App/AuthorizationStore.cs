@@ -7,8 +7,12 @@ namespace MailRuDesktop.App;
 
 public sealed record RestoredAuthorization(
     string Login,
-    string AccessToken,
-    string? RefreshToken);
+    string? AccessToken,
+    string? RefreshToken,
+    string? WebToken,
+    string? SearchToken,
+    string? WebCookieHeader,
+    string? TouchCookieHeader);
 
 internal sealed class AuthorizationStore
 {
@@ -50,18 +54,28 @@ internal sealed class AuthorizationStore
 
         try
         {
-            var accessToken = Dpapi.Unprotect(record.AccessToken);
-            var refreshToken = string.IsNullOrWhiteSpace(record.RefreshToken)
-                ? null
-                : Dpapi.Unprotect(record.RefreshToken);
+            var accessToken = UnprotectOptional(record.AccessToken);
+            var refreshToken = UnprotectOptional(record.RefreshToken);
+            var webToken = UnprotectOptional(record.WebToken);
+            var searchToken = UnprotectOptional(record.SearchToken);
+            var webCookieHeader = UnprotectOptional(record.WebCookieHeader);
+            var touchCookieHeader = UnprotectOptional(record.TouchCookieHeader);
 
-            if (string.IsNullOrWhiteSpace(accessToken))
+            if (string.IsNullOrWhiteSpace(accessToken) &&
+                string.IsNullOrWhiteSpace(webToken) &&
+                string.IsNullOrWhiteSpace(searchToken))
+            {
                 return false;
+            }
 
             authorization = new RestoredAuthorization(
                 record.Login,
                 accessToken,
-                string.IsNullOrWhiteSpace(refreshToken) ? null : refreshToken);
+                refreshToken,
+                webToken,
+                searchToken,
+                webCookieHeader,
+                touchCookieHeader);
             return true;
         }
         catch
@@ -70,15 +84,23 @@ internal sealed class AuthorizationStore
         }
     }
 
-    public void Save(string login, string accessToken, string? refreshToken)
+    public void Save(
+        string login,
+        string? accessToken,
+        string? refreshToken,
+        string? webToken,
+        string? searchToken,
+        string? webCookieHeader,
+        string? touchCookieHeader)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(login);
-        ArgumentException.ThrowIfNullOrWhiteSpace(accessToken);
 
-        var protectedAccess = Dpapi.Protect(accessToken);
-        var protectedRefresh = string.IsNullOrWhiteSpace(refreshToken)
-            ? null
-            : Dpapi.Protect(refreshToken);
+        if (string.IsNullOrWhiteSpace(accessToken) &&
+            string.IsNullOrWhiteSpace(webToken) &&
+            string.IsNullOrWhiteSpace(searchToken))
+        {
+            throw new ArgumentException("At least one authorization credential is required.");
+        }
 
         var existing = _state.Accounts.FindIndex(account =>
             string.Equals(account.Login, login, StringComparison.OrdinalIgnoreCase));
@@ -86,8 +108,12 @@ internal sealed class AuthorizationStore
         var replacement = new AuthorizationRecord
         {
             Login = login,
-            AccessToken = protectedAccess,
-            RefreshToken = protectedRefresh,
+            AccessToken = ProtectOptional(accessToken),
+            RefreshToken = ProtectOptional(refreshToken),
+            WebToken = ProtectOptional(webToken),
+            SearchToken = ProtectOptional(searchToken),
+            WebCookieHeader = ProtectOptional(webCookieHeader),
+            TouchCookieHeader = ProtectOptional(touchCookieHeader),
             SavedAtUtc = DateTimeOffset.UtcNow
         };
 
@@ -109,6 +135,12 @@ internal sealed class AuthorizationStore
             Persist();
         }
     }
+
+    private static string? ProtectOptional(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : Dpapi.Protect(value);
+
+    private static string? UnprotectOptional(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : Dpapi.Unprotect(value);
 
     private AuthorizationState LoadState()
     {
@@ -146,8 +178,12 @@ internal sealed class AuthorizationStore
     private sealed class AuthorizationRecord
     {
         public string Login { get; set; } = string.Empty;
-        public string AccessToken { get; set; } = string.Empty;
+        public string? AccessToken { get; set; }
         public string? RefreshToken { get; set; }
+        public string? WebToken { get; set; }
+        public string? SearchToken { get; set; }
+        public string? WebCookieHeader { get; set; }
+        public string? TouchCookieHeader { get; set; }
         public DateTimeOffset SavedAtUtc { get; set; }
     }
 
