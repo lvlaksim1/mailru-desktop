@@ -806,75 +806,6 @@ internal static class MailRuWebSessionAuthenticator
         }
     }
 
-    private static async Task FollowBrowserResultAsync(
-        PendingSession session,
-        Uri uri,
-        CancellationToken cancellationToken)
-    {
-        var current = uri;
-
-        for (var i = 0; i < 6; i++)
-        {
-            await session.WaitBeforeRequestAsync(cancellationToken).ConfigureAwait(false);
-
-            using var request = new HttpRequestMessage(HttpMethod.Get, current);
-            request.Headers.TryAddWithoutValidation("User-Agent", MailRuFixedProfile.UserAgent);
-
-            using var response = await session.Http.SendAsync(
-                request,
-                HttpCompletionOption.ResponseHeadersRead,
-                cancellationToken).ConfigureAwait(false);
-
-            if (response.Headers.Location is null)
-                return;
-
-            current = response.Headers.Location.IsAbsoluteUri
-                ? response.Headers.Location
-                : new Uri(current, response.Headers.Location);
-        }
-    }
-
-    private static void MergeBrowserCookies(
-        CookieContainer cookies,
-        MailRuChallengeCompletion completion)
-    {
-        ImportCookieHeader(cookies, new Uri("https://account.mail.ru/"), completion.AccountCookieHeader);
-        ImportCookieHeader(cookies, new Uri("https://mail.ru/"), completion.MailCookieHeader);
-        ImportCookieHeader(cookies, new Uri("https://e.mail.ru/"), completion.WebCookieHeader);
-        ImportCookieHeader(cookies, new Uri("https://touch.mail.ru/"), completion.TouchCookieHeader);
-        ImportCookieHeader(cookies, new Uri("https://aj-https.mail.ru/"), completion.AjCookieHeader);
-    }
-
-    private static void ImportCookieHeader(CookieContainer cookies, Uri uri, string header)
-    {
-        if (string.IsNullOrWhiteSpace(header))
-            return;
-
-        try
-        {
-            cookies.SetCookies(uri, header);
-        }
-        catch
-        {
-            foreach (var part in header.Split(
-                         ';',
-                         StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-            {
-                var separator = part.IndexOf('=');
-                if (separator <= 0)
-                    continue;
-
-                try
-                {
-                    cookies.SetCookies(uri, part);
-                }
-                catch
-                {
-                }
-            }
-        }
-    }
-
     private static string BuildSeedCookieHeader(CookieContainer cookies, string challengeUrl)
     {
         var parts = new HashSet<string>(StringComparer.Ordinal);
@@ -936,25 +867,6 @@ internal static class MailRuWebSessionAuthenticator
             return string.IsNullOrWhiteSpace(location) ? "(none)" : "(relative)";
 
         return $"{uri.Scheme}://{uri.Host}{uri.AbsolutePath}";
-    }
-
-    private static string SanitizeBodyHint(string payload)
-    {
-        if (string.IsNullOrWhiteSpace(payload))
-            return "(empty)";
-
-        var lowered = payload.ToLowerInvariant();
-        foreach (var marker in new[]
-                 {
-                     "recaptcha", "captcha", "twofactor", "two_factor",
-                     "recovery", "blocked", "invalid", "error", "inbox"
-                 })
-        {
-            if (lowered.Contains(marker, StringComparison.Ordinal))
-                return marker;
-        }
-
-        return $"len:{payload.Length}";
     }
 
     private static bool TryFindString(JsonElement element, string name, out string? value)
