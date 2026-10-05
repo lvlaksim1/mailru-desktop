@@ -3,62 +3,26 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
+        <!-- Theme palette. ThemeManager replaces these resources atomically. -->
         <SolidColorBrush x:Key="AppWindowBrush" Color="#FFFFFF"/>
         <SolidColorBrush x:Key="AppPanelBrush" Color="#FFFFFF"/>
         <SolidColorBrush x:Key="AppControlBrush" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="AppControlHoverBrush" Color="#F3F5F7"/>
+        <SolidColorBrush x:Key="AppControlPressedBrush" Color="#E8EBEF"/>
         <SolidColorBrush x:Key="AppTextBrush" Color="#202124"/>
         <SolidColorBrush x:Key="AppMutedTextBrush" Color="#70757A"/>
+        <SolidColorBrush x:Key="AppDisabledTextBrush" Color="#9AA0A6"/>
         <SolidColorBrush x:Key="AppBorderBrush" Color="#D6DCE5"/>
         <SolidColorBrush x:Key="AppSelectionBrush" Color="#DCEBFA"/>
+        <SolidColorBrush x:Key="AppSelectionTextBrush" Color="#202124"/>
+        <SolidColorBrush x:Key="AppAccentBrush" Color="#0D6EFD"/>
+        <SolidColorBrush x:Key="AppAccentTextBrush" Color="#FFFFFF"/>
 
-        <Style TargetType="{x:Type Window}">
-            <Setter Property="Background" Value="{DynamicResource AppWindowBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
-        </Style>
-        <Style TargetType="{x:Type TextBlock}">
-            <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
-        </Style>
-        <Style TargetType="{x:Type TextBox}">
-            <Setter Property="Background" Value="{DynamicResource AppControlBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}"/>
-        </Style>
-        <Style TargetType="{x:Type PasswordBox}">
-            <Setter Property="Background" Value="{DynamicResource AppControlBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}"/>
-        </Style>
-        <Style TargetType="{x:Type ComboBox}">
-            <Setter Property="Background" Value="{DynamicResource AppControlBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}"/>
-        </Style>
-        <Style TargetType="{x:Type Button}">
-            <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
-            <Setter Property="Background" Value="{DynamicResource AppControlBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}"/>
-        </Style>
-        <Style TargetType="{x:Type ListBox}">
-            <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
-            <Setter Property="Background" Value="{DynamicResource AppPanelBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}"/>
-        </Style>
-        <Style TargetType="{x:Type DataGrid}">
-            <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
-            <Setter Property="Background" Value="{DynamicResource AppPanelBrush}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}"/>
-            <Setter Property="RowBackground" Value="{DynamicResource AppPanelBrush}"/>
-            <Setter Property="AlternatingRowBackground" Value="{DynamicResource AppControlBrush}"/>
-        </Style>
-        <Style TargetType="{x:Type TabControl}">
-            <Setter Property="Background" Value="{DynamicResource AppWindowBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
-        </Style>
-        <Style TargetType="{x:Type TabItem}">
-            <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
-        </Style>
-        <!-- Original cloud + envelope mark based on the Owner-approved visual direction.
-             Kept as vector geometry so it stays crisp in the title bar/taskbar. -->
+        <ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary Source="Themes/ThemeStyles.xaml"/>
+        </ResourceDictionary.MergedDictionaries>
+
+        <!-- Owner-approved cloud + envelope mark. -->
         <DrawingImage x:Key="AppIcon">
             <DrawingImage.Drawing>
                 <DrawingGroup>
