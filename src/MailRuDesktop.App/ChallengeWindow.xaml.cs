@@ -135,8 +135,7 @@ public partial class ChallengeWindow : Window
 
         var uri = Browser.Source;
 
-        if (uri.Host.Equals("e.mail.ru", StringComparison.OrdinalIgnoreCase) &&
-            !uri.AbsolutePath.Contains("login", StringComparison.OrdinalIgnoreCase))
+        if (IsAuthenticatedMailboxUri(uri))
         {
             StatusText.Text = "Mail.ru подтвердил вход. Проверяю сессию...";
             await CompleteAsync();
@@ -166,8 +165,7 @@ public partial class ChallengeWindow : Window
             var finalUrl = Browser.Source?.ToString() ?? _challenge.Url;
             var reachedMailbox =
                 Uri.TryCreate(finalUrl, UriKind.Absolute, out var current) &&
-                current.Host.Equals("e.mail.ru", StringComparison.OrdinalIgnoreCase) &&
-                !current.AbsolutePath.Contains("login", StringComparison.OrdinalIgnoreCase);
+                IsAuthenticatedMailboxUri(current);
 
             var reCaptchaResponse = await ReadReCaptchaResponseAsync();
 
@@ -217,6 +215,19 @@ public partial class ChallengeWindow : Window
             StatusText.Text = "Не удалось получить результат проверки: " + ex.Message;
             _completing = false;
         }
+    }
+
+    private static bool IsAuthenticatedMailboxUri(Uri uri)
+    {
+        if (uri.AbsolutePath.Contains("login", StringComparison.OrdinalIgnoreCase) ||
+            uri.AbsolutePath.Contains("auth", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return uri.Host.Equals("e.mail.ru", StringComparison.OrdinalIgnoreCase) ||
+               uri.Host.Equals("touch.mail.ru", StringComparison.OrdinalIgnoreCase) ||
+               uri.Host.Equals("m.mail.ru", StringComparison.OrdinalIgnoreCase);
     }
 
     private async Task<string?> ReadReCaptchaResponseAsync()
