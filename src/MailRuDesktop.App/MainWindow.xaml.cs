@@ -225,6 +225,9 @@ public partial class MainWindow : Window
                         return;
                     }
 
+                    AuthStatusText.Text =
+                        "Проверка принята — завершаю авторизацию и получаю токены...";
+
                     var completed = await _mailRu.CompleteChallengeAsync(
                         login,
                         challengeWindow.Completion!);
