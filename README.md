@@ -31,7 +31,15 @@ Implemented in the protocol layer:
 - send through `/api/v1/messages/send`;
 - server-side scheduled send through `/api/v1/messages/schedule`.
 
-The first UI exposes authentication and raw folder/thread loading. Compose, mailbox rendering, local cache, secure credential storage, search, flags, folders, contacts, and attachment UX follow as separate increments.
+Current UI:
+
+- login using the verified mobile-style auth flow;
+- raw folder/thread retrieval for protocol validation;
+- compose with recipient, subject and body;
+- multi-file attachment upload;
+- immediate send using the verified compose endpoint.
+
+The password is never persisted. The access token currently lives in process memory only; Windows-protected token persistence is a planned increment.
 
 ## Build
 
