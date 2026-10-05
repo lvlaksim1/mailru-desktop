@@ -96,6 +96,8 @@ internal static class ThemeManager
             SetBrush(resources, "AppAccentTextBrush", "#FFFFFF");
         }
 
+        ApplySystemBrushAliases(resources);
+
         foreach (Window window in Application.Current.Windows)
             ApplyNativeWindowTheme(window);
     }
@@ -112,6 +114,36 @@ internal static class ThemeManager
         brush.Freeze();
         resources[key] = brush;
     }
+    private static void ApplySystemBrushAliases(ResourceDictionary resources)
+    {
+        // WPF's built-in templates still consult SystemColors. Redirect those
+        // keys to the application palette so controls added later inherit the
+        // theme even when they do not yet have an explicit MailRu style.
+        var window = (Brush)resources["AppWindowBrush"];
+        var panel = (Brush)resources["AppPanelBrush"];
+        var control = (Brush)resources["AppControlBrush"];
+        var text = (Brush)resources["AppTextBrush"];
+        var muted = (Brush)resources["AppDisabledTextBrush"];
+        var border = (Brush)resources["AppBorderBrush"];
+        var selection = (Brush)resources["AppSelectionBrush"];
+        var selectionText = (Brush)resources["AppSelectionTextBrush"];
+
+        resources[SystemColors.WindowBrushKey] = window;
+        resources[SystemColors.WindowTextBrushKey] = text;
+        resources[SystemColors.ControlBrushKey] = control;
+        resources[SystemColors.ControlTextBrushKey] = text;
+        resources[SystemColors.ControlLightBrushKey] = panel;
+        resources[SystemColors.ControlDarkBrushKey] = border;
+        resources[SystemColors.ControlDarkDarkBrushKey] = border;
+        resources[SystemColors.GrayTextBrushKey] = muted;
+        resources[SystemColors.HighlightBrushKey] = selection;
+        resources[SystemColors.HighlightTextBrushKey] = selectionText;
+        resources[SystemColors.ActiveBorderBrushKey] = border;
+        resources[SystemColors.InactiveBorderBrushKey] = border;
+        resources[SystemColors.MenuBrushKey] = panel;
+        resources[SystemColors.MenuTextBrushKey] = text;
+    }
+
 
     private static bool IsSystemDark()
     {
