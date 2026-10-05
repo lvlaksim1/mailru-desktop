@@ -308,7 +308,8 @@ public sealed class MailRuClient : IDisposable
             return MailRuAuthResult.Failed(
                 web.ErrorCode ?? "web_session_token_missing",
                 web.State,
-                web.DiagnosticReason);
+                web.DiagnosticReason,
+                web.Challenge);
         }
 
         return new MailRuAuthResult(true, null, null, null)
