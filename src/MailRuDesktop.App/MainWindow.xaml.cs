@@ -1218,7 +1218,9 @@ public partial class MainWindow : Window
         {
             MailRuAuthState.Blocked => "Blocked — Mail.ru заблокировал вход или требует разблокировку аккаунта",
             MailRuAuthState.RecoveryRequired => "Mail.ru требует восстановление/подтверждение аккаунта",
-            MailRuAuthState.ReCaptcha => "требуется reCAPTCHA",
+            MailRuAuthState.ReCaptcha => string.Equals(code, "recaptcha_rejected", StringComparison.OrdinalIgnoreCase)
+                ? "Mail.ru отклонил ответ reCAPTCHA; причина сохранена в диагностике"
+                : "требуется reCAPTCHA",
             MailRuAuthState.Captcha => "требуется CAPTCHA",
             MailRuAuthState.TwoFactor => "требуется двухфакторная проверка",
             MailRuAuthState.InvalidCredentials => "неверный логин или пароль",
