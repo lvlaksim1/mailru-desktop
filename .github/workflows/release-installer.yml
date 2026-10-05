@@ -71,6 +71,21 @@ jobs:
           $update = "dist\MailRuDesktop_Update_v$v.exe"
           gh release create $tag $full $update --target "${{ github.event.repository.default_branch }}" --title "MailRu Desktop v$v" --notes "Native Windows build. Use MailRuDesktop_Setup for the first installation. Existing installations should use MailRuDesktop_Update."
 
+      - name: Prune older binary releases
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $currentTag = "v${{ steps.request.outputs.version }}"
+          $releases = gh release list --limit 100 --json tagName | ConvertFrom-Json
+          foreach ($release in $releases) {
+            if ($release.tagName -ne $currentTag) {
+              Write-Host "Deleting old release $($release.tagName); source tag is preserved."
+              gh release delete $release.tagName --yes
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            }
+          }
+
       - name: Report release
         if: success()
         shell: pwsh
