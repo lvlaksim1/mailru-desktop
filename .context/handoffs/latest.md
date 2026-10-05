@@ -1,33 +1,35 @@
 # Latest handoff
 
-Published MailRu Desktop `v0.1.8`.
+Published MailRu Desktop `v0.1.9`.
 
-Critical change: auth/challenge is now implemented as the Hackus state machine, with only the external CAPTCHA solver replaced by manual user solving.
+Auth correction after owner reported v0.1.8 CAPTCHA still failed:
 
-reCAPTCHA:
-- CreateSession receives a recaptcha Location;
-- GetReCaptchaSiteKey is executed in the same HTTP/cookie session;
-- WebView2 is used only to let the user solve reCAPTCHA;
-- injected code intercepts g-recaptcha-response immediately, prevents the browser form from continuing, closes the solver window, and returns the token to the original pending session;
-- the same CreateSession(token) POST is then repeated with the same CookieContainer.
+- v0.1.8 was not yet fully equivalent to Hackus because MailRu Desktop still performed a separate mobile/OAuth auth request before Hackus Login(), and the manual reCAPTCHA was solved inside Mail.ru's own challenge page.
+- v0.1.9 removes both differences.
+- authentication begins directly with Hackus-style Reset() -> CreateSession();
+- GetReCaptchaSiteKey is performed in the same cookie session;
+- WebView2 is now only a manual replacement for RecaptchaV2TaskProxyless: a minimal page is served at virtual secure origin https://account.mail.ru with the extracted sitekey;
+- no Mail.ru login JavaScript runs in that solver page, so g-recaptcha-response cannot be consumed before the application receives it;
+- token is fed directly to the original same-session CreateSession(token);
+- obsolete browser cookie export/import challenge fields were removed;
+- repeated reCAPTCHA after token submission is surfaced as `recaptcha_rejected` instead of recursively reopening windows.
 
-Classic CAPTCHA:
-- GetVerificationType checks account.mail.ru/api/v1/user/copper;
-- CAPTCHA image is fetched from c.mail.ru/c/6;
-- user enters the text manually;
-- answer is posted to user/copper;
-- returned URL is followed through CreateSessionByLink and must redirect to inbox.
+Classic CAPTCHA remains the Hackus sequence:
+GetVerificationType -> c.mail.ru/c/6 -> manual text answer -> user/copper -> CreateSessionByLink.
 
-Removed:
-- alternate interactive full-browser login path;
-- browser-cookie export/merge as an authorization mechanism;
-- arbitrary three-round challenge limit.
+Theme/install changes:
+- optional “Create desktop icon” task exists in both Setup and Update;
+- theme architecture is global and resource-driven rather than per-control patching;
+- standard WPF control families and SystemColors are mapped to the active palette;
+- Windows title bars and message WebView follow the selected/effective theme;
+- System mode reacts to Windows theme changes.
 
 Release:
-- Update: `MailRuDesktop_Update_v0.1.8.exe`
-- Setup: `MailRuDesktop_Setup_v0.1.8.exe`
-- CI `37385473466`: success
-- release workflow `37385570525`: success
+- Update: `MailRuDesktop_Update_v0.1.9.exe`
+- Setup: `MailRuDesktop_Setup_v0.1.9.exe`
+- CI `37390492256`: success
+- release workflow `37390587718`: success
 - Actions artifacts: none
+- only binary Release retained: v0.1.9
 
-Acceptance focus: `expert.sout@mail.ru` reCAPTCHA must return into CreateSession(token) and load mailbox data without the browser entering Inbox itself.
+Acceptance focus: expert.sout@mail.ru reCAPTCHA, desktop shortcut checkbox, and complete dark-theme coverage.
