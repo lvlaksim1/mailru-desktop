@@ -1,6 +1,20 @@
+using System.Net;
 using System.Text.Json;
 
 namespace MailRuDesktop.Protocol;
+
+public sealed record MailRuFolderSummary(
+    int Id,
+    string Type,
+    string Name,
+    long MessagesUnread,
+    long MessagesTotal,
+    bool IsSystem)
+{
+    public string DisplayName => MessagesUnread > 0
+        ? $"{Name} ({MessagesUnread})"
+        : Name;
+}
 
 public sealed record MailRuMessageSummary(
     string Id,
@@ -63,14 +77,16 @@ public sealed record MailRuMessageSummary(
 }
 
 public sealed record MailRuFolderSnapshot(
+    int? SelectedFolderId,
     long? MessagesTotal,
     long? MessagesUnread,
+    IReadOnlyList<MailRuFolderSummary> Folders,
     IReadOnlyList<MailRuMessageSummary> Messages,
     string RawJson);
 
 public static class MailRuThreadStatusParser
 {
-    public static MailRuFolderSnapshot Parse(string payload)
+    public static MailRuFolderSnapshot Parse(string payload, int? requestedFolderId = null)
     {
         if (string.IsNullOrWhiteSpace(payload))
             throw new MailRuProtocolException("Thread-status response is empty.");
@@ -85,17 +101,57 @@ public static class MailRuThreadStatusParser
                 ? bodyElement
                 : root;
 
-            var total = FindInteger(body, "messages_total");
-            var unread = FindInteger(body, "messages_unread");
+            var folders = ParseFolders(body);
+            var selectedFolderId = requestedFolderId;
+            JsonElement? selectedContent = null;
 
-            var messages = new List<MailRuMessageSummary>();
-            var seenIds = new HashSet<string>(StringComparer.Ordinal);
-            CollectMessages(body, messages, seenIds);
+            if (body.ValueKind == JsonValueKind.Object &&
+                body.TryGetProperty("folders_content", out var foldersContent) &&
+                foldersContent.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var content in foldersContent.EnumerateArray())
+                {
+                    if (content.ValueKind != JsonValueKind.Object)
+                        continue;
+
+                    var contentId = ReadInteger(content, "id");
+                    if (selectedFolderId is null && contentId is not null)
+                        selectedFolderId = checked((int)contentId.Value);
+
+                    if (selectedFolderId is not null &&
+                        contentId == selectedFolderId.Value)
+                    {
+                        selectedContent = content;
+                        break;
+                    }
+
+                    selectedContent ??= content;
+                }
+            }
+
+            var messages = selectedContent is null
+                ? new List<MailRuMessageSummary>()
+                : ParseThreads(selectedContent.Value);
 
             messages.Sort((left, right) =>
                 Nullable.Compare(right.DateUnix, left.DateUnix));
 
-            return new MailRuFolderSnapshot(total, unread, messages, payload);
+            var selectedFolder = selectedFolderId is null
+                ? null
+                : folders.FirstOrDefault(folder => folder.Id == selectedFolderId.Value);
+
+            var total = selectedFolder?.MessagesTotal ??
+                        (selectedContent is null ? null : FindInteger(selectedContent.Value, "messages_total"));
+            var unread = selectedFolder?.MessagesUnread ??
+                         (selectedContent is null ? null : FindInteger(selectedContent.Value, "messages_unread"));
+
+            return new MailRuFolderSnapshot(
+                selectedFolderId,
+                total,
+                unread,
+                folders,
+                messages,
+                payload);
         }
         catch (JsonException ex)
         {
@@ -103,63 +159,79 @@ public static class MailRuThreadStatusParser
         }
     }
 
-    private static void CollectMessages(
-        JsonElement element,
-        List<MailRuMessageSummary> messages,
-        HashSet<string> seenIds)
+    private static List<MailRuFolderSummary> ParseFolders(JsonElement body)
     {
-        switch (element.ValueKind)
+        var folders = new List<MailRuFolderSummary>();
+
+        if (body.ValueKind != JsonValueKind.Object ||
+            !body.TryGetProperty("folders", out var array) ||
+            array.ValueKind != JsonValueKind.Array)
         {
-            case JsonValueKind.Object:
-                if (LooksLikeMessage(element) &&
-                    TryReadId(element, out var id) &&
-                    seenIds.Add(id))
-                {
-                    messages.Add(ParseMessage(element, id));
-                }
-
-                foreach (var property in element.EnumerateObject())
-                    CollectMessages(property.Value, messages, seenIds);
-                break;
-
-            case JsonValueKind.Array:
-                foreach (var item in element.EnumerateArray())
-                    CollectMessages(item, messages, seenIds);
-                break;
-        }
-    }
-
-    private static bool LooksLikeMessage(JsonElement element)
-    {
-        if (element.ValueKind != JsonValueKind.Object ||
-            !element.TryGetProperty("id", out _))
-        {
-            return false;
+            return folders;
         }
 
-        var hasText = element.TryGetProperty("subject", out _) ||
-                      element.TryGetProperty("snippet", out _);
+        foreach (var folder in array.EnumerateArray())
+        {
+            if (folder.ValueKind != JsonValueKind.Object)
+                continue;
 
-        var hasMessageShape = element.TryGetProperty("correspondents", out _) ||
-                              element.TryGetProperty("date", out _) ||
-                              element.TryGetProperty("folder", out _) ||
-                              element.TryGetProperty("size", out _);
+            var id = ReadInteger(folder, "id");
+            if (id is null || id < int.MinValue || id > int.MaxValue)
+                continue;
 
-        return hasText && hasMessageShape;
+            folders.Add(new MailRuFolderSummary(
+                checked((int)id.Value),
+                Decode(ReadString(folder, "type") ?? string.Empty),
+                Decode(ReadString(folder, "name") ?? id.Value.ToString()),
+                ReadInteger(folder, "messages_unread") ?? 0,
+                ReadInteger(folder, "messages_total") ?? 0,
+                ReadBoolean(folder, "system") ?? false));
+        }
+
+        return folders;
     }
 
-    private static MailRuMessageSummary ParseMessage(JsonElement element, string id)
+    private static List<MailRuMessageSummary> ParseThreads(JsonElement content)
     {
-        var subject = ReadString(element, "subject") ?? "(без темы)";
-        var snippet = ReadString(element, "snippet") ?? string.Empty;
-        var date = ReadInteger(element, "date");
-        var size = ReadInteger(element, "size");
-        var folder = ReadInteger(element, "folder");
-        var unread = ReadBoolean(element, "unread") ?? ReadFlag(element, "unread") ?? false;
-        var flagged = ReadBoolean(element, "flagged") ?? ReadFlag(element, "flagged") ?? false;
-        var attach = ReadBoolean(element, "attach") ?? ReadFlag(element, "attach") ?? false;
+        var result = new List<MailRuMessageSummary>();
 
-        var (senderName, senderEmail) = ReadSender(element);
+        if (!content.TryGetProperty("threads", out var threads) ||
+            threads.ValueKind != JsonValueKind.Array)
+        {
+            return result;
+        }
+
+        foreach (var thread in threads.EnumerateArray())
+        {
+            if (thread.ValueKind != JsonValueKind.Object ||
+                !TryReadId(thread, out var threadId) ||
+                !thread.TryGetProperty("base_message", out var message) ||
+                message.ValueKind != JsonValueKind.Object)
+            {
+                continue;
+            }
+
+            result.Add(ParseBaseMessage(threadId, message));
+        }
+
+        return result;
+    }
+
+    private static MailRuMessageSummary ParseBaseMessage(string id, JsonElement message)
+    {
+        var subject = Decode(ReadString(message, "subject") ?? "(без темы)");
+        var snippet = Decode(ReadString(message, "snippet") ?? string.Empty);
+        var date = ReadInteger(message, "date");
+        var size = ReadInteger(message, "size");
+        var folder = ReadInteger(message, "folder");
+        var unread = ReadBoolean(message, "unread") ?? ReadFlag(message, "unread") ?? false;
+        var flagged = ReadBoolean(message, "flagged") ?? ReadFlag(message, "flagged") ?? false;
+        var attachmentsCount = ReadInteger(message, "attachments_count") ?? 0;
+        var attach = attachmentsCount > 0 ||
+                     ReadBoolean(message, "attach") == true ||
+                     ReadFlag(message, "attach") == true;
+
+        var (senderName, senderEmail) = ReadSender(message);
 
         return new MailRuMessageSummary(
             id,
@@ -190,13 +262,16 @@ public static class MailRuThreadStatusParser
             if (sender.ValueKind != JsonValueKind.Object)
                 continue;
 
-            var name = ReadString(sender, "name") ?? string.Empty;
-            var email = ReadString(sender, "email") ?? string.Empty;
+            var name = Decode(ReadString(sender, "name") ?? string.Empty);
+            var email = Decode(ReadString(sender, "email") ?? string.Empty);
             return (name, email);
         }
 
         return (string.Empty, string.Empty);
     }
+
+    private static string Decode(string value) =>
+        WebUtility.HtmlDecode(value).Replace("&nbsp;", " ", StringComparison.Ordinal);
 
     private static bool? ReadFlag(JsonElement element, string name)
     {
@@ -220,11 +295,9 @@ public static class MailRuThreadStatusParser
             case JsonValueKind.String:
                 id = idElement.GetString() ?? string.Empty;
                 return id.Length > 0;
-
             case JsonValueKind.Number:
                 id = idElement.GetRawText();
                 return id.Length > 0;
-
             default:
                 return false;
         }
