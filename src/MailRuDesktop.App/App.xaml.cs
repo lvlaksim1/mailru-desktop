@@ -6,6 +6,7 @@ public partial class App : Application
 {
     protected override void OnStartup(StartupEventArgs e)
     {
+        ThemeManager.Initialize();
         ThemeManager.Apply(new AppSettingsStore().LoadTheme());
         base.OnStartup(e);
     }
