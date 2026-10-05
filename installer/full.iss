@@ -30,6 +30,7 @@ OutputBaseFilename=MailRuDesktop_Setup_v{#AppVersion}
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
+SetupIconFile=..\\src\\MailRuDesktop.App\\app.ico
 PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
