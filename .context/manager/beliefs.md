@@ -20,7 +20,7 @@ supersedes: any generic mail-client assumption that IMAP/SMTP is an acceptable f
 
 statement: The product is implemented from scratch as a native Windows application. Third-party projects are research/evidence sources for practices and endpoint discovery; their product code is not copied.
 
-source: direct Owner directive; product commit `48adb2ba1236a2e49b39562b5ddd7ee53c5556af`.
+source: direct Owner directive; product history on `main`.
 authority: owner-directive + verified-repository
 supersedes: prior exploratory idea of forking an existing mail client
 
@@ -34,8 +34,16 @@ supersedes: none
 
 ## B-005 — first vertical slice verified by CI
 
-statement: The first product commit implements the A-level protocol slice for mobile auth, smart thread status, attachment upload, send, and scheduled send; GitHub Actions Windows CI restored and built the application successfully.
+statement: Product commit `48adb2ba1236a2e49b39562b5ddd7ee53c5556af` implements the A-level protocol slice for mobile auth, smart thread status, attachment upload, send, and scheduled send; GitHub Actions Windows CI run `37335195622` completed successfully.
 
-source: product commit `48adb2ba1236a2e49b39562b5ddd7ee53c5556af`; CI run `37335195622`.
+source: product commit and CI run.
+authority: verified-ci
+supersedes: none
+
+## B-006 — compose UI is wired to verified transport
+
+statement: Product commit `1420d1619c16deb2dce150cd8882ee86431b2465` adds a compose UI for recipient, subject, body and multiple file attachments. Attachment uploads and immediate send use only locally verified A-level `aj-https.mail.ru` operations. CI run `37335834260` completed successfully.
+
+source: product commit `1420d1619c16deb2dce150cd8882ee86431b2465`; CI run `37335834260`.
 authority: verified-ci
 supersedes: none

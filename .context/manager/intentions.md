@@ -23,3 +23,11 @@ status: active
 commitment: Reconcile externally discovered Mail.ru endpoint families against fresh local traffic and promote only locally reproduced operations to A-level evidence.
 
 priority operations: full message/thread read, folder discovery/mapping, read/unread, star/flag, move/archive/trash/delete, search, contacts/autocomplete, drafts, attachment download, richer compose semantics.
+
+## I-004 — expose verified send flow in UI
+
+status: completed
+
+commitment: Wire immediate compose and multi-file attachment upload to the locally verified `aj-https.mail.ru` transport without enabling unverified mutation/search routes.
+
+verification: product commit `1420d1619c16deb2dce150cd8882ee86431b2465`; CI run `37335834260` concluded success.

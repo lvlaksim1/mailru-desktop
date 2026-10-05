@@ -18,7 +18,8 @@
 
 ## Near-term product plan
 
-- secure token persistence using Windows-protected storage;
-- compose/reply UI using the already implemented send/schedule transport;
-- attachment upload workflow with a compose-session message id;
-- local cache/index only after the server models are stable enough to avoid schema churn.
+- introduce Windows-protected access-token persistence; do not persist the mailbox password;
+- move compose logic from window code-behind into application services/view-model state after the first interaction contract is stable;
+- determine valid modern compose-session message-id semantics and replace the fixed compatibility sentinel only after evidence;
+- add user-friendly server-side schedule UI after the exact `send_date` format is verified;
+- add local cache/index only after server models are stable enough to avoid schema churn.
