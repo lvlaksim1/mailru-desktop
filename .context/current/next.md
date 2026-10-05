@@ -1,12 +1,12 @@
 # Next actions
 
-1. Validate v0.1.3 with the owner regression account that previously returned `token_missing`; classify any remaining result as success, CAPTCHA, reCAPTCHA, 2FA, recovery, invalid credentials, or protocol mismatch.
-2. If that account reaches a web/touch session, verify that mailbox listing works through the selected fallback path and record the observed response shape.
-3. Locally reproduce `GET touch.mail.ru/api/v1/messages/message` (or the current equivalent) for one real message and determine whether reading changes unread state.
-4. Add typed full-message/body/attachment models and wire the right-hand reading pane only after the read endpoint is promoted to A-level evidence.
-5. Verify attachment download through the returned `href.download` representation.
-6. Reproduce and promote read/unread, flag/star, move/archive/trash/delete operations one by one before enabling them in the UI.
-7. Reproduce touch search and address-book/autocomplete behavior against current traffic.
-8. Add interactive CAPTCHA/challenge handling if owner testing produces that state; do not automate third-party CAPTCHA solving.
-9. Preserve Windows-protected authorization state across every update and never persist mailbox passwords.
-10. Continue publishing only Setup + Update as the newest binary GitHub Release with no workflow artifacts.
+1. Owner installs `MailRuDesktop_Update_v0.1.4.exe`.
+2. Re-test the `expert.sout@mail.ru` account that previously produced reCAPTCHA and complete the interactive challenge in the embedded Mail.ru window.
+3. Verify that the resulting authorization persists across an application restart and a later Update install.
+4. Open one real message and verify full body rendering plus whether opening it changes unread/read state.
+5. Open a message with attachments, verify original filename/MIME display, and download one attachment.
+6. Test server search by sender/subject/body and verify returned message ids map to real messages.
+7. Test contacts retrieval against the current account.
+8. Test moving one disposable test message to Trash, then separately test permanent remove only on a disposable test message.
+9. Record actual response shapes/errors from any failing B-level touch/web endpoint and promote only reproduced behavior to A-level evidence.
+10. Continue release policy: only Setup + Update in the newest binary GitHub Release, no Actions artifacts.
