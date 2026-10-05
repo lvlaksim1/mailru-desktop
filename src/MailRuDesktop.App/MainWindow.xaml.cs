@@ -955,23 +955,18 @@ public partial class MainWindow : Window
         if (!_readerReady || MessageWebView.CoreWebView2 is null)
             return;
 
-        var document = $"""
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline';">
-<style>
-body {{ font-family: Segoe UI, Arial, sans-serif; font-size: 14px; margin: 14px; color: #202124; overflow-wrap: anywhere; }}
-img {{ max-width: 100%; height: auto; }}
-pre {{ white-space: pre-wrap; }}
-blockquote {{ border-left: 3px solid #ddd; margin-left: 8px; padding-left: 10px; color: #555; }}
-a {{ color: #0b57d0; text-decoration: none; }}
-</style>
-</head>
-<body>{body}</body>
-</html>
-""";
+        var document =
+            "<!doctype html><html><head><meta charset=\"utf-8\">" +
+            "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; img-src data:; style-src 'unsafe-inline';\">" +
+            "<style>" +
+            "body { font-family: Segoe UI, Arial, sans-serif; font-size: 14px; margin: 14px; color: #202124; overflow-wrap: anywhere; }" +
+            "img { max-width: 100%; height: auto; }" +
+            "pre { white-space: pre-wrap; }" +
+            "blockquote { border-left: 3px solid #ddd; margin-left: 8px; padding-left: 10px; color: #555; }" +
+            "a { color: #0b57d0; text-decoration: none; }" +
+            "</style></head><body>" +
+            body +
+            "</body></html>";
 
         MessageWebView.NavigateToString(document);
     }
