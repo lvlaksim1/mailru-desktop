@@ -240,6 +240,35 @@ public sealed class MailRuClient : IDisposable
             };
         }
 
+        // Some accounts that require browser CAPTCHA are rejected by the
+        // lightweight aj web-session probe as "invalid credentials" even though
+        // the same password is accepted by the real Mail.ru browser flow. If
+        // the mobile endpoint did not explicitly reject the password and merely
+        // omitted the token, prefer an interactive Mail.ru login over a false
+        // "wrong password" result.
+        if (web.State == MailRuAuthState.InvalidCredentials &&
+            string.Equals(mobileError, "token_missing", StringComparison.OrdinalIgnoreCase))
+        {
+            var browserLoginUrl =
+                "https://account.mail.ru/login?to=" +
+                Uri.EscapeDataString("https://e.mail.ru/inbox/") +
+                "&login=" + Uri.EscapeDataString(login);
+
+            var diagnostic =
+                "aj_web_probe_reported_invalid_after_mobile_token_missing; " +
+                "falling_back_to_interactive_mailru_login";
+
+            return MailRuAuthResult.Failed(
+                "interactive_login_required",
+                MailRuAuthState.Unknown,
+                diagnostic,
+                new MailRuAuthChallenge(
+                    MailRuChallengeKind.InteractiveLogin,
+                    browserLoginUrl,
+                    string.Empty,
+                    diagnostic));
+        }
+
         var error = web.ErrorCode;
         if (string.IsNullOrWhiteSpace(error) ||
             string.Equals(error, "web_session_token_missing", StringComparison.OrdinalIgnoreCase))
