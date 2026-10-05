@@ -1,27 +1,22 @@
 # Latest handoff
 
-Published MailRu Desktop `v0.1.6`.
+Published MailRu Desktop `v0.1.7`.
 
-Key changes requested by owner:
+Critical correction:
 
-- no permanent login/password controls in main window; use saved account selector + “Добавить аккаунт” dialog;
-- removed duplicate in-window app title;
-- Settings tab with persistent System / Light / Dark themes;
-- fixed reader background to follow selected theme;
-- separate Search tab removed; filtering controls moved above message list;
-- normal UI no longer exposes “touch session” as a user concept;
-- full-message read now prefers web token/cookies and supports current nested body/attachment shapes;
-- incoming attachments preserve original name/MIME and download using authenticated web cookies;
-- move/delete prefer web-session APIs, touch retained only as internal fallback;
-- “Удалить навсегда” appears only in Trash via the same dynamic Trash button;
-- challenge/CAPTCHA states are evaluated before generic invalid-password text;
-- when aj token-missing conflicts with an auxiliary invalid-password result, the app falls back to real interactive Mail.ru browser login, allowing CAPTCHA/2FA instead of falsely rejecting the password.
+- v0.1.6 incorrectly treated WebView2 challenge completion as a separate browser session and then created another HTTP client to derive tokens.
+- v0.1.7 keeps the original Mail.ru HTTP cookie session alive throughout the whole challenge flow.
+- the pending session stores the original login/password only in memory, the original `CookieContainer`, handler and HTTP client;
+- challenge cookies are merged back into that original cookie jar;
+- reCAPTCHA attempts to capture `g-recaptcha-response` and repeats the original `aj-https.mail.ru/cgi-bin/auth` POST with the same cookies, which mirrors Hackus after its solver returns a token;
+- only after the same session yields working web/touch credentials is authorization considered complete;
+- repeated challenge rounds are supported.
 
 Release:
-- Update: `MailRuDesktop_Update_v0.1.6.exe`
-- Setup: `MailRuDesktop_Setup_v0.1.6.exe`
-- workflow `37375038704`: success
+- Update: `MailRuDesktop_Update_v0.1.7.exe`
+- Setup: `MailRuDesktop_Setup_v0.1.7.exe`
+- CI `37379908035`: success
+- release workflow `37380041150`: success
 - Actions artifacts: none
-- older binary Releases pruned
 
-Acceptance focus: `expert.sout@mail.ru` CAPTCHA flow, full-message body, incoming attachment display/download, filters, Trash/delete behavior and theme switching.
+Acceptance focus: `expert.sout@mail.ru` must load mailbox data immediately after manual CAPTCHA completion.
