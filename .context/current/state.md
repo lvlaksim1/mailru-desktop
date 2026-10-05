@@ -5,25 +5,31 @@ Visibility: public
 Product authority: `main`
 Manager-state authority: `main`
 
-Current public release: `v0.1.7`
+Current public release: `v0.1.8`
 
 Verified release evidence:
 
-- product CI run `37379908035` — success
-- release workflow `37380041150` — success
-- release assets: `MailRuDesktop_Setup_v0.1.7.exe` and `MailRuDesktop_Update_v0.1.7.exe`
+- product CI run `37385473466` — success
+- release workflow `37385570525` — success
+- release assets: `MailRuDesktop_Setup_v0.1.8.exe` and `MailRuDesktop_Update_v0.1.8.exe`
 - GitHub Actions artifacts: none
 - older binary Releases pruned; source tags retained
 
-v0.1.7 authorization change:
+v0.1.8 authorization/challenge state:
 
-- challenge handling now preserves the original `HttpClient + HttpClientHandler + CookieContainer` across the whole login flow;
-- a pending auth session is retained in memory until CAPTCHA/2FA completes or expires;
-- WebView2 only supplies the user's manual challenge result and resulting Mail.ru cookies back into that original session;
-- for reCAPTCHA, the client attempts to read `g-recaptcha-response` from the challenge page and repeats `POST https://aj-https.mail.ru/cgi-bin/auth` with that response, matching the Hackus continuation step while keeping the same cookie jar;
-- after challenge completion, web token and touch token are derived using that same original cookie session;
-- browser-result cookies from account/mail/e/touch/aj hosts are merged back into the original cookie container before validation;
-- repeated Mail.ru challenges can be handled for several rounds in the same logical login flow;
-- auth-related HTTP calls in this continuation flow are spaced by at least five seconds.
+- the auth/challenge state machine now follows Hackus ordering and endpoints instead of using a browser-login architecture;
+- every explicit Hackus login starts with a fresh CookieContainer, matching Hackus Reset();
+- fixed iPhone Safari/GSA User-Agent matches Hackus;
+- CreateSession uses POST aj-https.mail.ru/cgi-bin/auth with Login/Password, auto-redirect disabled, and classifies Location in Hackus order: user/login?login, recaptcha, fail, recovery/ukey, inbox, unknown;
+- reCAPTCHA branch runs GetReCaptchaSiteKey against the returned challenge URL, then WebView2 acts only as a manual replacement for Hackus captcha solver;
+- WebView2 intercepts g-recaptcha-response immediately and blocks its own form continuation; the token is passed back to the original HTTP session and the same CreateSession(token) is repeated with the same CookieContainer;
+- no browser cookies are exported back as an alternative login mechanism;
+- classic CAPTCHA branch runs GetVerificationType -> GET c.mail.ru/c/6 -> manual text entry -> POST account.mail.ru/api/v1/user/copper -> CreateSessionByLink;
+- invalid classic CAPTCHA restarts with a fresh cookie container, matching Hackus outer Login()/Reset() behavior;
+- real TwoFactor remains a terminal TwoFactor state, as in Hackus;
+- recovery/ukey are classified as Blocked;
+- successful Login is followed first by touch GetSearchToken, then MailRu Desktop derives its additional web token;
+- challenge flow has no arbitrary three-round UI limit;
+- auth-related Mail.ru requests remain spaced by at least five seconds per owner safety rule.
 
-The v0.1.6 mailbox/UI changes remain in place: web-first full-message/attachment operations, integrated filters, modal Add Account, theme settings, Trash-only permanent delete, and DPAPI-protected saved authorization.
+The v0.1.6/v0.1.7 mailbox/UI work remains: web-first message operations, integrated filters, themes, modal Add Account, attachment handling and Trash-only permanent delete.
