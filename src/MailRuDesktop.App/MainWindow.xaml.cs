@@ -191,18 +191,37 @@ public partial class MainWindow : Window
 
             if (result.Challenge is not null)
             {
-                AuthStatusText.Text = ChallengeStatus(result.Challenge.Kind);
+                var baseAccessToken = result.AccessToken;
+                var baseRefreshToken = result.RefreshToken;
+                var baseMobileSuccess = result.Success;
 
-                var challengeWindow = new ChallengeWindow(result.Challenge)
+                for (var challengeRound = 0;
+                     result.Challenge is not null && challengeRound < 3;
+                     challengeRound++)
                 {
-                    Owner = this
-                };
+                    AuthStatusText.Text = ChallengeStatus(result.Challenge.Kind);
 
-                var challengeAccepted = challengeWindow.ShowDialog() == true &&
-                                        challengeWindow.Completion is not null;
+                    var challengeWindow = new ChallengeWindow(result.Challenge)
+                    {
+                        Owner = this
+                    };
 
-                if (challengeAccepted)
-                {
+                    var challengeAccepted =
+                        challengeWindow.ShowDialog() == true &&
+                        challengeWindow.Completion is not null;
+
+                    if (!challengeAccepted)
+                    {
+                        if (baseMobileSuccess)
+                        {
+                            result = result with { Challenge = null };
+                            break;
+                        }
+
+                        AuthStatusText.Text = "Авторизация отменена";
+                        return;
+                    }
+
                     var completed = await _mailRu.CompleteChallengeAsync(
                         login,
                         challengeWindow.Completion!);
@@ -214,26 +233,48 @@ public partial class MainWindow : Window
                     {
                         result = new MailRuAuthResult(
                             true,
-                            result.AccessToken,
-                            result.RefreshToken,
+                            baseAccessToken,
+                            baseRefreshToken,
                             null)
                         {
                             State = MailRuAuthState.Success,
                             WebToken = completed.WebToken,
                             SearchToken = completed.SearchToken,
                             WebCookieHeader = completed.WebCookieHeader,
-                            TouchCookieHeader = completed.TouchCookieHeader
+                            TouchCookieHeader = completed.TouchCookieHeader,
+                            DiagnosticReason = completed.DiagnosticReason
                         };
+                        break;
                     }
-                    else if (!result.Success)
+
+                    if (completed.Challenge is not null)
                     {
-                        ShowAuthFailure(completed);
-                        return;
+                        result = completed;
+                        continue;
                     }
+
+                    if (baseMobileSuccess)
+                    {
+                        result = new MailRuAuthResult(
+                            true,
+                            baseAccessToken,
+                            baseRefreshToken,
+                            null)
+                        {
+                            State = MailRuAuthState.Success,
+                            DiagnosticReason = completed.DiagnosticReason
+                        };
+                        break;
+                    }
+
+                    ShowAuthFailure(completed);
+                    return;
                 }
-                else if (!result.Success)
+
+                if (result.Challenge is not null && !result.Success)
                 {
-                    AuthStatusText.Text = "Авторизация отменена";
+                    AuthStatusText.Text =
+                        "Mail.ru повторно запросил проверку. Запустите добавление аккаунта ещё раз.";
                     return;
                 }
             }
