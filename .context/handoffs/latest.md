@@ -1,28 +1,32 @@
 # Latest handoff
 
-This is a convenience/emergency summary, not the primary manager continuity mechanism.
-
 ## Last completed work
 
-Created and published the first Windows release channel.
+Published MailRu Desktop `v0.1.1`.
 
-Release-pipeline commit: `0cc323a0e8c9a409261b2e7a1bbf809bd3145295`.
+The release adds:
 
-GitHub Release `v0.1.0` contains:
+- project-owned cloud/envelope application mark based on the Owner-approved visual direction;
+- assembly-derived version in the native window title;
+- tolerant parsing of the current `m/threads/status/smart` response;
+- structured mailbox table;
+- sender/subject/date/size and unread/star/attachment indicators;
+- selected-item metadata/snippet preview;
+- raw JSON preserved as expandable diagnostics.
 
-- `MailRuDesktop_Setup_v0.1.0.exe` — full first-install package;
-- `MailRuDesktop_Update_v0.1.0.exe` — in-place update package.
+Owner runtime evidence from v0.1.0 confirmed live authentication and folder id 0 loading. The observed response schema was sanitized and recorded in `docs/protocol/observations/2026-10-05-folder0.md`.
 
-The installer targets `%LOCALAPPDATA%\Programs\MailRuDesktop` and does not require administrator rights for normal installation. The update package refuses to act as a first installer when the application is absent.
+CI run `37342048282` and release workflow `37342356199` both passed.
 
 ## Verified current state
 
-The application compiles on Windows. The compose flow is wired only to A-level verified endpoints. Externally discovered search/move/flags/folder/message routes remain disabled pending local traffic verification.
+Current release: `v0.1.1`.
 
-The project intentionally does not use IMAP/SMTP or app-specific passwords and does not treat official Mail.ru mail-client documentation as protocol authority.
+Normal upgrade package:
+`MailRuDesktop_Update_v0.1.1.exe`.
 
-The Owner requires subsequent updates to be delivered as update installers rather than requiring full reinstall.
+Full message body reading is not yet enabled because the full-message/thread endpoint is still only externally known/candidate and must be verified against current Mail.ru traffic first.
 
 ## Next operation
 
-Implement typed smart-thread parsing and structured mailbox rendering, then ingest fresh traffic evidence to validate full-message and mutation endpoint families. Preserve the established update-installer release path for every new version.
+Capture/inspect the request generated when opening a real message, promote the current read endpoint to A-level evidence, and wire the reading pane to actual message content. Then proceed to real folder discovery and message state mutations.

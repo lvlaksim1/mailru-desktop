@@ -4,17 +4,15 @@
 
 status: completed
 
-commitment: Create the project through Repo Factory, establish project context, implement the initial reverse-protocol client and native shell, and verify a clean Windows build.
-
-verification: repository `lvlaksim1/mailru-desktop`; product commit `48adb2ba1236a2e49b39562b5ddd7ee53c5556af`; CI run `37335195622` concluded success.
+verification: repository `lvlaksim1/mailru-desktop`; product commit `48adb2ba1236a2e49b39562b5ddd7ee53c5556af`; CI run `37335195622`.
 
 ## I-002 — turn raw thread status into mailbox MVP
 
 status: active
 
-commitment: Define typed response models for the locally verified smart-thread endpoint, render an inbox/folder message list, and keep protocol parsing outside WPF.
+commitment: Render the verified smart-thread response as a usable mailbox and keep protocol parsing outside WPF.
 
-completion contract: a user can authenticate, load a known folder, see a structured list instead of raw JSON, and open an item without exposing the access token.
+progress: v0.1.1 now shows a structured list with sender, subject, date, size and message indicators plus selected-item metadata/snippet. The remaining part of this intention is full message-body reading, which must not be wired until its endpoint is locally promoted to A-level evidence.
 
 ## I-003 — expand reverse API coverage
 
@@ -28,14 +26,18 @@ priority operations: full message/thread read, folder discovery/mapping, read/un
 
 status: completed
 
-commitment: Wire immediate compose and multi-file attachment upload to the locally verified `aj-https.mail.ru` transport without enabling unverified mutation/search routes.
-
-verification: product commit `1420d1619c16deb2dce150cd8882ee86431b2465`; CI run `37335834260` concluded success.
+verification: product commit `1420d1619c16deb2dce150cd8882ee86431b2465`; CI run `37335834260`.
 
 ## I-005 — establish installer/update release channel
 
 status: completed
 
-commitment: Produce a full Windows installer for first installation and establish a durable release workflow where future versions are delivered as update installers for existing installations.
+verification: release pipeline commit `0cc323a0e8c9a409261b2e7a1bbf809bd3145295`; releases `v0.1.0` and `v0.1.1`.
 
-verification: repository commit `0cc323a0e8c9a409261b2e7a1bbf809bd3145295`; GitHub Release `v0.1.0` contains both `MailRuDesktop_Setup_v0.1.0.exe` and `MailRuDesktop_Update_v0.1.0.exe`.
+## I-006 — identify and verify full-message read
+
+status: active
+
+commitment: Use current traffic evidence to determine the live full-message/thread endpoint, response schema, attachment download representation, and any read-state side effects before enabling full message opening in the UI.
+
+completion contract: current application can open a selected message/thread and display the real body without accidentally changing state unless explicitly intended, using an A-level documented endpoint.
