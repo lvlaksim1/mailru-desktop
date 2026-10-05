@@ -383,7 +383,7 @@ public static class MailRuFullMessageParser
             .Replace("\\n", "\n", StringComparison.Ordinal)
             .Replace("\\r", "\r", StringComparison.Ordinal)
             .Replace("\\t", "\t", StringComparison.Ordinal)
-            .Replace("\\"", """, StringComparison.Ordinal);
+            .Replace("\\\"", "\"", StringComparison.Ordinal);
 
     private static string? ReadString(JsonElement element, string name)
     {
