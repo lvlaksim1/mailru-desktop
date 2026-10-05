@@ -2,31 +2,39 @@
 
 ## Last completed work
 
-Published MailRu Desktop `v0.1.1`.
+Published MailRu Desktop `v0.1.3`.
 
-The release adds:
+The release is based on a reconciliation of the owner's working VBA Mail.ru implementation with the independent Hackus reverse client.
 
-- project-owned cloud/envelope application mark based on the Owner-approved visual direction;
-- assembly-derived version in the native window title;
-- tolerant parsing of the current `m/threads/status/smart` response;
-- structured mailbox table;
-- sender/subject/date/size and unread/star/attachment indicators;
-- selected-item metadata/snippet preview;
-- raw JSON preserved as expandable diagnostics.
+Key changes:
 
-Owner runtime evidence from v0.1.0 confirmed live authentication and folder id 0 loading. The observed response schema was sanitized and recorded in `docs/protocol/observations/2026-10-05-folder0.md`.
+- `token_missing` is no longer treated as an immediate terminal login failure;
+- mobile `aj-https.mail.ru` token auth remains the primary path;
+- a Hackus-derived cookie-session path is attempted as an independent fallback;
+- cookie sessions can derive touch and web API tokens;
+- CAPTCHA/reCAPTCHA/2FA/recovery/bad-credential states are distinguished instead of collapsing into `token_missing`;
+- access, refresh, web and touch tokens plus required cookie headers are persisted with Windows DPAPI; passwords are not stored;
+- mailbox loading can fall back from the locally verified mobile smart endpoint to web-thread or touch-search transports;
+- touch full-message, search, move/remove and address-book operations are represented in the protocol layer as B-level evidence;
+- the Hackus/VBA endpoint reconciliation is preserved in `docs/protocol/observations/2026-10-05-hackus-vba-reconciliation.md`.
 
-CI run `37342048282` and release workflow `37342356199` both passed.
+CI for the v0.1.3 head passed and release workflow `37353057630` completed successfully.
 
-## Verified current state
+## Release/storage state
 
-Current release: `v0.1.1`.
+Current binary release: `v0.1.3`.
 
-Normal upgrade package:
-`MailRuDesktop_Update_v0.1.1.exe`.
+Normal upgrade package: `MailRuDesktop_Update_v0.1.3.exe`.
+Full/recovery package: `MailRuDesktop_Setup_v0.1.3.exe`.
 
-Full message body reading is not yet enabled because the full-message/thread endpoint is still only externally known/candidate and must be verified against current Mail.ru traffic first.
+No GitHub Actions artifacts are produced. Publishing v0.1.3 pruned older binary GitHub Releases while preserving source tags.
+
+## Acceptance gate
+
+The owner should retest the same account that previously returned `Ошибка: token_missing` (the `expert.sout@mail.ru` regression case).
+
+Do not claim the runtime defect fully closed until that live account succeeds or yields a correctly classified challenge state.
 
 ## Next operation
 
-Capture/inspect the request generated when opening a real message, promote the current read endpoint to A-level evidence, and wire the reading pane to actual message content. Then proceed to real folder discovery and message state mutations.
+After the auth regression test, locally validate the Hackus full-message endpoint and read-state behavior. Promote it to A-level only on owner/runtime evidence, then wire actual message body and attachment reading into the right-hand pane.
