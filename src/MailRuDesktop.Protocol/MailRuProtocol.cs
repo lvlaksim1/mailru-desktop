@@ -66,8 +66,7 @@ public sealed record MailRuAuthResult(
     string? RefreshToken,
     string? ErrorCode)
 {
-    public MailRuAuthState State { get; init; } =
-        Success ? MailRuAuthState.Success : MailRuAuthState.Unknown;
+    public MailRuAuthState State { get; init; } = MailRuAuthState.Unknown;
     public string? WebToken { get; init; }
     public string? SearchToken { get; init; }
     public string? WebCookieHeader { get; init; }
