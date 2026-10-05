@@ -254,6 +254,15 @@ internal static class MailRuWebSessionAuthenticator
                 {
                     var kind = await ClassifyChallengeAsync(session, cancellationToken).ConfigureAwait(false);
 
+                    if (kind is null)
+                    {
+                        return MailRuWebSessionResult.Failed(
+                            MailRuAuthState.NetworkError,
+                            "verification_type_http_error",
+                            "hackus_get_verification_type_http_error",
+                            pendingSessionId: session.Id);
+                    }
+
                     if (kind == MailRuChallengeKind.TwoFactor)
                     {
                         return MailRuWebSessionResult.Failed(
@@ -689,27 +698,39 @@ internal static class MailRuWebSessionAuthenticator
             session.Id);
     }
 
-    private static async Task<MailRuChallengeKind> ClassifyChallengeAsync(
+    private static async Task<MailRuChallengeKind?> ClassifyChallengeAsync(
         PendingSession session,
         CancellationToken cancellationToken)
     {
-        try
+        for (var attempt = 0; attempt < 2; attempt++)
         {
-            await session.WaitBeforeRequestAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                await session.WaitBeforeRequestAsync(cancellationToken).ConfigureAwait(false);
 
-            using var request = new HttpRequestMessage(HttpMethod.Get, AccountCopperUri);
-            request.Headers.TryAddWithoutValidation("User-Agent", MailRuFixedProfile.UserAgent);
-            using var response = await session.Http.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                using var request = new HttpRequestMessage(HttpMethod.Get, AccountCopperUri);
+                request.Headers.TryAddWithoutValidation("User-Agent", MailRuFixedProfile.UserAgent);
 
-            return payload.Contains("captcha", StringComparison.OrdinalIgnoreCase)
-                ? MailRuChallengeKind.Captcha
-                : MailRuChallengeKind.TwoFactor;
+                using var response = await session.Http.SendAsync(
+                    request,
+                    cancellationToken).ConfigureAwait(false);
+
+                var payload = await response.Content
+                    .ReadAsStringAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                return payload.Contains("captcha", StringComparison.OrdinalIgnoreCase)
+                    ? MailRuChallengeKind.Captcha
+                    : MailRuChallengeKind.TwoFactor;
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                if (attempt + 1 >= 2)
+                    return null;
+            }
         }
-        catch
-        {
-            return MailRuChallengeKind.TwoFactor;
-        }
+
+        return null;
     }
 
     private static async Task<string?> TryGetSearchTokenAsync(
