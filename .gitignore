@@ -1,0 +1,32 @@
+# .NET
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build/package output
+artifacts/
+dist/
+publish/
+*.nupkg
+*.snupkg
+
+# Local protocol captures and secrets
+captures/
+logs/
+*.har
+*.pcap
+*.pcapng
+.env
+.env.*
+secrets.json
+credentials.json
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
