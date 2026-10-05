@@ -118,6 +118,23 @@ internal static class MailRuWebSessionAuthenticator
 
             if (!continued.Success)
             {
+                // Hackus does not recursively solve a second reCAPTCHA returned
+                // by CreateSession(token). It returns that result to the caller.
+                // Keep the same state-machine boundary instead of reopening an
+                // endless browser challenge loop.
+                if (continued.State == MailRuAuthState.ReCaptcha)
+                {
+                    var diagnostic =
+                        "CreateSession(g-recaptcha-response) returned reCAPTCHA again; " +
+                        (continued.DiagnosticReason ?? "no additional diagnostic");
+
+                    ReleaseSession(session.Id);
+                    return MailRuWebSessionResult.Failed(
+                        MailRuAuthState.ReCaptcha,
+                        "recaptcha_rejected",
+                        diagnostic);
+                }
+
                 if (continued.Challenge is null)
                     ReleaseSession(session.Id);
 
