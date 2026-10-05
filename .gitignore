@@ -11,6 +11,13 @@ obj/
 artifacts/
 dist/
 publish/
+*.exe
+*.dll
+*.pdb
+*.msi
+*.zip
+*.7z
+*.rar
 *.nupkg
 *.snupkg
 
