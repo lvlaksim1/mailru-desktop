@@ -240,16 +240,7 @@ public partial class ChallengeWindow : Window
     }
 
     private MailRuChallengeCompletion CreateCompletion(string answer) =>
-        new(
-            _challenge.SessionId,
-            string.Empty,
-            string.Empty,
-            string.Empty,
-            string.Empty,
-            string.Empty,
-            string.Empty,
-            _challenge.Kind == MailRuChallengeKind.ReCaptcha ? answer : null,
-            answer);
+        new(_challenge.SessionId, answer);
 
     private void ChallengeWindow_Closed(object? sender, EventArgs e)
     {
