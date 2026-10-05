@@ -63,9 +63,32 @@ public partial class ChallengeWindow : Window
 
             SeedCookies();
 
+            if (_challenge.Kind == MailRuChallengeKind.ReCaptcha)
+            {
+                Browser.CoreWebView2.WebMessageReceived += Browser_WebMessageReceived;
+                await Browser.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(
+                    "(() => {" +
+                    " let sent = false;" +
+                    " const send = () => {" +
+                    "  if (sent) return;" +
+                    "  let v = '';" +
+                    "  const a = document.querySelector('[name=\\\"g-recaptcha-response\\\"]');" +
+                    "  if (a && a.value) v = a.value;" +
+                    "  try { if (!v && typeof grecaptcha !== 'undefined' && grecaptcha.getResponse) v = grecaptcha.getResponse(); } catch(e) {}" +
+                    "  if (v) { sent = true; chrome.webview.postMessage({ type: 'recaptcha', value: v }); }" +
+                    " };" +
+                    " new MutationObserver(send).observe(document.documentElement, {subtree:true, childList:true, attributes:true});" +
+                    " document.addEventListener('change', send, true);" +
+                    " document.addEventListener('submit', send, true);" +
+                    " setInterval(send, 200);" +
+                    "})();");
+            }
+
             Browser.NavigationCompleted += Browser_NavigationCompleted;
             Browser.Source = new Uri(_challenge.Url);
-            StatusText.Text = "Пройдите проверку Mail.ru.";
+            StatusText.Text = _challenge.Kind == MailRuChallengeKind.ReCaptcha
+                ? "Пройдите reCAPTCHA. Ответ будет передан автоматически."
+                : "Пройдите проверку Mail.ru.";
         }
         catch (Exception ex)
         {
@@ -126,29 +149,71 @@ public partial class ChallengeWindow : Window
         }
     }
 
-    private async void Browser_NavigationCompleted(
+    private void Browser_NavigationCompleted(
         object? sender,
         CoreWebView2NavigationCompletedEventArgs e)
     {
         if (!e.IsSuccess || Browser.Source is null || _completing)
             return;
 
-        var uri = Browser.Source;
+        StatusText.Text = _challenge.Kind == MailRuChallengeKind.ReCaptcha
+            ? "Ожидание ответа reCAPTCHA..."
+            : "Проверка Mail.ru выполняется...";
+    }
 
-        if (IsAuthenticatedMailboxUri(uri))
-        {
-            StatusText.Text = "Mail.ru подтвердил вход. Проверяю сессию...";
-            await CompleteAsync();
+    private async void Browser_WebMessageReceived(
+        object? sender,
+        CoreWebView2WebMessageReceivedEventArgs e)
+    {
+        if (_completing || _challenge.Kind != MailRuChallengeKind.ReCaptcha)
             return;
-        }
 
-        StatusText.Text = uri.Host.Contains("mail.ru", StringComparison.OrdinalIgnoreCase)
-            ? "Проверка Mail.ru выполняется..."
-            : "Ожидание завершения проверки...";
+        try
+        {
+            using var document = JsonDocument.Parse(e.WebMessageAsJson);
+            var root = document.RootElement;
+
+            if (!root.TryGetProperty("type", out var type) ||
+                !string.Equals(type.GetString(), "recaptcha", StringComparison.Ordinal) ||
+                !root.TryGetProperty("value", out var value))
+            {
+                return;
+            }
+
+            var token = value.GetString();
+            if (string.IsNullOrWhiteSpace(token))
+                return;
+
+            _completing = true;
+            StatusText.Text = "reCAPTCHA получена. Продолжаю исходную сессию...";
+
+            Completion = new MailRuChallengeCompletion(
+                _challenge.SessionId,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                string.Empty,
+                Browser.Source?.ToString() ?? _challenge.Url,
+                token,
+                token);
+
+            DialogResult = true;
+            Close();
+        }
+        catch
+        {
+        }
     }
 
     private async void ContinueButton_Click(object sender, RoutedEventArgs e)
     {
+        if (_challenge.Kind == MailRuChallengeKind.ReCaptcha)
+        {
+            StatusText.Text = "Завершите reCAPTCHA — продолжение произойдёт автоматически.";
+            return;
+        }
+
         await CompleteAsync();
     }
 
