@@ -35,10 +35,13 @@ public partial class ChallengeWindow : Window
         };
 
         HintText.Text = challenge.Kind == MailRuChallengeKind.ReCaptcha
-            ? "Пройдите reCAPTCHA вручную. После этого MailRu Desktop передаст ответ проверки " +
-              "обратно в ту же HTTP-сессию, в которой началась авторизация."
-            : "Завершите проверку Mail.ru в этом окне. Cookies будут возвращены в ту же " +
-              "HTTP-сессию авторизации, а не в новую сессию.";
+            ? "Пройдите reCAPTCHA вручную. Ответ будет перехвачен сразу после решения и " +
+              "передан в тот же CreateSession(token), как в Hackus."
+            : "Завершите проверку Mail.ru в этом окне.";
+
+        ContinueButton.Visibility = challenge.Kind == MailRuChallengeKind.ReCaptcha
+            ? Visibility.Collapsed
+            : Visibility.Visible;
 
         Loaded += ChallengeWindow_Loaded;
         Closed += ChallengeWindow_Closed;
