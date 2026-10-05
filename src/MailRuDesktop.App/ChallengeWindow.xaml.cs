@@ -87,18 +87,28 @@ public partial class ChallengeWindow : Window
             await Browser.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(
                 "(() => {" +
                 " let sent = false;" +
-                " const send = () => {" +
-                "  if (sent) return;" +
+                " const get = () => {" +
                 "  let v = '';" +
                 "  const a = document.querySelector('[name=\\\"g-recaptcha-response\\\"]');" +
                 "  if (a && a.value) v = a.value;" +
                 "  try { if (!v && typeof grecaptcha !== 'undefined' && grecaptcha.getResponse) v = grecaptcha.getResponse(); } catch(e) {}" +
-                "  if (v) { sent = true; chrome.webview.postMessage({ type: 'recaptcha', value: v }); }" +
+                "  return v;" +
                 " };" +
-                " new MutationObserver(send).observe(document.documentElement, {subtree:true, childList:true, attributes:true});" +
-                " document.addEventListener('change', send, true);" +
-                " document.addEventListener('submit', send, true);" +
-                " setInterval(send, 200);" +
+                " const send = () => {" +
+                "  if (sent) return true;" +
+                "  const v = get();" +
+                "  if (!v) return false;" +
+                "  sent = true;" +
+                "  chrome.webview.postMessage({ type: 'recaptcha', value: v });" +
+                "  return true;" +
+                " };" +
+                " document.addEventListener('submit', e => { if (send()) { e.preventDefault(); e.stopImmediatePropagation(); } }, true);" +
+                " const nativeSubmit = HTMLFormElement.prototype.submit;" +
+                " HTMLFormElement.prototype.submit = function() { if (send()) return; return nativeSubmit.apply(this, arguments); };" +
+                " const nativeRequestSubmit = HTMLFormElement.prototype.requestSubmit;" +
+                " if (nativeRequestSubmit) HTMLFormElement.prototype.requestSubmit = function() { if (send()) return; return nativeRequestSubmit.apply(this, arguments); };" +
+                " new MutationObserver(send).observe(document.documentElement, {subtree:true, childList:true, attributes:true, characterData:true});" +
+                " setInterval(send, 25);" +
                 "})();");
 
             Browser.NavigationCompleted += Browser_NavigationCompleted;
