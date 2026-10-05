@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace MailRuDesktop.App;
 
@@ -37,10 +38,26 @@ internal static class DiagnosticLog
         }
     }
 
-    private static string Sanitize(string value) =>
-        value
+    private static string Sanitize(string value)
+    {
+        var normalized = value
             .Replace("\r", " ", StringComparison.Ordinal)
             .Replace("\n", " ", StringComparison.Ordinal)
             .Replace("\t", " ", StringComparison.Ordinal)
             .Trim();
+
+        normalized = Regex.Replace(
+            normalized,
+            @"(?i)\b(access_token|refresh_token|token|password|cookie)=([^&;\s]+)",
+            "$1=<redacted>");
+
+        normalized = Regex.Replace(
+            normalized,
+            @"(?i)\b(Mpop|ssdc|sdcs)=([^;\s]+)",
+            "$1=<redacted>");
+
+        return normalized.Length <= 2000
+            ? normalized
+            : normalized[..2000] + "…";
+    }
 }
