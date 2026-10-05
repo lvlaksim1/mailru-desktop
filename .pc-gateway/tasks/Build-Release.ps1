@@ -61,11 +61,11 @@ try {
 
     $programFilesX86 = [Environment]::GetFolderPath('ProgramFilesX86')
     $programFiles = [Environment]::GetFolderPath('ProgramFiles')
-    $isccCandidates = @(
+    $isccCandidates = @(@(
         (Join-Path $programFilesX86 'Inno Setup 6\ISCC.exe'),
         (Join-Path $programFiles 'Inno Setup 6\ISCC.exe'),
         (Join-Path $env:LOCALAPPDATA 'Programs\Inno Setup 6\ISCC.exe')
-    ) | Where-Object { $_ -and (Test-Path -LiteralPath $_ -PathType Leaf) }
+    ) | Where-Object { $_ -and (Test-Path -LiteralPath $_ -PathType Leaf) })
 
     if ($isccCandidates.Count -eq 0) {
         $choco = Get-Command choco.exe -ErrorAction SilentlyContinue
@@ -82,11 +82,11 @@ try {
             if ($LASTEXITCODE -ne 0) { throw "winget failed to install Inno Setup (exit $LASTEXITCODE)." }
         }
 
-        $isccCandidates = @(
+        $isccCandidates = @(@(
             (Join-Path $programFilesX86 'Inno Setup 6\ISCC.exe'),
             (Join-Path $programFiles 'Inno Setup 6\ISCC.exe'),
             (Join-Path $env:LOCALAPPDATA 'Programs\Inno Setup 6\ISCC.exe')
-        ) | Where-Object { $_ -and (Test-Path -LiteralPath $_ -PathType Leaf) }
+        ) | Where-Object { $_ -and (Test-Path -LiteralPath $_ -PathType Leaf) })
     }
 
     if ($isccCandidates.Count -eq 0) { throw 'Inno Setup 6 compiler ISCC.exe was not found after prerequisite check.' }
