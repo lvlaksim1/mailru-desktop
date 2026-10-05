@@ -2,39 +2,43 @@
 
 ## Last completed work
 
-Published MailRu Desktop `v0.1.3`.
+Published MailRu Desktop `v0.1.4`.
 
-The release is based on a reconciliation of the owner's working VBA Mail.ru implementation with the independent Hackus reverse client.
+Requested feature set implemented:
 
-Key changes:
+- explicit auth challenge state machine;
+- interactive reCAPTCHA / CAPTCHA / 2FA completion in an isolated embedded Mail.ru browser;
+- explicit `Blocked` state and recovery distinction;
+- touch-token acquisition after cookie-session authentication;
+- fixed iPhone mobile Safari/GSA User-Agent for web/touch Mail.ru requests;
+- fresh cookie-session/profile on every new login attempt;
+- sanitized persistent diagnostics for unknown auth outcomes;
+- full-message reading;
+- incoming attachment parsing;
+- direct incoming attachment download;
+- preservation of original attachment filename and MIME type;
+- server-side search;
+- contacts/address-book retrieval;
+- move to Trash / move to folder / permanent remove.
 
-- `token_missing` is no longer treated as an immediate terminal login failure;
-- mobile `aj-https.mail.ru` token auth remains the primary path;
-- a Hackus-derived cookie-session path is attempted as an independent fallback;
-- cookie sessions can derive touch and web API tokens;
-- CAPTCHA/reCAPTCHA/2FA/recovery/bad-credential states are distinguished instead of collapsing into `token_missing`;
-- access, refresh, web and touch tokens plus required cookie headers are persisted with Windows DPAPI; passwords are not stored;
-- mailbox loading can fall back from the locally verified mobile smart endpoint to web-thread or touch-search transports;
-- touch full-message, search, move/remove and address-book operations are represented in the protocol layer as B-level evidence;
-- the Hackus/VBA endpoint reconciliation is preserved in `docs/protocol/observations/2026-10-05-hackus-vba-reconciliation.md`.
+Security/session policy:
 
-CI for the v0.1.3 head passed and release workflow `37353057630` completed successfully.
+- passwords are never persisted;
+- durable access/refresh/web/touch tokens and session headers remain Windows-DPAPI protected;
+- challenge browser profile is ephemeral and is deleted after challenge completion where possible;
+- diagnostics redact password/token/cookie values.
 
 ## Release/storage state
 
-Current binary release: `v0.1.3`.
+Current binary release: `v0.1.4`.
 
-Normal upgrade package: `MailRuDesktop_Update_v0.1.3.exe`.
-Full/recovery package: `MailRuDesktop_Setup_v0.1.3.exe`.
+Normal upgrade package: `MailRuDesktop_Update_v0.1.4.exe`.
+Full/recovery package: `MailRuDesktop_Setup_v0.1.4.exe`.
 
-No GitHub Actions artifacts are produced. Publishing v0.1.3 pruned older binary GitHub Releases while preserving source tags.
+Release workflow `37367733108` succeeded. The release contains no GitHub Actions artifacts. Older binary Releases are pruned automatically.
 
 ## Acceptance gate
 
-The owner should retest the same account that previously returned `Ошибка: token_missing` (the `expert.sout@mail.ru` regression case).
+The critical next owner test is the same `expert.sout@mail.ru` account that currently triggers reCAPTCHA. Complete the interactive Mail.ru challenge, confirm mailbox access, then restart the application to verify the saved authorization.
 
-Do not claim the runtime defect fully closed until that live account succeeds or yields a correctly classified challenge state.
-
-## Next operation
-
-After the auth regression test, locally validate the Hackus full-message endpoint and read-state behavior. Promote it to A-level only on owner/runtime evidence, then wire actual message body and attachment reading into the right-hand pane.
+After login succeeds, validate full-message read, one incoming attachment download, search, contacts, Trash and permanent remove using disposable test mail where mutations are involved.
