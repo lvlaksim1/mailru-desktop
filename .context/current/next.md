@@ -1,11 +1,12 @@
 # Next actions
 
-1. Obtain/inspect current traffic for opening one message from folder 0 and identify the live full-message or full-thread endpoint.
-2. Verify whether reading a message mutates read/unread state and determine how to request content without unintended side effects.
-3. Add typed full-message/body/attachment models and wire the right-hand reading pane to the newly A-level endpoint.
-4. Discover the live folder-list endpoint and replace numeric folder-id entry with a real folder sidebar.
-5. Verify read/unread and flag/star mutation endpoints.
-6. Verify move/archive/trash/delete operations.
-7. Introduce Windows-protected access-token storage; never persist the mailbox password.
-8. Preserve raw protocol diagnostics behind an expandable developer/research surface.
-9. Publish every new user-facing version primarily as `MailRuDesktop_Update_vX.Y.Z.exe`.
+1. Validate v0.1.3 with the owner regression account that previously returned `token_missing`; classify any remaining result as success, CAPTCHA, reCAPTCHA, 2FA, recovery, invalid credentials, or protocol mismatch.
+2. If that account reaches a web/touch session, verify that mailbox listing works through the selected fallback path and record the observed response shape.
+3. Locally reproduce `GET touch.mail.ru/api/v1/messages/message` (or the current equivalent) for one real message and determine whether reading changes unread state.
+4. Add typed full-message/body/attachment models and wire the right-hand reading pane only after the read endpoint is promoted to A-level evidence.
+5. Verify attachment download through the returned `href.download` representation.
+6. Reproduce and promote read/unread, flag/star, move/archive/trash/delete operations one by one before enabling them in the UI.
+7. Reproduce touch search and address-book/autocomplete behavior against current traffic.
+8. Add interactive CAPTCHA/challenge handling if owner testing produces that state; do not automate third-party CAPTCHA solving.
+9. Preserve Windows-protected authorization state across every update and never persist mailbox passwords.
+10. Continue publishing only Setup + Update as the newest binary GitHub Release with no workflow artifacts.
