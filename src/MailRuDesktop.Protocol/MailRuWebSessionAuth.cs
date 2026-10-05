@@ -97,47 +97,121 @@ internal static class MailRuWebSessionAuthenticator
                 "pending_auth_login_mismatch");
         }
 
-        MergeBrowserCookies(session.Cookies, completion);
-
-        try
+        if (session.Kind == MailRuChallengeKind.ReCaptcha)
         {
-            if (session.Kind == MailRuChallengeKind.ReCaptcha &&
-                !string.IsNullOrWhiteSpace(completion.ReCaptchaResponse))
-            {
-                var continued = await CreateSessionAsync(
-                    session,
-                    completion.ReCaptchaResponse,
-                    cancellationToken).ConfigureAwait(false);
+            var token = completion.Answer ?? completion.ReCaptchaResponse;
 
-                if (!continued.Success)
-                {
-                    if (continued.Challenge is not null)
-                        return continued;
-
-                    ReleaseSession(completion.SessionId);
-                    return continued;
-                }
-            }
-            else if (!string.IsNullOrWhiteSpace(completion.FinalUrl) &&
-                     Uri.TryCreate(completion.FinalUrl, UriKind.Absolute, out var finalUri) &&
-                     finalUri.Host.EndsWith("mail.ru", StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrWhiteSpace(token))
             {
-                await FollowBrowserResultAsync(session, finalUri, cancellationToken).ConfigureAwait(false);
+                return MailRuWebSessionResult.Failed(
+                    MailRuAuthState.ReCaptcha,
+                    "recaptcha_response_missing",
+                    "manual_solver_returned_empty_response",
+                    session.LastChallenge,
+                    session.Id);
             }
 
-            var result = await DeriveTokensFromSameSessionAsync(session, cancellationToken).ConfigureAwait(false);
+            var continued = await CreateSessionAsync(
+                session,
+                token,
+                cancellationToken).ConfigureAwait(false);
 
-            ReleaseSession(completion.SessionId);
+            if (!continued.Success)
+            {
+                if (continued.Challenge is null)
+                    ReleaseSession(session.Id);
+
+                return continued;
+            }
+
+            var result = await DeriveTokensFromSameSessionAsync(
+                session,
+                cancellationToken).ConfigureAwait(false);
+
+            ReleaseSession(session.Id);
             return result;
         }
-        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+
+        if (session.Kind == MailRuChallengeKind.Captcha)
         {
-            return MailRuWebSessionResult.Failed(
-                MailRuAuthState.NetworkError,
-                "challenge_completion_http_error",
-                ex.GetType().Name,
-                pendingSessionId: completion.SessionId);
+            var answer = completion.Answer;
+            if (string.IsNullOrWhiteSpace(answer))
+            {
+                return MailRuWebSessionResult.Failed(
+                    MailRuAuthState.Captcha,
+                    "captcha_answer_missing",
+                    "manual_captcha_answer_empty",
+                    session.LastChallenge,
+                    session.Id);
+            }
+
+            var submitted = await SubmitCaptchaAnswerAsync(
+                session,
+                answer,
+                cancellationToken).ConfigureAwait(false);
+
+            if (submitted.State == MailRuAuthState.Blocked)
+            {
+                ReleaseSession(session.Id);
+                return MailRuWebSessionResult.Failed(
+                    MailRuAuthState.Blocked,
+                    "account_blocked",
+                    submitted.Diagnostic);
+            }
+
+            if (!submitted.Success || string.IsNullOrWhiteSpace(submitted.Url))
+            {
+                if (submitted.RetryWholeLogin)
+                {
+                    session.ResetTransport();
+                    var restarted = await CreateSessionAsync(
+                        session,
+                        null,
+                        cancellationToken).ConfigureAwait(false);
+
+                    if (restarted.Success)
+                    {
+                        var retryResult = await DeriveTokensFromSameSessionAsync(
+                            session,
+                            cancellationToken).ConfigureAwait(false);
+                        ReleaseSession(session.Id);
+                        return retryResult;
+                    }
+
+                    return restarted;
+                }
+
+                ReleaseSession(session.Id);
+                return MailRuWebSessionResult.Failed(
+                    MailRuAuthState.ProtocolError,
+                    "captcha_submit_failed",
+                    submitted.Diagnostic);
+            }
+
+            var linked = await CreateSessionByLinkAsync(
+                session,
+                submitted.Url,
+                cancellationToken).ConfigureAwait(false);
+
+            if (!linked.Success)
+            {
+                ReleaseSession(session.Id);
+                return linked;
+            }
+
+            var result = await DeriveTokensFromSameSessionAsync(
+                session,
+                cancellationToken).ConfigureAwait(false);
+
+            ReleaseSession(session.Id);
+            return result;
         }
+
+        ReleaseSession(session.Id);
+        return MailRuWebSessionResult.Failed(
+            MailRuAuthState.ProtocolError,
+            "challenge_state_invalid",
+            "unsupported_pending_challenge");
     }
 
     private static async Task<MailRuWebSessionResult> CreateSessionAsync(
