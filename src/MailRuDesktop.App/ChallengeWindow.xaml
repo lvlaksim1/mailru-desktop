@@ -34,7 +34,8 @@
                        Foreground="#555"
                        Text="Загрузка проверки..."/>
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                <Button Padding="14,7"
+                <Button x:Name="ContinueButton"
+                        Padding="14,7"
                         Margin="0,0,8,0"
                         Click="ContinueButton_Click"
                         Content="Продолжить"/>
