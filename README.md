@@ -13,7 +13,7 @@ A native Windows desktop mail client built from scratch around reverse-engineere
 
 ## Architecture
 
-The first implementation uses **.NET 8 + WPF**.
+The implementation uses **.NET 8 + WPF**.
 
 - `MailRuDesktop.App` — native Windows UI.
 - `MailRuDesktop.Protocol` — isolated Mail.ru transport/protocol layer.
@@ -27,6 +27,7 @@ Implemented in the protocol layer:
 
 - mobile-style authentication through `aj-https.mail.ru/cgi-bin/auth`;
 - folder/thread status through `/api/v1/m/threads/status/smart`;
+- tolerant parsing of the currently observed smart-thread response;
 - attachment upload through `/api/v1/messages/attaches/add`;
 - send through `/api/v1/messages/send`;
 - server-side scheduled send through `/api/v1/messages/schedule`.
@@ -34,12 +35,24 @@ Implemented in the protocol layer:
 Current UI:
 
 - login using the verified mobile-style auth flow;
-- raw folder/thread retrieval for protocol validation;
+- structured mailbox list for a numeric folder id;
+- sender, subject, date, size, unread/star/attachment indicators;
+- metadata/snippet preview for the selected item;
+- expandable raw JSON diagnostics for reverse-engineering;
 - compose with recipient, subject and body;
 - multi-file attachment upload;
-- immediate send using the verified compose endpoint.
+- immediate send using the verified compose endpoint;
+- version shown in the native window title;
+- project-owned cloud/envelope application mark.
 
 The password is never persisted. The access token currently lives in process memory only; Windows-protected token persistence is a planned increment.
+
+## Releases
+
+- First installation: `MailRuDesktop_Setup_vX.Y.Z.exe`
+- Normal upgrades: `MailRuDesktop_Update_vX.Y.Z.exe`
+
+Updates install over the current-user installation and preserve user data.
 
 ## Build
 
@@ -52,7 +65,7 @@ Requirements:
 dotnet build src/MailRuDesktop.App/MailRuDesktop.App.csproj -c Release
 ```
 
-CI performs restore/build only and uploads no artifacts.
+CI performs restore/build only and uploads no unnecessary artifacts.
 
 ## Status
 
