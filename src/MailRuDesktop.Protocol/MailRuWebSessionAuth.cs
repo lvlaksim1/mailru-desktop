@@ -386,6 +386,276 @@ internal static class MailRuWebSessionAuthenticator
             pendingSessionId: session.Id);
     }
 
+    private static async Task<string?> GetReCaptchaSiteKeyAsync(
+        PendingSession session,
+        string location,
+        CancellationToken cancellationToken)
+    {
+        for (var attempt = 0; attempt < 2; attempt++)
+        {
+            await session.WaitBeforeRequestAsync(cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Get, location);
+                request.Headers.TryAddWithoutValidation("User-Agent", MailRuFixedProfile.UserAgent);
+
+                using var response = await session.Http.SendAsync(
+                    request,
+                    cancellationToken).ConfigureAwait(false);
+
+                var payload = await response.Content
+                    .ReadAsStringAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                var match = Regex.Match(
+                    payload,
+                    "recaptchaSitekey\\\":\\\"(.+?)\\\"",
+                    RegexOptions.IgnoreCase);
+
+                if (!match.Success)
+                {
+                    match = Regex.Match(
+                        payload,
+                        "recaptchaSitekey\"\\s*:\\s*\"(.+?)\"",
+                        RegexOptions.IgnoreCase);
+                }
+
+                return match.Success ? match.Groups[1].Value : null;
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                if (attempt + 1 >= 2)
+                    return null;
+            }
+        }
+
+        return null;
+    }
+
+    private static async Task<MailRuAuthChallenge?> BuildImageCaptchaChallengeAsync(
+        PendingSession session,
+        CancellationToken cancellationToken)
+    {
+        var image = await GetCaptchaImageAsync(
+            session,
+            cancellationToken).ConfigureAwait(false);
+
+        if (image is null || image.Length == 0)
+            return null;
+
+        return new MailRuAuthChallenge(
+            MailRuChallengeKind.Captcha,
+            string.Empty,
+            string.Empty,
+            "Hackus: GetCaptchaImage -> manual answer -> SubmitCaptchaAnswer -> CreateSessionByLink",
+            session.Id,
+            null,
+            Convert.ToBase64String(image));
+    }
+
+    private static async Task<byte[]?> GetCaptchaImageAsync(
+        PendingSession session,
+        CancellationToken cancellationToken)
+    {
+        for (var attempt = 0; attempt < 2; attempt++)
+        {
+            await session.WaitBeforeRequestAsync(cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Get, CaptchaImageUri);
+                request.Headers.TryAddWithoutValidation("User-Agent", MailRuFixedProfile.UserAgent);
+
+                using var response = await session.Http.SendAsync(
+                    request,
+                    cancellationToken).ConfigureAwait(false);
+
+                var bytes = await response.Content
+                    .ReadAsByteArrayAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                return bytes.Length == 0 ? null : bytes;
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                if (attempt + 1 >= 2)
+                    return null;
+            }
+        }
+
+        return null;
+    }
+
+    private static async Task<CaptchaSubmitResult> SubmitCaptchaAnswerAsync(
+        PendingSession session,
+        string answer,
+        CancellationToken cancellationToken)
+    {
+        for (var attempt = 0; attempt < 2; attempt++)
+        {
+            await session.WaitBeforeRequestAsync(cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Post, AccountCopperUri);
+                request.Headers.TryAddWithoutValidation("User-Agent", MailRuFixedProfile.UserAgent);
+                request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    ["fields"] = "{\"captcha\":\"" + answer.ToLowerInvariant() + "\"}",
+                    ["htmlencoded"] = "false"
+                });
+
+                using var response = await session.Http.SendAsync(
+                    request,
+                    cancellationToken).ConfigureAwait(false);
+
+                var payload = await response.Content
+                    .ReadAsStringAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (!payload.Contains("OK", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (payload.Contains("429", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return new CaptchaSubmitResult(
+                            false,
+                            MailRuAuthState.Blocked,
+                            null,
+                            false,
+                            "captcha_submit_429");
+                    }
+
+                    if (payload.Contains("invalid", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return new CaptchaSubmitResult(
+                            false,
+                            MailRuAuthState.ProtocolError,
+                            null,
+                            true,
+                            "captcha_submit_invalid");
+                    }
+
+                    return new CaptchaSubmitResult(
+                        false,
+                        MailRuAuthState.ProtocolError,
+                        null,
+                        false,
+                        "captcha_submit_unrecognized");
+                }
+
+                var match = Regex.Match(
+                    payload,
+                    "\"url\":\"(.+?)\"",
+                    RegexOptions.IgnoreCase);
+
+                return match.Success
+                    ? new CaptchaSubmitResult(
+                        true,
+                        MailRuAuthState.Success,
+                        match.Groups[1].Value,
+                        false,
+                        "captcha_submit_ok")
+                    : new CaptchaSubmitResult(
+                        false,
+                        MailRuAuthState.ProtocolError,
+                        null,
+                        false,
+                        "captcha_submit_url_missing");
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                if (attempt + 1 >= 2)
+                {
+                    return new CaptchaSubmitResult(
+                        false,
+                        MailRuAuthState.NetworkError,
+                        null,
+                        true,
+                        ex.GetType().Name);
+                }
+            }
+        }
+
+        return new CaptchaSubmitResult(
+            false,
+            MailRuAuthState.NetworkError,
+            null,
+            true,
+            "captcha_submit_retry_exhausted");
+    }
+
+    private static async Task<MailRuWebSessionResult> CreateSessionByLinkAsync(
+        PendingSession session,
+        string url,
+        CancellationToken cancellationToken)
+    {
+        for (var attempt = 0; attempt < 2; attempt++)
+        {
+            await session.WaitBeforeRequestAsync(cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                var decoded = WebUtility.UrlDecode(Regex.Unescape(url));
+
+                using var request = new HttpRequestMessage(HttpMethod.Get, decoded);
+                request.Headers.TryAddWithoutValidation("User-Agent", MailRuFixedProfile.UserAgent);
+
+                using var response = await session.Http.SendAsync(
+                    request,
+                    HttpCompletionOption.ResponseHeadersRead,
+                    cancellationToken).ConfigureAwait(false);
+
+                var location = response.Headers.Location?.ToString() ?? string.Empty;
+
+                if (location.Contains("inbox", StringComparison.OrdinalIgnoreCase))
+                {
+                    return new MailRuWebSessionResult(
+                        true,
+                        MailRuAuthState.Success,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        $"create_session_by_link={SanitizeLocation(location)}",
+                        session.Id);
+                }
+
+                return MailRuWebSessionResult.Failed(
+                    MailRuAuthState.ProtocolError,
+                    "challenge_link_failed",
+                    $"create_session_by_link={SanitizeLocation(location)}",
+                    pendingSessionId: session.Id);
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                if (attempt + 1 >= 2)
+                {
+                    return MailRuWebSessionResult.Failed(
+                        MailRuAuthState.NetworkError,
+                        "challenge_link_http_error",
+                        ex.GetType().Name,
+                        pendingSessionId: session.Id);
+                }
+            }
+        }
+
+        return MailRuWebSessionResult.Failed(
+            MailRuAuthState.NetworkError,
+            "challenge_link_http_error",
+            "retry_exhausted",
+            pendingSessionId: session.Id);
+    }
+
+    private sealed record CaptchaSubmitResult(
+        bool Success,
+        MailRuAuthState State,
+        string? Url,
+        bool RetryWholeLogin,
+        string Diagnostic);
+
     private static async Task<MailRuWebSessionResult> DeriveTokensFromSameSessionAsync(
         PendingSession session,
         CancellationToken cancellationToken)
