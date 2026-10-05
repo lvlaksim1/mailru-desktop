@@ -83,13 +83,15 @@ public static class MailRuFullMessageParser
         {
             using var document = JsonDocument.Parse(payload);
             if (!TryFindMessageObject(document.RootElement, out var message))
-                throw new MailRuProtocolException("Full-message response does not contain a recognizable message object.");
+                throw new MailRuProtocolException(
+                    "Full-message response does not contain a recognizable message object.");
 
             var id = ReadString(message, "id") ?? fallbackId;
             var subject = Decode(ReadString(message, "subject") ?? "(без темы)");
-            var html = DecodeJsonString(ReadString(message, "html") ?? string.Empty);
-            var text = DecodeJsonString(ReadString(message, "text") ?? string.Empty);
             var date = ReadInteger(message, "date");
+
+            ReadBody(message, out var html, out var text);
+
             var (fromName, fromEmail) = ReadSingleCorrespondent(message, "from");
             var to = ReadCorrespondentEmails(message, "to");
             var cc = ReadCorrespondentEmails(message, "cc");
@@ -110,7 +112,8 @@ public static class MailRuFullMessageParser
         }
         catch (JsonException ex)
         {
-            throw new MailRuProtocolException($"Full-message response is not valid JSON: {ex.Message}");
+            throw new MailRuProtocolException(
+                $"Full-message response is not valid JSON: {ex.Message}");
         }
     }
 
@@ -118,15 +121,25 @@ public static class MailRuFullMessageParser
     {
         if (element.ValueKind == JsonValueKind.Object)
         {
-            var hasSubject = element.TryGetProperty("subject", out _);
-            var hasHtml = element.TryGetProperty("html", out _);
-            var hasText = element.TryGetProperty("text", out _);
-            var hasDate = element.TryGetProperty("date", out _);
-
-            if ((hasSubject && (hasHtml || hasText)) || (hasDate && (hasHtml || hasText)))
+            if (LooksLikeMessage(element))
             {
                 message = element;
                 return true;
+            }
+
+            // Prefer actual entries from body.messages before recursively matching
+            // a nested "body" object that only contains text/html.
+            if (element.TryGetProperty("messages", out var messages) &&
+                messages.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in messages.EnumerateArray())
+                {
+                    if (item.ValueKind == JsonValueKind.Object && LooksLikeMessage(item))
+                    {
+                        message = item;
+                        return true;
+                    }
+                }
             }
 
             foreach (var property in element.EnumerateObject())
@@ -146,6 +159,46 @@ public static class MailRuFullMessageParser
 
         message = default;
         return false;
+    }
+
+    private static bool LooksLikeMessage(JsonElement element)
+    {
+        var hasIdentity =
+            element.TryGetProperty("id", out _) ||
+            element.TryGetProperty("subject", out _) ||
+            element.TryGetProperty("date", out _) ||
+            element.TryGetProperty("correspondents", out _);
+
+        if (!hasIdentity)
+            return false;
+
+        if (element.TryGetProperty("html", out _) ||
+            element.TryGetProperty("text", out _) ||
+            element.TryGetProperty("attaches", out _) ||
+            element.TryGetProperty("attachments", out _))
+        {
+            return true;
+        }
+
+        return element.TryGetProperty("body", out var body) &&
+               body.ValueKind == JsonValueKind.Object &&
+               (body.TryGetProperty("html", out _) ||
+                body.TryGetProperty("text", out _));
+    }
+
+    private static void ReadBody(JsonElement message, out string html, out string text)
+    {
+        html = DecodeJsonString(ReadString(message, "html") ?? string.Empty);
+        text = DecodeJsonString(ReadString(message, "text") ?? string.Empty);
+
+        if (message.TryGetProperty("body", out var body) &&
+            body.ValueKind == JsonValueKind.Object)
+        {
+            if (string.IsNullOrWhiteSpace(html))
+                html = DecodeJsonString(ReadString(body, "html") ?? string.Empty);
+            if (string.IsNullOrWhiteSpace(text))
+                text = DecodeJsonString(ReadString(body, "text") ?? string.Empty);
+        }
     }
 
     private static List<MailRuIncomingAttachment> ReadAttachments(JsonElement message)
@@ -170,20 +223,34 @@ public static class MailRuFullMessageParser
         {
             if (LooksLikeAttachment(element))
             {
-                var name = Decode(ReadString(element, "name") ?? ReadString(element, "filename") ?? "attachment");
+                var name = Decode(
+                    ReadString(element, "name") ??
+                    ReadString(element, "filename") ??
+                    "attachment");
+
                 var contentType =
                     ReadString(element, "content_type") ??
                     ReadString(element, "contentType") ??
+                    ReadString(element, "mime_type") ??
                     ReadString(element, "mime") ??
+                    ReadString(element, "type") ??
                     "application/octet-stream";
-                var size = ReadInteger(element, "size");
 
-                var download = ReadString(element, "download");
+                var size =
+                    ReadInteger(element, "size") ??
+                    ReadInteger(element, "filesize");
+
+                var download =
+                    ReadString(element, "download") ??
+                    ReadString(element, "url");
+
                 if (string.IsNullOrWhiteSpace(download) &&
-                    element.TryGetProperty("href", out var href) &&
-                    href.ValueKind == JsonValueKind.Object)
+                    element.TryGetProperty("href", out var href))
                 {
-                    download = ReadString(href, "download");
+                    if (href.ValueKind == JsonValueKind.Object)
+                        download = ReadString(href, "download");
+                    else if (href.ValueKind == JsonValueKind.String)
+                        download = href.GetString();
                 }
 
                 if (!string.IsNullOrWhiteSpace(download))
@@ -191,7 +258,11 @@ public static class MailRuFullMessageParser
                     download = NormalizeDownloadUrl(download);
                     var key = $"{name}\n{download}";
                     if (seen.Add(key))
-                        result.Add(new MailRuIncomingAttachment(name, contentType, download, size));
+                        result.Add(new MailRuIncomingAttachment(
+                            name,
+                            contentType,
+                            download,
+                            size));
                 }
             }
 
@@ -206,20 +277,28 @@ public static class MailRuFullMessageParser
     }
 
     private static bool LooksLikeAttachment(JsonElement element) =>
-        element.TryGetProperty("name", out _) &&
-        (element.TryGetProperty("href", out _) ||
-         element.TryGetProperty("download", out _) ||
-         element.TryGetProperty("content_type", out _));
+        element.TryGetProperty("name", out _) ||
+        element.TryGetProperty("filename", out _)
+            ? element.TryGetProperty("href", out _) ||
+              element.TryGetProperty("download", out _) ||
+              element.TryGetProperty("url", out _) ||
+              element.TryGetProperty("content_type", out _) ||
+              element.TryGetProperty("mime_type", out _)
+            : false;
 
     private static string NormalizeDownloadUrl(string value)
     {
         value = DecodeJsonString(value);
+
         if (value.StartsWith("//", StringComparison.Ordinal))
             return "https:" + value;
+
         if (Uri.TryCreate(value, UriKind.Absolute, out _))
             return value;
+
         if (value.StartsWith("/", StringComparison.Ordinal))
-            return "https://touch.mail.ru" + value;
+            return "https://e.mail.ru" + value;
+
         return value;
     }
 
@@ -233,9 +312,16 @@ public static class MailRuFullMessageParser
             : (emails[0].Name, emails[0].Email);
     }
 
-    private static IReadOnlyList<string> ReadCorrespondentEmails(JsonElement message, string group) =>
+    private static IReadOnlyList<string> ReadCorrespondentEmails(
+        JsonElement message,
+        string group) =>
         ReadCorrespondents(message, group)
-            .Select(x => string.IsNullOrWhiteSpace(x.Name) ? x.Email : $"{x.Name} <{x.Email}>")
+            .Select(x =>
+                string.IsNullOrWhiteSpace(x.Name)
+                    ? x.Email
+                    : string.IsNullOrWhiteSpace(x.Email)
+                        ? x.Name
+                        : $"{x.Name} <{x.Email}>")
             .Where(x => !string.IsNullOrWhiteSpace(x))
             .ToArray();
 
@@ -245,26 +331,47 @@ public static class MailRuFullMessageParser
     {
         var result = new List<(string Name, string Email)>();
 
-        if (!message.TryGetProperty("correspondents", out var correspondents) ||
-            correspondents.ValueKind != JsonValueKind.Object ||
-            !correspondents.TryGetProperty(group, out var values) ||
-            values.ValueKind != JsonValueKind.Array)
+        if (message.TryGetProperty("correspondents", out var correspondents) &&
+            correspondents.ValueKind == JsonValueKind.Object &&
+            correspondents.TryGetProperty(group, out var values))
         {
-            return result;
+            CollectCorrespondents(values, result);
+            if (result.Count > 0)
+                return result;
         }
 
-        foreach (var item in values.EnumerateArray())
-        {
-            if (item.ValueKind != JsonValueKind.Object)
-                continue;
-
-            var name = Decode(ReadString(item, "name") ?? string.Empty);
-            var email = Decode(ReadString(item, "email") ?? string.Empty);
-            if (!string.IsNullOrWhiteSpace(name) || !string.IsNullOrWhiteSpace(email))
-                result.Add((name, email));
-        }
+        if (message.TryGetProperty(group, out var direct))
+            CollectCorrespondents(direct, result);
 
         return result;
+    }
+
+    private static void CollectCorrespondents(
+        JsonElement values,
+        List<(string Name, string Email)> result)
+    {
+        if (values.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in values.EnumerateArray())
+                CollectCorrespondents(item, result);
+            return;
+        }
+
+        if (values.ValueKind == JsonValueKind.String)
+        {
+            var email = Decode(values.GetString() ?? string.Empty);
+            if (!string.IsNullOrWhiteSpace(email))
+                result.Add((string.Empty, email));
+            return;
+        }
+
+        if (values.ValueKind != JsonValueKind.Object)
+            return;
+
+        var name = Decode(ReadString(values, "name") ?? string.Empty);
+        var emailAddress = Decode(ReadString(values, "email") ?? string.Empty);
+        if (!string.IsNullOrWhiteSpace(name) || !string.IsNullOrWhiteSpace(emailAddress))
+            result.Add((name, emailAddress));
     }
 
     private static string Decode(string value) =>
@@ -276,7 +383,7 @@ public static class MailRuFullMessageParser
             .Replace("\\n", "\n", StringComparison.Ordinal)
             .Replace("\\r", "\r", StringComparison.Ordinal)
             .Replace("\\t", "\t", StringComparison.Ordinal)
-            .Replace("\\\"", "\"", StringComparison.Ordinal);
+            .Replace("\\"", """, StringComparison.Ordinal);
 
     private static string? ReadString(JsonElement element, string name)
     {
@@ -296,8 +403,11 @@ public static class MailRuFullMessageParser
         if (!element.TryGetProperty(name, out var value))
             return null;
 
-        if (value.ValueKind == JsonValueKind.Number && value.TryGetInt64(out var number))
+        if (value.ValueKind == JsonValueKind.Number &&
+            value.TryGetInt64(out var number))
+        {
             return number;
+        }
 
         if (value.ValueKind == JsonValueKind.String &&
             long.TryParse(value.GetString(), out number))
@@ -321,7 +431,9 @@ public static class MailRuContactsParser
             using var document = JsonDocument.Parse(payload);
             var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             Collect(document.RootElement, result);
-            return result.OrderBy(x => x, StringComparer.CurrentCultureIgnoreCase).ToArray();
+            return result
+                .OrderBy(x => x, StringComparer.CurrentCultureIgnoreCase)
+                .ToArray();
         }
         catch (JsonException)
         {
@@ -335,16 +447,23 @@ public static class MailRuContactsParser
         {
             foreach (var property in element.EnumerateObject())
             {
-                if (property.NameEquals("emails") &&
-                    property.Value.ValueKind == JsonValueKind.Array)
+                if (property.NameEquals("emails"))
                 {
-                    foreach (var email in property.Value.EnumerateArray())
+                    if (property.Value.ValueKind == JsonValueKind.Array)
                     {
-                        if (email.ValueKind == JsonValueKind.String &&
-                            !string.IsNullOrWhiteSpace(email.GetString()))
+                        foreach (var email in property.Value.EnumerateArray())
                         {
-                            result.Add(email.GetString()!);
+                            if (email.ValueKind == JsonValueKind.String &&
+                                !string.IsNullOrWhiteSpace(email.GetString()))
+                            {
+                                result.Add(email.GetString()!);
+                            }
                         }
+                    }
+                    else if (property.Value.ValueKind == JsonValueKind.String &&
+                             !string.IsNullOrWhiteSpace(property.Value.GetString()))
+                    {
+                        result.Add(property.Value.GetString()!);
                     }
                 }
 
