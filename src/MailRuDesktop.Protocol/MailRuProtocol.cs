@@ -204,9 +204,13 @@ public sealed class MailRuClient : IDisposable
             mobileError = "mobile_auth_http_error";
         }
 
-        // Always start the web/touch path from a fresh cookie jar. This is an
-        // independent session and may expose a Mail.ru challenge even when the
-        // mobile endpoint already returned an access token.
+        // Owner safety rule: never issue adjacent Mail.ru requests faster than
+        // one request per five seconds. The Hackus-style auth session applies
+        // the same spacing internally.
+        await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken).ConfigureAwait(false);
+
+        // Start the Hackus web/auth path from a fresh cookie dictionary, exactly
+        // as Hackus Reset() does before Login().
         var web = await MailRuWebSessionAuthenticator.AuthenticateAsync(
             login,
             password,
