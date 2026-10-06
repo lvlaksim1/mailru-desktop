@@ -101,7 +101,7 @@ jobs:
 
           grep -RInE -C 3 '(@GET|@POST|@PUT|@DELETE|Request\.Builder|HttpUrl|addQueryParameter|addFormDataPart|FormBody|MultipartBody|ServerApi|ApiRequest)'             "$DEST/packages/ru/mail/serverapi" > "$ROOT/findings/serverapi-http-context.txt" || true
 
-          grep -RhoE '["'\'''][^"'\''']*(/api/v[0-9]+/|/cgi-bin/auth|messages/|threads/|folders/|attaches/)[^"'\''']*["'\''']'             "$SRC/ru/mail" 2>/dev/null | sort -u > "$ROOT/findings/decompiled-endpoint-strings.txt" || true
+          grep -RhoE '"[^"]*(/api/v[0-9]+/|/cgi-bin/auth|messages/|threads/|folders/|attaches/)[^"]*"' "$SRC/ru/mail" 2>/dev/null | sort -u > "$ROOT/findings/decompiled-endpoint-strings.txt" || true
 
           {
             echo '# Декомпилированный сетевой слой'
