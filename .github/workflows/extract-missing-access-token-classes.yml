@@ -1,0 +1,61 @@
+name: Extract remaining access-token classes
+
+on:
+  push:
+    branches:
+      - research/mail-apk-15.107.0.148045
+    paths:
+      - '.github/workflows/extract-missing-access-token-classes.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/mail-apk-15.107.0.148045
+          fetch-depth: 1
+
+      - name: Reassemble APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT=research/apk-15.107.0.148045
+          cat "$ROOT"/package/parts/Mail_ru_15.107.0.148045_APKs.zip.part-* > /tmp/mail-bundle.zip
+          unzip -q /tmp/mail-bundle.zip -d /tmp/mail-bundle
+          test -f /tmp/mail-bundle/Mail-15.107.0.148045.apk
+
+      - name: Download JADX
+        shell: bash
+        run: |
+          set -euo pipefail
+          sleep 5
+          curl --fail --location --retry 2 --retry-delay 5 --connect-timeout 30 --max-time 600             'https://github.com/skylot/jadx/releases/download/v1.5.6/jadx-1.5.6.zip'             -o /tmp/jadx.zip
+          echo '545ea2be9c242511bc145755cf4bda2485ade42966e096f8b4d3da2a230e8974  /tmp/jadx.zip' | sha256sum -c -
+          unzip -q /tmp/jadx.zip -d /tmp/jadx
+          chmod +x /tmp/jadx/bin/jadx
+
+      - name: Extract selected classes
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT=research/apk-15.107.0.148045/decompiled/relevant
+          mkdir -p "$ROOT/ru/mail/addressbook/backup/server" "$ROOT/ru/mail/logic/auth"
+          /tmp/jadx/bin/jadx --single-class 'ru.mail.addressbook.backup.server.UploadContactsToServerCommand'             --single-class-output "$ROOT/ru/mail/addressbook/backup/server/UploadContactsToServerCommand.java"             /tmp/mail-bundle/Mail-15.107.0.148045.apk
+          /tmp/jadx/bin/jadx --single-class 'ru.mail.logic.auth.ChangeAuthTypeCommand'             --single-class-output "$ROOT/ru/mail/logic/auth/ChangeAuthTypeCommand.java"             /tmp/mail-bundle/Mail-15.107.0.148045.apk
+          test -s "$ROOT/ru/mail/addressbook/backup/server/UploadContactsToServerCommand.java"
+          test -s "$ROOT/ru/mail/logic/auth/ChangeAuthTypeCommand.java"
+
+      - name: Commit
+        shell: bash
+        run: |
+          git config user.name "mailru-apk-research"
+          git config user.email "actions@users.noreply.github.com"
+          git add research/apk-15.107.0.148045/decompiled/relevant
+          git commit -m "research: retain final access-token command sources"
+          git pull --rebase origin research/mail-apk-15.107.0.148045
+          git push origin HEAD:research/mail-apk-15.107.0.148045
