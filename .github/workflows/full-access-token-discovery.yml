@@ -1,0 +1,241 @@
+name: Full APK access-token discovery
+
+on:
+  push:
+    branches:
+      - research/mail-apk-15.107.0.148045
+    paths:
+      - '.github/workflows/full-access-token-discovery.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/mail-apk-15.107.0.148045
+          fetch-depth: 1
+
+      - name: Reassemble APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT=research/apk-15.107.0.148045
+          cat "$ROOT"/package/parts/Mail_ru_15.107.0.148045_APKs.zip.part-* > /tmp/mail-bundle.zip
+          unzip -q /tmp/mail-bundle.zip -d /tmp/mail-bundle
+          test -f /tmp/mail-bundle/Mail-15.107.0.148045.apk
+
+      - name: Prepare JADX
+        shell: bash
+        run: |
+          set -euo pipefail
+          sleep 5
+          curl --fail --location --retry 2 --retry-delay 5 \
+            'https://github.com/skylot/jadx/releases/download/v1.5.6/jadx-1.5.6.zip' \
+            -o /tmp/jadx.zip
+          echo '545ea2be9c242511bc145755cf4bda2485ade42966e096f8b4d3da2a230e8974  /tmp/jadx.zip' | sha256sum -c -
+          mkdir -p /tmp/jadx
+          unzip -q /tmp/jadx.zip -d /tmp/jadx
+
+      - name: Decompile complete APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          /tmp/jadx/bin/jadx -r -j 4 -d /tmp/full-jadx /tmp/mail-bundle/Mail-15.107.0.148045.apk > /tmp/full-jadx.log 2>&1 || true
+          test -d /tmp/full-jadx/sources
+
+      - name: Dump resource table
+        shell: bash
+        run: |
+          set -euo pipefail
+          AAPT2=$(find "$ANDROID_HOME/build-tools" -type f -name aapt2 | sort -V | tail -n 1)
+          "$AAPT2" dump resources /tmp/mail-bundle/Mail-15.107.0.148045.apk > /tmp/resources.txt
+
+      - name: Discover access-token network surface
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,re
+
+          root=Path("research/apk-15.107.0.148045")
+          src=Path("/tmp/full-jadx/sources")
+
+          files=list(src.rglob("*.java"))
+          class_files={}
+          for p in files:
+              class_files.setdefault(p.stem,[]).append(p)
+
+          def pick(name):
+              xs=class_files.get(name,[])
+              return sorted(xs,key=lambda p:len(str(p)))[0] if xs else None
+
+          def read(name):
+              p=pick(name)
+              return (p.read_text(errors="replace"),p) if p else ("",None)
+
+          def base(src_text,name):
+              m=re.search(r'class\s+'+re.escape(name)+r'(?:<[^>{}]*>)?\s+extends\s+([A-Za-z0-9_$.]+)',src_text)
+              return m.group(1).split(".")[0] if m else ""
+
+          def own_auth(t):
+              for m in re.finditer(r'getDefaultApiType\s*\([^)]*\)\s*\{([\s\S]{0,900}?)\n\s*\}',t):
+                  x=re.search(r'return\s+MailAuthorizationApiType\.([A-Z_]+)',m.group(1))
+                  if x:return x.group(1)
+              return ""
+
+          def own_oauth(t):
+              for m in re.finditer(r'isSupportOAuthAuthorization\s*\([^)]*\)\s*\{([\s\S]{0,600}?)\n\s*\}',t):
+                  b=m.group(1)
+                  if re.search(r'return\s+true\s*;',b):return True
+                  if re.search(r'return\s+false\s*;',b):return False
+              return None
+
+          def auth(name,seen=None):
+              seen=set() if seen is None else seen
+              if not name or name in seen:return {"type":"","oauth":False,"chain":[]}
+              seen.add(name)
+              t,p=read(name)
+              if not p:return {"type":"","oauth":False,"chain":[name]}
+              d=own_auth(t)
+              b=base(t,name)
+              par=auth(b,seen) if b else {"type":"","oauth":False,"chain":[]}
+              typ=d or par["type"] or ("LEGACY" if name=="ServerCommandBase" else "")
+              ov=own_oauth(t)
+              oauth=ov if ov is not None else (d in ("TORNADO","TORNADO_MPOP") if d else (par["oauth"] or typ in ("TORNADO","TORNADO_MPOP")))
+              return {"type":typ,"oauth":oauth,"chain":[name]+par["chain"]}
+
+          def host(name,seen=None):
+              seen=set() if seen is None else seen
+              if not name or name in seen:return {"host_res":"","scheme_res":"","annotation":""}
+              seen.add(name)
+              t,p=read(name)
+              if not p:return {"host_res":"","scheme_res":"","annotation":""}
+              m=re.search(r'@HostProviderAnnotation\(([^)]*)\)',t)
+              if m:
+                  a=m.group(1)
+                  h=re.search(r'defHostStrRes\s*=\s*"([^"]+)"',a)
+                  s=re.search(r'defSchemeStrRes\s*=\s*"([^"]+)"',a)
+                  return {"host_res":h.group(1).replace("string/","") if h else "",
+                          "scheme_res":s.group(1).replace("string/","") if s else "",
+                          "annotation":a}
+              return host(base(t,name),seen)
+
+          def resolve_path(raw):
+              lits=re.findall(r'"([^"]+)"',raw)
+              # Literal segments are authoritative; known constant API prefix is restored.
+              if "ApiUris.AUTHORITY_API" in raw:
+                  lits=["api"]+lits
+              return "/" + "/".join(lits) if lits else ""
+
+          commands=[]
+          for p in files:
+              t=p.read_text(errors="replace")
+              um=re.search(r'@UrlPath\(pathSegments\s*=\s*\{([^}]*)\}\)',t)
+              if not um:
+                  continue
+              cm=re.search(r'public\s+(?:final\s+|abstract\s+)?class\s+([A-Za-z0-9_]+)',t)
+              if not cm:
+                  continue
+              cls=cm.group(1)
+              a=auth(cls)
+              h=host(cls)
+              capable=(a["type"]=="TORNADO") or (a["type"]=="TORNADO_MPOP" and a["oauth"])
+              commands.append({
+                  "class":cls,
+                  "path":resolve_path(um.group(1)),
+                  "path_raw":um.group(1).strip(),
+                  "auth_type":a["type"],
+                  "oauth_supported":a["oauth"],
+                  "access_token_capable":capable,
+                  "host_resource":h["host_res"] or "mail_api_default_host",
+                  "scheme_resource":h["scheme_res"] or "mail_api_default_scheme",
+                  "source":str(p.relative_to(src))
+              })
+
+          # Direct access_token usage outside ServerCommandBase family.
+          direct=[]
+          for p in files:
+              t=p.read_text(errors="replace")
+              if "access_token" not in t:
+                  continue
+              urls=sorted(set(re.findall(r'https?://[^"\s<>]+',t)))
+              host_ann=re.findall(r'@HostProviderAnnotation\(([^)]*)\)',t)
+              retrofit=re.findall(r'@(GET|POST|PUT|DELETE|PATCH)\("([^"]+)"\)',t)
+              direct.append({
+                  "source":str(p.relative_to(src)),
+                  "urls":urls,
+                  "host_annotations":host_ann,
+                  "retrofit":retrofit,
+                  "mentions_oauth_token_type":"ru.mail.oauth2.access" in t
+              })
+
+          # All host-provider annotations for cross-domain review.
+          hosts=[]
+          for p in files:
+              t=p.read_text(errors="replace")
+              for m in re.finditer(r'@HostProviderAnnotation\(([^)]*)\)',t):
+                  hosts.append({"source":str(p.relative_to(src)),"annotation":m.group(1)})
+
+          # Resource host strings.
+          resources=Path("/tmp/resources.txt").read_text(errors="replace")
+          resource_hosts=[]
+          lines=resources.splitlines()
+          for i,line in enumerate(lines):
+              m=re.search(r'resource\s+0x[0-9a-f]+\s+string/([A-Za-z0-9_]*host[A-Za-z0-9_]*)',line)
+              if m:
+                  vals=[]
+                  for s in lines[i+1:i+8]:
+                      v=re.search(r'\(\) "([^"]+)"',s)
+                      if v: vals.append(v.group(1))
+                      if "resource " in s and vals: break
+                  resource_hosts.append({"resource":m.group(1),"values":vals})
+
+          report={
+              "package":"ru.mail.mailapp","version":"15.107.0.148045",
+              "urlpath_commands":commands,
+              "access_token_commands":[x for x in commands if x["access_token_capable"]],
+              "non_access_token_commands":[x for x in commands if not x["access_token_capable"]],
+              "direct_access_token_sources":direct,
+              "host_provider_annotations":hosts,
+              "host_resources":resource_hosts
+          }
+          (root/"FULL_ACCESS_TOKEN_DISCOVERY.json").write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+
+          md=["# Полное повторное исследование APK по access_token","",
+              "Фильтр: домен не важен; учитывается способность команды работать с ru.mail.oauth2.access / access_token.","",
+              "Всего классов @UrlPath: **%d**."%len(commands),
+              "Из них access_token-совместимых: **%d**."%len(report["access_token_commands"]),
+              "Не подтверждены как access_token: **%d**."%len(report["non_access_token_commands"]),"",
+              "## Access-token команды","",
+              "| путь | класс | тип авторизации | ресурс узла | исходник |",
+              "|---|---|---|---|---|"]
+          for x in report["access_token_commands"]:
+              md.append("| %s | %s | %s | %s | %s |"%(x["path"] or x["path_raw"],x["class"],x["auth_type"],x["host_resource"],x["source"]))
+          md += ["","## Классы с прямым упоминанием access_token","","Количество: **%d**."%len(direct),""]
+          for x in direct:
+              if x["urls"] or x["retrofit"] or x["host_annotations"] or x["mentions_oauth_token_type"]:
+                  md.append("- "+x["source"]+"; URLs="+", ".join(x["urls"])+"; Retrofit="+str(x["retrofit"])+"; host="+str(x["host_annotations"])+"; oauth-token-type="+str(x["mentions_oauth_token_type"]))
+          md += ["","## Ресурсы узлов","","| ресурс | значение |","|---|---|"]
+          seen=set()
+          for x in resource_hosts:
+              k=(x["resource"],tuple(x["values"]))
+              if k in seen:continue
+              seen.add(k)
+              md.append("| "+x["resource"]+" | "+", ".join(x["values"])+" |")
+          (root/"FULL_ACCESS_TOKEN_DISCOVERY.md").write_text("\n".join(md)+"\n",encoding="utf-8")
+          PY
+
+      - name: Commit discovery
+        shell: bash
+        run: |
+          git config user.name "mailru-apk-research"
+          git config user.email "actions@users.noreply.github.com"
+          git add research/apk-15.107.0.148045/FULL_ACCESS_TOKEN_DISCOVERY.md research/apk-15.107.0.148045/FULL_ACCESS_TOKEN_DISCOVERY.json
+          git commit -m "research: discover full access_token API surface"
+          git pull --rebase origin research/mail-apk-15.107.0.148045
+          git push origin HEAD:research/mail-apk-15.107.0.148045
