@@ -544,10 +544,27 @@ public partial class MainWindow : Window
             return;
         }
 
-        Exception? webFailure = null;
+        Exception? failure = null;
         string? raw = null;
 
-        if (!string.IsNullOrWhiteSpace(_webToken))
+        if (!string.IsNullOrWhiteSpace(_searchToken))
+        {
+            try
+            {
+                raw = await _mailRu.GetFullMessageTouchAsync(
+                    _searchToken,
+                    _activeLogin,
+                    message.Id,
+                    _touchCookieHeader);
+            }
+            catch (Exception ex)
+            {
+                failure = ex;
+                DiagnosticLog.Write("full_message_touch", ex.GetType().Name + ": " + ex.Message);
+            }
+        }
+
+        if (raw is null && !string.IsNullOrWhiteSpace(_webToken))
         {
             try
             {
@@ -560,26 +577,8 @@ public partial class MainWindow : Window
             }
             catch (Exception ex)
             {
-                webFailure = ex;
-                DiagnosticLog.Write("full_message_web", ex.GetType().Name + ": " + ex.Message);
-            }
-        }
-
-        if (raw is null && !string.IsNullOrWhiteSpace(_searchToken))
-        {
-            try
-            {
-                raw = await _mailRu.GetFullMessageTouchAsync(
-                    _searchToken,
-                    _activeLogin,
-                    message.Id,
-                    _touchCookieHeader);
-            }
-            catch (Exception ex)
-            {
-                DiagnosticLog.Write("full_message_fallback", ex.GetType().Name + ": " + ex.Message);
-                if (webFailure is null)
-                    webFailure = ex;
+                failure ??= ex;
+                DiagnosticLog.Write("full_message_web_fallback", ex.GetType().Name + ": " + ex.Message);
             }
         }
 
@@ -853,16 +852,7 @@ public partial class MainWindow : Window
             FolderStatusText.Text = operationName + "...";
             MailRuCommandResult result;
 
-            if (!string.IsNullOrWhiteSpace(_webToken))
-            {
-                result = await _mailRu.MoveWebMessagesToFolderAsync(
-                    _webToken,
-                    _activeLogin,
-                    ids,
-                    destinationFolderId,
-                    _webCookieHeader);
-            }
-            else if (!string.IsNullOrWhiteSpace(_searchToken))
+            if (!string.IsNullOrWhiteSpace(_searchToken))
             {
                 result = await _mailRu.MoveTouchMessagesToFolderAsync(
                     _searchToken,
@@ -870,6 +860,15 @@ public partial class MainWindow : Window
                     ids,
                     destinationFolderId,
                     _touchCookieHeader);
+            }
+            else if (!string.IsNullOrWhiteSpace(_webToken))
+            {
+                result = await _mailRu.MoveWebMessagesToFolderAsync(
+                    _webToken,
+                    _activeLogin,
+                    ids,
+                    destinationFolderId,
+                    _webCookieHeader);
             }
             else
             {
@@ -917,21 +916,21 @@ public partial class MainWindow : Window
             FolderStatusText.Text = "Окончательное удаление...";
             MailRuCommandResult result;
 
-            if (!string.IsNullOrWhiteSpace(_webToken))
-            {
-                result = await _mailRu.DeleteWebMessagesAsync(
-                    _webToken,
-                    _activeLogin,
-                    [message.Id],
-                    _webCookieHeader);
-            }
-            else if (!string.IsNullOrWhiteSpace(_searchToken))
+            if (!string.IsNullOrWhiteSpace(_searchToken))
             {
                 result = await _mailRu.RemoveTouchMessagesAsync(
                     _searchToken,
                     _activeLogin,
                     [message.Id],
                     _touchCookieHeader);
+            }
+            else if (!string.IsNullOrWhiteSpace(_webToken))
+            {
+                result = await _mailRu.DeleteWebMessagesAsync(
+                    _webToken,
+                    _activeLogin,
+                    [message.Id],
+                    _webCookieHeader);
             }
             else
             {
