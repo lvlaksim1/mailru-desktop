@@ -359,7 +359,7 @@ public sealed class MailRuClient : IDisposable
             });
 
         using var fallbackRequest = CreateBrowserRequest(HttpMethod.Get, threadUri, cookieHeader);
-        using var fallbackResponse = await _http.SendAsync(fallbackRequest, cancellationToken).ConfigureAwait(false);
+        using var fallbackResponse = await SendPacedAsync(fallbackRequest, cancellationToken).ConfigureAwait(false);
         var fallbackPayload = await fallbackResponse.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
         if (!fallbackResponse.IsSuccessStatusCode)
