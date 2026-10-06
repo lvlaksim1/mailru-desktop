@@ -35,17 +35,17 @@ public static class MailRuEndpointCatalog
         new("messages.send", "POST", "aj-https.mail.ru", "/api/v1/messages/send", EndpointEvidence.VerifiedLocal, "Send message"),
         new("messages.schedule", "POST", "aj-https.mail.ru", "/api/v1/messages/schedule", EndpointEvidence.VerifiedLocal, "Server-side scheduled send"),
         new("attachments.readmsg", "GET", "af.attachmail.ru", "/cgi-bin/readmsg", EndpointEvidence.VerifiedLocal, "Download incoming attachment"),
-        new("messages.remove", "POST", "aj-https.mail.ru", "/api/v1/messages/remove", EndpointEvidence.StaticOfficialClient, "Permanent message removal"),
-        new("messages.search", "GET", "aj-https.mail.ru", "/api/v1/messages/search", EndpointEvidence.StaticOfficialClient, "Server-side message search"),
+        new("messages.remove", "POST", "aj-https.mail.ru", "/api/v1/messages/remove", EndpointEvidence.VerifiedLocal, "Permanent message removal"),
+        new("messages.search", "GET", "aj-https.mail.ru", "/api/v1/messages/search", EndpointEvidence.VerifiedLocal, "Server-side message search"),
         new("messages.search.new", "GET", "go.mail.ru", "/api/v1/go/search/emails", EndpointEvidence.StaticOfficialClient, "New server-side message search"),
-        new("addressbook.smart", "GET", "aj-https.mail.ru", "/api/v1/ab/smart", EndpointEvidence.StaticOfficialClient, "Server address book"),
-        new("addressbook.fast", "GET", "aj-https.mail.ru", "/api/v1/ab/fast", EndpointEvidence.StaticOfficialClient, "Fast recipient lookup"),
-        new("folders.list", "GET", "aj-https.mail.ru", "/api/v1/folders", EndpointEvidence.StaticOfficialClient, "Folder list"),
-        new("folders.add", "POST", "aj-https.mail.ru", "/api/v1/folders/add", EndpointEvidence.StaticOfficialClient, "Create folder"),
-        new("folders.edit", "POST", "aj-https.mail.ru", "/api/v1/folders/edit", EndpointEvidence.StaticOfficialClient, "Rename folder"),
-        new("folders.remove", "POST", "aj-https.mail.ru", "/api/v1/folders/remove", EndpointEvidence.StaticOfficialClient, "Delete folder"),
-        new("folders.clear", "POST", "aj-https.mail.ru", "/api/v1/folders/clear", EndpointEvidence.StaticOfficialClient, "Clear folder"),
-        new("messages.draft", "POST", "aj-https.mail.ru", "/api/v1/messages/draft", EndpointEvidence.StaticOfficialClient, "Save draft")
+        new("addressbook.smart", "GET", "aj-https.mail.ru", "/api/v1/ab/smart", EndpointEvidence.VerifiedLocal, "Server address book"),
+        new("addressbook.fast", "GET", "aj-https.mail.ru", "/api/v1/ab/fast", EndpointEvidence.VerifiedLocal, "Fast recipient lookup"),
+        new("folders.list", "GET", "aj-https.mail.ru", "/api/v1/folders", EndpointEvidence.VerifiedLocal, "Folder list"),
+        new("folders.add", "POST", "aj-https.mail.ru", "/api/v1/folders/add", EndpointEvidence.VerifiedLocal, "Create folder"),
+        new("folders.edit", "POST", "aj-https.mail.ru", "/api/v1/folders/edit", EndpointEvidence.VerifiedLocal, "Rename folder"),
+        new("folders.remove", "POST", "aj-https.mail.ru", "/api/v1/folders/remove", EndpointEvidence.VerifiedLocal, "Delete folder"),
+        new("folders.clear", "POST", "aj-https.mail.ru", "/api/v1/folders/clear", EndpointEvidence.VerifiedLocal, "Clear folder"),
+        new("messages.draft", "POST", "aj-https.mail.ru", "/api/v1/messages/draft", EndpointEvidence.VerifiedLocal, "Save draft")
     ];
 
     public static bool IsRuntimeHostAllowed(string host) =>
