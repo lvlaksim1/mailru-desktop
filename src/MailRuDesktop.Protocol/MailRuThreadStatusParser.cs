@@ -14,6 +14,8 @@ public sealed record MailRuFolderSummary(
     public string DisplayName => MessagesUnread > 0
         ? $"{Name} ({MessagesUnread})"
         : Name;
+
+    public override string ToString() => Name;
 }
 
 public sealed record MailRuMessageSummary(
