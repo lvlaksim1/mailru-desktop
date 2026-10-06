@@ -1,0 +1,34 @@
+name: Access-token feature probe
+
+on:
+  push:
+    branches:
+      - feature/v0.2.0-mail-functions
+    paths:
+      - 'tools/AccessTokenFeatureProbe/**'
+      - '.github/workflows/access-token-feature-probe.yml'
+      - 'src/MailRuDesktop.Protocol/**'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MAILRU_TEST_LOGIN: ${{ secrets.MAILRU_TEST_LOGIN }}
+      MAILRU_TEST_PASSWORD: ${{ secrets.MAILRU_TEST_PASSWORD }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Verify test credentials
+        shell: bash
+        run: |
+          test -n "$MAILRU_TEST_LOGIN"
+          test -n "$MAILRU_TEST_PASSWORD"
+      - name: Run access-token feature probe
+        run: dotnet run --project tools/AccessTokenFeatureProbe/AccessTokenFeatureProbe.csproj -c Release
