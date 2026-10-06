@@ -172,3 +172,5 @@ for x in audited:
     if x["uses_mail_access_token"]:
         md.append("| "+x["class"]+" | "+(x["path"] or x["path_raw"])+" | "+x["actual_host"]+" | "+x["transport"]+" | "+x["detail"].replace("|","/")+" |")
 (ROOT/"ACCESS_TOKEN_TRANSPORT_AUDIT.md").write_text("\n".join(md)+"\n",encoding="utf-8")
+
+# audit run 1
