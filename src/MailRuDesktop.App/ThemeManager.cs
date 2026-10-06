@@ -10,6 +10,8 @@ internal static class ThemeManager
 {
     private const int DwmUseImmersiveDarkMode = 20;
     private const int DwmUseImmersiveDarkModeLegacy = 19;
+    private const int DwmCaptionColor = 35;
+    private const int DwmTextColor = 36;
     private static bool _initialized;
 
     public static AppThemeMode CurrentMode { get; private set; } = AppThemeMode.System;
@@ -184,12 +186,35 @@ internal static class ThemeManager
                     ref enabled,
                     Marshal.SizeOf<int>());
             }
+
+            // Windows 11 otherwise renders the dark caption almost black.
+            // Use a deliberately softer dark gray requested by the owner.
+            var caption = IsDarkEffective
+                ? ToColorRef(0x2D, 0x2D, 0x30)
+                : ToColorRef(0xF3, 0xF3, 0xF3);
+            var text = IsDarkEffective
+                ? ToColorRef(0xF2, 0xF2, 0xF2)
+                : ToColorRef(0x20, 0x21, 0x24);
+
+            DwmSetWindowAttribute(
+                handle,
+                DwmCaptionColor,
+                ref caption,
+                Marshal.SizeOf<int>());
+            DwmSetWindowAttribute(
+                handle,
+                DwmTextColor,
+                ref text,
+                Marshal.SizeOf<int>());
         }
         catch
         {
             // Older Windows versions may not support immersive title bars.
         }
     }
+
+    private static int ToColorRef(byte r, byte g, byte b) =>
+        r | (g << 8) | (b << 16);
 
     [DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(
