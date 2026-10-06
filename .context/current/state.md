@@ -18,12 +18,12 @@ Release state:
 
 Final Owner protocol decision on 2026-10-06:
 
-- runtime protocol is **AJ-only**;
-- every Mail.ru API request must target `https://aj-https.mail.ru`;
+- primary Mail.ru API host is `https://aj-https.mail.ru`;
+- `https://af.attachmail.ru` is explicitly allowed as an auxiliary runtime host; the currently verified use is downloading incoming attachments through `/cgi-bin/readmsg`;
 - mobile `access_token` is the sole accepted mailbox credential;
 - CAPTCHA/reCAPTCHA/additional interactive verification is reported to the user and authorization stops;
 - no challenge solving;
-- no `touch.mail.ru`, `e.mail.ru`, `account.mail.ru`, `auth.mail.ru`, `c.mail.ru`, or other sibling Mail.ru runtime fallbacks;
+- no `touch.mail.ru`, `e.mail.ru`, `account.mail.ru`, `auth.mail.ru`, `c.mail.ru`, or other sibling Mail.ru runtime hosts unless separately approved;
 - the previous web-API-token research course is cancelled for product runtime.
 
 Live evidence:
@@ -35,13 +35,13 @@ v0.1.14 runtime state:
 
 - mobile AJ auth restored as the only auth path;
 - normal application requests no longer have an artificial fixed five-second delay; protocol requests remain serialized to avoid overlap;
-- runtime host guard rejects requests whose host is not `aj-https.mail.ru`;
+- runtime host policy must allow `aj-https.mail.ru` and the explicitly approved `af.attachmail.ru`; other Mail.ru hosts remain rejected;
 - endpoint catalog contains only active AJ endpoints;
 - web/touch session authenticator and CAPTCHA solver UI removed;
 - saved sessions restore only when an AJ access token exists; legacy web/touch credentials are ignored and cleared on save;
 - folder loading uses only `/api/v1/m/threads/status/smart`;
 - outgoing attachment upload, immediate send, and scheduled send remain on verified AJ endpoints;
-- full-message retrieval, incoming-attachment download, contacts server lookup, move/archive and permanent delete are disabled until AJ endpoints are verified;
+- Owner-provided VBA now verifies AJ full-message retrieval (`/api/v1/messages/message`), AJ marks (`/api/v1/messages/marks`), AJ move/archive (`/api/v1/messages/move`), and incoming attachment download through allowed `af.attachmail.ru/cgi-bin/readmsg`; these capabilities are not yet all wired into the released desktop client;
 - CI includes a source guard against non-AJ Mail.ru runtime URLs;
 - folder `last_modified` behavior remains unchanged by explicit Owner instruction;
 - application version is 0.1.14.
@@ -51,4 +51,4 @@ Historical research status:
 - branch `research/web-api-token` is non-authoritative research evidence only;
 - it must not be merged into runtime and must not be used to reintroduce web/touch fallbacks without an explicit new Owner decision.
 
-Next phase is owner runtime validation of the released v0.1.14, especially Inbox refresh speed, and continued AJ-only endpoint research. The five-second spacing rule remains in force for research/probes/tests only.
+Next phase is owner runtime validation of the released v0.1.14, especially Inbox refresh speed, then wiring the now-verified message operations and the explicitly allowed `af.attachmail.ru` attachment download. The five-second spacing rule remains in force for research/probes/tests only.
