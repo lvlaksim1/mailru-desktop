@@ -1,31 +1,29 @@
 # Latest handoff
 
-Published MailRu Desktop `v0.1.12`.
+MailRu Desktop is being moved from the v0.1.12 Hackus touch/web architecture to owner-mandated **AJ-only** v0.1.13.
 
-Most important correction: after another direct comparison with Hackus, the prior mobile-access-token assumption was removed. Hackus uses the cookie session + touch search token after Login(); its normal Search() request calls gosearch with q_folder=all and no q_query wildcard. MailRu Desktop now does the same and reconstructs standard folders locally from message.folder.
+Authoritative runtime rule:
 
-The resulting path is:
+`https://aj-https.mail.ru` is the only allowed Mail.ru API host.
 
-Hackus Reset/CreateSession -> CAPTCHA/reCAPTCHA if required -> GetSearchToken -> touch gosearch(q_folder=all, no q_query=*) -> parse messages/folder ids -> mailbox UI.
+Authorization:
 
-Full-message and message actions also prefer the Hackus touch endpoints.
+`POST /cgi-bin/auth?mp=android&udid=mailru_app`
+with `oauth2=1`, `useragent=android`, `mobile=1`, `mob_json=1`, `simple=1`.
 
-Owner-requested UI work included in v0.1.12:
-- softer dark-gray Windows caption;
-- fully themed calendar popup;
-- fixed folder ComboBox display;
-- removed empty message-grid flag column;
-- dedicated full-message window on double click;
-- sender/recipient/date/time/subject plus compact attachments and full body;
-- Reply / Forward / Archive / Move to folder actions;
-- Reply form appears inside the same message window;
-- touch-cookie attachment downloads;
-- external remote images blocked in the mail reader.
+Success requires `access_token`. If CAPTCHA/reCAPTCHA/additional verification appears, notify the user and stop; do not solve it and do not fall back to web/touch authorization.
 
-Release:
-- Update: `MailRuDesktop_Update_v0.1.12.exe`
-- Setup: `MailRuDesktop_Setup_v0.1.12.exe`
-- release workflow `37398787496`: success
-- Actions artifacts: none
+Controlled live probe `37410564363` confirmed the test account currently receives HTTP 200 JSON containing both access and refresh tokens.
 
-Acceptance focus: runtime mailbox loading through Hackus touch search and message-window actions.
+Active AJ operations:
+
+- folder/thread status: `/api/v1/m/threads/status/smart`;
+- outgoing attachment upload: `/api/v1/messages/attaches/add`;
+- immediate send: `/api/v1/messages/send`;
+- scheduled send: `/api/v1/messages/schedule`.
+
+Until AJ equivalents are verified, full-message retrieval, incoming attachment download, contacts server lookup, move/archive and permanent delete are disabled.
+
+Implementation branch: `release/0.1.13-aj-only`
+PR: #18
+Version: 0.1.13
