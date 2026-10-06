@@ -4,11 +4,11 @@ This directory is the project-owned protocol specification. The active runtime p
 
 ## Runtime policy
 
-MailRu Desktop may issue Mail.ru API requests **only** to:
+MailRu Desktop uses `https://aj-https.mail.ru` as the primary Mail.ru API host.
 
-`https://aj-https.mail.ru`
+The Owner explicitly permits `https://af.attachmail.ru` as an auxiliary runtime host. The currently verified use is downloading incoming attachments through `/cgi-bin/readmsg` with the existing access token.
 
-No runtime fallback to `touch.mail.ru`, `e.mail.ru`, `account.mail.ru`, `auth.mail.ru`, `c.mail.ru`, or any other Mail.ru host is allowed.
+No runtime fallback to `touch.mail.ru`, `e.mail.ru`, `account.mail.ru`, `auth.mail.ru`, `c.mail.ru`, or any other Mail.ru host is allowed unless separately approved by the Owner.
 
 If authentication requires CAPTCHA/reCAPTCHA or another interactive verification, the application reports that condition to the user and stops authorization. It does not attempt to solve or bypass the challenge.
 
@@ -21,7 +21,7 @@ Runtime requests are not subject to an artificial fixed delay. The client still 
 - **C — CANDIDATE**: plausible endpoint/shape requiring local validation.
 - **D — REJECTED_OR_OBSOLETE**: tested and no longer valid, or intentionally excluded from the product architecture.
 
-Only A-level endpoints on `aj-https.mail.ru` may be used by the application.
+Only verified operations on Owner-approved runtime hosts may be used by the application. The approved hosts are currently `aj-https.mail.ru` and `af.attachmail.ru`.
 
 ## A — active verified endpoints on `aj-https.mail.ru`
 
