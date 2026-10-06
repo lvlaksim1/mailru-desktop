@@ -10,9 +10,7 @@
 
 `ru.mail.oauth2.access`
 
-и передают его серверу как:
-
-`access_token`
+и используют именно это значение для авторизации запроса. Способ передачи зависит от узла: обычный почтовый API использует `access_token`, новый поиск — параметр `t`, подсистема звонков — `Authorization: Bearer <token>`.
 
 Узел может быть `aj-https.mail.ru`, `go.mail.ru` или любым другим.
 
@@ -22,7 +20,7 @@
 
 1. тип авторизации `TORNADO`;
 2. тип `TORNADO_MPOP`, но команда поддерживает OAuth-переключение через `ServerCommandBase.getApiType()`;
-3. другой сетевой механизм, который явно получает именно `ru.mail.oauth2.access` и использует его как `access_token`.
+3. другой сетевой механизм, который явно получает именно `ru.mail.oauth2.access` и передаёт это значение серверу как авторизационные данные, независимо от имени параметра или заголовка.
 
 ## Что пока не входит
 
@@ -42,9 +40,11 @@
 
 `MailSessionSetterFactory.tornado()` создаёт `TornadoSession`.
 
-`TornadoSession.urlSetup()` добавляет:
+`TornadoSession.urlSetup()` в стандартном случае добавляет:
 
 `access_token=<ru.mail.oauth2.access>`
+
+Отдельные команды могут переопределять транспорт этого же значения. Подтверждено: `MessagesSearchCommandNew` передаёт его как `t=<token>`, а `CallsBaseGetRequest` через `Authorization: Bearer <token>`.
 
 `ServerCommandBase.getApiType()` переключает OAuth-совместимые команды на `TORNADO`, даже когда их исходный тип — `TORNADO_MPOP`.
 
