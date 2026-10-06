@@ -1,0 +1,812 @@
+# AJ API: спецификация по Mail.ru Android 15.107.0.148045
+
+Исследуемый пакет: `ru.mail.mailapp` 15.107.0.148045.
+
+Эта спецификация собирается для проекта Mail.ru Desktop из двух независимых типов доказательств:
+
+- **APK** — непосредственно код и константы текущего официального Android-клиента.
+- **Живой AJ** — ранее подтверждённые рабочие запросы к `aj-https.mail.ru` из нашего обратного разбора.
+- **Кандидат** — операция или структура подтверждена APK, но точный маршрут либо метод ещё не восстановлен.
+
+Неподтверждённые сведения не выдаются за установленный протокол.
+
+## 1. Узлы и авторизация
+
+### AJ
+
+Основной почтовый протокол относится к семейству узлов:
+
+- `aj-https.mail.ru` — основной узел, подтверждён прежними живыми запросами;
+- `alt-aj-https.mail.ru` — прямо присутствует в текущем APK;
+- схема: HTTPS.
+
+Текущий APK содержит прямую строку:
+
+`https://alt-aj-https.mail.ru/cgi-bin/auth?Lang=en_US&mp=android&mmp=mail`
+
+Также присутствует `/cgi-bin/auth?Login=`.
+
+### Токен
+
+Текущий APK:
+
+- `TornadoSession.TOKEN_PARAM_NAME = "access_token"`;
+- `TornadoMpopSession.TOKEN_PARAM_NAME = "token"`;
+- `ServerCommandBaseParams.PARAM_KEY_EMAIL = "email"`;
+- `ServerCommandBaseParams.PARAM_KEY_LANG = "lang"`.
+
+Для нашего почтового режима используется `access_token`.
+
+### Вход
+
+**Живой AJ, подтверждено:**
+
+`POST /cgi-bin/auth?mp=android&udid=mailru_app`
+
+Форма включает:
+
+- `Login`
+- `Password`
+
+При необходимости сервер может потребовать CAPTCHA. В приложении Mail.ru Desktop при таком ответе вход прекращается и пользователь получает сообщение о необходимости пройти CAPTCHA вне клиента.
+
+Текущий APK также содержит отдельные состояния входа:
+
+- `CAPTCHA`
+- `ERROR_INVALID_LOGIN`
+- `ERROR_RATE_LIMIT`
+- `MAIL_SECOND_STEP_REQUIRED`
+- `MIGRANT_REG_REQUIRED`
+- `OAUTH_REQUIRED`
+- `OAUTH_OUTLOOK_REQUIRED`
+- `OAUTH_YAHOO_REQUIRED`
+- `OAUTH_YANDEX_REQUIRED`
+- `EXTERNAL_AUTH_PROHIBIT`
+- `EXTERNAL_ACCOUNT_REGISTRATION_REQUIRED`
+- `SEND_SMS_ERROR`
+
+Это подтверждает, что CAPTCHA и дополнительный шаг входа являются отдельными состояниями протокола.
+
+---
+
+## 2. Получение списка писем и цепочек
+
+### Умный список цепочек
+
+**Живой AJ, подтверждено:**
+
+`GET /api/v1/m/threads/status/smart`
+
+Используется `access_token`.
+
+Текущий APK содержит классы:
+
+- `BatchSmartStatusCommand`
+- `SmartMessagesStatusCommand`
+- `MessagesStatusCommand`
+- парсеры цепочек и сообщений.
+
+### Параметры списка
+
+Из текущего APK, `MessagesStatusCommand`:
+
+- `folder`
+- `last_modified`
+- `limit`
+- `offset`
+- `prefetch`
+- `refresh_mailbox`
+- `snippet_limit`
+- `sort`
+
+Значения по умолчанию:
+
+- `prefetch = 1`
+- `refresh_mailbox = 1`
+- `sort = {"type":"id", "order":"desc"}`
+
+Дополнительные поля:
+
+- `form_sign`
+- `form_token`
+
+### Пакетное состояние
+
+Из `BatchSmartStatusCommand`:
+
+Запрос:
+
+- `last_modified`
+
+Ответ:
+
+- `body`
+- `error`
+- `folders_content`
+- `folders`
+- `id`
+- `threads`
+- `value`
+
+Дополнительный признак:
+
+- `threads_mode_enabled`.
+
+---
+
+## 3. Получение одной цепочки
+
+Текущий APK: `ThreadRequestCommand`.
+
+Параметры:
+
+- `id` — идентификатор цепочки;
+- `folder`;
+- `last_modified`;
+- `limit`;
+- `offset`;
+- `refresh_mailbox`;
+- `snippet_limit`.
+
+Также встречается `thread_id`.
+
+`refresh_mailbox` по умолчанию использует значение `1`.
+
+Ответ содержит:
+
+- `body`
+- `error`
+- `messages`
+- `value`.
+
+Для разбора используются `ThreadParser` и `MailMessageParser`.
+
+**Точный маршрут: кандидат.** Операция полностью подтверждена APK, но строка маршрута собирается сетевым слоем и ещё восстанавливается.
+
+---
+
+## 4. Получение полного письма
+
+**Живой AJ, подтверждено:**
+
+`GET /api/v1/messages/message`
+
+Параметры:
+
+- `id`
+- `mark_read=false`
+- `mp=android`
+- `access_token`
+
+Подтверждённые данные ответа:
+
+- тема;
+- дата;
+- отправитель;
+- полный `body.text`;
+- вложения.
+
+Текущий APK дополнительно подтверждает структуру полного содержимого:
+
+- `body`
+- `html`
+- `amp`
+- `attaches`
+- `attaches.list`
+- `images`
+- `attaches2cid`
+- `draft_type`
+- `flags`.
+
+Типы `draft_type`:
+
+- `forward`
+- `reply`
+- `replyall`.
+
+Флаги полного письма включают:
+
+- `unread`
+- `reply`
+- `forward`
+- `flagged`
+- `smart_reply`
+- `newsletter`
+- `maybe_phishing`
+- `official`
+- `official_newsletter`
+- `trusted_sender_for_corp`
+- `pinned`
+- `external_links_warning`
+- `receipt`
+- `internal_auth_passed`.
+
+---
+
+## 5. Модель сообщения
+
+Текущий APK, `JsonMessageParser` / `JsonMessageParserNew`:
+
+- `id`
+- `thread_id`
+- `folder`
+- `date`
+- `subject`
+- `snippet` или `search_snippet`
+- `attachments_count`
+- `priority`
+- `send_date`
+- `snooze_date`
+- `receipt_info`
+- `meta`
+- календарные данные.
+
+---
+
+## 6. Модель цепочки
+
+Текущий APK, `MailThreadRepresentationParser`:
+
+- `attach`
+- `attachments_count`
+- `bcc`
+- `cc`
+- `to`
+- `from`
+- `correspondents`
+- `date`
+- `flags`
+- `folder`
+- `forward`
+- `reply`
+- `unread`
+- `pinned`
+- `length`
+- `length_flagged`
+- `length_pinned`
+- `length_unread`
+- `message_id_last`
+- `meta`
+- `snippet`
+- `subject`
+- `snooze_date`
+- `receipt_info`
+- `have_unsubscribe_list`
+- `maybe_phishing`
+- `external_links_warning`
+- `newsletter`
+- `official`
+- `official_newsletter`
+- `internal_auth_passed`
+- `is_relevant`
+- `show_definitely_spam`
+- календарные данные;
+- признаки эмодзи в отправителе, теме и фрагменте текста.
+
+---
+
+## 7. Прочитано / непрочитано и флаг
+
+**Живой AJ, подтверждено:**
+
+`POST /api/v1/messages/marks`
+
+Основное поле:
+
+- `marks`
+
+В `marks` используются операции `set` / `unset`.
+
+Подтверждён признак:
+
+- `unread`.
+
+В той же структуре наблюдался `flagged`; текущий APK также повсеместно содержит `flagged`, поэтому поддержка флага подтверждается моделью клиента. Успешный AJ-вызов изменения флага отдельно ещё следует зафиксировать.
+
+Текущий APK:
+
+- `MarkMessageCommand` использует `PostServerRequest`;
+- `MarkThreadCommand` использует `ThreadPostServerRequest`;
+- `MarkCommandBaseParams.PARAM_KEY_MARKS = "marks"`;
+- `MarkOperation` содержит `UNREAD_SET` и `UNREAD_UNSET`.
+
+Для операций над цепочкой `ThreadPostServerRequest` формирует:
+
+`{ "id": "%s", "folder": %d, "message_id_last":"%s"}`
+
+Поля:
+
+- `id`
+- `folder`
+- `message_id_last`.
+
+---
+
+## 8. Перемещение, архив, корзина и удаление
+
+### Перемещение сообщения
+
+**Живой AJ, подтверждено:**
+
+`POST /api/v1/messages/move?htmlencoded=false&mp=android&access_token=...`
+
+Форма:
+
+- `folder=<ID целевой папки>`
+- `ids=["<ID письма>"]`
+
+### Операции текущего APK
+
+Присутствуют отдельные команды:
+
+- `MoveThreadCommand`
+- `TornadoMoveMessage`
+- `RemoveThreadCommand`
+- `TornadoRemoveMessage`
+- `TornadoRemoveRequest`
+- `TornadoCleanFolder`.
+
+`MoveThreadCommand` использует `ThreadPostServerRequest`.
+
+`TornadoRemoveRequest` и `TornadoCleanFolder` используют `PostServerRequest`.
+
+**Точные маршруты удаления и очистки папки: кандидат.**
+
+---
+
+## 9. Спам / не спам
+
+Текущий APK подтверждает:
+
+- `SpamThreadCommand`
+- `UnspamThreadCommand`
+- `TornadoSpamAbuse`
+- `TornadoNoSpam`
+- `GroupAction.MOVE_SPAM`.
+
+`SpamThreadCommand` и `UnspamThreadCommand` используют `ThreadPostServerRequest`.
+
+**Точные AJ-маршруты: кандидат.**
+
+---
+
+## 10. Поиск
+
+Текущий APK:
+
+- `MessagesSearchCommand`
+- `MessagesSearchCommandNew`
+- `JsonSearchMsgParser`
+- `JsonSearchMsgParserNew`.
+
+Флаги поиска:
+
+- `unread`
+- `flagged`
+- `attach`
+- `pin`.
+
+Диапазон и корреспонденты используют:
+
+- `from`
+- `to`.
+
+Старый формат количества результатов читает:
+
+- `folders`
+- `found`
+- `shared`
+- `id`.
+
+Выдача содержит:
+
+- `search_subject`
+- `search_snippet`
+- `color`
+- `correspondents`
+- `from`.
+
+**Кандидат маршрута:** семейство `/api/v1/messages/search`. Точный текущий AJ-маршрут и метод должны быть подтверждены декомпилированным сетевым кодом.
+
+---
+
+## 11. Отправка письма
+
+### Маршрут
+
+**Живой AJ, подтверждено:**
+
+`POST /api/v1/messages/send`
+
+Для отложенной отправки:
+
+`POST /api/v1/messages/schedule`
+
+### Поля текущего APK
+
+`TornadoSendRequest` подтверждает следующую модель:
+
+- `id`
+- `source`
+  - `draft`
+  - `reply`
+  - `forward`
+  - `schedule`
+- `headers` — встречается в родственном протоколе, требует отдельной проверки AJ;
+- `subject`
+- `priority`
+- `send_date`
+- `body`
+  - `html`
+  - `text`
+- `from`
+- `correspondents`
+  - `to`
+  - `cc`
+  - `bcc`
+- `receipt`
+- `remind`
+- `sign`
+- `template`
+- `quote`
+- `edited_contacts`
+- `has_attachments`
+- `analyzer_assumption`
+- `attaches`
+  - `list`
+  - элементы с `id`, `content_id`, `part_id`, `type`.
+
+Типы вложения:
+
+- `attach`
+- `inline`
+- `cloud_stock`.
+
+Типы письма/отправителя, встречающиеся в модели:
+
+- `natural`
+- `noreply`.
+
+Стратегии `TornadoSendCommand`:
+
+- `SEND_NEW`
+- `SAVE_DRAFT`
+- `SEND_LATER`.
+
+Таким образом один сетевой механизм используется для новой отправки, черновика и отложенной отправки с различной стратегией.
+
+---
+
+## 12. Черновики
+
+Текущий APK:
+
+- `TornadoDraftRequest` наследует/использует `TornadoSendRequest`;
+- стратегия `SAVE_DRAFT`;
+- `TornadoSendParamsImpl.MESSAGE_ID = "message_id"`.
+
+Связи исходного письма:
+
+- `source.draft`
+- `source.reply`
+- `source.forward`
+- `source.schedule`.
+
+**Живой AJ:** `source.reply=<ID исходного письма>` ранее подтверждён.
+
+**Маршрут сохранения/обновления/удаления черновика: кандидат.**
+
+---
+
+## 13. Вложения
+
+### Загрузка исходящего вложения
+
+**Живой AJ, подтверждено:**
+
+`POST /api/v1/messages/attaches/add`
+
+Текущий APK:
+
+- `TornadoUploadRequest.TAG_FILE = "file"`;
+- параметры содержат `messageId` и запись вложения;
+- результат содержит `attachId`.
+
+### Скачивание входящего вложения
+
+Разрешённый отдельный узел:
+
+`https://af.attachmail.ru/cgi-bin/readmsg`
+
+Прямо присутствует в текущем APK.
+
+### Облако
+
+Текущий APK содержит:
+
+- `SaveAttachmentsToCloudCommand`
+- `GetCloudAttachmentInfo`
+- `CloudAttachmentsUploader`
+- `CloudAttachmentsRemover`
+- тип `cloud_stock`.
+
+Также есть прямой адрес:
+
+`https://cloud.mail.ru/api/v1/messages/attaches/get?id=`
+
+Это относится к облачному механизму и не должно автоматически переноситься в почтовой клиент как AJ-маршрут.
+
+Максимальный размер, встречающийся в логике вложений: `26214400` байт (25 МиБ); нужно отдельно проверить смысл ограничения перед использованием в интерфейсе.
+
+---
+
+## 14. Папки
+
+Текущий APK содержит:
+
+- `CreateFolder`
+- `UpdateFolder`
+- `DeleteFolder`
+- `CreateArchiveFolderCmd`.
+
+Модель папки `MailboxFolderParser`:
+
+- `id`
+- `name`
+- `parent`
+- `type`
+- `system`
+- `archive`
+- `child`
+- `messages_total`
+- `messages_unread`
+- `threads_total`
+- `threads_unread`
+- `security`
+- `share`
+- `grants`
+- `owner`
+- `email`.
+
+`UpdateFolder.PARENT_DEFUALT = "-1"`.
+
+`DeleteFolder.Params.ids = ""` по умолчанию.
+
+**Точные маршруты получения/создания/переименования/удаления: кандидат.**
+
+---
+
+## 15. Адресная книга
+
+Текущий APK: `AddressBookFetchV2`.
+
+Контакт:
+
+- `id`
+- `priority`
+- `name`
+- `first`
+- `last`
+- `birthday`
+  - `day`
+  - `month`
+  - `year`
+- `nick`
+- `emails`
+- `sex`
+- `company`
+- `job_title`
+- `boss`
+- `address`
+- `comment`.
+
+Метки:
+
+- `labels[]`
+  - `id`
+  - `name`.
+
+Телефоны:
+
+- `phones[]`
+  - `type`
+  - `phone`.
+
+Типы:
+
+- `mobile`
+- `home`
+- `work`
+- `fax`
+- `other`.
+
+Социальные данные:
+
+- `social[]`
+  - `type`
+  - `account`
+  - `displayname`.
+
+**Точный маршрут: кандидат.**
+
+---
+
+## 16. Фильтры
+
+Текущий APK:
+
+- `RequestFiltersCommand`
+- `RequestHasFiltersCommand`
+- `AddFilterCommand`
+- `UpdateFilterCommand`
+- `DeleteFilter`.
+
+Условия:
+
+- `name`
+- `from`
+- `not`
+- `value`.
+
+Действия:
+
+- `remove`
+- `move`
+- `read`
+- `flag`
+- `reject`
+- `forward`
+- `reply`
+- `notify`.
+
+Ошибки добавления:
+
+- `exists`
+- `over_limit`.
+
+**Точные маршруты: кандидат.**
+
+---
+
+## 17. Категории писем
+
+Текущий APK, `ChangeMessageCategoryRequest.Params`:
+
+- `ids`
+- `category`
+- `drop_category`
+- `add_filter`.
+
+Отдельная обратная связь:
+
+- `category`
+- `id`
+- `other_category`.
+
+**Точный маршрут: кандидат.**
+
+---
+
+## 18. Отписка от рассылки
+
+Текущий APK содержит:
+
+- `UnsubscribeMessageCommand`;
+- `CleanKarmaAfterUnsubscribeMessageCmd`;
+- в модели цепочки признак `have_unsubscribe_list`.
+
+`UnsubscribeMessageCommand` использует `PostServerRequest`.
+
+**Точный маршрут и тело: кандидат.**
+
+---
+
+## 19. Дополнительные возможности, подтверждённые APK
+
+В клиенте существуют отдельные механизмы:
+
+- закрепление письма/цепочки;
+- `snooze_date`, а также `UpdateSnoozeRequest` и `RemoveSnoozeRequest`;
+- сохранение вложений в Облако;
+- скачивание письма как EML: `DownloadMessageEmlCommand`;
+- изменение категории письма;
+- отписка от рассылки;
+- фильтры;
+- защищённые папки;
+- архивные папки;
+- подтверждение прочтения `receipt`;
+- отмена отправки в пользовательской логике (`send_cancellation_edit_count`, `undo_send_duration`).
+
+Для этих функций точные AJ-маршруты ещё нужно привязать к сетевым командам.
+
+---
+
+## 20. Ошибки сервера
+
+Текущий APK содержит отдельные серверные состояния:
+
+- `ATTEMPTS_EXCEEDED`
+- `EMPTY_RESULT_ERROR`
+- `ERROR_ATTACH_NOT_FOUND`
+- `ERROR_CLOUD_IS_FULL`
+- `ERROR_DATE_RANGE`
+- `ERROR_FOLDER_NOT_EXIST`
+- `EXPANDED_SIMPLE_ERROR`
+- `FAILED_BACKEND_QUOTE`
+- `IMAP_ACTIVATION_NOT_READY`
+- `INVALID_SEND_DATE`
+- `INVALID_THREAD`
+- `MESSAGE_NOT_EXIST`
+- `MESSAGE_NOT_IN_THREAD`
+- `NO_AUTH_BIND_REQUIRED`
+- `NO_AUTH_TWO_STEP_REQUIRED`
+- `NO_BODY`
+- `NO_HEADER`
+- `NO_MSG`
+- `QR_TOKEN_NOT_FOUND`
+- `STORAGE_UNAVAILABLE`
+- `SWITCH_TO_IMAP`
+- `THREAD_NOT_EXIST`
+- `WAIT_AND_RETRY`.
+
+Отправка отдельно обрабатывает:
+
+- `correspondents.to`
+- `correspondents.cc`
+- `correspondents.bcc`
+- `send_date`
+- `file`
+- `file_exists`
+- `mbox_quotas.attach`
+- `mbox_quotas.link_attach`
+- `mbox_quotas.box_send`
+- `mbox_size_limit_exceeded`
+- `disabled`
+- `disabled_from_reginfo`
+- `invalid`
+- `value`.
+
+Mail.ru Desktop должен разделять транспортный HTTP-код и прикладной статус/ошибку из тела ответа.
+
+---
+
+## 21. Что ещё необходимо восстановить из декомпилированного сетевого слоя
+
+Операции подтверждены текущим APK, но ещё требуют точной привязки `метод + AJ-маршрут + тело`:
+
+1. полное получение папок;
+2. создание, переименование и удаление папки;
+3. окончательное удаление письма;
+4. очистка корзины;
+5. спам / не спам;
+6. изменение флага `flagged` живым AJ-вызовом;
+7. поиск;
+8. сохранение и обновление черновика;
+9. удаление черновика;
+10. удаление исходящего вложения;
+11. отмена только что отправленного письма;
+12. изменение/отмена отложенной отправки;
+13. адресная книга и подсказки адресов;
+14. фильтры;
+15. отписка;
+16. изменение категории;
+17. закрепление;
+18. отложить письмо;
+19. защищённые папки.
+
+---
+
+## 22. Правило внедрения в Mail.ru Desktop
+
+Функция переносится в основной клиент только когда установлены:
+
+1. HTTP-метод;
+2. точный AJ-маршрут;
+3. обязательные параметры;
+4. тело запроса;
+5. схема успешного ответа;
+6. основные ошибки;
+7. способ передачи `access_token`;
+8. хотя бы одно независимое подтверждение из APK или живого запроса.
+
+Исключение по узлам: скачивание входящих вложений через `af.attachmail.ru` разрешено отдельным решением проекта.
