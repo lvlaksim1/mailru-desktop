@@ -61,6 +61,8 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
@@ -99,8 +101,22 @@
                                 Click="ReadStateButton_Click"
                                 Content="Прочитано"/>
 
+                        <Button x:Name="FlagMessageButton"
+                                Grid.Column="5"
+                                Margin="6,0,0,0"
+                                Padding="12,8"
+                                Click="FlagMessageButton_Click"
+                                Content="Флажок"/>
+
+                        <Button x:Name="PinMessageButton"
+                                Grid.Column="6"
+                                Margin="6,0,0,0"
+                                Padding="12,8"
+                                Click="PinMessageButton_Click"
+                                Content="Закрепить"/>
+
                         <TextBlock x:Name="FolderStatusText"
-                                   Grid.Column="5"
+                                   Grid.Column="7"
                                    Margin="14,0,0,0"
                                    VerticalAlignment="Center"
                                    Foreground="{DynamicResource AppMutedTextBrush}"
@@ -129,7 +145,12 @@
                             <Button Padding="12,6"
                                     Margin="0,0,6,0"
                                     Click="ApplyFilterButton_Click"
-                                    Content="Применить"/>
+                                    Content="Применить локально"/>
+                            <Button x:Name="ServerSearchButton"
+                                    Padding="12,6"
+                                    Margin="0,0,6,0"
+                                    Click="ServerSearchButton_Click"
+                                    Content="Найти на сервере"/>
                             <Button Padding="12,6"
                                     Click="ResetFilterButton_Click"
                                     Content="Сбросить"/>
@@ -159,6 +180,26 @@
                                            Margin="6,4,6,10"
                                            FontWeight="SemiBold"
                                            Text="Папки"/>
+                                <StackPanel DockPanel.Dock="Bottom" Margin="4,10,4,0">
+                                    <TextBox x:Name="FolderNameTextBox"
+                                             Margin="0,0,0,6"
+                                             Padding="5"
+                                             ToolTip="Имя новой папки или новое имя выбранной"/>
+                                    <WrapPanel>
+                                        <Button Padding="8,5" Margin="0,0,4,4"
+                                                Click="CreateFolderButton_Click"
+                                                Content="Создать"/>
+                                        <Button Padding="8,5" Margin="0,0,4,4"
+                                                Click="RenameFolderButton_Click"
+                                                Content="Переименовать"/>
+                                        <Button Padding="8,5" Margin="0,0,4,4"
+                                                Click="DeleteFolderButton_Click"
+                                                Content="Удалить папку"/>
+                                        <Button Padding="8,5" Margin="0,0,4,4"
+                                                Click="ClearFolderButton_Click"
+                                                Content="Очистить"/>
+                                    </WrapPanel>
+                                </StackPanel>
                                 <ListBox x:Name="FolderListBox"
                                          BorderThickness="0"
                                          DisplayMemberPath="DisplayName"
@@ -182,6 +223,8 @@
                                   MouseDoubleClick="MessagesGrid_MouseDoubleClick">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="" Width="28" Binding="{Binding UnreadMark}"/>
+                                <DataGridTextColumn Header="" Width="28" Binding="{Binding FlagMark}"/>
+                                <DataGridTextColumn Header="" Width="32" Binding="{Binding PinMark}"/>
                                 <DataGridTextColumn Header="Отправитель" Width="170" Binding="{Binding SenderDisplay}"/>
                                 <DataGridTextColumn Header="Тема" Width="*" Binding="{Binding Subject}"/>
                                 <DataGridTextColumn Header="Дата" Width="125" Binding="{Binding DateDisplay}"/>
@@ -297,15 +340,25 @@
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                    <WrapPanel Grid.Row="0" Margin="0,0,0,10">
                         <Button Padding="16,7"
+                                Margin="0,0,8,0"
                                 Click="LoadContactsButton_Click"
-                                Content="Загрузить контакты"/>
+                                Content="Загрузить с сервера"/>
+                        <TextBox x:Name="ContactSearchTextBox"
+                                 Width="220"
+                                 Padding="6"
+                                 Margin="0,0,6,0"
+                                 ToolTip="Поиск среди быстрых адресатов"/>
+                        <Button Padding="14,7"
+                                Margin="0,0,8,0"
+                                Click="SearchContactsButton_Click"
+                                Content="Быстрый поиск"/>
                         <TextBlock x:Name="ContactsStatusText"
                                    Margin="12,0,0,0"
                                    VerticalAlignment="Center"
                                    Foreground="{DynamicResource AppMutedTextBrush}"/>
-                    </StackPanel>
+                    </WrapPanel>
                     <ListBox x:Name="ContactsListBox"
                              Grid.Row="1"
                              MouseDoubleClick="ContactsListBox_MouseDoubleClick"/>
@@ -383,11 +436,17 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Button x:Name="SendButton"
-                                Grid.Column="0"
-                                Padding="22,9"
-                                Click="SendButton_Click"
-                                Content="Отправить"/>
+                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                            <Button x:Name="SendButton"
+                                    Padding="22,9"
+                                    Margin="0,0,6,0"
+                                    Click="SendButton_Click"
+                                    Content="Отправить"/>
+                            <Button x:Name="SaveDraftButton"
+                                    Padding="18,9"
+                                    Click="SaveDraftButton_Click"
+                                    Content="Сохранить черновик"/>
+                        </StackPanel>
                         <TextBlock x:Name="ComposeStatusText"
                                    Grid.Column="1"
                                    Margin="14,0,0,0"
