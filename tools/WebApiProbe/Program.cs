@@ -32,15 +32,17 @@ Console.WriteLine($"hackus_auth_http: {auth.StatusCode}");
 Console.WriteLine($"hackus_auth_location: {auth.LocationSummary}");
 Console.WriteLine($"cookies_after_hackus_auth: {cookies.Names}");
 
+if (auth.Classification == "captcha_or_two_factor")
+{
+    var verification = await ClassifyCopperAsync(transport);
+    Console.WriteLine($"challenge_classification: {verification}");
+    Console.WriteLine($"cookies_after_challenge_probe: {cookies.Names}");
+    Console.WriteLine("result: auth_challenge_not_completed_in_ci");
+    return 10;
+}
+
 if (auth.Classification is "recaptcha" or "captcha" or "two_factor" or "blocked" or "invalid_credentials" or "unknown")
 {
-    if (auth.Classification == "captcha_or_two_factor")
-    {
-        var verification = await ClassifyCopperAsync(transport);
-        Console.WriteLine($"challenge_classification: {verification}");
-        Console.WriteLine($"cookies_after_challenge_probe: {cookies.Names}");
-    }
-
     Console.WriteLine("result: auth_challenge_not_completed_in_ci");
     return 10;
 }
