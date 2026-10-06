@@ -1,55 +1,52 @@
 # Latest handoff
 
-MailRu Desktop v0.1.14 is now released and `main` is authoritative.
+MailRu Desktop v0.1.14 is released and `main` is authoritative.
 
 Release state:
 
 - GitHub Release: `v0.1.14`;
-- runtime delay removal: `0e95bfec07a86f66f89444377a43858be0232d7a`;
-- version commit: `9070cae8824950dda1d6dc4c9b3ace66485ff5a2`;
 - existing installations use `MailRuDesktop_Update_v0.1.14.exe`;
 - first install/recovery uses `MailRuDesktop_Setup_v0.1.14.exe`.
 
-Authoritative runtime rule:
+Allowed runtime hosts:
 
-`https://aj-https.mail.ru` is the only allowed Mail.ru API host.
+- primary API host: `https://aj-https.mail.ru`;
+- explicitly approved auxiliary host: `https://af.attachmail.ru`;
+- current verified auxiliary use: incoming attachment download through `/cgi-bin/readmsg`;
+- other Mail.ru hosts remain disallowed unless separately approved by the Owner.
 
-Authorization:
+Authorization remains AJ mobile auth through `/cgi-bin/auth?mp=android&udid=mailru_app`. Success requires `access_token`. CAPTCHA/reCAPTCHA/additional verification stops authorization.
 
-`POST /cgi-bin/auth?mp=android&udid=mailru_app`
-with `oauth2=1`, `useragent=android`, `mobile=1`, `mob_json=1`, `simple=1`.
+Verified message operations from Owner-provided VBA:
 
-Success requires `access_token`. If CAPTCHA/reCAPTCHA/additional verification appears, notify the user and stop; do not solve it and do not fall back to web/touch authorization.
+- folder/thread status: `aj-https.mail.ru/api/v1/m/threads/status/smart`;
+- full message: `aj-https.mail.ru/api/v1/messages/message`;
+- unread/read marks: `aj-https.mail.ru/api/v1/messages/marks`;
+- move/archive/trash: `aj-https.mail.ru/api/v1/messages/move`;
+- outgoing attachment upload: `aj-https.mail.ru/api/v1/messages/attaches/add`;
+- immediate send: `aj-https.mail.ru/api/v1/messages/send`;
+- scheduled send: `aj-https.mail.ru/api/v1/messages/schedule`;
+- incoming attachment download: `af.attachmail.ru/cgi-bin/readmsg`.
 
-Controlled live probe `37410564363` confirmed the test account currently receives HTTP 200 JSON containing both access and refresh tokens.
+Still unresolved for permitted hosts:
 
-Active AJ operations:
+- permanent delete;
+- server contacts/address book;
+- server-side search;
+- confirmed flag mutation.
 
-- folder/thread status: `/api/v1/m/threads/status/smart`;
-- outgoing attachment upload: `/api/v1/messages/attaches/add`;
-- immediate send: `/api/v1/messages/send`;
-- scheduled send: `/api/v1/messages/schedule`.
+Runtime pacing:
 
-Until AJ equivalents are verified, full-message retrieval, incoming attachment download, contacts server lookup, move/archive and permanent delete are disabled.
-
-Historical note:
-
-- `research/web-api-token` contains obsolete exploratory web/touch auth research;
-- it is evidence only and is not an allowed product runtime path;
-- do not merge or revive it without an explicit Owner reversal.
-
-Runtime pacing decision:
-
-- normal application requests have no artificial fixed five-second delay;
-- protocol requests are still serialized;
-- `last_modified` behavior was intentionally not changed;
-- the five-second spacing rule applies to project research, probes, and automated tests.
+- no artificial fixed five-second delay in normal application requests;
+- protocol requests remain serialized;
+- `last_modified` remains unchanged;
+- five-second spacing remains for project research/probes/tests.
 
 Immediate work:
 
-1. owner runtime-validation of v0.1.14, especially Inbox refresh speed;
-2. delayed-send validation;
-3. AJ-only discovery of the missing message operations;
-4. maintain at least five seconds between research/probe/test network requests.
+1. validate v0.1.14 Inbox refresh speed;
+2. wire the verified full-message, marks, move/archive/trash operations;
+3. wire incoming attachment download through the explicitly approved `af.attachmail.ru`;
+4. continue research only for the still unresolved functions.
 
 Version: 0.1.14
