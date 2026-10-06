@@ -12,7 +12,7 @@
 
 1. Research only `aj-https.mail.ru` for new product endpoints.
 2. For each candidate, capture method, path, query, request schema, response schema, and evidence provenance without secrets.
-3. Preserve the global request-spacing invariant of at least five seconds.
+3. Preserve at least five seconds between requests made by project research, probes, and automated tests. Do not impose that fixed delay on normal application runtime.
 4. Prioritize AJ endpoints for full-message retrieval, incoming attachment download, move/archive, permanent delete, contacts, and server-side search.
 5. Keep each unsupported UI action disabled until its AJ endpoint is verified.
 6. Add a regression guard before enabling a newly verified AJ operation.
@@ -27,8 +27,8 @@
 
 ## Near-term product plan
 
-- owner-install and runtime-validate released v0.1.13;
-- validate saved access-token migration and folder loading on owner runtime;
+- owner-install and runtime-validate released v0.1.14;
+- validate that Inbox refresh is no longer artificially delayed while keeping current `last_modified` behavior unchanged;
 - validate delayed-send `send_date` semantics through the verified AJ schedule endpoint;
 - determine valid modern compose-session message-id semantics;
 - discover and verify missing AJ endpoints before re-enabling disabled message actions.
