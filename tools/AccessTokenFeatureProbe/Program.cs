@@ -272,9 +272,16 @@ if (draft?.Success == true)
     }
     else
     {
-        await ProbeAsync("permanent_remove",
-            () => client.RemoveMessagesAsync(token, login!, new[] { draftId }),
+        var moved = await ProbeAsync("draft_move_to_trash",
+            () => client.MoveMessagesAsync(token, new[] { draftId }, 500002),
             x => x.Success);
+
+        if (moved?.Success == true)
+        {
+            await ProbeAsync("permanent_remove",
+                () => client.RemoveMessagesAsync(token, login!, new[] { draftId }),
+                x => x.Success);
+        }
     }
 }
 
