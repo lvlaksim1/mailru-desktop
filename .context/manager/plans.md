@@ -1,25 +1,34 @@
 # Manager plans
 
-## Plan for I-002
+## Plan for I-002 — mailbox list/folders
 
-1. Capture representative `m/threads/status/smart` responses from at least Inbox and one non-system/custom folder.
-2. Introduce typed protocol DTOs with tolerant unknown-field handling.
-3. Add folder/thread service methods above the raw transport call.
-4. Replace the raw-response-only UI with a three-pane mailbox skeleton: folders, message/thread list, reading pane.
-5. Add protocol parsing tests using sanitized fixtures.
+1. Keep `/api/v1/m/threads/status/smart` as the only active mailbox-list transport.
+2. Capture representative AJ responses from Inbox and non-system/custom folders.
+3. Harden typed/tolerant parsing only against observed AJ response shapes.
+4. Add sanitized parsing fixtures and regression tests.
+5. Do not use touch/web search as a mailbox fallback.
 
-## Plan for I-003
+## Plan for I-003 — expand AJ API coverage
 
-1. Build a capture ingestion/checklist format that records host, method, path, query, request schema, response schema and evidence provenance without secrets.
-2. Revalidate Hackus-discovered auth/search/move/remove/address-book operations.
-3. Revalidate e.mail.ru families discovered in independent reverse projects.
-4. Compare web and mobile generations and determine which operations map to `aj-https.mail.ru` directly versus sibling hosts.
-5. Promote verified operations in `docs/protocol` and add regression tests before enabling them in UI.
+1. Research only `aj-https.mail.ru` for new product endpoints.
+2. For each candidate, capture method, path, query, request schema, response schema, and evidence provenance without secrets.
+3. Preserve the global request-spacing invariant of at least five seconds.
+4. Prioritize AJ endpoints for full-message retrieval, incoming attachment download, move/archive, permanent delete, contacts, and server-side search.
+5. Keep each unsupported UI action disabled until its AJ endpoint is verified.
+6. Add a regression guard before enabling a newly verified AJ operation.
+
+## Plan for I-007 — authorization
+
+1. Use only the mobile OAuth-style request to `aj-https.mail.ru/cgi-bin/auth?mp=android&udid=mailru_app`.
+2. Success requires a returned `access_token`.
+3. Persist access/refresh token with Windows DPAPI; never persist the password.
+4. If CAPTCHA/reCAPTCHA/additional interactive verification is required, notify the user and stop.
+5. Never call account/auth/touch/e.mail.ru as an authorization fallback.
 
 ## Near-term product plan
 
-- introduce Windows-protected access-token persistence; do not persist the mailbox password;
-- move compose logic from window code-behind into application services/view-model state after the first interaction contract is stable;
-- determine valid modern compose-session message-id semantics and replace the fixed compatibility sentinel only after evidence;
-- add user-friendly server-side schedule UI after the exact `send_date` format is verified;
-- add local cache/index only after server models are stable enough to avoid schema churn.
+- release v0.1.13 with AJ-only transport enforcement;
+- validate saved access-token migration and folder loading on owner runtime;
+- validate delayed-send `send_date` semantics through the verified AJ schedule endpoint;
+- determine valid modern compose-session message-id semantics;
+- discover and verify missing AJ endpoints before re-enabling disabled message actions.

@@ -1,29 +1,43 @@
 # Mail.ru Reverse API Specification
 
-This directory is the project-owned protocol specification. It is deliberately evidence-driven.
+This directory is the project-owned protocol specification. The active runtime policy is deliberately narrow and evidence-driven.
+
+## Runtime policy
+
+MailRu Desktop may issue Mail.ru API requests **only** to:
+
+`https://aj-https.mail.ru`
+
+No runtime fallback to `touch.mail.ru`, `e.mail.ru`, `account.mail.ru`, `auth.mail.ru`, `c.mail.ru`, or any other Mail.ru host is allowed.
+
+If authentication requires CAPTCHA/reCAPTCHA or another interactive verification, the application reports that condition to the user and stops authorization. It does not attempt to solve or bypass the challenge.
+
+All Mail.ru HTTP requests must remain globally paced at least five seconds apart.
 
 ## Evidence levels
 
-- **A — VERIFIED_LOCAL**: confirmed by our own known-working code or captured traffic.
+- **A — VERIFIED_LOCAL**: confirmed by our own known-working code, owner VBA, captured traffic, or live controlled probes.
 - **B — EXTERNAL_CONFIRMED**: implemented by an independent reverse-engineered project, not yet revalidated by us.
-- **C — CANDIDATE**: plausible endpoint/shape found in third-party code; requires local traffic validation.
-- **D — REJECTED_OR_OBSOLETE**: tested and no longer valid, or superseded by stronger evidence.
+- **C — CANDIDATE**: plausible endpoint/shape requiring local validation.
+- **D — REJECTED_OR_OBSOLETE**: tested and no longer valid, or intentionally excluded from the product architecture.
 
-No endpoint is promoted to A without local evidence.
+Only A-level endpoints on `aj-https.mail.ru` may be used by the application.
 
-## A — verified on `aj-https.mail.ru`
+## A — active verified endpoints on `aj-https.mail.ru`
 
 | Method | Endpoint | Purpose | Notes |
 |---|---|---|---|
-| POST | `/cgi-bin/auth?mp=android&udid=mailru_app` | Authenticate | form fields include `Password`, `Login`, `oauth2=1`, `useragent=android`, `mobile=1`, `mob_json=1`, `simple=1` |
+| POST | `/cgi-bin/auth?mp=android&udid=mailru_app` | Authenticate | form fields: `Password`, `Login`, `oauth2=1`, `useragent=android`, `mobile=1`, `mob_json=1`, `simple=1` |
 | GET | `/api/v1/m/threads/status/smart` | Folder/thread status | `folders` JSON, `last_modified`, `access_token` |
-| POST | `/api/v1/messages/attaches/add` | Upload attachment | multipart; returns attachment id |
+| POST | `/api/v1/messages/attaches/add` | Upload outgoing attachment | multipart; returns attachment id |
 | POST | `/api/v1/messages/send` | Send message | form-urlencoded compose payload |
-| POST | `/api/v1/messages/schedule` | Schedule message | same compose family plus server send date |
+| POST | `/api/v1/messages/schedule` | Schedule message | compose family plus server send date |
 
-Known mobile User-Agent from working code:
+Verified mobile User-Agent:
 
 `mobmail android 11.13.0.29089 ru.mail.mailapp`
+
+A live GitHub-hosted probe on 2026-10-06 confirmed that the AJ mobile-auth request returned HTTP 200 JSON containing both `access_token` and `refresh_token` for the test account.
 
 ### Compose fields currently known
 
@@ -31,72 +45,28 @@ Known mobile User-Agent from working code:
 
 For replies, verified legacy behavior uses `source={"reply":"<message-id>"}`.
 
-## B — externally confirmed internal API family
+## Deliberately disabled until AJ endpoints are verified
 
-These are research inputs, not yet assumed to work on the current `aj-https.mail.ru` generation.
+The current product must not emulate these operations through another host:
 
-### Hackus
+- full-message retrieval;
+- incoming-attachment download;
+- move to folder / archive;
+- permanent delete;
+- server-side contacts/address book;
+- server-side search beyond the folder/thread status payload.
 
-Source: https://github.com/ahmedelkfafy/Hackus
+When an AJ endpoint for one of these operations is found, it must be validated before enabling the feature.
 
-Observed:
+## Historical research
 
-- `POST https://aj-https.mail.ru/cgi-bin/auth`
-- `GET https://touch.mail.ru/api/v1/tokens`
-- `GET https://touch.mail.ru/cgi-bin/gosearch`
-- `GET https://touch.mail.ru/api/v1/messages/message`
-- routed `/messages/move`
-- routed `/messages/remove`
-- routed `/k8s/ab/smart` for address-book email discovery
-
-Search parameters observed include `q_from`, `q_subj`, `q_query`, `q_attach`, folder selection, result count, and date ranges.
-
-### e.mail.ru reverse projects
-
-Sources:
-
-- https://github.com/xRubin/unapi-mailru
-- https://github.com/GeorgeKaspar/SmartMailAddOn
-- https://github.com/VectorASD/Magistracy
-- https://github.com/dukei/any-balance-providers
-- https://github.com/own2pwn/smartmailhack2
-- https://github.com/Lamardo43/loadtest-QE-IPR1
-
-Observed endpoint families:
-
-- `/api/v1/threads/status/golang`
-- `/api/v1/threads/status/smart`
-- `/api/v1/threads/thread`
-- `/api/v1/messages/status`
-- `/api/v1/messages/message`
-- `/api/v1/messages/search`
-- `/api/v1/folders/add`
-- `/api/v1/folders/clear`
-- `/api/v1/user/short`
-- `/api/v1/k8s/messages/send`
-
-The K8s send variant exposes additional compose semantics such as `receipt`, `remind`, `sign`, `delay_for_cancellation`, attachment restore/expiry and richer `source` metadata.
-
-## C — candidates requiring capture validation
-
-A fresh 2026 project (https://github.com/kirill-sorochuk/fa.schedule) contains a cookie-based `e.mail.ru/api/v1` manager using candidate routes:
-
-- `/user/folders`
-- `/messages/list`
-- `/messages/read`
-- `/messages/search`
-- `/messages/flags`
-- `/messages/delete`
-- `/messages/move`
-- `/messages/send`
-
-The repository history does not independently prove that every route works, so these remain C until captured locally.
+Older project revisions investigated Hackus touch/search sessions and `e.mail.ru` web APIs. Those findings may remain in repository history and observation documents for provenance, but they are **not active transports** and must not be reintroduced as fallbacks without an explicit owner decision changing this policy.
 
 ## Research policy
 
-1. Capture the real client/browser request.
-2. Record method, host, path, query, headers, body schema and response schema.
-3. Remove credentials, tokens, mailbox content and personal identifiers.
-4. Compare against this registry.
-5. Promote/demote evidence explicitly.
-6. Add a regression test before using a newly verified operation in the UI.
+1. Prefer captured or independently reproducible AJ traffic.
+2. Record method, path, query, required headers/body schema, and response schema.
+3. Remove credentials, tokens, mailbox content, and personal identifiers from evidence.
+4. Keep at least five seconds between Mail.ru requests.
+5. Promote an endpoint to active use only after verification on `aj-https.mail.ru`.
+6. Add a regression guard before exposing the operation in the UI.

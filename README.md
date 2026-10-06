@@ -26,33 +26,37 @@ The UI is intentionally thin. Mail.ru protocol behavior must stay testable witho
 
 ## Current vertical slice
 
+The runtime protocol policy is **AJ-only**: every Mail.ru API request must target
+`https://aj-https.mail.ru`.
+
 Implemented in the protocol layer:
 
-- mobile-style authentication through `aj-https.mail.ru/cgi-bin/auth`;
-- Hackus-derived cookie-session fallback when the mobile response has no `access_token`;
-- touch/web token derivation for cookie sessions;
+- mobile-style authentication through `/cgi-bin/auth?mp=android&udid=mailru_app`;
+- authentication succeeds only when Mail.ru returns a mobile `access_token`;
+- if Mail.ru requires CAPTCHA/reCAPTCHA or another interactive verification, the user is notified and authorization stops;
 - folder/thread status through `/api/v1/m/threads/status/smart`;
-- web-thread and touch-search fallbacks for accounts without a mobile access token;
-- tolerant parsing of the currently observed smart-thread response;
 - attachment upload through `/api/v1/messages/attaches/add`;
-- send through `/api/v1/messages/send`;
-- server-side scheduled send through `/api/v1/messages/schedule`.
+- immediate send through `/api/v1/messages/send`;
+- server-side scheduled send through `/api/v1/messages/schedule`;
+- a runtime host guard rejects protocol requests to any other Mail.ru host;
+- all Mail.ru requests remain globally paced at least five seconds apart.
 
 Current UI:
 
-- login using the verified mobile-style auth flow with cookie-session fallback;
-- saved-account selector with Windows-protected authorization state;
-- real folder sidebar for the verified smart response;
+- AJ-only account login and Windows-protected persistence of access/refresh tokens;
+- real folder sidebar and message summaries from the verified smart-thread response;
 - sender, subject, date, size, unread/star/attachment indicators;
 - metadata/snippet preview for the selected item;
-- expandable raw JSON diagnostics for reverse-engineering;
+- local filtering over already loaded AJ mailbox data;
 - compose with recipient, subject and body;
-- multi-file attachment upload;
-- immediate send using the verified compose endpoint;
+- multi-file outgoing attachment upload;
+- immediate and delayed send through verified AJ endpoints;
 - version shown in the native window title;
 - project-owned cloud/envelope application mark.
 
-The password is never persisted. Access, refresh, web and touch tokens plus session cookie headers are protected with Windows DPAPI for the current Windows user and survive application restarts and update installs.
+Operations whose `aj-https.mail.ru` endpoint has not yet been verified are deliberately disabled rather than falling back to `touch.mail.ru`, `e.mail.ru`, browser APIs, or other hosts. This currently includes full-message retrieval, incoming-attachment download, move/archive/delete, and server-side contacts.
+
+The password is never persisted. Only the AJ mobile access token and refresh token are kept, protected with Windows DPAPI for the current Windows user. Legacy web/touch credentials from older releases are ignored.
 
 ## Installation and uninstall hygiene
 

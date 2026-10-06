@@ -36,6 +36,7 @@ internal sealed class AuthorizationStore
 
     public IReadOnlyList<string> Logins =>
         _state.Accounts
+            .Where(account => !string.IsNullOrWhiteSpace(account.AccessToken))
             .Select(account => account.Login)
             .OrderBy(login => login, StringComparer.CurrentCultureIgnoreCase)
             .ToArray();
@@ -61,21 +62,17 @@ internal sealed class AuthorizationStore
             var webCookieHeader = UnprotectOptional(record.WebCookieHeader);
             var touchCookieHeader = UnprotectOptional(record.TouchCookieHeader);
 
-            if (string.IsNullOrWhiteSpace(accessToken) &&
-                string.IsNullOrWhiteSpace(webToken) &&
-                string.IsNullOrWhiteSpace(searchToken))
-            {
+            if (string.IsNullOrWhiteSpace(accessToken))
                 return false;
-            }
 
             authorization = new RestoredAuthorization(
                 record.Login,
                 accessToken,
                 refreshToken,
-                webToken,
-                searchToken,
-                webCookieHeader,
-                touchCookieHeader);
+                null,
+                null,
+                null,
+                null);
             return true;
         }
         catch
@@ -95,12 +92,8 @@ internal sealed class AuthorizationStore
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(login);
 
-        if (string.IsNullOrWhiteSpace(accessToken) &&
-            string.IsNullOrWhiteSpace(webToken) &&
-            string.IsNullOrWhiteSpace(searchToken))
-        {
-            throw new ArgumentException("At least one authorization credential is required.");
-        }
+        if (string.IsNullOrWhiteSpace(accessToken))
+            throw new ArgumentException("AJ mobile access token is required.");
 
         var existing = _state.Accounts.FindIndex(account =>
             string.Equals(account.Login, login, StringComparison.OrdinalIgnoreCase));
@@ -110,10 +103,10 @@ internal sealed class AuthorizationStore
             Login = login,
             AccessToken = ProtectOptional(accessToken),
             RefreshToken = ProtectOptional(refreshToken),
-            WebToken = ProtectOptional(webToken),
-            SearchToken = ProtectOptional(searchToken),
-            WebCookieHeader = ProtectOptional(webCookieHeader),
-            TouchCookieHeader = ProtectOptional(touchCookieHeader),
+            WebToken = null,
+            SearchToken = null,
+            WebCookieHeader = null,
+            TouchCookieHeader = null,
             SavedAtUtc = DateTimeOffset.UtcNow
         };
 
