@@ -17,9 +17,6 @@ internal sealed record MailRuWebSessionResult(
     string? DiagnosticReason,
     string? PendingSessionId = null)
 {
-    public string? AccessToken { get; init; }
-    public string? RefreshToken { get; init; }
-
     public static MailRuWebSessionResult Failed(
         MailRuAuthState state,
         string code,
@@ -690,27 +687,21 @@ internal static class MailRuWebSessionAuthenticator
     {
         // Hackus calls GetSearchToken immediately after Login() succeeds.
         var searchToken = await TryGetSearchTokenAsync(session, cancellationToken).ConfigureAwait(false);
-        // Web token is an additional MailRu Desktop credential, derived only
-        // after the Hackus post-login step.
+        // Hackus stops here: after Login() it obtains the touch/search token
+        // and uses touch.mail.ru for search, full-message fetch, contacts and
+        // move/remove operations. It does NOT request a mobile OAuth token.
         var webToken = await TryGetWebTokenAsync(session, cancellationToken).ConfigureAwait(false);
-
-        // VBA uses the mobile access_token for the proven aj-https mail APIs
-        // (folders, attachments, send/schedule).  Acquire it only AFTER Hackus
-        // Login succeeded, in the already verified cookie session, so this
-        // cannot pre-empt or provoke the challenge flow.
-        var mobile = await TryGetMobileTokensAsync(session, cancellationToken).ConfigureAwait(false);
 
         var webCookieHeader = session.Cookies.GetCookieHeader(InboxUri);
         var touchCookieHeader = session.Cookies.GetCookieHeader(TouchTokensUri);
 
-        if (string.IsNullOrWhiteSpace(mobile.AccessToken) &&
-            string.IsNullOrWhiteSpace(webToken) &&
+        if (string.IsNullOrWhiteSpace(webToken) &&
             string.IsNullOrWhiteSpace(searchToken))
         {
             return MailRuWebSessionResult.Failed(
                 MailRuAuthState.ProtocolError,
                 "web_session_token_missing",
-                "verified_session_present_but_no_mobile_web_or_touch_token",
+                "hackus_login_ok_but_no_touch_or_web_token",
                 pendingSessionId: session.Id);
         }
 
@@ -723,14 +714,8 @@ internal static class MailRuWebSessionAuthenticator
             touchCookieHeader,
             null,
             null,
-            string.IsNullOrWhiteSpace(mobile.AccessToken)
-                ? "hackus_login_ok; touch/web tokens derived; mobile_access_token_missing"
-                : "hackus_login_ok; mobile_access_token_derived_after_verification",
-            session.Id)
-        {
-            AccessToken = mobile.AccessToken,
-            RefreshToken = mobile.RefreshToken
-        };
+            "hackus_login_ok; touch_search_token_derived",
+            session.Id);
     }
 
     private static async Task<MailRuChallengeKind?> ClassifyChallengeAsync(
@@ -767,53 +752,6 @@ internal static class MailRuWebSessionAuthenticator
 
         return null;
     }
-
-    private static async Task<MobileTokenResult> TryGetMobileTokensAsync(
-        PendingSession session,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            await session.WaitBeforeRequestAsync(cancellationToken).ConfigureAwait(false);
-
-            var uri = new Uri("https://aj-https.mail.ru/cgi-bin/auth?mp=android&udid=mailru_app");
-            using var request = new HttpRequestMessage(HttpMethod.Post, uri);
-            request.Headers.TryAddWithoutValidation("User-Agent", MailRuFixedProfile.UserAgent);
-            request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
-            {
-                ["Password"] = session.Password,
-                ["Login"] = session.Login,
-                ["oauth2"] = "1",
-                ["useragent"] = "android",
-                ["mobile"] = "1",
-                ["mob_json"] = "1",
-                ["simple"] = "1"
-            });
-
-            using var response = await session.Http.SendAsync(
-                request,
-                cancellationToken).ConfigureAwait(false);
-
-            var payload = await response.Content
-                .ReadAsStringAsync(cancellationToken)
-                .ConfigureAwait(false);
-
-            if (!response.IsSuccessStatusCode)
-                return new MobileTokenResult(null, null);
-
-            using var document = JsonDocument.Parse(payload);
-            TryFindString(document.RootElement, "access_token", out var accessToken);
-            TryFindString(document.RootElement, "refresh_token", out var refreshToken);
-
-            return new MobileTokenResult(accessToken, refreshToken);
-        }
-        catch
-        {
-            return new MobileTokenResult(null, null);
-        }
-    }
-
-    private sealed record MobileTokenResult(string? AccessToken, string? RefreshToken);
 
     private static async Task<string?> TryGetSearchTokenAsync(
         PendingSession session,
