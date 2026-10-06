@@ -5,8 +5,16 @@ Visibility: public
 Product authority: `main`
 Manager-state authority: `main`
 
-Current public release before this change: `v0.1.12`
-Release being prepared: `v0.1.13`
+Current public release: `v0.1.13`
+
+Release state:
+
+- pull request #18 (`v0.1.13: AJ-only Mail.ru transport`) was merged into `main` on 2026-10-06;
+- product commit on `main`: `6c5638ae8fa85ca9db63378bec8531d8356fe692`;
+- GitHub Release `v0.1.13` was published on 2026-10-06;
+- release assets:
+  - `MailRuDesktop_Setup_v0.1.13.exe`;
+  - `MailRuDesktop_Update_v0.1.13.exe`.
 
 Final Owner protocol decision on 2026-10-06:
 
@@ -35,12 +43,11 @@ v0.1.13 implementation:
 - outgoing attachment upload, immediate send, and scheduled send remain on verified AJ endpoints;
 - full-message retrieval, incoming-attachment download, contacts server lookup, move/archive and permanent delete are disabled until AJ endpoints are verified;
 - CI includes a source guard against non-AJ Mail.ru runtime URLs;
-- application version bumped to 0.1.13.
+- application version is 0.1.13.
 
 Historical research status:
 
 - branch `research/web-api-token` is non-authoritative research evidence only;
 - it must not be merged into runtime and must not be used to reintroduce web/touch fallbacks without an explicit new Owner decision.
 
-Release branch: `release/0.1.13-aj-only`
-Pull request: #18.
+Next phase is owner runtime validation of the released v0.1.13 and continued AJ-only endpoint research.
