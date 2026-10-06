@@ -239,8 +239,8 @@ public partial class MainWindow : Window
                     {
                         result = new MailRuAuthResult(
                             true,
-                            baseAccessToken,
-                            baseRefreshToken,
+                            completed.AccessToken ?? baseAccessToken,
+                            completed.RefreshToken ?? baseRefreshToken,
                             null)
                         {
                             State = MailRuAuthState.Success,
