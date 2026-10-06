@@ -10,11 +10,11 @@
 
 ## Plan for I-003 — expand AJ API coverage
 
-1. Research only `aj-https.mail.ru` for new product endpoints.
+1. Use `aj-https.mail.ru` as the primary Mail.ru API host. `af.attachmail.ru` is explicitly allowed as an auxiliary runtime host; the currently verified use is incoming-attachment download.
 2. For each candidate, capture method, path, query, request schema, response schema, and evidence provenance without secrets.
 3. Preserve at least five seconds between requests made by project research, probes, and automated tests. Do not impose that fixed delay on normal application runtime.
-4. Prioritize AJ endpoints for full-message retrieval, incoming attachment download, move/archive, permanent delete, contacts, and server-side search.
-5. Keep each unsupported UI action disabled until its AJ endpoint is verified.
+4. Wire the Owner-verified operations first: AJ full-message retrieval, AJ marks, AJ move/archive, and `af.attachmail.ru` incoming-attachment download. Continue research for permanent delete, contacts, server-side search, and confirmed flag mutation.
+5. Keep each unsupported UI action disabled until its permitted-host operation is verified.
 6. Add a regression guard before enabling a newly verified AJ operation.
 
 ## Plan for I-007 — authorization
