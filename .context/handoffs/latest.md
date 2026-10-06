@@ -1,14 +1,14 @@
 # Latest handoff
 
-MailRu Desktop v0.1.13 is now released and `main` is authoritative.
+MailRu Desktop v0.1.14 is now released and `main` is authoritative.
 
 Release state:
 
-- PR #18 was merged into `main`;
-- product commit: `6c5638ae8fa85ca9db63378bec8531d8356fe692`;
-- GitHub Release: `v0.1.13`;
-- existing installations use `MailRuDesktop_Update_v0.1.13.exe`;
-- first install/recovery uses `MailRuDesktop_Setup_v0.1.13.exe`.
+- GitHub Release: `v0.1.14`;
+- runtime delay removal: `0e95bfec07a86f66f89444377a43858be0232d7a`;
+- version commit: `9070cae8824950dda1d6dc4c9b3ace66485ff5a2`;
+- existing installations use `MailRuDesktop_Update_v0.1.14.exe`;
+- first install/recovery uses `MailRuDesktop_Setup_v0.1.14.exe`.
 
 Authoritative runtime rule:
 
@@ -38,11 +38,18 @@ Historical note:
 - it is evidence only and is not an allowed product runtime path;
 - do not merge or revive it without an explicit Owner reversal.
 
+Runtime pacing decision:
+
+- normal application requests have no artificial fixed five-second delay;
+- protocol requests are still serialized;
+- `last_modified` behavior was intentionally not changed;
+- the five-second spacing rule applies to project research, probes, and automated tests.
+
 Immediate work:
 
-1. owner runtime-validation of v0.1.13;
+1. owner runtime-validation of v0.1.14, especially Inbox refresh speed;
 2. delayed-send validation;
 3. AJ-only discovery of the missing message operations;
-4. maintain at least five seconds between project network requests.
+4. maintain at least five seconds between research/probe/test network requests.
 
-Version: 0.1.13
+Version: 0.1.14
