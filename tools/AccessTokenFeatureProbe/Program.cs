@@ -247,3 +247,61 @@ static int? ParseFirstBodyId(string payload)
 
     return null;
 }
+
+
+static string DescribeApiResponse(string payload)
+{
+    try
+    {
+        using var document = JsonDocument.Parse(payload);
+        var root = document.RootElement;
+        var status = root.ValueKind == JsonValueKind.Object && root.TryGetProperty("status", out var s)
+            ? s.ToString()
+            : "none";
+        var error = FindScalar(root, "error") ?? FindScalar(root, "error_code") ?? "none";
+        return $"status={SafeText(status)},error={SafeText(error)}";
+    }
+    catch
+    {
+        return "non_json";
+    }
+}
+
+static string? FindScalar(JsonElement element, string name)
+{
+    if (element.ValueKind == JsonValueKind.Object)
+    {
+        foreach (var property in element.EnumerateObject())
+        {
+            if (property.NameEquals(name) &&
+                property.Value.ValueKind is JsonValueKind.String or JsonValueKind.Number or JsonValueKind.True or JsonValueKind.False)
+                return property.Value.ToString();
+
+            var nested = FindScalar(property.Value, name);
+            if (nested is not null)
+                return nested;
+        }
+    }
+    else if (element.ValueKind == JsonValueKind.Array)
+    {
+        foreach (var item in element.EnumerateArray())
+        {
+            var nested = FindScalar(item, name);
+            if (nested is not null)
+                return nested;
+        }
+    }
+
+    return null;
+}
+
+static string SafeText(string? value)
+{
+    if (string.IsNullOrWhiteSpace(value))
+        return "none";
+
+    return new string(value
+        .Where(ch => char.IsLetterOrDigit(ch) || ch is ' ' or '_' or '-' or '.' or ':' or '/')
+        .Take(160)
+        .ToArray());
+}
