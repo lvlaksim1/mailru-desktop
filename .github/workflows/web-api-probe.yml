@@ -6,6 +6,7 @@ on:
       - research/web-api-token
     paths:
       - "tools/WebApiProbe/**"
+      - "tools/WebApiLegacyProbe/**"
       - ".github/workflows/web-api-probe.yml"
 
 permissions:
@@ -14,7 +15,7 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     env:
       MAILRU_TEST_LOGIN: ${{ secrets.MAILRU_TEST_LOGIN }}
       MAILRU_TEST_PASSWORD: ${{ secrets.MAILRU_TEST_PASSWORD }}
@@ -34,6 +35,15 @@ jobs:
           test -n "$MAILRU_TEST_LOGIN"
           test -n "$MAILRU_TEST_PASSWORD"
 
-      - name: Probe Mail.ru web session and read API
+      - name: Probe Hackus web session
         continue-on-error: true
         run: dotnet run --project tools/WebApiProbe/WebApiProbe.csproj -c Release
+
+      - name: Safety pause
+        if: always()
+        run: sleep 10
+
+      - name: Probe VBA web auth and SDC flow
+        if: always()
+        continue-on-error: true
+        run: dotnet run --project tools/WebApiLegacyProbe/WebApiLegacyProbe.csproj -c Release
