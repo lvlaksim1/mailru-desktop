@@ -5,40 +5,41 @@ Visibility: public
 Product authority: `main`
 Manager-state authority: `main`
 
-Current public release: `v0.1.10`
+Current public release: `v0.1.12`
 
 Verified release evidence:
 
-- product CI run `37393121013` — success
-- release workflow `37393220561` — success
-- release assets: `MailRuDesktop_Setup_v0.1.10.exe` and `MailRuDesktop_Update_v0.1.10.exe`
+- product CI for v0.1.12 head `50c6332356f98c859b22f73f9e81270afeebaa12` — success
+- release workflow `37398787496` — success
+- release assets: `MailRuDesktop_Setup_v0.1.12.exe` and `MailRuDesktop_Update_v0.1.12.exe`
 - GitHub Actions artifacts: none
-- older binary Releases pruned; source tags retained
+- only latest binary Release retained
 
-v0.1.10 auth/mailbox correction:
+Critical Hackus correction after owner v0.1.10 runtime test:
 
-- owner confirmed v0.1.9 reCAPTCHA completes and Hackus search/touch token is issued;
-- diagnostic search response proved touch token acquisition but q_query=* returned no messages/folders;
-- root cause: v0.1.9 had removed pre-challenge mobile auth correctly, but therefore no mobile access_token existed for the proven aj-https folder/thread APIs;
-- after successful Hackus Login, MailRu Desktop now performs the VBA mobile-token request in the already verified cookie session;
-- this post-verification request uses /cgi-bin/auth?mp=android&udid=mailru_app and the VBA oauth2/mobile/mob_json/simple form, but only after challenge completion;
-- access_token and refresh_token are propagated into the saved authorization;
-- folder loading again prefers the proven mobile access_token path;
-- touch/search token remains for search/contacts but is no longer misused as a folder-list fallback;
-- if only touch token exists, the UI reports a missing folder transport instead of showing a false empty mailbox.
+- Hackus does NOT obtain or depend on the mobile `access_token` after web challenge login;
+- Hackus Login() completes through the shared cookie session, then GetSearchToken() obtains `_searchToken` from `https://touch.mail.ru/api/v1/tokens`;
+- mailbox/search operations use that search token and the same cookies;
+- normal Hackus Search() calls `https://touch.mail.ru/cgi-bin/gosearch` with `token/json/ajax_call/page/q_folder/count/x-email` and does NOT add `q_query=*` unless an actual body query exists;
+- MailRu Desktop now follows that path: ordinary mailbox load uses touch gosearch with `q_folder=all`, no wildcard query, then splits messages into standard folders locally by each message folder id;
+- the previous attempt to obtain a post-challenge mobile access_token was removed from the Hackus path;
+- full-message read prefers Hackus `touch.mail.ru/api/v1/messages/message`;
+- move/delete prefer Hackus touch `/messages/move` and `/messages/remove`;
+- touch cookies are preferred for incoming attachment downloads;
+- all protocol HTTP requests remain paced at least five seconds apart.
 
-v0.1.10 theme correction:
+UI work in v0.1.11/v0.1.12:
 
-- checkbox and radio indicators use themed custom templates;
-- TabItem uses a themed header template, removing white selected tabs in dark mode;
-- ComboBox uses a themed template, removing the white dark-mode combo surface;
-- HTML mail preview adds dark-mode overrides for inline/container backgrounds so HTML-heavy Inbox messages follow dark theme rather than retaining white mail backgrounds.
+- dark title bar uses a softer dark-gray caption;
+- calendar popup received a full themed Calendar/CalendarItem/CalendarDayButton/CalendarButton implementation;
+- folder ComboBox selected value renders the folder name instead of the record object's default ToString;
+- empty flag column between attachment marker and size was removed;
+- double-clicking a message opens a dedicated full-message window;
+- message window shows subject, sender, recipients, date/time, compact attachments with full filename tooltip, full body, and buttons Reply, Forward, Archive and Move to folder;
+- Reply opens an inline reply form in that same message window;
+- Forward opens the same inline compose area with forwarded-message text;
+- Archive folder is exposed/resolved dynamically;
+- attachment download in the message window uses touch cookies first;
+- external image requests from rendered email HTML are blocked; embedded data images remain allowed.
 
-Delayed sending:
-
-- Compose now offers “Отложить отправку”, date and local time controls;
-- the existing mobile send implementation now passes SendDate and switches from /api/v1/messages/send to /api/v1/messages/schedule;
-- payload remains aligned with the owner VBA pattern: same attaches/body/correspondents/id/source/subject/send_date/priority fields;
-- runtime validation of the selected schedule timestamp is pending owner test.
-
-The v0.1.9 Hackus-equivalent challenge state machine remains unchanged.
+Delayed-send functionality from v0.1.10 remains present and awaits owner runtime validation.
