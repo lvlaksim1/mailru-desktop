@@ -93,12 +93,31 @@ public partial class MessageWindow : Window
         }
     }
 
-    private Task LoadFullMessageAsync()
+    private async Task LoadFullMessageAsync()
     {
-        StatusText.Text =
-            "Полное письмо пока не загружается: используется только aj-https.mail.ru.";
-        ShowBody(_summary.Snippet, html: false);
-        return Task.CompletedTask;
+        if (string.IsNullOrWhiteSpace(_accessToken))
+        {
+            StatusText.Text = "Нет access_token. Выполните авторизацию заново.";
+            ShowBody(_summary.Snippet, html: false);
+            return;
+        }
+
+        try
+        {
+            StatusText.Text = "Загрузка полного письма...";
+            var full = await _mailRu.GetFullMessageAsync(
+                _accessToken,
+                _summary.Id,
+                markRead: false);
+            ApplyFullMessage(full);
+            StatusText.Text = "Письмо загружено.";
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = "Не удалось загрузить полное письмо.";
+            ShowBody(_summary.Snippet, html: false);
+            DiagnosticLog.Write("message_window_full", ex.GetType().Name + ": " + ex.Message);
+        }
     }
 
     private void ApplyFullMessage(MailRuFullMessage full)
@@ -257,9 +276,9 @@ public partial class MessageWindow : Window
         var archive = _folders.FirstOrDefault(folder =>
             folder.Type.Equals("archive", StringComparison.OrdinalIgnoreCase) ||
             folder.Name.Equals("Архив", StringComparison.CurrentCultureIgnoreCase) ||
-            folder.Id is 500003 or 500005);
+            folder.Id == 500010);
 
-        await MoveAsync(archive?.Id ?? 500003, "Перемещение в архив");
+        await MoveAsync(archive?.Id ?? 500010, "Перемещение в архив");
     }
 
     private async void MoveButton_Click(object sender, RoutedEventArgs e)
@@ -273,18 +292,81 @@ public partial class MessageWindow : Window
         await MoveAsync(folder.Id, $"Перемещение в «{folder.Name}»");
     }
 
-    private Task MoveAsync(int folderId, string operation)
+    private async Task MoveAsync(int folderId, string operation)
     {
-        StatusText.Text =
-            "Перемещение временно отключено: для него ещё не подтверждён endpoint aj-https.mail.ru.";
-        return Task.CompletedTask;
+        if (string.IsNullOrWhiteSpace(_accessToken))
+        {
+            StatusText.Text = "Нет access_token. Выполните авторизацию заново.";
+            return;
+        }
+
+        StatusText.Text = operation + "...";
+
+        try
+        {
+            var result = await _mailRu.MoveMessagesAsync(
+                _accessToken,
+                new[] { _summary.Id },
+                folderId);
+
+            if (!result.Success)
+            {
+                StatusText.Text = "Mail.ru отклонил перемещение.";
+                DiagnosticLog.Write("message_window_move", result.RawResponse);
+                return;
+            }
+
+            MailboxChanged = true;
+            StatusText.Text = operation + " выполнено.";
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = "Ошибка перемещения.";
+            DiagnosticLog.Write("message_window_move", ex.GetType().Name + ": " + ex.Message);
+        }
     }
 
-    private void AttachmentButton_Click(object sender, RoutedEventArgs e)
+    private async void AttachmentButton_Click(object sender, RoutedEventArgs e)
     {
-        StatusText.Text =
-            "Скачивание входящих вложений временно отключено: " +
-            "для него ещё не подтверждён endpoint aj-https.mail.ru.";
+        if ((sender as Button)?.Tag is not MailRuIncomingAttachment attachment ||
+            string.IsNullOrWhiteSpace(_accessToken))
+        {
+            StatusText.Text = "Не удалось определить вложение.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(attachment.Id))
+        {
+            StatusText.Text = "У вложения отсутствует идентификатор.";
+            return;
+        }
+
+        var dialog = new SaveFileDialog
+        {
+            FileName = SanitizeFileName(attachment.DisplayName),
+            Title = "Сохранить вложение"
+        };
+
+        if (dialog.ShowDialog(this) != true)
+            return;
+
+        StatusText.Text = $"Скачивание «{attachment.DisplayName}»...";
+
+        try
+        {
+            var bytes = await _mailRu.DownloadIncomingAttachmentAsync(
+                _accessToken,
+                _summary.Id,
+                attachment.Id);
+
+            await File.WriteAllBytesAsync(dialog.FileName, bytes);
+            StatusText.Text = $"Вложение сохранено: {Path.GetFileName(dialog.FileName)}";
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = "Ошибка скачивания вложения.";
+            DiagnosticLog.Write("message_window_attachment", ex.GetType().Name + ": " + ex.Message);
+        }
     }
 
     private static string PrefixSubject(string prefix, string subject) =>
