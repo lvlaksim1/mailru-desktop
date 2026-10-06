@@ -1121,16 +1121,25 @@ public partial class MainWindow : Window
         var muted = ThemeManager.ReaderMutedHtml;
         var link = ThemeManager.ReaderLinkHtml;
 
+        var darkMailOverrides = ThemeManager.IsDarkEffective
+            ? $"body, body div, body table, body tbody, body thead, body tfoot, body tr, body td, body th, body p, body section, body article, body header, body footer, body main {{ background-color: transparent !important; color: {foreground} !important; }}" +
+              $"body span {{ color: inherit !important; }}" +
+              $"body a, body a * {{ color: {link} !important; }}" +
+              $"body [bgcolor] {{ background-color: transparent !important; }}" +
+              $"body [style*='background'] {{ background-color: transparent !important; }}"
+            : string.Empty;
+
         var document =
             "<!doctype html><html><head><meta charset=\"utf-8\">" +
             "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; img-src data:; style-src 'unsafe-inline';\">" +
             "<style>" +
-            $"html, body {{ background-color: {background}; color: {foreground}; }}" +
+            $"html, body {{ background-color: {background} !important; color: {foreground} !important; }}" +
             "body { font-family: Segoe UI, Arial, sans-serif; font-size: 14px; margin: 14px; overflow-wrap: anywhere; }" +
             "img { max-width: 100%; height: auto; }" +
             "pre { white-space: pre-wrap; }" +
             $"blockquote {{ border-left: 3px solid {muted}; margin-left: 8px; padding-left: 10px; color: {muted}; }}" +
             $"a {{ color: {link}; text-decoration: none; }}" +
+            darkMailOverrides +
             "</style></head><body>" +
             body +
             "</body></html>";
