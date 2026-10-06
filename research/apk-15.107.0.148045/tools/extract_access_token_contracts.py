@@ -91,3 +91,5 @@ if missing:
     md += ["## Недостающие исходники",""]
     for x in missing: md.append("- "+x["source"]+" — "+x["class"]+" — "+(x["path"] or x["path_raw"]))
 (ROOT/"ACCESS_TOKEN_CONTRACTS.md").write_text("\n".join(md)+"\n",encoding="utf-8")
+
+# run 1
