@@ -9,30 +9,30 @@ status: completed
 ## I-003 — expand reverse API coverage
 status: active — owner runtime validation pending
 
-Web-session operations are preferred where available; touch remains internal fallback.
+Web-session operations remain available; mobile access_token is restored after Hackus verification for the proven owner-VBA aj-https APIs. Touch token is reserved for search/contacts rather than folder enumeration.
 
 ## I-004 — verified send flow
-status: completed for existing mobile-token sessions
+status: active — immediate send established; scheduled send owner validation pending
+
+v0.1.10 exposes delayed send and uses the existing /messages/schedule route and send_date payload derived from the owner VBA implementation.
 
 ## I-005 — installer/update release channel
 status: completed
 
-Current release: `v0.1.9`. Release workflow `37390587718` succeeded; Setup + Update are release assets; Actions artifacts are absent and older binary Releases are pruned. Both installer variants now offer an optional desktop shortcut.
+Current release: `v0.1.10`. Release workflow `37393220561` succeeded; Setup + Update are release assets; Actions artifacts are absent and older binary Releases are pruned. Optional desktop shortcut remains supported.
 
 ## I-006 — full-message read and attachments
 status: active — owner validation pending
 
 ## I-007 — Hackus-equivalent account/challenge authorization
-status: active — corrected implementation, owner validation pending
+status: active — challenge verified by owner; mailbox credential completion pending v0.1.10 validation
 
-Commitment: preserve the Hackus auth/challenge state machine and replace only its external CAPTCHA solver with manual solving. No alternate browser-login architecture.
-
-v0.1.9 removes the remaining preliminary mobile auth probe and replaces the real Mail.ru browser challenge page with an isolated manual RecaptchaV2 solver hosted on virtual https://account.mail.ru using the extracted sitekey. The returned token is fed into the original same-session CreateSession(token). Classic CAPTCHA remains GetVerificationType/GetCaptchaImage/SubmitCaptchaAnswer/CreateSessionByLink. The only intentional behavior differences from Hackus are manual user solving instead of an external solver and the owner's >=5 second request-spacing safety rule.
+v0.1.9 owner test confirmed manual reCAPTCHA completes and touch token is issued. v0.1.10 keeps the Hackus-first challenge sequence and acquires the owner-VBA mobile access_token only after successful verification, in the verified cookie session.
 
 ## I-008 — incoming message actions
 status: active — owner validation pending
 
 ## I-009 — desktop UX/settings
-status: completed for v0.1.9 scope
+status: active — dark-theme correction owner validation pending
 
-Theme architecture is centralized: DynamicResource palette, implicit styles for standard controls, SystemColors aliases, native dark title bars and system-theme reactivity. New ordinary WPF controls should inherit theme automatically without per-element color work.
+Theme remains centralized and resource-driven. v0.1.10 adds custom templates for WPF controls whose default Windows templates ignored palette brushes (CheckBox/RadioButton/TabItem/ComboBox) and forces dark treatment of HTML mail containers.
