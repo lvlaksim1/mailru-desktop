@@ -32,6 +32,8 @@ public partial class MainWindow : Window
     private long _messageLoadGeneration;
     private MailRuFullMessage? _currentFullMessage;
     private bool _serverSearchMode;
+    private readonly List<AccountRailItem> _accountRailItems = [];
+    private bool _updatingAccountRail;
 
     public MainWindow()
     {
@@ -66,9 +68,7 @@ public partial class MainWindow : Window
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
         await InitializeReaderAsync();
-
-        if (HasMailboxTransport())
-            await LoadFolderAsync(0);
+        await EnsureStartupAccountAsync();
     }
 
     private async Task InitializeReaderAsync()
@@ -125,6 +125,132 @@ public partial class MainWindow : Window
         {
             _updatingAccountSelection = false;
         }
+
+        RefreshAccountRail(current);
+    }
+
+    private void RefreshAccountRail(string? preferredLogin = null)
+    {
+        var selectedLogin =
+            preferredLogin ??
+            _activeLogin ??
+            _authStore.LastLogin ??
+            _authStore.Logins.FirstOrDefault();
+
+        _accountRailItems.Clear();
+        foreach (var login in _authStore.Logins)
+            _accountRailItems.Add(new AccountRailItem(login));
+
+        _updatingAccountRail = true;
+        try
+        {
+            AccountRailListBox.ItemsSource = null;
+            AccountRailListBox.ItemsSource = _accountRailItems;
+            AccountRailListBox.SelectedItem = _accountRailItems.FirstOrDefault(item =>
+                string.Equals(item.Login, selectedLogin, StringComparison.OrdinalIgnoreCase));
+
+            foreach (var item in _accountRailItems)
+                item.IsActive = string.Equals(item.Login, _activeLogin, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            _updatingAccountRail = false;
+        }
+    }
+
+    private async Task EnsureStartupAccountAsync()
+    {
+        if (!HasMailboxTransport())
+        {
+            var candidates = new List<string>();
+            if (!string.IsNullOrWhiteSpace(_authStore.LastLogin))
+                candidates.Add(_authStore.LastLogin);
+
+            foreach (var login in _authStore.Logins)
+            {
+                if (!candidates.Contains(login, StringComparer.OrdinalIgnoreCase))
+                    candidates.Add(login);
+            }
+
+            foreach (var login in candidates)
+            {
+                if (RestoreSavedAuthorization(login))
+                    break;
+            }
+        }
+
+        RefreshAccountRail(_activeLogin);
+
+        if (!HasMailboxTransport())
+        {
+            AuthStatusText.Text = _authStore.Logins.Count > 0
+                ? "Сохранённые аккаунты требуют повторного входа"
+                : "Добавьте аккаунт";
+            FolderStatusText.Text = "Нет активного аккаунта";
+            return;
+        }
+
+        ShowWorkspace(MailWorkspace);
+        await LoadFolderAsync(0);
+        await RefreshAccountUnreadCountsAsync();
+    }
+
+    private async Task RefreshAccountUnreadCountsAsync()
+    {
+        foreach (var item in _accountRailItems)
+        {
+            if (string.Equals(item.Login, _activeLogin, StringComparison.OrdinalIgnoreCase) &&
+                item.Unread is not null)
+            {
+                continue;
+            }
+
+            if (!_authStore.TryRestore(item.Login, out var authorization) ||
+                authorization is null ||
+                string.IsNullOrWhiteSpace(authorization.AccessToken))
+            {
+                item.Status = "Требуется повторный вход";
+                item.Unread = null;
+                continue;
+            }
+
+            item.Status = "Проверка входящих...";
+            try
+            {
+                var raw = await _mailRu.GetFolderThreadsAsync(
+                    authorization.AccessToken,
+                    0,
+                    offset: 0,
+                    limit: 1);
+
+                var snapshot = MailRuThreadStatusParser.Parse(raw, 0);
+                item.Unread = snapshot.MessagesUnread ?? 0;
+                item.Status = $"Непрочитанных: {item.Unread}";
+            }
+            catch (Exception ex)
+            {
+                item.Unread = null;
+                item.Status = "Ошибка загрузки";
+                DiagnosticLog.Write(
+                    "account_unread_" + item.Login,
+                    ex.GetType().Name + ": " + ex.Message);
+            }
+        }
+    }
+
+    private void UpdateAccountRailState(long? unread = null, string? status = null)
+    {
+        foreach (var item in _accountRailItems)
+        {
+            item.IsActive = string.Equals(item.Login, _activeLogin, StringComparison.OrdinalIgnoreCase);
+            if (!item.IsActive)
+                continue;
+
+            if (unread is not null)
+                item.Unread = unread;
+            if (!string.IsNullOrWhiteSpace(status))
+                item.Status = status;
+        }
     }
 
     private bool RestoreSavedAuthorization(string? login)
@@ -144,6 +270,7 @@ public partial class MainWindow : Window
         LoginComboBox.Text = authorization.Login;
         AuthStatusText.Text = "Авторизация активна · access_token";
         _authStore.MarkLastUsed(authorization.Login);
+        UpdateAccountRailState(status: "Активен");
         return true;
     }
 
@@ -157,6 +284,34 @@ public partial class MainWindow : Window
 
         if (RestoreSavedAuthorization(login))
             await LoadFolderAsync(0);
+    }
+
+    private async void AccountRailListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_updatingAccountRail ||
+            AccountRailListBox.SelectedItem is not AccountRailItem item)
+        {
+            return;
+        }
+
+        if (string.Equals(item.Login, _activeLogin, StringComparison.OrdinalIgnoreCase))
+        {
+            ShowWorkspace(MailWorkspace);
+            return;
+        }
+
+        item.Status = "Переключение...";
+        if (!RestoreSavedAuthorization(item.Login))
+        {
+            item.Status = "Требуется повторный вход";
+            AuthStatusText.Text = "Не удалось восстановить авторизацию";
+            return;
+        }
+
+        RefreshAccountRail(item.Login);
+        ShowWorkspace(MailWorkspace);
+        await LoadFolderAsync(0);
+        await RefreshAccountUnreadCountsAsync();
     }
 
     private async void AddAccountButton_Click(object sender, RoutedEventArgs e)
@@ -220,6 +375,7 @@ public partial class MainWindow : Window
             ApplyAuthorization(login, result);
             SaveAuthorization(login);
             RefreshSavedLogins();
+            RefreshAccountRail(login);
 
             _updatingAccountSelection = true;
             try
@@ -361,6 +517,9 @@ public partial class MainWindow : Window
             FolderStatusText.Text =
                 $"Всего: {total} · непрочитанных: {unread} · показано: {snapshot.Messages.Count}";
 
+            if (_currentFolderId == 0)
+                UpdateAccountRailState(snapshot.MessagesUnread ?? 0, $"Непрочитанных: {snapshot.MessagesUnread ?? 0}");
+
             if (_currentMessages.Count > 0)
                 MessagesGrid.SelectedIndex = 0;
             else
@@ -371,8 +530,11 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            FolderStatusText.Text = "Ошибка загрузки";
-            ResponseTextBox.Text = ex.Message;
+            FolderStatusText.Text = "Ошибка загрузки: " + ex.Message;
+            SelectedSubjectText.Text = "Не удалось загрузить почту";
+            SelectedSenderText.Text = ex.Message;
+            ResponseTextBox.Text = ex.ToString();
+            UpdateAccountRailState(status: "Ошибка загрузки");
             DiagnosticLog.Write("folder_load", ex.GetType().Name + ": " + ex.Message);
 
             if (!string.IsNullOrWhiteSpace(_activeLogin))
@@ -882,7 +1044,7 @@ public partial class MainWindow : Window
         }
 
         ComposeToTextBox.Text = email;
-        MainTabs.SelectedItem = ComposeTab;
+        ShowWorkspace(ComposeWorkspace);
         ComposeSubjectTextBox.Focus();
     }
 
@@ -1505,6 +1667,30 @@ public partial class MainWindow : Window
                 break;
             }
         }
+    }
+
+    private void ShowMailButton_Click(object sender, RoutedEventArgs e) =>
+        ShowWorkspace(MailWorkspace);
+
+    private void ShowContactsButton_Click(object sender, RoutedEventArgs e) =>
+        ShowWorkspace(ContactsWorkspace);
+
+    private void ShowComposeButton_Click(object sender, RoutedEventArgs e)
+    {
+        ShowWorkspace(ComposeWorkspace);
+        ComposeToTextBox.Focus();
+    }
+
+    private void ShowSettingsButton_Click(object sender, RoutedEventArgs e) =>
+        ShowWorkspace(SettingsWorkspace);
+
+    private void ShowWorkspace(FrameworkElement workspace)
+    {
+        MailWorkspace.Visibility = Visibility.Collapsed;
+        ContactsWorkspace.Visibility = Visibility.Collapsed;
+        ComposeWorkspace.Visibility = Visibility.Collapsed;
+        SettingsWorkspace.Visibility = Visibility.Collapsed;
+        workspace.Visibility = Visibility.Visible;
     }
 
     private static string SafeFileName(string value)
