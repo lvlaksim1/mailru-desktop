@@ -10,7 +10,7 @@ supersedes: none
 
 ## B-002 — owner protocol constraints
 
-statement: This project must not use IMAP/SMTP, app-specific passwords, or official Mail.ru mail-client documentation as protocol authority. The protocol source of truth is reverse-engineered internal Mail.ru HTTP behavior, starting with `aj-https.mail.ru`, supported by locally verified legacy code, traffic captures, and independent reverse-engineering evidence.
+statement: This project must not use IMAP/SMTP, app-specific passwords, or official Mail.ru mail-client documentation as protocol authority. The protocol source of truth is reverse-engineered internal Mail.ru HTTP behavior, restricted by the current Owner decision to `https://aj-https.mail.ru`.
 
 source: direct Owner directives in the active project conversation.
 authority: owner-directive
@@ -88,14 +88,13 @@ source: commits `065748b056f47fefba0972157078e8a5064037fc` and `45204412fe8394e4
 authority: verified-ci + verified-repository
 supersedes: none
 
-
 ## B-012 — AJ-only runtime authority
 
-statement: By direct Owner decision on 2026-10-06, MailRu Desktop runtime may use only the `https://aj-https.mail.ru` API host. Mobile `access_token` is again the sole accepted mailbox credential. If authorization requires CAPTCHA/reCAPTCHA or another interactive verification, the application must notify the user and stop authorization; it must not solve or continue the challenge. Touch/web transports are prohibited fallbacks.
+statement: By final Owner decision on 2026-10-06, MailRu Desktop runtime may use only the `https://aj-https.mail.ru` API host. Mobile `access_token` is the sole accepted mailbox credential. If authorization requires CAPTCHA/reCAPTCHA or another interactive verification, the application must notify the user and stop authorization; it must not solve or continue the challenge. Touch/web transports and all endpoints on sibling Mail.ru hosts are prohibited.
 
 source: direct Owner directive in the active project conversation.
 authority: owner-directive
-supersedes: the v0.1.9-v0.1.12 Hackus touch/web fallback architecture
+supersedes: the v0.1.9-v0.1.12 Hackus touch/web fallback architecture and the later exploratory web-API-token course
 
 ## B-013 — live AJ mobile auth probe
 
@@ -104,3 +103,11 @@ statement: A controlled GitHub-hosted probe on 2026-10-06 sent the verified mobi
 source: GitHub Actions run `37410564363`.
 authority: verified-runtime
 supersedes: uncertainty that the current test account could still obtain the mobile access token
+
+## B-014 — historical web/touch research is non-authoritative
+
+statement: The research branch `research/web-api-token` and its Hackus/web-cookie/VK-ID experiments are historical evidence only. They must not be merged into product runtime or used as fallback architecture unless the Owner explicitly reverses the AJ-only decision.
+
+source: final Owner protocol decision on 2026-10-06.
+authority: owner-directive
+supersedes: the temporary plan to pursue `e.mail.ru` web API tokens
