@@ -27,9 +27,13 @@ public static class MailRuEndpointCatalog
     [
         new("auth.mobile", "POST", "aj-https.mail.ru", "/cgi-bin/auth", EndpointEvidence.VerifiedLocal, "Mobile OAuth-style authentication"),
         new("threads.status.smart", "GET", "aj-https.mail.ru", "/api/v1/m/threads/status/smart", EndpointEvidence.VerifiedLocal, "Folder/thread status"),
+        new("messages.message", "GET", "aj-https.mail.ru", "/api/v1/messages/message", EndpointEvidence.VerifiedLocal, "Full message"),
+        new("messages.marks", "POST", "aj-https.mail.ru", "/api/v1/messages/marks", EndpointEvidence.VerifiedLocal, "Unread/read marks"),
+        new("messages.move", "POST", "aj-https.mail.ru", "/api/v1/messages/move", EndpointEvidence.VerifiedLocal, "Move/archive/trash"),
         new("messages.attach.add", "POST", "aj-https.mail.ru", "/api/v1/messages/attaches/add", EndpointEvidence.VerifiedLocal, "Upload attachment"),
         new("messages.send", "POST", "aj-https.mail.ru", "/api/v1/messages/send", EndpointEvidence.VerifiedLocal, "Send message"),
-        new("messages.schedule", "POST", "aj-https.mail.ru", "/api/v1/messages/schedule", EndpointEvidence.VerifiedLocal, "Server-side scheduled send")
+        new("messages.schedule", "POST", "aj-https.mail.ru", "/api/v1/messages/schedule", EndpointEvidence.VerifiedLocal, "Server-side scheduled send"),
+        new("attachments.readmsg", "GET", "af.attachmail.ru", "/cgi-bin/readmsg", EndpointEvidence.VerifiedLocal, "Download incoming attachment")
     ];
 }
 
@@ -263,6 +267,149 @@ public sealed class MailRuClient : IDisposable
         return payload;
     }
 
+    public async Task<MailRuFullMessage> GetFullMessageAsync(
+        string accessToken,
+        string messageId,
+        bool markRead = false,
+        CancellationToken cancellationToken = default)
+    {
+        RequireToken(accessToken);
+        if (string.IsNullOrWhiteSpace(messageId))
+            throw new ArgumentException("Message id is required.", nameof(messageId));
+
+        var uri = BuildUri("/api/v1/messages/message", new Dictionary<string, string?>
+        {
+            ["id"] = messageId,
+            ["mark_read"] = markRead ? "true" : "false",
+            ["mp"] = "android",
+            ["access_token"] = accessToken
+        });
+
+        using var request = CreateRequest(HttpMethod.Get, uri);
+        using var response = await SendSerializedAsync(request, cancellationToken).ConfigureAwait(false);
+        var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+        if (!response.IsSuccessStatusCode)
+            throw new MailRuProtocolException($"Full-message request failed with HTTP {(int)response.StatusCode}.");
+
+        return MailRuFullMessageParser.Parse(payload, messageId);
+    }
+
+    public async Task<MailRuCommandResult> SetUnreadAsync(
+        string accessToken,
+        string email,
+        string messageId,
+        bool unread,
+        CancellationToken cancellationToken = default)
+    {
+        RequireToken(accessToken);
+        if (string.IsNullOrWhiteSpace(messageId))
+            throw new ArgumentException("Message id is required.", nameof(messageId));
+
+        var marks = JsonSerializer.Serialize(new object[]
+        {
+            new
+            {
+                set = unread ? new[] { messageId } : Array.Empty<string>(),
+                unset = unread ? Array.Empty<string>() : new[] { messageId },
+                name = "unread"
+            },
+            new
+            {
+                set = Array.Empty<string>(),
+                unset = Array.Empty<string>(),
+                name = "flagged"
+            }
+        });
+
+        var uri = BuildUri("/api/v1/messages/marks", new Dictionary<string, string?>
+        {
+            ["htmlencoded"] = "false",
+            ["email"] = string.IsNullOrWhiteSpace(email) ? null : email,
+            ["mp"] = "android",
+            ["access_token"] = accessToken
+        });
+
+        using var request = CreateRequest(HttpMethod.Post, uri);
+        request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["marks"] = marks
+        });
+
+        using var response = await SendSerializedAsync(request, cancellationToken).ConfigureAwait(false);
+        var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+        return new MailRuCommandResult(
+            response.IsSuccessStatusCode && HasStatus200(payload),
+            payload);
+    }
+
+    public async Task<MailRuCommandResult> MoveMessagesAsync(
+        string accessToken,
+        IReadOnlyCollection<string> messageIds,
+        int destinationFolderId,
+        CancellationToken cancellationToken = default)
+    {
+        RequireToken(accessToken);
+        ArgumentNullException.ThrowIfNull(messageIds);
+        if (messageIds.Count == 0)
+            throw new ArgumentException("At least one message id is required.", nameof(messageIds));
+
+        var uri = BuildUri("/api/v1/messages/move", new Dictionary<string, string?>
+        {
+            ["htmlencoded"] = "false",
+            ["mp"] = "android",
+            ["access_token"] = accessToken
+        });
+
+        using var request = CreateRequest(HttpMethod.Post, uri);
+        request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["folder"] = destinationFolderId.ToString(CultureInfo.InvariantCulture),
+            ["ids"] = JsonSerializer.Serialize(messageIds)
+        });
+
+        using var response = await SendSerializedAsync(request, cancellationToken).ConfigureAwait(false);
+        var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+        return new MailRuCommandResult(
+            response.IsSuccessStatusCode && HasStatus200(payload),
+            payload);
+    }
+
+    public async Task<byte[]> DownloadIncomingAttachmentAsync(
+        string accessToken,
+        string messageId,
+        string attachmentId,
+        CancellationToken cancellationToken = default)
+    {
+        RequireToken(accessToken);
+        if (string.IsNullOrWhiteSpace(messageId))
+            throw new ArgumentException("Message id is required.", nameof(messageId));
+        if (string.IsNullOrWhiteSpace(attachmentId))
+            throw new ArgumentException("Attachment id is required.", nameof(attachmentId));
+
+        var uri = BuildAbsoluteUri(
+            "https://af.attachmail.ru/cgi-bin/readmsg",
+            new Dictionary<string, string?>
+            {
+                ["access_token"] = accessToken,
+                ["id"] = messageId + ";" + attachmentId,
+                ["notype"] = "1"
+            });
+
+        using var request = CreateRequest(HttpMethod.Get, uri);
+        using var response = await SendSerializedAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            cancellationToken).ConfigureAwait(false);
+
+        if (!response.IsSuccessStatusCode)
+            throw new MailRuProtocolException($"Incoming attachment download failed with HTTP {(int)response.StatusCode}.");
+
+        return await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task<string> UploadAttachmentAsync(
         string accessToken,
         Stream stream,
@@ -394,13 +541,10 @@ public sealed class MailRuClient : IDisposable
         var requestUri = request.RequestUri
             ?? throw new MailRuProtocolException("Request URI is missing.");
 
-        if (!string.Equals(
-                requestUri.Host,
-                _options.BaseUri.Host,
-                StringComparison.OrdinalIgnoreCase))
+        if (!IsAllowedRuntimeHost(requestUri.Host))
         {
             throw new MailRuProtocolException(
-                $"AJ-only policy blocked request to host '{requestUri.Host}'.");
+                $"Mail.ru host policy blocked request to host '{requestUri.Host}'.");
         }
 
         await _requestGate.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -426,9 +570,14 @@ public sealed class MailRuClient : IDisposable
 
     private Uri BuildUri(
         string relativePath,
+        IReadOnlyDictionary<string, string?> query) =>
+        BuildAbsoluteUri(new Uri(_options.BaseUri, relativePath).ToString(), query);
+
+    private static Uri BuildAbsoluteUri(
+        string absoluteUri,
         IReadOnlyDictionary<string, string?> query)
     {
-        var builder = new UriBuilder(new Uri(_options.BaseUri, relativePath));
+        var builder = new UriBuilder(absoluteUri);
         builder.Query = string.Join("&", query
             .Where(pair => pair.Value is not null)
             .Select(pair =>
@@ -436,6 +585,10 @@ public sealed class MailRuClient : IDisposable
 
         return builder.Uri;
     }
+
+    private static bool IsAllowedRuntimeHost(string host) =>
+        string.Equals(host, "aj-https.mail.ru", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(host, "af.attachmail.ru", StringComparison.OrdinalIgnoreCase);
 
     private static bool LooksLikeCaptcha(string payload, string location) =>
         payload.Contains("captcha", StringComparison.OrdinalIgnoreCase) ||
