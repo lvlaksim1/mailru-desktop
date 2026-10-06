@@ -18,8 +18,73 @@ public sealed record MailRuSearchResult(
     string RawResponse,
     string Source);
 
+public sealed record MailRuTokenRefreshResult(
+    bool Success,
+    string? AccessToken,
+    string? RefreshToken,
+    long? ExpiresIn,
+    string RawResponse);
+
 public sealed partial class MailRuClient
 {
+    public async Task<MailRuTokenRefreshResult> RefreshAccessTokenAsync(
+        string refreshToken,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(refreshToken))
+            throw new ArgumentException("Refresh token is required.", nameof(refreshToken));
+
+        var uri = new Uri("https://o2.mail.ru/token");
+        using var request = CreateRequest(HttpMethod.Post, uri);
+        request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["grant_type"] = "refresh_token",
+            ["client_id"] = "mail-android",
+            ["refresh_token"] = refreshToken
+        });
+
+        using var response = await SendSerializedAsync(request, cancellationToken).ConfigureAwait(false);
+        var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+        string? access = null;
+        string? replacementRefresh = null;
+        long? expires = null;
+
+        try
+        {
+            using var document = JsonDocument.Parse(payload);
+            var root = document.RootElement;
+            access = root.TryGetProperty("access_token", out var accessElement) &&
+                     accessElement.ValueKind == JsonValueKind.String
+                ? accessElement.GetString()
+                : null;
+            replacementRefresh = root.TryGetProperty("refresh_token", out var refreshElement) &&
+                                 refreshElement.ValueKind == JsonValueKind.String
+                ? refreshElement.GetString()
+                : null;
+            if (root.TryGetProperty("expires_in", out var expiresElement))
+            {
+                if (expiresElement.ValueKind == JsonValueKind.Number && expiresElement.TryGetInt64(out var n))
+                    expires = n;
+                else if (expiresElement.ValueKind == JsonValueKind.String &&
+                         long.TryParse(expiresElement.GetString(), out n))
+                    expires = n;
+            }
+        }
+        catch (JsonException)
+        {
+            // Preserve the raw response for diagnostics below.
+        }
+
+        var success = response.IsSuccessStatusCode && !string.IsNullOrWhiteSpace(access);
+        return new MailRuTokenRefreshResult(
+            success,
+            access,
+            string.IsNullOrWhiteSpace(replacementRefresh) ? refreshToken : replacementRefresh,
+            expires,
+            payload);
+    }
+
     public Task<MailRuCommandResult> SetFlaggedAsync(
         string accessToken,
         string email,
