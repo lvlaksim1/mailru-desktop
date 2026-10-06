@@ -67,9 +67,7 @@ var token = auth.AccessToken!;
 
 if (string.Equals(scope, "diagnose", StringComparison.OrdinalIgnoreCase))
 {
-    await ProbeAsync("search_new",
-        () => client.SearchMessagesNewAsync(token, login!, "a", limit: 20),
-        x => x.RawResponse.Length > 0);
+    Console.WriteLine("search_new: DEFERRED (live HTTP 520)");
 
     var diagSubject = $"MailRu Desktop diagnose draft {runId}";
     var diagDraft = await ProbeAsync("draft_save",
@@ -155,9 +153,7 @@ await ProbeAsync("search_classic",
     () => client.SearchMessagesClassicAsync(token, login!, "a", limit: 20),
     x => x.RawResponse.Length > 0);
 
-await ProbeAsync("search_new",
-    () => client.SearchMessagesNewAsync(token, login!, "a", limit: 20),
-    x => x.RawResponse.Length > 0);
+Console.WriteLine("search_new: DEFERRED (live HTTP 520)");
 
 var probeMessage = inbox?.Messages.FirstOrDefault();
 if (probeMessage is not null)
