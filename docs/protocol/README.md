@@ -12,7 +12,7 @@ No runtime fallback to `touch.mail.ru`, `e.mail.ru`, `account.mail.ru`, `auth.ma
 
 If authentication requires CAPTCHA/reCAPTCHA or another interactive verification, the application reports that condition to the user and stops authorization. It does not attempt to solve or bypass the challenge.
 
-All Mail.ru HTTP requests must remain globally paced at least five seconds apart.
+Runtime requests are not subject to an artificial fixed delay. The client still serializes protocol requests to avoid overlapping duplicate operations. The five-second spacing rule applies only to project research, probes, and automated tests.
 
 ## Evidence levels
 
