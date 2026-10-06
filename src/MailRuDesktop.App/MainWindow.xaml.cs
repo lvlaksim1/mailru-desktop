@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Reflection;
@@ -981,6 +982,48 @@ public partial class MainWindow : Window
             return;
         }
 
+        string? sendDate = null;
+        DateTimeOffset? scheduledFor = null;
+
+        if (ScheduleSendCheckBox.IsChecked == true)
+        {
+            if (ScheduleDatePicker.SelectedDate is not DateTime selectedDate)
+            {
+                ComposeStatusText.Text = "Выберите дату отложенной отправки.";
+                return;
+            }
+
+            var timeText = ScheduleTimeTextBox.Text.Trim();
+            if (!DateTime.TryParseExact(
+                    timeText,
+                    new[] { "H:mm", "HH:mm" },
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.None,
+                    out var parsedTime))
+            {
+                ComposeStatusText.Text = "Время должно быть в формате ЧЧ:ММ.";
+                return;
+            }
+
+            var localDateTime = DateTime.SpecifyKind(
+                selectedDate.Date.Add(parsedTime.TimeOfDay),
+                DateTimeKind.Local);
+            scheduledFor = new DateTimeOffset(localDateTime);
+
+            if (scheduledFor <= DateTimeOffset.Now.AddMinutes(1))
+            {
+                ComposeStatusText.Text = "Время отложенной отправки должно быть в будущем.";
+                return;
+            }
+
+            // VBA passes дата_время_отправки straight into send_date and switches
+            // endpoint from /send to /schedule. The Mail.ru mobile API uses the
+            // scheduled instant as Unix time (seconds).
+            sendDate = scheduledFor.Value
+                .ToUnixTimeSeconds()
+                .ToString(CultureInfo.InvariantCulture);
+        }
+
         SendButton.IsEnabled = false;
         AttachButton.IsEnabled = false;
         ComposeStatusText.Text = "Подготовка письма...";
@@ -1013,12 +1056,20 @@ public partial class MainWindow : Window
                     To: recipient,
                     Subject: ComposeSubjectTextBox.Text,
                     Text: ComposeBodyTextBox.Text,
+                    SendDate: sendDate,
                     AttachmentIds: attachmentIds,
                     MessageId: messageId));
 
+            ResponseTextBox.Text = result.RawResponse;
+
             if (!result.Success)
             {
-                ComposeStatusText.Text = "Mail.ru отклонил отправку.";
+                ComposeStatusText.Text = scheduledFor is null
+                    ? "Mail.ru отклонил отправку."
+                    : "Mail.ru отклонил отложенную отправку.";
+                DiagnosticLog.Write(
+                    scheduledFor is null ? "send_rejected" : "schedule_rejected",
+                    result.RawResponse);
                 return;
             }
 
@@ -1027,7 +1078,18 @@ public partial class MainWindow : Window
             ComposeBodyTextBox.Clear();
             _attachmentPaths.Clear();
             AttachmentSummaryText.Text = "Вложений нет";
-            ComposeStatusText.Text = "Отправлено.";
+
+            if (scheduledFor is null)
+            {
+                ComposeStatusText.Text = "Отправлено.";
+            }
+            else
+            {
+                ComposeStatusText.Text =
+                    $"Запланировано на {scheduledFor.Value.LocalDateTime:dd.MM.yyyy HH:mm}.";
+                ScheduleSendCheckBox.IsChecked = false;
+                ScheduleDatePicker.SelectedDate = null;
+            }
         }
         catch (Exception ex)
         {
