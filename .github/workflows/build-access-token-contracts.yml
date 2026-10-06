@@ -1,0 +1,28 @@
+name: Build access-token contracts
+
+on:
+  push:
+    branches:
+      - research/mail-apk-15.107.0.148045
+    paths:
+      - 'research/apk-15.107.0.148045/tools/extract_access_token_contracts.py'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/mail-apk-15.107.0.148045
+          fetch-depth: 1
+      - run: python3 research/apk-15.107.0.148045/tools/extract_access_token_contracts.py
+      - run: |
+          git config user.name "mailru-apk-research"
+          git config user.email "actions@users.noreply.github.com"
+          git add research/apk-15.107.0.148045/ACCESS_TOKEN_CONTRACTS.md research/apk-15.107.0.148045/ACCESS_TOKEN_CONTRACTS.json
+          git commit -m "research: extract contracts for full access_token surface"
+          git pull --rebase origin research/mail-apk-15.107.0.148045
+          git push origin HEAD:research/mail-apk-15.107.0.148045
