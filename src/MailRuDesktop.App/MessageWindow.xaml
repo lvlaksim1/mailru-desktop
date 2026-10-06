@@ -1,0 +1,198 @@
+<Window x:Class="MailRuDesktop.App.MessageWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        Title="Письмо"
+        Width="980"
+        Height="760"
+        MinWidth="760"
+        MinHeight="560"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <WrapPanel Grid.Row="0" Margin="0,0,0,10">
+            <Button x:Name="ReplyButton"
+                    Padding="14,7"
+                    Margin="0,0,6,0"
+                    Click="ReplyButton_Click"
+                    Content="Ответить"/>
+            <Button x:Name="ForwardButton"
+                    Padding="14,7"
+                    Margin="0,0,6,0"
+                    Click="ForwardButton_Click"
+                    Content="Переслать"/>
+            <Button x:Name="ArchiveButton"
+                    Padding="14,7"
+                    Margin="0,0,14,0"
+                    Click="ArchiveButton_Click"
+                    Content="В архив"/>
+
+            <TextBlock Margin="0,0,6,0"
+                       VerticalAlignment="Center"
+                       Text="В папку:"/>
+            <ComboBox x:Name="MoveFolderComboBox"
+                      Width="180"
+                      DisplayMemberPath="Name"
+                      TextSearch.TextPath="Name"
+                      ToolTip="Папка назначения"/>
+            <Button Padding="12,7"
+                    Margin="6,0,0,0"
+                    Click="MoveButton_Click"
+                    Content="Переместить"/>
+        </WrapPanel>
+
+        <StackPanel Grid.Row="1" Margin="0,0,0,8">
+            <TextBlock x:Name="SubjectText"
+                       FontSize="21"
+                       FontWeight="SemiBold"
+                       TextWrapping="Wrap"/>
+            <TextBlock x:Name="FromText"
+                       Margin="0,8,0,0"
+                       TextWrapping="Wrap"/>
+            <TextBlock x:Name="ToText"
+                       Margin="0,3,0,0"
+                       TextWrapping="Wrap"/>
+            <TextBlock x:Name="DateText"
+                       Margin="0,3,0,0"
+                       Foreground="{DynamicResource AppMutedTextBrush}"/>
+        </StackPanel>
+
+        <ItemsControl x:Name="AttachmentsItemsControl"
+                      Grid.Row="2"
+                      Margin="0,0,0,10">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Button Margin="0,0,6,6"
+                            Padding="9,5"
+                            MaxWidth="190"
+                            Tag="{Binding}"
+                            ToolTip="{Binding Name}"
+                            Click="AttachmentButton_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Margin="0,0,5,0" Text="📎"/>
+                            <TextBlock Text="{Binding DisplayName}"
+                                       TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
+                    </Button>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <Border Grid.Row="3"
+                Margin="0,0,0,10"
+                Padding="10"
+                BorderBrush="{DynamicResource AppBorderBrush}"
+                Background="{DynamicResource AppPanelBrush}"
+                BorderThickness="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock VerticalAlignment="Center"
+                           FontWeight="SemiBold"
+                           Text="Статус:"/>
+                <TextBlock x:Name="StatusText"
+                           Grid.Column="1"
+                           Margin="8,0,0,0"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource AppMutedTextBrush}"
+                           Text="Загрузка письма..."/>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="4"
+                BorderBrush="{DynamicResource AppBorderBrush}"
+                Background="{DynamicResource AppPanelBrush}"
+                BorderThickness="1">
+            <wv2:WebView2 x:Name="MessageWebView"/>
+        </Border>
+
+        <Border x:Name="ComposePanel"
+                Grid.Row="5"
+                Margin="0,10,0,0"
+                Padding="12"
+                Visibility="Collapsed"
+                BorderBrush="{DynamicResource AppBorderBrush}"
+                Background="{DynamicResource AppPanelBrush}"
+                BorderThickness="1">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="120"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="70"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="0"
+                           Grid.Column="0"
+                           Margin="0,0,8,7"
+                           VerticalAlignment="Center"
+                           Text="Кому:"/>
+                <TextBox x:Name="ComposeToTextBox"
+                         Grid.Row="0"
+                         Grid.Column="1"
+                         Margin="0,0,0,7"
+                         Padding="7"/>
+
+                <TextBlock Grid.Row="1"
+                           Grid.Column="0"
+                           Margin="0,0,8,7"
+                           VerticalAlignment="Center"
+                           Text="Тема:"/>
+                <TextBox x:Name="ComposeSubjectTextBox"
+                         Grid.Row="1"
+                         Grid.Column="1"
+                         Margin="0,0,0,7"
+                         Padding="7"/>
+
+                <TextBlock Grid.Row="2"
+                           Grid.Column="0"
+                           Margin="0,0,8,0"
+                           VerticalAlignment="Top"
+                           Text="Текст:"/>
+                <TextBox x:Name="ComposeBodyTextBox"
+                         Grid.Row="2"
+                         Grid.Column="1"
+                         Padding="7"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         VerticalScrollBarVisibility="Auto"/>
+
+                <WrapPanel Grid.Row="3"
+                           Grid.Column="1"
+                           Margin="0,9,0,0">
+                    <Button x:Name="SendComposeButton"
+                            Padding="14,7"
+                            Margin="0,0,6,0"
+                            Click="SendComposeButton_Click"
+                            Content="Отправить"/>
+                    <Button Padding="14,7"
+                            Margin="0,0,12,0"
+                            Click="CancelComposeButton_Click"
+                            Content="Отмена"/>
+                    <TextBlock x:Name="ComposeStatusText"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource AppMutedTextBrush}"/>
+                </WrapPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
