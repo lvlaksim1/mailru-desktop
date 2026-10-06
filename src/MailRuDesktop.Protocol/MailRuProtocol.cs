@@ -155,7 +155,7 @@ public sealed class MailRuClient : IDisposable
 
         if (web.Success)
         {
-            return new MailRuAuthResult(true, null, null, null)
+            return new MailRuAuthResult(true, web.AccessToken, web.RefreshToken, null)
             {
                 State = MailRuAuthState.Success,
                 WebToken = web.WebToken,
@@ -198,7 +198,7 @@ public sealed class MailRuClient : IDisposable
                 web.Challenge);
         }
 
-        return new MailRuAuthResult(true, null, null, null)
+        return new MailRuAuthResult(true, web.AccessToken, web.RefreshToken, null)
         {
             State = MailRuAuthState.Success,
             WebToken = web.WebToken,
