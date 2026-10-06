@@ -25,16 +25,34 @@ jobs:
       - name: Build
         run: dotnet build src/MailRuDesktop.App/MailRuDesktop.App.csproj -c Release --no-restore
 
-      - name: Enforce approved Mail.ru hosts
+      - name: Enforce endpoint-registry Mail.ru hosts
         shell: pwsh
         run: |
-          $violations = Get-ChildItem src -Recurse -File -Include *.cs,*.xaml |
-            Select-String -Pattern 'https://[A-Za-z0-9.-]*mail\.ru' |
-            Where-Object {
-              $_.Line -notmatch 'https://aj-https\.mail\.ru' -and
-              $_.Line -notmatch 'https://af\.attachmail\.ru'
+          $catalogPath = 'src/MailRuDesktop.Protocol/MailRuProtocol.cs'
+          $catalog = Get-Content $catalogPath -Raw
+          $approved = [regex]::Matches($catalog, 'new\("[^"]+",\s*"[^"]+",\s*"([A-Za-z0-9.-]+)"') |
+            ForEach-Object { $_.Groups[1].Value.ToLowerInvariant() } |
+            Sort-Object -Unique
+
+          if (-not $approved) { throw 'Endpoint catalog contains no Mail.ru hosts.' }
+
+          $violations = @()
+          Get-ChildItem src -Recurse -File -Include *.cs,*.xaml | ForEach-Object {
+            $path = $_.FullName
+            $lineNumber = 0
+            Get-Content $path | ForEach-Object {
+              $lineNumber++
+              $line = $_
+              foreach ($match in [regex]::Matches($line, 'https://([A-Za-z0-9.-]*(?:mail\.ru|attachmail\.ru))')) {
+                $mailHost = $match.Groups[1].Value.ToLowerInvariant()
+                if ($approved -notcontains $mailHost) {
+                  $violations += ('{0}:{1}: {2}' -f $path, $lineNumber, $line.Trim())
+                }
+              }
             }
-          if ($violations) {
-            $violations | ForEach-Object { Write-Host "$($_.Path):$($_.LineNumber): $($_.Line.Trim())" }
-            throw 'Non-approved Mail.ru host found in runtime source.'
+          }
+
+          if ($violations.Count -gt 0) {
+            $violations | ForEach-Object { Write-Host $_ }
+            throw 'Mail.ru host is used outside the endpoint registry.'
           }

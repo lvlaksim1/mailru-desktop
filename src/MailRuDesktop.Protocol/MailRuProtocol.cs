@@ -8,6 +8,7 @@ namespace MailRuDesktop.Protocol;
 public enum EndpointEvidence
 {
     VerifiedLocal,
+    StaticOfficialClient,
     ExternalConfirmed,
     Candidate,
     RejectedOrObsolete
@@ -33,8 +34,24 @@ public static class MailRuEndpointCatalog
         new("messages.attach.add", "POST", "aj-https.mail.ru", "/api/v1/messages/attaches/add", EndpointEvidence.VerifiedLocal, "Upload attachment"),
         new("messages.send", "POST", "aj-https.mail.ru", "/api/v1/messages/send", EndpointEvidence.VerifiedLocal, "Send message"),
         new("messages.schedule", "POST", "aj-https.mail.ru", "/api/v1/messages/schedule", EndpointEvidence.VerifiedLocal, "Server-side scheduled send"),
-        new("attachments.readmsg", "GET", "af.attachmail.ru", "/cgi-bin/readmsg", EndpointEvidence.VerifiedLocal, "Download incoming attachment")
+        new("attachments.readmsg", "GET", "af.attachmail.ru", "/cgi-bin/readmsg", EndpointEvidence.VerifiedLocal, "Download incoming attachment"),
+        new("messages.remove", "POST", "aj-https.mail.ru", "/api/v1/messages/remove", EndpointEvidence.VerifiedLocal, "Permanent message removal"),
+        new("messages.search", "GET", "aj-https.mail.ru", "/api/v1/messages/search", EndpointEvidence.VerifiedLocal, "Server-side message search"),
+        new("messages.search.new", "GET", "go.mail.ru", "/api/v1/go/search/emails", EndpointEvidence.StaticOfficialClient, "New server-side message search"),
+        new("addressbook.smart", "GET", "aj-https.mail.ru", "/api/v1/ab/smart", EndpointEvidence.VerifiedLocal, "Server address book"),
+        new("addressbook.fast", "GET", "aj-https.mail.ru", "/api/v1/ab/fast", EndpointEvidence.VerifiedLocal, "Fast recipient lookup"),
+        new("folders.list", "GET", "aj-https.mail.ru", "/api/v1/folders", EndpointEvidence.VerifiedLocal, "Folder list"),
+        new("folders.add", "POST", "aj-https.mail.ru", "/api/v1/folders/add", EndpointEvidence.VerifiedLocal, "Create folder"),
+        new("folders.edit", "POST", "aj-https.mail.ru", "/api/v1/folders/edit", EndpointEvidence.VerifiedLocal, "Rename folder"),
+        new("folders.remove", "POST", "aj-https.mail.ru", "/api/v1/folders/remove", EndpointEvidence.VerifiedLocal, "Delete folder"),
+        new("folders.clear", "POST", "aj-https.mail.ru", "/api/v1/folders/clear", EndpointEvidence.VerifiedLocal, "Clear folder"),
+        new("messages.draft", "POST", "aj-https.mail.ru", "/api/v1/messages/draft", EndpointEvidence.VerifiedLocal, "Save draft")
     ];
+
+    public static bool IsRuntimeHostAllowed(string host) =>
+        All.Any(endpoint =>
+            endpoint.Evidence != EndpointEvidence.RejectedOrObsolete &&
+            string.Equals(endpoint.Host, host, StringComparison.OrdinalIgnoreCase));
 }
 
 public sealed record MailRuClientOptions
@@ -53,7 +70,7 @@ public sealed record MailRuAuthResult(
     public MailRuAuthState State { get; init; } = MailRuAuthState.Unknown;
 
     // Kept only for backward binary/source compatibility with older app code.
-    // AJ-only mode never populates or consumes these credentials.
+    // The current access-token mode never populates or consumes these legacy credentials.
     public string? WebToken { get; init; }
     public string? SearchToken { get; init; }
     public string? WebCookieHeader { get; init; }
@@ -95,7 +112,7 @@ public sealed class MailRuProtocolException : Exception
     public MailRuProtocolException(string message) : base(message) { }
 }
 
-public sealed class MailRuClient : IDisposable
+public sealed partial class MailRuClient : IDisposable
 {
     public const string KnownWorkingMessageId = "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR";
 
@@ -231,7 +248,7 @@ public sealed class MailRuClient : IDisposable
         Task.FromResult(MailRuAuthResult.Failed(
             "captcha_not_supported",
             MailRuAuthState.Captcha,
-            "AJ-only policy: CAPTCHA is reported to the user and authorization stops."));
+            "Access-token policy: CAPTCHA is reported to the user and authorization stops."));
 
     public async Task<string> GetFolderThreadsAsync(
         string accessToken,
@@ -587,8 +604,7 @@ public sealed class MailRuClient : IDisposable
     }
 
     private static bool IsAllowedRuntimeHost(string host) =>
-        string.Equals(host, "aj-https.mail.ru", StringComparison.OrdinalIgnoreCase) ||
-        string.Equals(host, "af.attachmail.ru", StringComparison.OrdinalIgnoreCase);
+        MailRuEndpointCatalog.IsRuntimeHostAllowed(host);
 
     private static bool LooksLikeCaptcha(string payload, string location) =>
         payload.Contains("captcha", StringComparison.OrdinalIgnoreCase) ||
