@@ -111,3 +111,11 @@ statement: The research branch `research/web-api-token` and its Hackus/web-cooki
 source: final Owner protocol decision on 2026-10-06.
 authority: owner-directive
 supersedes: the temporary plan to pursue `e.mail.ru` web API tokens
+
+## B-015 — v0.1.13 AJ-only release
+
+statement: Pull request #18 was merged into `main` on 2026-10-06 and GitHub Release `v0.1.13` was published. The release contains both `MailRuDesktop_Setup_v0.1.13.exe` and `MailRuDesktop_Update_v0.1.13.exe`.
+
+source: merged PR #18; product commit `6c5638ae8fa85ca9db63378bec8531d8356fe692`; GitHub Release id `404300426`.
+authority: verified-repository
+supersedes: state that v0.1.13 was only being prepared
