@@ -12,8 +12,24 @@
       "host_resource": "mail_api_default_host",
       "scheme_resource": "mail_api_default_scheme",
       "source": "ru/mail/addressbook/backup/server/UploadContactsToServerCommand.java",
-      "source_available": false,
-      "params": [],
+      "source_available": true,
+      "saved_source": "decompiled/relevant/ru/mail/addressbook/backup/server/UploadContactsToServerCommand.java",
+      "params": [
+        {
+          "name": "contacts",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String contactsJSON;"
+        },
+        {
+          "name": "device_id",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String deviceId;"
+        }
+      ],
       "json_keys": []
     },
     {
@@ -3146,9 +3162,78 @@
       "host_resource": "oauth_default_host",
       "scheme_resource": "oauth_default_scheme",
       "source": "ru/mail/logic/auth/GetAuthCodeByAccessTokenCommand.java",
-      "source_available": false,
-      "params": [],
-      "json_keys": []
+      "source_available": true,
+      "saved_source": "decompiled/relevant/ru/mail/logic/auth/GetAuthCodeByAccessTokenCommand.java",
+      "params": [
+        {
+          "name": "client_id",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String clientId;"
+        },
+        {
+          "name": "code_challenge",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private String codeChallenge;"
+        },
+        {
+          "name": "code_challenge_method",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private String codeChallengeMethod;"
+        },
+        {
+          "name": "for_client_id",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String forClientId;"
+        },
+        {
+          "name": "grant_type",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String grantType;"
+        },
+        {
+          "name": "requested_token_type",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String requestedTokenType;"
+        },
+        {
+          "name": "CommonConstant.ReqAccessTokenParam.SCOPE_LABEL",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String scope;"
+        },
+        {
+          "name": "subject_token",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String subjectToken;"
+        },
+        {
+          "name": "subject_token_type",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String subjectTokenType;"
+        }
+      ],
+      "json_keys": [
+        "access_token",
+        "code",
+        "refresh_token"
+      ]
     },
     {
       "class": "ChangeAuthTypeCommand",
@@ -3160,44 +3245,29 @@
       "host_resource": "account_default_host",
       "scheme_resource": "account_default_scheme",
       "source": "ru/mail/logic/auth/ChangeAuthTypeCommand.java",
-      "source_available": false,
-      "params": [],
-      "json_keys": []
+      "source_available": true,
+      "saved_source": "decompiled/relevant/ru/mail/logic/auth/ChangeAuthTypeCommand.java",
+      "params": [
+        {
+          "name": "method",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final AuthType authType;"
+        },
+        {
+          "name": "login",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String userLogin;"
+        }
+      ],
+      "json_keys": [
+        "body",
+        "method"
+      ]
     }
   ],
-  "missing_sources": [
-    {
-      "class": "UploadContactsToServerCommand",
-      "path": "/api/v1/ab/contacts/backup",
-      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"ab\", \"contacts\", RbParams.Default.URL_PARAM_KEY_DEVICE, \"backup\"",
-      "auth_type": "TORNADO_MPOP",
-      "oauth_supported": true,
-      "access_token_capable": true,
-      "host_resource": "mail_api_default_host",
-      "scheme_resource": "mail_api_default_scheme",
-      "source": "ru/mail/addressbook/backup/server/UploadContactsToServerCommand.java"
-    },
-    {
-      "class": "GetAuthCodeByAccessTokenCommand",
-      "path": "/token",
-      "path_raw": "\"token\"",
-      "auth_type": "TORNADO",
-      "oauth_supported": true,
-      "access_token_capable": true,
-      "host_resource": "oauth_default_host",
-      "scheme_resource": "oauth_default_scheme",
-      "source": "ru/mail/logic/auth/GetAuthCodeByAccessTokenCommand.java"
-    },
-    {
-      "class": "ChangeAuthTypeCommand",
-      "path": "/api/v1/pushauth/method/set",
-      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"pushauth\", \"method\", \"set\"",
-      "auth_type": "TORNADO_MPOP",
-      "oauth_supported": true,
-      "access_token_capable": true,
-      "host_resource": "account_default_host",
-      "scheme_resource": "account_default_scheme",
-      "source": "ru/mail/logic/auth/ChangeAuthTypeCommand.java"
-    }
-  ]
+  "missing_sources": []
 }

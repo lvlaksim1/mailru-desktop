@@ -2,13 +2,17 @@
 
 Автоматическая инвентаризация 101 команды из полного повторного разбора APK.
 
-Исходники доступны для: **98**.
-Требуют точечной декомпиляции: **3**.
+Исходники доступны для: **101**.
+Требуют точечной декомпиляции: **0**.
 
 ## /api/v1/ab/contacts/backup
 
 Класс: UploadContactsToServerCommand; исходный тип: TORNADO_MPOP; ресурс узла: mail_api_default_host.
-Исходник не сохранён в текущей выборке.
+
+| параметр | метод | тип | получатель | поле |
+|---|---|---|---|---|
+| contacts | POST |  |  | private final String contactsJSON; |
+| device_id | POST |  |  | private final String deviceId; |
 
 ## /api/v1/folders/close
 
@@ -909,15 +913,29 @@
 ## /token
 
 Класс: GetAuthCodeByAccessTokenCommand; исходный тип: TORNADO; ресурс узла: oauth_default_host.
-Исходник не сохранён в текущей выборке.
+
+| параметр | метод | тип | получатель | поле |
+|---|---|---|---|---|
+| client_id | POST |  |  | private final String clientId; |
+| code_challenge | POST |  |  | private String codeChallenge; |
+| code_challenge_method | POST |  |  | private String codeChallengeMethod; |
+| for_client_id | POST |  |  | private final String forClientId; |
+| grant_type | POST |  |  | private final String grantType; |
+| requested_token_type | POST |  |  | private final String requestedTokenType; |
+| CommonConstant.ReqAccessTokenParam.SCOPE_LABEL | POST |  |  | private final String scope; |
+| subject_token | POST |  |  | private final String subjectToken; |
+| subject_token_type | POST |  |  | private final String subjectTokenType; |
+
+Ключи JSON в коде: access_token, code, refresh_token
 
 ## /api/v1/pushauth/method/set
 
 Класс: ChangeAuthTypeCommand; исходный тип: TORNADO_MPOP; ресурс узла: account_default_host.
-Исходник не сохранён в текущей выборке.
 
-## Недостающие исходники
+| параметр | метод | тип | получатель | поле |
+|---|---|---|---|---|
+| method | POST |  |  | private final AuthType authType; |
+| login | POST |  |  | private final String userLogin; |
 
-- ru/mail/addressbook/backup/server/UploadContactsToServerCommand.java — UploadContactsToServerCommand — /api/v1/ab/contacts/backup
-- ru/mail/logic/auth/GetAuthCodeByAccessTokenCommand.java — GetAuthCodeByAccessTokenCommand — /token
-- ru/mail/logic/auth/ChangeAuthTypeCommand.java — ChangeAuthTypeCommand — /api/v1/pushauth/method/set
+Ключи JSON в коде: body, method
+
