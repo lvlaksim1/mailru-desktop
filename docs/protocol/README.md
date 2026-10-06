@@ -29,6 +29,9 @@ Only verified operations on Owner-approved runtime hosts may be used by the appl
 |---|---|---|---|
 | POST | `/cgi-bin/auth?mp=android&udid=mailru_app` | Authenticate | form fields: `Password`, `Login`, `oauth2=1`, `useragent=android`, `mobile=1`, `mob_json=1`, `simple=1` |
 | GET | `/api/v1/m/threads/status/smart` | Folder/thread status | `folders` JSON, `last_modified`, `access_token` |
+| GET | `/api/v1/messages/message` | Full message | `id`, `mark_read`, `mp=android`, `access_token` |
+| POST | `/api/v1/messages/marks` | Read/unread state | form field `marks`; mobile token auth |
+| POST | `/api/v1/messages/move` | Move/archive/trash | form fields `folder`, `ids` |
 | POST | `/api/v1/messages/attaches/add` | Upload outgoing attachment | multipart; returns attachment id |
 | POST | `/api/v1/messages/send` | Send message | form-urlencoded compose payload |
 | POST | `/api/v1/messages/schedule` | Schedule message | compose family plus server send date |
@@ -38,6 +41,16 @@ Verified mobile User-Agent:
 `mobmail android 11.13.0.29089 ru.mail.mailapp`
 
 A live GitHub-hosted probe on 2026-10-06 confirmed that the AJ mobile-auth request returned HTTP 200 JSON containing both `access_token` and `refresh_token` for the test account.
+
+## Approved auxiliary attachment host
+
+The Owner explicitly permits `https://af.attachmail.ru` for incoming attachment downloads.
+
+Verified VBA request:
+
+`GET https://af.attachmail.ru/cgi-bin/readmsg?access_token=<token>&id=<message-id>;<attachment-id>&notype=1`
+
+The attachment id and display name come from the full-message response.
 
 ### Compose fields currently known
 
@@ -49,12 +62,10 @@ For replies, verified legacy behavior uses `source={"reply":"<message-id>"}`.
 
 The current product must not emulate these operations through another host:
 
-- full-message retrieval;
-- incoming-attachment download;
-- move to folder / archive;
 - permanent delete;
 - server-side contacts/address book;
-- server-side search beyond the folder/thread status payload.
+- server-side search beyond the folder/thread status payload;
+- confirmed mutation of the flagged mark.
 
 When an AJ endpoint for one of these operations is found, it must be validated before enabling the feature.
 
