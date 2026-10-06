@@ -99,7 +99,6 @@ public sealed class MailRuClient : IDisposable
     private readonly HttpClient _http;
     private readonly bool _ownsHttpClient;
     private readonly SemaphoreSlim _requestGate = new(1, 1);
-    private DateTimeOffset _lastRequestAt = DateTimeOffset.MinValue;
 
     public MailRuClient(MailRuClientOptions? options = null, HttpClient? httpClient = null)
     {
@@ -153,7 +152,7 @@ public sealed class MailRuClient : IDisposable
             ["simple"] = "1"
         });
 
-        using var response = await SendPacedAsync(request, cancellationToken).ConfigureAwait(false);
+        using var response = await SendSerializedAsync(request, cancellationToken).ConfigureAwait(false);
         var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         var location = response.Headers.Location?.ToString() ?? string.Empty;
 
@@ -255,7 +254,7 @@ public sealed class MailRuClient : IDisposable
         });
 
         using var request = CreateRequest(HttpMethod.Get, uri);
-        using var response = await SendPacedAsync(request, cancellationToken).ConfigureAwait(false);
+        using var response = await SendSerializedAsync(request, cancellationToken).ConfigureAwait(false);
         var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
@@ -296,7 +295,7 @@ public sealed class MailRuClient : IDisposable
         using var request = CreateRequest(HttpMethod.Post, uri);
         request.Content = multipart;
 
-        using var response = await SendPacedAsync(request, cancellationToken).ConfigureAwait(false);
+        using var response = await SendSerializedAsync(request, cancellationToken).ConfigureAwait(false);
         var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
         if (payload.Contains("filesize_limit_exceeded", StringComparison.OrdinalIgnoreCase))
@@ -374,7 +373,7 @@ public sealed class MailRuClient : IDisposable
             ["priority"] = message.Priority.ToString(CultureInfo.InvariantCulture)
         });
 
-        using var response = await SendPacedAsync(request, cancellationToken).ConfigureAwait(false);
+        using var response = await SendSerializedAsync(request, cancellationToken).ConfigureAwait(false);
         var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
         return new MailRuCommandResult(
@@ -382,12 +381,12 @@ public sealed class MailRuClient : IDisposable
             payload);
     }
 
-    private Task<HttpResponseMessage> SendPacedAsync(
+    private Task<HttpResponseMessage> SendSerializedAsync(
         HttpRequestMessage request,
         CancellationToken cancellationToken) =>
-        SendPacedAsync(request, HttpCompletionOption.ResponseContentRead, cancellationToken);
+        SendSerializedAsync(request, HttpCompletionOption.ResponseContentRead, cancellationToken);
 
-    private async Task<HttpResponseMessage> SendPacedAsync(
+    private async Task<HttpResponseMessage> SendSerializedAsync(
         HttpRequestMessage request,
         HttpCompletionOption completionOption,
         CancellationToken cancellationToken)
@@ -407,13 +406,6 @@ public sealed class MailRuClient : IDisposable
         await _requestGate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            var elapsed = DateTimeOffset.UtcNow - _lastRequestAt;
-            var remaining = TimeSpan.FromSeconds(5) - elapsed;
-
-            if (remaining > TimeSpan.Zero)
-                await Task.Delay(remaining, cancellationToken).ConfigureAwait(false);
-
-            _lastRequestAt = DateTimeOffset.UtcNow;
             return await _http.SendAsync(
                 request,
                 completionOption,
