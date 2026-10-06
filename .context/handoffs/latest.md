@@ -1,30 +1,31 @@
 # Latest handoff
 
-Published MailRu Desktop `v0.1.10`.
+Published MailRu Desktop `v0.1.12`.
 
-Owner runtime evidence from v0.1.9 established that reCAPTCHA now succeeds. The diagnostic response contained a valid touch/search token but an empty gosearch(q_query=*) result, explaining why auth showed active while folders were blank.
+Most important correction: after another direct comparison with Hackus, the prior mobile-access-token assumption was removed. Hackus uses the cookie session + touch search token after Login(); its normal Search() request calls gosearch with q_folder=all and no q_query wildcard. MailRu Desktop now does the same and reconstructs standard folders locally from message.folder.
 
-v0.1.10 fixes the credential split:
-- Hackus Login/challenge still runs first;
-- only after successful verification, the client requests the proven VBA mobile access_token in the verified cookie session;
-- that token is carried back through challenge completion, saved, and used by aj-https folder/thread APIs;
-- touch/search token is retained for search/contacts only and is no longer treated as a folder listing transport.
+The resulting path is:
 
-Dark theme:
-- custom themed CheckBox/RadioButton templates;
-- custom themed TabItem and ComboBox templates;
-- HTML Inbox preview forces dark container/background treatment in dark mode.
+Hackus Reset/CreateSession -> CAPTCHA/reCAPTCHA if required -> GetSearchToken -> touch gosearch(q_folder=all, no q_query=*) -> parse messages/folder ids -> mailbox UI.
 
-Delayed sending:
-- Compose has optional scheduled date/time;
-- endpoint switches send -> schedule and forwards send_date using the same payload structure as the owner VBA implementation.
+Full-message and message actions also prefer the Hackus touch endpoints.
+
+Owner-requested UI work included in v0.1.12:
+- softer dark-gray Windows caption;
+- fully themed calendar popup;
+- fixed folder ComboBox display;
+- removed empty message-grid flag column;
+- dedicated full-message window on double click;
+- sender/recipient/date/time/subject plus compact attachments and full body;
+- Reply / Forward / Archive / Move to folder actions;
+- Reply form appears inside the same message window;
+- touch-cookie attachment downloads;
+- external remote images blocked in the mail reader.
 
 Release:
-- Update: `MailRuDesktop_Update_v0.1.10.exe`
-- Setup: `MailRuDesktop_Setup_v0.1.10.exe`
-- CI `37393121013`: success
-- release workflow `37393220561`: success
+- Update: `MailRuDesktop_Update_v0.1.12.exe`
+- Setup: `MailRuDesktop_Setup_v0.1.12.exe`
+- release workflow `37398787496`: success
 - Actions artifacts: none
-- only binary Release retained: v0.1.10
 
-Acceptance focus: expert.sout folders after fresh login, dark-theme surfaces, and one scheduled-message runtime test.
+Acceptance focus: runtime mailbox loading through Hackus touch search and message-window actions.
