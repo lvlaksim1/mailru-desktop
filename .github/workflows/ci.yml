@@ -25,13 +25,16 @@ jobs:
       - name: Build
         run: dotnet build src/MailRuDesktop.App/MailRuDesktop.App.csproj -c Release --no-restore
 
-      - name: Enforce AJ-only Mail.ru hosts
+      - name: Enforce approved Mail.ru hosts
         shell: pwsh
         run: |
           $violations = Get-ChildItem src -Recurse -File -Include *.cs,*.xaml |
             Select-String -Pattern 'https://[A-Za-z0-9.-]*mail\.ru' |
-            Where-Object { $_.Line -notmatch 'https://aj-https\.mail\.ru' }
+            Where-Object {
+              $_.Line -notmatch 'https://aj-https\.mail\.ru' -and
+              $_.Line -notmatch 'https://af\.attachmail\.ru'
+            }
           if ($violations) {
             $violations | ForEach-Object { Write-Host "$($_.Path):$($_.LineNumber): $($_.Line.Trim())" }
-            throw 'Non-AJ Mail.ru host found in runtime source.'
+            throw 'Non-approved Mail.ru host found in runtime source.'
           }
