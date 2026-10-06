@@ -2,15 +2,15 @@
 
 ## G-001 — usable native client
 
-Deliver a standalone native Windows Mail.ru desktop client whose active network protocol is restricted to verified `aj-https.mail.ru` endpoints. Features without a verified AJ endpoint stay disabled rather than falling back to another Mail.ru host.
+Deliver a standalone native Windows Mail.ru desktop client using verified internal Mail.ru mechanisms that consume the same mailbox OAuth credential `ru.mail.oauth2.access`, regardless of Mail.ru host. APIs requiring an independent credential/session remain outside the current scope.
 
-## G-002 — evidence-backed AJ protocol
+## G-002 — evidence-backed access-token protocol
 
-Grow and maintain a project-owned reverse specification of the internal `aj-https.mail.ru` API, with explicit evidence levels and no silent promotion of speculative endpoints.
+Maintain a project-owned reverse specification of the internal Mail.ru API surface reachable with the same `ru.mail.oauth2.access`, with explicit evidence levels and no silent promotion of static APK findings to runtime-verified status.
 
 ## G-003 — resilient protocol boundary
 
-Keep AJ transport/version churn isolated from the UI and local application state so endpoint evolution does not require rewriting the product.
+Keep protocol transport/version churn isolated from UI and local application state so host or endpoint evolution does not require rewriting the product.
 
 ## G-004 — secure local state
 
@@ -18,4 +18,4 @@ Ensure passwords, access/refresh tokens, private mailbox data, captures, and oth
 
 ## G-005 — reproducible development
 
-Keep the public repository buildable in CI without committed or uploaded build artifacts, enforce the AJ-only host rule in CI, and verify each protocol increment before enabling it in normal UI flows.
+Keep the public repository buildable in CI without unnecessary build artifacts. Enforce an evidence-backed endpoint/credential registry rather than an AJ-only hostname rule, and runtime-verify each new protocol operation before enabling it in normal UI flows.
