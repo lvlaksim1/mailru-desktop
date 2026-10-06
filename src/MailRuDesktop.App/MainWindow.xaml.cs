@@ -397,12 +397,7 @@ public partial class MainWindow : Window
         var window = new MessageWindow(
             _mailRu,
             message,
-            _activeLogin,
             _accessToken,
-            null,
-            null,
-            null,
-            null,
             _currentFolderId,
             folders,
             _currentFullMessage?.Id == message.Id ? _currentFullMessage : null)
