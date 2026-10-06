@@ -25,6 +25,18 @@ jobs:
       - name: Build
         run: dotnet build src/MailRuDesktop.App/MailRuDesktop.App.csproj -c Release --no-restore
 
+      - name: Launch smoke test
+        shell: pwsh
+        run: |
+          $exe = 'src\MailRuDesktop.App\bin\Release\net8.0-windows\MailRuDesktop.App.exe'
+          if (-not (Test-Path $exe)) { throw "Executable not found: $exe" }
+          $process = Start-Process -FilePath $exe -PassThru
+          Start-Sleep -Seconds 6
+          if ($process.HasExited) {
+            throw "Application exited during launch smoke test with code $($process.ExitCode)."
+          }
+          Stop-Process -Id $process.Id -Force
+
       - name: Enforce endpoint-registry Mail.ru hosts
         shell: pwsh
         run: |
