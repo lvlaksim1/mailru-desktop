@@ -1,0 +1,30 @@
+name: Classify access-token APIs
+
+on:
+  push:
+    branches:
+      - research/mail-apk-15.107.0.148045
+    paths:
+      - 'research/apk-15.107.0.148045/tools/classify_access_token_api.py'
+
+permissions:
+  contents: write
+
+jobs:
+  classify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/mail-apk-15.107.0.148045
+          fetch-depth: 1
+      - name: Build access-token map
+        run: python3 research/apk-15.107.0.148045/tools/classify_access_token_api.py
+      - name: Commit map
+        run: |
+          git config user.name "mailru-apk-research"
+          git config user.email "actions@users.noreply.github.com"
+          git add research/apk-15.107.0.148045/ACCESS_TOKEN_API_MAP.md research/apk-15.107.0.148045/ACCESS_TOKEN_API_MAP.json
+          git commit -m "research: classify API by access_token compatibility"
+          git pull --rebase origin research/mail-apk-15.107.0.148045
+          git push origin HEAD:research/mail-apk-15.107.0.148045
