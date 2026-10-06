@@ -87,6 +87,24 @@ jobs:
             cp -a "$SRC/ru/mail/mailbox/cmd" "$DEST/packages/ru/mail/mailbox/"
           fi
 
+          # Главный набор команд мобильного почтового API.
+          if [ -d "$SRC/ru/mail/data/cmd/server" ]; then
+            mkdir -p "$DEST/packages/ru/mail/data/cmd"
+            cp -a "$SRC/ru/mail/data/cmd/server" "$DEST/packages/ru/mail/data/cmd/"
+          fi
+          if [ -d "$SRC/ru/mail/data/api" ]; then
+            mkdir -p "$DEST/packages/ru/mail/data"
+            cp -a "$SRC/ru/mail/data/api" "$DEST/packages/ru/mail/data/"
+          fi
+          if [ -d "$SRC/ru/mail/filter/data" ]; then
+            mkdir -p "$DEST/packages/ru/mail/filter"
+            cp -a "$SRC/ru/mail/filter/data" "$DEST/packages/ru/mail/filter/"
+          fi
+          if [ -d "$SRC/ru/mail/customtags/impl/api" ]; then
+            mkdir -p "$DEST/packages/ru/mail/customtags/impl"
+            cp -a "$SRC/ru/mail/customtags/impl/api" "$DEST/packages/ru/mail/customtags/impl/"
+          fi
+
           PAT='aj-https\.mail\.ru|alt-aj-https\.mail\.ru|mail_api_default_host|new_mail_api_default_host|auth_default_host|/cgi-bin/auth|messages/message|messages/marks|messages/move|messages/send|messages/schedule|messages/attaches/add|m/threads/status/smart|threads/status|messages/search|access_token|af\.attachmail\.ru'
           grep -RIlE "$PAT" "$SRC" > "$ROOT/findings/jadx-matched-files.txt" || true
 
@@ -122,4 +140,5 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add research/apk-15.107.0.148045/decompiled research/apk-15.107.0.148045/findings
           git commit -m "research: decompile Mail.ru APK network layer"
+          git pull --rebase origin research/mail-apk-15.107.0.148045
           git push origin HEAD:research/mail-apk-15.107.0.148045
