@@ -60,6 +60,7 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
@@ -91,8 +92,15 @@
                                 Click="TrashMessageButton_Click"
                                 Content="В корзину"/>
 
+                        <Button x:Name="ReadStateButton"
+                                Grid.Column="4"
+                                Margin="6,0,0,0"
+                                Padding="12,8"
+                                Click="ReadStateButton_Click"
+                                Content="Прочитано"/>
+
                         <TextBlock x:Name="FolderStatusText"
-                                   Grid.Column="4"
+                                   Grid.Column="5"
                                    Margin="14,0,0,0"
                                    VerticalAlignment="Center"
                                    Foreground="{DynamicResource AppMutedTextBrush}"
