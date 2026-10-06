@@ -146,3 +146,5 @@ if no:
     for x in no:
         md.append("| " + x["method"] + " | " + x["route"] + " | " + x["class"] + " | " + (x["default_auth"] or "unknown") + " | " + x["host"] + " |")
 (ROOT / "ACCESS_TOKEN_API_MAP.md").write_text("\n".join(md) + "\n", encoding="utf-8")
+
+# classification revision 1
