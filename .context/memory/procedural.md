@@ -6,9 +6,17 @@
 2. Trace the official-client command to its authorization type and session setup.
 3. Prove that the credential value originates from mailbox OAuth token `ru.mail.oauth2.access`.
 4. Record actual transport: query `access_token`, alternate query key such as `t`, authorization header, or another proven carrier.
-5. Extract route, host resource, method, `@Param` fields and response parsing from decompiled command/base classes.
+5. Extract route, host resource, method, parameters and response parsing from decompiled command/base classes.
 6. Treat this as static contract evidence.
 7. Before product enablement, make a controlled live call with at least five seconds spacing from other research/probe calls; sanitize and persist the result.
 8. Never commit real tokens, credentials or private mailbox payloads.
 
 For large APKs, retain a focused decompiled network corpus plus targeted single-class extraction for missing classes. Maintain machine-readable contract/audit reports so manual summaries can be checked for omissions.
+
+## Procedure — live validation of destructive mail operations
+
+- Prefer a disposable object created by the probe rather than touching an existing user message.
+- For permanent-remove validation, create a uniquely named test draft, locate it in Drafts, move it to Trash, then call the permanent-remove route. This matches the verified server lifecycle and allows clean test-data removal.
+- Always preserve and restore pre-existing reversible state such as flagged/pinned rather than assuming the initial value.
+- A server denial from the wrong lifecycle state is evidence about operation semantics, not proof that the endpoint itself is broken.
+- Keep at least five seconds between every network request in the probe.

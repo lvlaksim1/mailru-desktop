@@ -5,43 +5,43 @@ Visibility: public
 Product authority: `main`
 Manager-state authority: `main`
 
-Current public release: **v0.1.15**
+Current public release: **v0.2.0**
 
-## Product state
+## Release evidence
 
-- latest GitHub Release is `v0.1.15`, published 2026-10-06;
-- release assets remain `MailRuDesktop_Setup_v0.1.15.exe` and `MailRuDesktop_Update_v0.1.15.exe`;
-- released operations include mobile OAuth authorization, mailbox/thread status, full message, unread/read marks, move/archive/trash, outgoing attachment upload, immediate send, scheduled send and incoming attachment download;
-- normal application requests are serialized but do not contain the fixed five-second research delay;
-- folder `last_modified` behavior remains unchanged by Owner instruction.
+- product commit: `32436a114f1384a36e9fe42c328b064f6c804f3d`;
+- main CI run `37539922817`: success;
+- controlled live feature probe `37539371650`: success, zero failures for the release set;
+- release workflow run `37540083902`: success;
+- update installer: `MailRuDesktop_Update_v0.2.0.exe`, 51,383,814 bytes, SHA-256 `5210faef1bc3626046bd7032de38712616ac52b6354e90ebc9fad57283048379`;
+- full installer: `MailRuDesktop_Setup_v0.2.0.exe`, 51,383,440 bytes, SHA-256 `b8232e253fbf18ab9719136b8d988a1c080582cd4a48bad5ac244eed15ba8c0c`;
+- release pruning completed; v0.2.0 is the current binary release.
 
-## Current Owner protocol boundary
+## Released v0.2.0 additions
 
-The former fixed host allow-list is superseded. A mechanism is in scope when the official Mail.ru client uses the same mailbox OAuth credential `ru.mail.oauth2.access` obtained by our authorization flow. The credential may be transported as `access_token`, another parameter such as `t`, or an authorization header. A different Mail.ru hostname is not a reason to reject an operation. A mechanism requiring an independent credential/session remains out of current scope.
+- permanent deletion from Trash via `/api/v1/messages/remove`;
+- flagged and pinned marks via `/api/v1/messages/marks`;
+- classic server search via `/api/v1/messages/search`;
+- server address book via `/api/v1/ab/smart`;
+- fast recipient lookup via `/api/v1/ab/fast`;
+- folder list contract plus create, rename, clear and delete;
+- server draft saving;
+- endpoint-registry host policy replacing the obsolete fixed host allow-list;
+- UI controls for these operations.
 
-Authorization challenge policy is unchanged: CAPTCHA/reCAPTCHA/additional verification stops authorization and is reported to the user.
+## Live findings
 
-## APK research state
+The final probe passed: auth, Inbox, folder list, address book, recipient lookup, classic search, flag toggle/restore, pin toggle/restore, folder create/rename/clear/delete, draft save/list/move-to-trash, permanent remove.
 
-Research branch: `research/mail-apk-15.107.0.148045`
-Research head: `e549fd60dc7380d9a24c58c4ef931e25c4f5b67d`
-Official package: `ru.mail.mailapp` 15.107.0.148045.
+The new `go.mail.ru/api/v1/go/search/emails` route remains statically valid but live calls returned HTTP 520. It is not active in the v0.2.0 UI.
 
-Verified static findings:
+Direct permanent remove of a draft returned `status=400,error=denied`; move to Trash then permanent remove passed. Product UI follows the validated Trash-only permanent-delete workflow.
 
-- 151 network classes with `@UrlPath`;
-- 101 OAuth/access-token candidates;
-- 100 commands proven to use the same `ru.mail.oauth2.access`;
-- one rejected false positive: `QrGetInfoCommand`;
-- token transport distribution: 97 via `access_token`, 1 via `t`, 2 via custom authorization header;
-- retained source/contract coverage: 101/101 candidates, 0 missing source classes.
+## Stable policies
 
-Key evidence: `FULL_ACCESS_TOKEN_DISCOVERY`, `ACCESS_TOKEN_TRANSPORT_AUDIT`, `ACCESS_TOKEN_CONTRACTS`, `ACCESS_TOKEN_EXTENDED_API_SPEC`, `AJ_API_SPEC`, `APK_ROUTE_MAP`, `APK_HOST_RESOURCES` in the research branch.
-
-High-value statically confirmed operations now include permanent remove, bulk remove/clear, spam/unspam, unread/flagged/pinned marks, folder list/add/edit/remove/clear/archive/open/close, old and new server search, drafts, scheduling, attachment remove/reattach, address book, filters, unsubscribe, categories, snooze, EML, metadata, read notification, smart replies, aliases, collectors, cloud operations, translation and profile/account information.
-
-The new search `https://go.mail.ru/api/v1/go/search/emails` is in scope because the official client sends the same mailbox access token as `t`.
-
-## Evidence boundary
-
-APK confirmation is strong static evidence of official-client behavior, but it is not automatically equivalent to a successful live call from MailRu Desktop. Newly discovered functions require controlled runtime validation before default product enablement.
+- same mailbox OAuth credential `ru.mail.oauth2.access` defines API scope, not host;
+- CAPTCHA/reCAPTCHA/additional verification stops authorization;
+- no IMAP/SMTP, app passwords or independent web-cookie fallback;
+- normal runtime has no fixed five-second delay;
+- research/probe/test requests keep at least five seconds spacing;
+- folder `last_modified` behavior remains unchanged unless explicitly authorized.

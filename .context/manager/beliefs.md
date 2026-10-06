@@ -193,3 +193,36 @@ statement: The product still obtains the mailbox OAuth token through the approve
 source: direct Owner directive.
 authority: owner-directive
 supersedes: none
+
+## B-025 — v0.2.0 first access-token feature bundle released
+
+statement: GitHub Release `v0.2.0` was published on 2026-10-07 MSK from product commit `32436a114f1384a36e9fe42c328b064f6c804f3d`. It adds user-facing permanent removal from Trash, flagged/pinned marks, classic server-side search, server address book and fast recipient lookup, user-folder create/rename/delete/clear, and server draft saving. The fixed host allow-list was replaced by an endpoint-registry policy.
+
+source: merged PR #23; main CI run `37539922817`; release workflow run `37540083902`; GitHub Release `v0.2.0`.
+authority: verified-ci + verified-repository
+supersedes: state that these functions were implementation candidates only
+
+## B-026 — v0.2.0 feature bundle passed controlled live validation
+
+statement: Controlled test-account run `37539371650` exercised the release implementations with at least five seconds between network requests. Folder list, address book, fast recipient lookup, classic server search, flagged toggle/restore, pinned toggle/restore, temporary folder create/rename/clear/delete, draft save/list/move-to-trash and permanent removal all passed. The probe completed with zero failures.
+
+source: GitHub Actions run `37539371650`.
+authority: verified-runtime
+supersedes: static-only evidence for the v0.2.0 operations
+
+## B-027 — permanent removal is validated in Trash workflow
+
+statement: Direct `/api/v1/messages/remove` on a probe draft still in Drafts returned `status=400, error=denied`. Moving that same probe draft to Trash (folder 500002) and then calling `/api/v1/messages/remove` passed. Product permanent-delete UI is therefore limited to the Trash workflow.
+
+source: diagnostic runs `37538857673`, `37539030544`, and final run `37539371650`.
+authority: verified-runtime
+supersedes: any assumption that permanent remove is valid from arbitrary folders
+
+## B-028 — new go.mail.ru search remains deferred
+
+statement: The official APK contract for `https://go.mail.ru/api/v1/go/search/emails?t=<same token>` remains statically confirmed and in scope, but controlled live calls from the project runner returned HTTP 520. v0.2.0 therefore uses the classic `/api/v1/messages/search` route, which passed live validation. The new search remains opt-in/internal and is not active in the UI.
+
+source: GitHub Actions runs `37538167641`, `37538857673`, and release implementation commit history.
+authority: verified-runtime + verified-repository
+supersedes: any plan to make the new search the default before live success
+

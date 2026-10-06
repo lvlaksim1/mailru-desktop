@@ -1,35 +1,43 @@
 # Latest handoff
 
-MailRu Desktop remains released at **v0.1.15**; `main` is both product and manager-state authority.
+MailRu Desktop **v0.2.0** is released. `main` is authoritative.
 
-## Governing protocol decision
+## Release
 
-The old rule "only `aj-https.mail.ru` plus explicit host exceptions" is superseded.
+- product commit: `32436a114f1384a36e9fe42c328b064f6c804f3d`;
+- CI: `37539922817` success;
+- live release probe: `37539371650` success;
+- release workflow: `37540083902` success;
+- update: `MailRuDesktop_Update_v0.2.0.exe`;
+- setup: `MailRuDesktop_Setup_v0.2.0.exe`.
 
-Current rule: an internal Mail.ru mechanism is in scope when the official client uses the same mailbox OAuth credential `ru.mail.oauth2.access` obtained by our authorization flow. Hostname and parameter spelling are not selection boundaries. Independent credentials/sessions remain out of scope unless the Owner changes the rule.
+## New in v0.2.0
 
-Confirmed transports of the same token: 97 commands through `access_token`, one through `t` for the new `go.mail.ru` search, and two through an authorization header.
+User-facing:
+- permanent deletion from Trash;
+- message flag;
+- message pin;
+- classic server-side mail search;
+- server address book;
+- fast recipient lookup;
+- user-folder create/rename/clear/delete;
+- server draft save.
 
-## Research completion
+Infrastructure:
+- endpoint registry replaces the obsolete fixed Mail.ru host allow-list;
+- direct folder-list contract is implemented and live-validated;
+- new `go.mail.ru` search implementation remains present as static/opt-in code but is not enabled in UI.
 
-Official Android APK `ru.mail.mailapp` 15.107.0.148045 was decompiled and its network layer mapped on branch `research/mail-apk-15.107.0.148045`, head `e549fd60dc7380d9a24c58c4ef931e25c4f5b67d`.
+## Important live results
 
-- 151 routed network classes;
-- 101 access-token candidates;
-- 100 confirmed to use the same mailbox OAuth token;
-- one false positive, `QrGetInfoCommand`;
-- all 101 candidate source classes retained; no source gaps.
+Final release probe passed with zero failures for the enabled set.
 
-Static APK confirmation is not automatically a live-server pass. Before enabling a new function in the released client, perform one controlled live validation and preserve sanitized evidence.
+`go.mail.ru/api/v1/go/search/emails` returned HTTP 520 in live probes. Use classic `/api/v1/messages/search` until resolved.
 
-## Immediate continuation
+Permanent `/api/v1/messages/remove` returned `denied` for a message still in Drafts, but passed after the same test draft was moved to Trash. Keep permanent delete Trash-only.
 
-1. Replace the obsolete fixed-host guard with endpoint/evidence/credential-aware protocol policy.
-2. Validate and implement permanent delete plus flagged/pinned marks.
-3. Validate server search, including `go.mail.ru` with `t=<same token>`.
-4. Validate address book and folder management.
-5. Continue with drafts/schedule/attachment lifecycle, then aliases/collectors/filters/cloud/translation as useful.
+## Next stage
 
-Authorization challenge policy remains unchanged: CAPTCHA/reCAPTCHA/additional verification stops authorization; no challenge solving.
+Prioritize bulk/thread remove and move, thread/bulk marks, spam/unspam, unsubscribe/categories, attachment lifecycle, EML/metadata/read receipt and search suggestions. Investigate new-search HTTP 520 separately.
 
-Research/probe/test requests keep at least five seconds spacing. Normal application runtime does not use that artificial delay.
+Authorization and safety rules remain: same mailbox OAuth token defines scope; CAPTCHA stops auth; no IMAP/SMTP/app-password/web-cookie fallback; research requests spaced by at least five seconds.
