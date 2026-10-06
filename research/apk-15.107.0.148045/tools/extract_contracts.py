@@ -177,3 +177,5 @@ for item in result["routes"]:
     md += ["Исходники: " + ", ".join(item["sources"]), ""]
 
 (ROOT / "APK_REQUEST_CONTRACTS.md").write_text("\n".join(md) + "\n", encoding="utf-8")
+
+# extractor revision 2
