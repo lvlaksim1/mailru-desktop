@@ -21,7 +21,7 @@ Both outgoing attachment upload and send/schedule remain on verified AJ endpoint
 ## I-005 — installer/update release channel
 status: completed
 
-v0.1.13 is being prepared as the AJ-only update. Existing installations receive the Update installer; Setup remains for first install/recovery.
+v0.1.13 has been published with both `MailRuDesktop_Update_v0.1.13.exe` for existing installations and `MailRuDesktop_Setup_v0.1.13.exe` for first install/recovery.
 
 ## I-006 — full-message read and incoming attachments
 status: blocked on AJ endpoint discovery
@@ -29,7 +29,7 @@ status: blocked on AJ endpoint discovery
 The previous touch/web implementation is removed from active runtime. UI falls back to the thread snippet and explains that full content/download is unavailable until an AJ endpoint is verified.
 
 ## I-007 — AJ-only account authorization
-status: implemented, release validation pending
+status: released; owner runtime validation of v0.1.13 remains pending
 
 Authentication uses only the mobile OAuth-style AJ request. Success requires `access_token`. CAPTCHA/reCAPTCHA/additional verification produces a user notification and stops authorization; there is no challenge solver and no web/touch fallback.
 
