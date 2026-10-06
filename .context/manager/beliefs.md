@@ -8,13 +8,13 @@ source: Repo Factory issue #182 and live repository metadata.
 authority: verified-repository
 supersedes: none
 
-## B-002 — owner protocol constraints
+## B-002 — protocol source restrictions
 
-statement: This project must not use IMAP/SMTP, app-specific passwords, or official Mail.ru mail-client documentation as protocol authority. The protocol source of truth is reverse-engineered internal Mail.ru HTTP behavior, restricted by the current Owner decision to `https://aj-https.mail.ru`.
+statement: The project must not use IMAP/SMTP, app-specific passwords, or official Mail.ru mail-client documentation as protocol authority. Internal Mail.ru HTTP behavior is established through reverse engineering, current APK analysis, verified working code, captures, and controlled runtime evidence.
 
-source: direct Owner directives in the active project conversation.
+source: direct Owner directives in the project conversation.
 authority: owner-directive
-supersedes: any generic mail-client assumption that IMAP/SMTP is an acceptable fallback
+supersedes: the older host-specific form of B-002 that restricted protocol authority to `aj-https.mail.ru`
 
 ## B-003 — implementation approach
 
@@ -42,11 +42,11 @@ supersedes: none
 
 ## B-006 — compose UI is wired to verified transport
 
-statement: The compose UI supports recipient, subject, body and multiple file attachments. Attachment uploads and immediate send use only locally verified A-level `aj-https.mail.ru` operations.
+statement: The compose UI supports recipient, subject, body and multiple file attachments. Attachment uploads and immediate send use locally verified internal Mail.ru HTTP operations.
 
 source: product commit `1420d1619c16deb2dce150cd8882ee86431b2465`; CI run `37335834260`.
 authority: verified-ci
-supersedes: none
+supersedes: the old AJ-only wording
 
 ## B-007 — installer and update policy
 
@@ -88,13 +88,14 @@ source: commits `065748b056f47fefba0972157078e8a5064037fc` and `45204412fe8394e4
 authority: verified-ci + verified-repository
 supersedes: none
 
-## B-012 — AJ-only runtime authority
+## B-012 — historical AJ-only runtime boundary
+status: superseded by B-019
 
-statement: By final Owner decision on 2026-10-06, MailRu Desktop runtime may use only the `https://aj-https.mail.ru` API host. Mobile `access_token` is the sole accepted mailbox credential. If authorization requires CAPTCHA/reCAPTCHA or another interactive verification, the application must notify the user and stop authorization; it must not solve or continue the challenge. Touch/web transports and all endpoints on sibling Mail.ru hosts are prohibited.
+statement: On 2026-10-06 the Owner temporarily restricted runtime API use to `aj-https.mail.ru`, later adding `af.attachmail.ru` as an explicit exception. This host-based restriction is no longer current.
 
-source: direct Owner directive in the active project conversation.
-authority: owner-directive
-supersedes: the v0.1.9-v0.1.12 Hackus touch/web fallback architecture and the later exploratory web-API-token course
+source: prior direct Owner directives.
+authority: historical owner-directive
+supersedes: none
 
 ## B-013 — live AJ mobile auth probe
 
@@ -106,9 +107,9 @@ supersedes: uncertainty that the current test account could still obtain the mob
 
 ## B-014 — historical web/touch research is non-authoritative
 
-statement: The research branch `research/web-api-token` and its Hackus/web-cookie/VK-ID experiments are historical evidence only. They must not be merged into product runtime or used as fallback architecture unless the Owner explicitly reverses the AJ-only decision.
+statement: The research branch `research/web-api-token` and its Hackus/web-cookie/VK-ID experiments are historical evidence only. They must not be merged into product runtime or used as fallback architecture unless the Owner explicitly changes the credential policy.
 
-source: final Owner protocol decision on 2026-10-06.
+source: Owner protocol decisions on 2026-10-06.
 authority: owner-directive
 supersedes: the temporary plan to pursue `e.mail.ru` web API tokens
 
@@ -128,20 +129,67 @@ source: direct Owner directive; commits `0e95bfec07a86f66f89444377a43858be0232d7
 authority: owner-directive + verified-repository
 supersedes: any interpretation that the five-second research pacing rule belongs in normal product runtime
 
+## B-017 — historical `af.attachmail.ru` exception
+status: superseded by B-019
 
-## B-017 — af.attachmail.ru explicitly allowed
+statement: `af.attachmail.ru` was explicitly permitted for incoming attachments while the project still used a host allow-list. The host-specific exception remains historically valid but is no longer the governing selection rule.
 
-statement: By Owner decision on 2026-10-06, `https://af.attachmail.ru` is explicitly permitted for product runtime. It is an allowed auxiliary Mail.ru host alongside `https://aj-https.mail.ru`; the currently verified VBA use is downloading incoming attachments through `/cgi-bin/readmsg` with the existing `access_token`. Other sibling Mail.ru hosts remain prohibited unless separately approved.
-
-source: direct Owner directive in the active project conversation; Owner-provided VBA source showing `https://af.attachmail.ru/cgi-bin/readmsg`.
-authority: owner-directive + owner-provided-runtime-source
-supersedes: B-012 only insofar as it previously prohibited every Mail.ru runtime host except `aj-https.mail.ru`
-
+source: direct Owner directive on 2026-10-06.
+authority: historical owner-directive
+supersedes: B-012 only insofar as it had prohibited every Mail.ru runtime host except `aj-https.mail.ru`
 
 ## B-018 — v0.1.15 message operations release
 
-statement: GitHub Release `v0.1.15` was published on 2026-10-06. The release wires Owner-verified full-message retrieval through `aj-https.mail.ru/api/v1/messages/message`, unread/read marks through `/api/v1/messages/marks`, move/archive/trash through `/api/v1/messages/move`, and incoming attachment download through the explicitly approved `af.attachmail.ru/cgi-bin/readmsg`. The release build and approved-host CI checks completed successfully. Permanent delete, server contacts, server search, and confirmed flag mutation remain unresolved.
+statement: GitHub Release `v0.1.15` was published on 2026-10-06. The release wires full-message retrieval through `aj-https.mail.ru/api/v1/messages/message`, unread/read marks through `/api/v1/messages/marks`, move/archive/trash through `/api/v1/messages/move`, and incoming attachment download through `af.attachmail.ru/cgi-bin/readmsg`.
 
 source: Owner-provided VBA source; CI run `37465331504`; release workflow run `37465590209`; GitHub Release id `404697757`.
 authority: owner-provided-runtime-source + verified-ci + verified-repository
 supersedes: state that these operations were verified but not wired into the released client
+
+## B-019 — current API boundary is the mailbox OAuth access token
+
+statement: By Owner correction on 2026-10-06, MailRu Desktop is not restricted to `aj-https.mail.ru` or any fixed host list. A mechanism is in scope when the official Mail.ru client uses the same mailbox OAuth credential `ru.mail.oauth2.access` obtained by our authorization flow. The credential may be transmitted as `access_token`, under another parameter name such as `t`, or in an authorization header. Mechanisms requiring an independent credential/session remain out of scope unless separately authorized.
+
+source: direct Owner directive; static token-flow audit in `research/mail-apk-15.107.0.148045`.
+authority: owner-directive + verified-repository
+supersedes: B-012, B-017, and all AJ-only host restrictions
+
+## B-020 — APK access-token surface is statically mapped
+
+statement: Static analysis of official Android package `ru.mail.mailapp` version `15.107.0.148045` found 151 `@UrlPath` network classes. 101 were OAuth candidates; strict transport tracing confirmed 100 classes actually use the same `ru.mail.oauth2.access` and rejected one false positive (`QrGetInfoCommand`). Source material is retained for all 101 candidates; no source gaps remain.
+
+source: research branch `research/mail-apk-15.107.0.148045`, head `e549fd60dc7380d9a24c58c4ef931e25c4f5b67d`; `FULL_ACCESS_TOKEN_DISCOVERY.md`, `ACCESS_TOKEN_TRANSPORT_AUDIT.md`, `ACCESS_TOKEN_CONTRACTS.md/json`, `ACCESS_TOKEN_EXTENDED_API_SPEC.md`.
+authority: verified-repository
+supersedes: the belief that permanent delete, contacts, search, flag mutation and many sibling-host APIs were unresolved at route-contract level
+
+## B-021 — token transport is not uniform
+
+statement: The same mailbox OAuth token is transmitted in at least three verified ways: normal `access_token` query/session injection for the majority of commands; `t=<same token>` for `https://go.mail.ru/api/v1/go/search/emails`; and `Authorization: Bearer <same token>` for two calls-related commands. Therefore parameter spelling and host name are not valid criteria for excluding an API.
+
+source: `ACCESS_TOKEN_TRANSPORT_AUDIT.md` and decompiled `MessagesSearchCommandNew` / calls auth classes in the research branch.
+authority: verified-repository
+supersedes: any parameter-name-only or host-only API classification
+
+## B-022 — formerly missing core mail operations are now statically confirmed
+
+statement: The current APK directly confirms access-token-compatible routes and request contracts for permanent remove, bulk remove/clear, spam/unspam, message/thread marks including unread/flagged/pinned, folder list/add/edit/remove/clear/archive/open/close, server search and suggestions, drafts, scheduling, outgoing attachment removal/reattach, address book, filters, unsubscribe, categories, snooze, EML download, message metadata, read notification, smart replies, color tags, cloud attachment operations and related functions.
+
+source: `AJ_API_SPEC.md`, `APK_ROUTE_MAP.md`, `ACCESS_TOKEN_CONTRACTS.md/json`.
+authority: verified-repository
+supersedes: earlier blocker claims that these routes were unknown
+
+## B-023 — new search on go.mail.ru is in scope
+
+statement: `https://go.mail.ru/api/v1/go/search/emails` is used by the official client and passes the same `ru.mail.oauth2.access` as query parameter `t`. Its host is not `aj-https.mail.ru`, but it satisfies the current credential-based boundary and is therefore a valid implementation candidate.
+
+source: APK `resources.arsc`; decompiled `MessagesSearchCommandNew`; `ACCESS_TOKEN_TRANSPORT_AUDIT.md`.
+authority: verified-repository + owner-directive scope
+supersedes: the earlier decision to exclude the route merely because `search_new_host=go.mail.ru`
+
+## B-024 — authorization challenge policy remains unchanged
+
+statement: The product still obtains the mailbox OAuth token through the approved mobile-style authorization flow. If CAPTCHA/reCAPTCHA or another interactive verification is required during authorization, the application informs the user and stops; it does not solve or bypass the challenge.
+
+source: direct Owner directive.
+authority: owner-directive
+supersedes: none
