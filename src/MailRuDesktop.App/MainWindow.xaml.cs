@@ -31,6 +31,7 @@ public partial class MainWindow : Window
     private bool _readerReady;
     private long _messageLoadGeneration;
     private MailRuFullMessage? _currentFullMessage;
+    private bool _serverSearchMode;
 
     public MainWindow()
     {
@@ -141,7 +142,7 @@ public partial class MainWindow : Window
         _activeLogin = authorization.Login;
 
         LoginComboBox.Text = authorization.Login;
-        AuthStatusText.Text = "Авторизация активна · AJ API";
+        AuthStatusText.Text = "Авторизация активна · access_token";
         _authStore.MarkLastUsed(authorization.Login);
         return true;
     }
@@ -212,7 +213,7 @@ public partial class MainWindow : Window
                 ShowAuthFailure(MailRuAuthResult.Failed(
                     "token_missing",
                     MailRuAuthState.ProtocolError,
-                    "AJ auth succeeded without access_token."));
+                    "Authorization succeeded without access_token."));
                 return;
             }
 
@@ -231,7 +232,7 @@ public partial class MainWindow : Window
                 _updatingAccountSelection = false;
             }
 
-            AuthStatusText.Text = "Авторизация активна · AJ API";
+            AuthStatusText.Text = "Авторизация активна · access_token";
             await LoadFolderAsync(0);
         }
         catch (Exception ex)
@@ -330,6 +331,7 @@ public partial class MainWindow : Window
 
             _currentFolderId = snapshot.SelectedFolderId ?? folderId;
             _currentMessages = snapshot.Messages.ToList();
+            _serverSearchMode = false;
             ApplyFilters();
             UpdateTrashButtonMode();
 
@@ -365,7 +367,7 @@ public partial class MainWindow : Window
                 SelectedSubjectText.Text = "В папке нет распознанных писем";
 
             if (!string.IsNullOrWhiteSpace(_activeLogin))
-                AuthStatusText.Text = "Авторизация активна · AJ API";
+                AuthStatusText.Text = "Авторизация активна · access_token";
         }
         catch (Exception ex)
         {
@@ -434,6 +436,7 @@ public partial class MainWindow : Window
         var markers = new List<string>();
         if (message.Unread) markers.Add("непрочитано");
         if (message.Flagged) markers.Add("помечено");
+        if (message.Pinned) markers.Add("закреплено");
         if (message.HasAttachment) markers.Add("есть вложения");
 
         SelectedMetaText.Text =
@@ -443,6 +446,8 @@ public partial class MainWindow : Window
             (markers.Count == 0 ? string.Empty : $" · {string.Join(", ", markers)}");
 
         ReadStateButton.Content = message.Unread ? "Прочитано" : "Непрочитано";
+        FlagMessageButton.Content = message.Flagged ? "Снять флажок" : "Флажок";
+        PinMessageButton.Content = message.Pinned ? "Открепить" : "Закрепить";
 
         IncomingAttachmentsListBox.ItemsSource = null;
         _currentFullMessage = null;
@@ -589,12 +594,145 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void FlagMessageButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message ||
+            string.IsNullOrWhiteSpace(_accessToken))
+        {
+            FolderStatusText.Text = "Выберите письмо.";
+            return;
+        }
+
+        FlagMessageButton.IsEnabled = false;
+        try
+        {
+            var result = await _mailRu.SetFlaggedAsync(
+                _accessToken,
+                _activeLogin ?? string.Empty,
+                message.Id,
+                message.FolderId ?? _currentFolderId,
+                !message.Flagged);
+
+            ResponseTextBox.Text = result.RawResponse;
+            if (!result.Success)
+            {
+                FolderStatusText.Text = "Mail.ru отклонил изменение флажка.";
+                return;
+            }
+
+            await LoadFolderAsync(_currentFolderId);
+        }
+        catch (Exception ex)
+        {
+            FolderStatusText.Text = "Ошибка изменения флажка.";
+            DiagnosticLog.Write("message_flag", ex.GetType().Name + ": " + ex.Message);
+        }
+        finally
+        {
+            FlagMessageButton.IsEnabled = true;
+        }
+    }
+
+    private async void PinMessageButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message ||
+            string.IsNullOrWhiteSpace(_accessToken))
+        {
+            FolderStatusText.Text = "Выберите письмо.";
+            return;
+        }
+
+        PinMessageButton.IsEnabled = false;
+        try
+        {
+            var result = await _mailRu.SetPinnedAsync(
+                _accessToken,
+                _activeLogin ?? string.Empty,
+                message.Id,
+                message.FolderId ?? _currentFolderId,
+                !message.Pinned);
+
+            ResponseTextBox.Text = result.RawResponse;
+            if (!result.Success)
+            {
+                FolderStatusText.Text = "Mail.ru отклонил изменение закрепления.";
+                return;
+            }
+
+            await LoadFolderAsync(_currentFolderId);
+        }
+        catch (Exception ex)
+        {
+            FolderStatusText.Text = "Ошибка изменения закрепления.";
+            DiagnosticLog.Write("message_pin", ex.GetType().Name + ": " + ex.Message);
+        }
+        finally
+        {
+            PinMessageButton.IsEnabled = true;
+        }
+    }
+
+    private async void ServerSearchButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_accessToken) || string.IsNullOrWhiteSpace(_activeLogin))
+        {
+            FilterStatusText.Text = "Сначала выполните вход.";
+            return;
+        }
+
+        var query = FilterQueryTextBox.Text.Trim();
+        if (string.IsNullOrWhiteSpace(query))
+            query = FilterSubjectTextBox.Text.Trim();
+        if (string.IsNullOrWhiteSpace(query))
+            query = FilterSenderTextBox.Text.Trim();
+
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            FilterStatusText.Text = "Введите текст для поиска.";
+            return;
+        }
+
+        ServerSearchButton.IsEnabled = false;
+        FilterStatusText.Text = "Поиск на сервере...";
+
+        try
+        {
+            var result = await _mailRu.SearchMessagesAsync(
+                _accessToken,
+                _activeLogin,
+                query,
+                limit: 200,
+                preferNewSearch: true);
+
+            _currentMessages = result.Messages.ToList();
+            _serverSearchMode = true;
+            MessagesGrid.ItemsSource = _currentMessages;
+            ResponseTextBox.Text = result.RawResponse;
+            FilterStatusText.Text =
+                $"Серверный поиск: найдено {result.Found}, показано {_currentMessages.Count} · {result.Source}";
+
+            if (_currentMessages.Count > 0)
+                MessagesGrid.SelectedIndex = 0;
+            else
+                ClearSelectedMessage();
+        }
+        catch (Exception ex)
+        {
+            FilterStatusText.Text = "Ошибка серверного поиска.";
+            DiagnosticLog.Write("server_search", ex.GetType().Name + ": " + ex.Message);
+        }
+        finally
+        {
+            ServerSearchButton.IsEnabled = true;
+        }
+    }
+
     private void ApplyFilterButton_Click(object sender, RoutedEventArgs e)
     {
         ApplyFilters();
     }
 
-    private void ResetFilterButton_Click(object sender, RoutedEventArgs e)
+    private async void ResetFilterButton_Click(object sender, RoutedEventArgs e)
     {
         FilterSenderTextBox.Clear();
         FilterSubjectTextBox.Clear();
@@ -602,6 +740,13 @@ public partial class MainWindow : Window
         FilterAttachmentsCheckBox.IsChecked = false;
         FilterFromDatePicker.SelectedDate = null;
         FilterToDatePicker.SelectedDate = null;
+
+        if (_serverSearchMode)
+        {
+            await LoadFolderAsync(_currentFolderId);
+            return;
+        }
+
         ApplyFilters();
     }
 
@@ -660,17 +805,55 @@ public partial class MainWindow : Window
             : $"Показано по фильтру: {list.Count} из {_currentMessages.Count}";
     }
 
-    private void LoadContactsButton_Click(object sender, RoutedEventArgs e)
+    private async void LoadContactsButton_Click(object sender, RoutedEventArgs e)
     {
-        var contacts = _currentMessages
-            .Select(message => message.SenderEmail)
-            .Where(email => !string.IsNullOrWhiteSpace(email))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(email => email, StringComparer.CurrentCultureIgnoreCase)
-            .ToArray();
+        if (string.IsNullOrWhiteSpace(_accessToken) || string.IsNullOrWhiteSpace(_activeLogin))
+        {
+            ContactsStatusText.Text = "Сначала выполните вход.";
+            return;
+        }
 
-        ContactsListBox.ItemsSource = contacts;
-        ContactsStatusText.Text = $"Контактов из загруженных писем: {contacts.Length}";
+        ContactsStatusText.Text = "Загрузка адресной книги...";
+        try
+        {
+            var contacts = await _mailRu.GetAddressBookAsync(_accessToken, _activeLogin);
+            ContactsListBox.ItemsSource = contacts;
+            ContactsStatusText.Text = $"Контактов на сервере: {contacts.Count}";
+        }
+        catch (Exception ex)
+        {
+            ContactsStatusText.Text = "Не удалось загрузить адресную книгу.";
+            DiagnosticLog.Write("contacts_load", ex.GetType().Name + ": " + ex.Message);
+        }
+    }
+
+    private async void SearchContactsButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_accessToken) || string.IsNullOrWhiteSpace(_activeLogin))
+        {
+            ContactsStatusText.Text = "Сначала выполните вход.";
+            return;
+        }
+
+        ContactsStatusText.Text = "Загрузка быстрых адресатов...";
+        try
+        {
+            var contacts = await _mailRu.SearchPeopleAsync(_accessToken, _activeLogin);
+            var query = ContactSearchTextBox.Text.Trim();
+            var filtered = string.IsNullOrWhiteSpace(query)
+                ? contacts
+                : contacts.Where(contact =>
+                    contact.Name.Contains(query, StringComparison.CurrentCultureIgnoreCase) ||
+                    contact.Email.Contains(query, StringComparison.OrdinalIgnoreCase)).ToArray();
+
+            ContactsListBox.ItemsSource = filtered;
+            ContactsStatusText.Text = $"Найдено: {filtered.Count}";
+        }
+        catch (Exception ex)
+        {
+            ContactsStatusText.Text = "Не удалось получить быстрый список адресатов.";
+            DiagnosticLog.Write("contacts_fast", ex.GetType().Name + ": " + ex.Message);
+        }
     }
 
     private void ContactsListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -685,7 +868,14 @@ public partial class MainWindow : Window
 
     private void ComposeToSelectedContact()
     {
-        if (ContactsListBox.SelectedItem is not string email)
+        var email = ContactsListBox.SelectedItem switch
+        {
+            MailRuContactSummary contact => contact.Email,
+            string value => value,
+            _ => null
+        };
+
+        if (string.IsNullOrWhiteSpace(email))
         {
             ContactsStatusText.Text = "Выберите контакт.";
             return;
@@ -765,11 +955,52 @@ public partial class MainWindow : Window
         }
     }
 
-    private Task DeleteSelectedPermanentlyAsync(MailRuMessageSummary message)
+    private async Task DeleteSelectedPermanentlyAsync(MailRuMessageSummary message)
     {
-        FolderStatusText.Text =
-            "Окончательное удаление временно отключено: для него ещё не подтверждён endpoint aj-https.mail.ru.";
-        return Task.CompletedTask;
+        if (string.IsNullOrWhiteSpace(_accessToken))
+        {
+            FolderStatusText.Text = "Нет access_token. Выполните авторизацию заново.";
+            return;
+        }
+
+        var answer = MessageBox.Show(
+            this,
+            $"Удалить письмо «{message.Subject}» навсегда? Это действие нельзя отменить.",
+            "MailRu Desktop",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+
+        if (answer != MessageBoxResult.Yes)
+            return;
+
+        TrashMessageButton.IsEnabled = false;
+        FolderStatusText.Text = "Окончательное удаление...";
+
+        try
+        {
+            var result = await _mailRu.RemoveMessagesAsync(
+                _accessToken,
+                _activeLogin ?? string.Empty,
+                new[] { message.Id });
+
+            ResponseTextBox.Text = result.RawResponse;
+            if (!result.Success)
+            {
+                FolderStatusText.Text = "Mail.ru отклонил удаление.";
+                return;
+            }
+
+            await LoadFolderAsync(_currentFolderId);
+        }
+        catch (Exception ex)
+        {
+            FolderStatusText.Text = "Ошибка окончательного удаления.";
+            DiagnosticLog.Write("message_remove", ex.GetType().Name + ": " + ex.Message);
+        }
+        finally
+        {
+            TrashMessageButton.IsEnabled = true;
+        }
     }
 
     private void UpdateTrashButtonMode()
@@ -788,7 +1019,149 @@ public partial class MainWindow : Window
         SelectedMetaText.Text = string.Empty;
         IncomingAttachmentsListBox.ItemsSource = null;
         ReadStateButton.Content = "Прочитано";
+        FlagMessageButton.Content = "Флажок";
+        PinMessageButton.Content = "Закрепить";
         ShowReaderText("Выберите письмо.");
+    }
+
+    private async void CreateFolderButton_Click(object sender, RoutedEventArgs e)
+    {
+        var name = FolderNameTextBox.Text.Trim();
+        if (string.IsNullOrWhiteSpace(name) ||
+            string.IsNullOrWhiteSpace(_accessToken) ||
+            string.IsNullOrWhiteSpace(_activeLogin))
+        {
+            FolderStatusText.Text = "Введите имя папки и выполните вход.";
+            return;
+        }
+
+        try
+        {
+            var result = await _mailRu.CreateFolderAsync(_accessToken, _activeLogin, name);
+            ResponseTextBox.Text = result.RawResponse;
+            FolderStatusText.Text = result.Success ? "Папка создана." : "Mail.ru отклонил создание папки.";
+            if (result.Success)
+            {
+                FolderNameTextBox.Clear();
+                await LoadFolderAsync(_currentFolderId);
+            }
+        }
+        catch (Exception ex)
+        {
+            FolderStatusText.Text = "Ошибка создания папки.";
+            DiagnosticLog.Write("folder_create", ex.GetType().Name + ": " + ex.Message);
+        }
+    }
+
+    private async void RenameFolderButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (FolderListBox.SelectedItem is not MailRuFolderSummary folder)
+        {
+            FolderStatusText.Text = "Выберите папку.";
+            return;
+        }
+        if (folder.IsSystem)
+        {
+            FolderStatusText.Text = "Системную папку переименовывать нельзя.";
+            return;
+        }
+
+        var name = FolderNameTextBox.Text.Trim();
+        if (string.IsNullOrWhiteSpace(name) ||
+            string.IsNullOrWhiteSpace(_accessToken) ||
+            string.IsNullOrWhiteSpace(_activeLogin))
+        {
+            FolderStatusText.Text = "Введите новое имя папки.";
+            return;
+        }
+
+        try
+        {
+            var result = await _mailRu.RenameFolderAsync(_accessToken, _activeLogin, folder.Id, name);
+            ResponseTextBox.Text = result.RawResponse;
+            FolderStatusText.Text = result.Success ? "Папка переименована." : "Mail.ru отклонил переименование.";
+            if (result.Success)
+            {
+                FolderNameTextBox.Clear();
+                await LoadFolderAsync(folder.Id);
+            }
+        }
+        catch (Exception ex)
+        {
+            FolderStatusText.Text = "Ошибка переименования папки.";
+            DiagnosticLog.Write("folder_rename", ex.GetType().Name + ": " + ex.Message);
+        }
+    }
+
+    private async void DeleteFolderButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (FolderListBox.SelectedItem is not MailRuFolderSummary folder)
+        {
+            FolderStatusText.Text = "Выберите папку.";
+            return;
+        }
+        if (folder.IsSystem)
+        {
+            FolderStatusText.Text = "Системную папку удалять нельзя.";
+            return;
+        }
+        if (string.IsNullOrWhiteSpace(_accessToken) || string.IsNullOrWhiteSpace(_activeLogin))
+            return;
+
+        if (MessageBox.Show(
+                this,
+                $"Удалить папку «{folder.Name}»?",
+                "MailRu Desktop",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            return;
+
+        try
+        {
+            var result = await _mailRu.DeleteFolderAsync(_accessToken, _activeLogin, folder.Id);
+            ResponseTextBox.Text = result.RawResponse;
+            FolderStatusText.Text = result.Success ? "Папка удалена." : "Mail.ru отклонил удаление папки.";
+            if (result.Success)
+                await LoadFolderAsync(0);
+        }
+        catch (Exception ex)
+        {
+            FolderStatusText.Text = "Ошибка удаления папки.";
+            DiagnosticLog.Write("folder_delete", ex.GetType().Name + ": " + ex.Message);
+        }
+    }
+
+    private async void ClearFolderButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (FolderListBox.SelectedItem is not MailRuFolderSummary folder ||
+            string.IsNullOrWhiteSpace(_accessToken) ||
+            string.IsNullOrWhiteSpace(_activeLogin))
+        {
+            FolderStatusText.Text = "Выберите папку.";
+            return;
+        }
+
+        if (MessageBox.Show(
+                this,
+                $"Удалить все письма из папки «{folder.Name}»?",
+                "MailRu Desktop",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            return;
+
+        try
+        {
+            var result = await _mailRu.ClearFolderAsync(_accessToken, _activeLogin, folder.Id);
+            ResponseTextBox.Text = result.RawResponse;
+            FolderStatusText.Text = result.Success ? "Папка очищена." : "Mail.ru отклонил очистку папки.";
+            if (result.Success)
+                await LoadFolderAsync(folder.Id);
+        }
+        catch (Exception ex)
+        {
+            FolderStatusText.Text = "Ошибка очистки папки.";
+            DiagnosticLog.Write("folder_clear", ex.GetType().Name + ": " + ex.Message);
+        }
     }
 
     private void AttachButton_Click(object sender, RoutedEventArgs e)
@@ -814,12 +1187,69 @@ public partial class MainWindow : Window
             : $"Вложений: {_attachmentPaths.Count} · {string.Join(", ", _attachmentPaths.Select(Path.GetFileName))}";
     }
 
+    private async void SaveDraftButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_accessToken) || string.IsNullOrWhiteSpace(_activeLogin))
+        {
+            ComposeStatusText.Text = "Для черновика нужен access_token.";
+            return;
+        }
+
+        SaveDraftButton.IsEnabled = false;
+        AttachButton.IsEnabled = false;
+        ComposeStatusText.Text = "Сохранение черновика...";
+
+        try
+        {
+            var messageId = MailRuClient.KnownWorkingMessageId;
+            var attachmentIds = new List<string>();
+
+            for (var i = 0; i < _attachmentPaths.Count; i++)
+            {
+                var path = _attachmentPaths[i];
+                ComposeStatusText.Text = $"Загрузка вложения {i + 1}/{_attachmentPaths.Count}...";
+
+                await using var stream = File.OpenRead(path);
+                attachmentIds.Add(await _mailRu.UploadAttachmentAsync(
+                    _accessToken,
+                    stream,
+                    Path.GetFileName(path),
+                    messageId));
+            }
+
+            var result = await _mailRu.SaveDraftAsync(
+                _accessToken,
+                _activeLogin,
+                new MailRuOutgoingMessage(
+                    To: ComposeToTextBox.Text.Trim(),
+                    Subject: ComposeSubjectTextBox.Text,
+                    Text: ComposeBodyTextBox.Text,
+                    AttachmentIds: attachmentIds,
+                    MessageId: messageId));
+
+            ResponseTextBox.Text = result.RawResponse;
+            ComposeStatusText.Text = result.Success
+                ? "Черновик сохранён на сервере."
+                : "Mail.ru отклонил сохранение черновика.";
+        }
+        catch (Exception ex)
+        {
+            ComposeStatusText.Text = "Ошибка сохранения черновика.";
+            DiagnosticLog.Write("draft_save", ex.GetType().Name + ": " + ex.Message);
+        }
+        finally
+        {
+            SaveDraftButton.IsEnabled = true;
+            AttachButton.IsEnabled = true;
+        }
+    }
+
     private async void SendButton_Click(object sender, RoutedEventArgs e)
     {
         if (string.IsNullOrWhiteSpace(_accessToken))
         {
             ComposeStatusText.Text =
-                "Отправка пока требует mobile access_token. Выполните обычный вход Mail.ru.";
+                "Для отправки нужен access_token. Выполните обычный вход Mail.ru.";
             return;
         }
 
@@ -956,7 +1386,7 @@ public partial class MainWindow : Window
         if (string.IsNullOrWhiteSpace(_accessToken))
         {
             throw new InvalidOperationException(
-                "Нет AJ access_token. Выполните авторизацию заново.");
+                "Нет access_token. Выполните авторизацию заново.");
         }
 
         return await _mailRu.GetFolderThreadsAsync(_accessToken, folderId);
