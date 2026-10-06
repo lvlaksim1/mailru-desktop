@@ -24,11 +24,18 @@ public static class MailRuTouchSearchParser
             // normal mailbox pass. Keep the server call identical and split the
             // standard Mail.ru folders locally by the folder id carried by each
             // search result.
+            var archiveId =
+                allMessages.Any(message => message.FolderId == 500005) &&
+                !allMessages.Any(message => message.FolderId == 500003)
+                    ? 500005
+                    : 500003;
+
             var knownFolders = new (int Id, string Type, string Name)[]
             {
                 (0, "inbox", "Входящие"),
                 (500000, "sent", "Отправленные"),
                 (500001, "drafts", "Черновики"),
+                (archiveId, "archive", "Архив"),
                 (950, "spam", "Спам"),
                 (500002, "trash", "Корзина")
             };
