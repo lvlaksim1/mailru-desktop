@@ -65,6 +65,21 @@ if (auth is null || !auth.Success || string.IsNullOrWhiteSpace(auth.AccessToken)
 
 var token = auth.AccessToken!;
 
+if (!string.IsNullOrWhiteSpace(auth.RefreshToken))
+{
+    var refreshed = await ProbeAsync(
+        "refresh_token",
+        () => client.RefreshAccessTokenAsync(auth.RefreshToken!),
+        x => x.Success && !string.IsNullOrWhiteSpace(x.AccessToken));
+
+    if (refreshed?.Success == true && !string.IsNullOrWhiteSpace(refreshed.AccessToken))
+        token = refreshed.AccessToken!;
+}
+else
+{
+    Console.WriteLine("refresh_token: SKIP (not returned by auth)");
+}
+
 if (string.Equals(scope, "diagnose", StringComparison.OrdinalIgnoreCase))
 {
     Console.WriteLine("search_new: DEFERRED (live HTTP 520)");
