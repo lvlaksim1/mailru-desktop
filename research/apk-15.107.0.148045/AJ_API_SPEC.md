@@ -810,3 +810,474 @@ Mail.ru Desktop должен разделять транспортный HTTP-к
 8. хотя бы одно независимое подтверждение из APK или живого запроса.
 
 Исключение по узлам: скачивание входящих вложений через `af.attachmail.ru` разрешено отдельным решением проекта.
+
+
+---
+
+## 23. Точные договоры запросов, восстановленные из APK
+
+Ниже — уточнения, полученные непосредственно из аннотаций `@Param`, базовых классов команд и кода разбора ответов текущего APK 15.107.0.148045.
+
+### Общие параметры AJ
+
+Для семейства Tornado:
+
+- `access_token` добавляется `TornadoSession` в строку запроса;
+- `lang` добавляется общим `ServerCommandBaseParams`;
+- `email` добавляется всеми командами на основе `ServerCommandEmailParams`;
+- отдельные команды дополнительно передают `htmlencoded=false`.
+
+Таким образом `access_token` не обязан присутствовать как поле конкретного класса команды: он накладывается слоем сеанса.
+
+### Метки письма и цепочки
+
+`POST /api/v1/messages/marks`
+
+Тело содержит `marks` — JSON-массив объектов. Поддержаны три признака:
+
+- `unread`;
+- `flagged`;
+- `pinned`.
+
+Каждый объект имеет форму:
+
+```json
+{"name":"unread","set":["<message-id>"],"unset":[],"folder":0}
+```
+
+`set` и `unset` формируются из `MarkOperation`; `folder` добавляется, когда операция привязана к папке.
+
+`POST /api/v1/m/threads/marks`
+
+Для цепочек элементы `set`/`unset` представлены объектами:
+
+```json
+{"id":"<thread-id>","folder":0,"message_id_last":"<last-message-id>"}
+```
+
+Тем же механизмом подтверждены `unread`, `flagged` и `pinned`.
+
+`POST /api/v1/messages/marks/all`
+
+Поля:
+
+- `folder`;
+- `marks` — JSON-массив названий меток;
+- `action`;
+- `older_than` — необязательный порог.
+
+### Перемещение и удаление
+
+`POST /api/v1/messages/move`
+
+Поля:
+
+- `ids` — JSON-массив строковых ID сообщений;
+- `folder` — целевая папка.
+
+`POST /api/v1/messages/remove`
+
+Поля:
+
+- `ids` — JSON-массив строковых ID сообщений.
+
+`POST /api/v1/messages/move/all`
+
+Поля:
+
+- `folder_from`;
+- `folder`;
+- `from` — необязательный JSON-массив отправителей;
+- `only_newsletters` — необязательный признак;
+- `older_than` — необязательный порог.
+
+`POST /api/v1/messages/remove/all`
+
+Поля:
+
+- `folder_from`;
+- `only_newsletters`;
+- `spam_folder`;
+- `older_than`.
+
+`POST /api/v1/m/threads/move`
+
+Поля:
+
+- `ids` — JSON-массив объектов `{id, folder, message_id_last}`;
+- `folder` — целевая папка;
+- `email`.
+
+`POST /api/v1/m/threads/remove`
+
+Поля:
+
+- `ids` — JSON-массив объектов `{id, folder, message_id_last}`;
+- `email`.
+
+Успешный ответ операций над цепочками содержит `body` — массив ID обработанных цепочек.
+
+### Спам
+
+`POST /api/v1/messages/services/spam`
+
+Наследует формат `ids` от операций над сообщениями; дополнительно может передаваться `folder`.
+
+`POST /api/v1/messages/services/unspam`
+
+Наследует формат `ids`.
+
+`POST /api/v1/m/threads/services/spam`
+
+Поля:
+
+- `ids` — объекты цепочек;
+- `email`;
+- `verified`.
+
+`POST /api/v1/m/threads/services/unspam`
+
+Поля:
+
+- `ids` — объекты цепочек;
+- `email`.
+
+### Папки
+
+`GET /api/v1/folders`
+
+Ответ `body` — массив папок. Парсер подтверждает поля:
+
+- `id`, `name`, `parent`, `type`, `system`, `archive`, `child`;
+- `messages_total`, `messages_unread`;
+- `threads_total`, `threads_unread`;
+- `security`, `share`, `grants`, `owner`, `email`.
+
+`POST /api/v1/folders/add`
+
+Тело:
+
+- `email`;
+- `folders` — JSON-массив.
+
+Создаваемый объект содержит как минимум:
+
+```json
+{"id":-1,"name":"<name>","parent":"-1","only_web":false}
+```
+
+Успешный `body[0]` содержит ID созданной папки.
+
+`POST /api/v1/folders/edit`
+
+Поля:
+
+- `email`;
+- `folders` — JSON-массив объектов с `id` и `name`.
+
+Успешный `body` содержит ID изменённых папок.
+
+`POST /api/v1/folders/remove`
+
+Поля:
+
+- `ids` — массив ID удаляемых папок;
+- `email`.
+
+`POST /api/v1/folders/clear`
+
+Поле `ids` — JSON-массив числовых ID папок.
+
+`POST /api/v1/folders/archive/ensure`
+
+Необязательный параметр строки запроса:
+
+- `folder`.
+
+Ответ `body` преобразуется в числовой ID архивной папки.
+
+`POST /api/v1/folders/open`
+
+Поле `folders` — JSON-массив объектов защищённых папок. Для каждой папки передаются `id` и секрет с `folder_password`.
+
+`POST /api/v1/folders/close`
+
+Поле `ids` — JSON-массив строковых ID папок.
+
+### Поиск
+
+Старый поиск:
+
+`GET /api/v1/messages/search`
+
+Параметры, подтверждённые APK:
+
+- `aqid`;
+- `search_categories`;
+- `correspondents`;
+- `custom_tags`;
+- `interval`;
+- `flags`;
+- `folder`;
+- `htmlencoded`;
+- `in_excluded_folders`;
+- `limit`;
+- `offset`;
+- `query`;
+- `remove_emoji_opts`;
+- `snippet_limit`;
+- `subject`;
+- `with_threads`;
+- `transaction_category`.
+
+`correspondents` формируется как JSON с `from` и/или `to`.
+`interval` — JSON с `from` и `to`.
+`flags` — JSON с признаками `unread`, `flagged`, `attach`, `pin`.
+
+Ответ:
+
+- `body.found`;
+- `body.messages[]`.
+
+Новый поиск:
+
+`GET /api/v1/go/search/emails`
+
+Параметры:
+
+- `q`;
+- `filters`;
+- `aqid`;
+- `limit`;
+- `offset`;
+- `snippet_limit`.
+
+Ответ читается из:
+
+`response.mail_search_messages.result.body`
+
+и содержит:
+
+- `found.count`;
+- `messages[]`.
+
+**Важно:** класс нового поиска имеет отдельный `HostProviderAnnotation` с настройкой `search_new_host`. Поэтому этот маршрут пока нельзя считать маршрутом `aj-https.mail.ru`. При принятом правиле проекта AJ-only для реализации следует использовать старый `/api/v1/messages/search`, пока отдельно не будет доказано, что `search_new_host` указывает на разрешённый узел.
+
+Подсказки:
+
+`GET /api/v1/messages/search/suggest`
+
+Параметр:
+
+- `query` — URL-кодированная строка.
+
+### Отправка, черновики и отложенная отправка
+
+Одна модель `TornadoSendParamsImpl` используется для:
+
+- `POST /api/v1/messages/send`;
+- `POST /api/v1/messages/draft`;
+- `POST /api/v1/messages/schedule`.
+
+Общие POST-поля:
+
+- `id`;
+- `subject`;
+- `priority`;
+- `send_date`;
+- `from`;
+- `receipt`;
+- `quote`;
+- `body`;
+- `correspondents`;
+- `source`;
+- `attaches`.
+
+Плюс строка запроса:
+
+- `htmlencoded=false`.
+
+`body`:
+
+```json
+{"html":"...","text":"..."}
+```
+
+`correspondents`:
+
+```json
+{"to":"...","cc":"...","bcc":"..."}
+```
+
+`source`:
+
+```json
+{"draft":"...","reply":"...","forward":"...","schedule":"..."}
+```
+
+`attaches`:
+
+```json
+{"list":[
+  {"id":"<attach-id>","type":"attach"},
+  {"id":"<cloud-id>","type":"cloud_stock"},
+  {"content_id":"<cid>","type":"inline","part_id":"<part-id>"}
+]}
+```
+
+Приоритеты:
+
+- `1` — высокий;
+- `3` — обычный;
+- `5` — низкий.
+
+### Вложения
+
+`POST /api/v1/messages/attaches/remove`
+
+Поля:
+
+- `message_id`;
+- `ids` — JSON-массив серверных ID вложений.
+
+`POST /api/v1/messages/attaches/reattach`
+
+Поля:
+
+- `message_id`;
+- `forwarded_id`.
+
+Ответ `body` содержит как минимум:
+
+- `okay_files[]`;
+- `error_files[]`.
+
+Успешные элементы разбираются по типам обычного, встроенного, облачного и `cloud_stock` вложения.
+
+### Адресная книга
+
+`GET /api/v1/ab/smart`
+
+Параметр:
+
+- `limit = Integer.MAX_VALUE`.
+
+Заголовок:
+
+- `Accept-Encoding` — задаётся командой отдельно.
+
+Ответ:
+
+- `body.contacts[]`;
+- `body.labels[]`.
+
+Контакт включает имя, фамилию, ник, приоритет, день рождения, адреса почты, пол, компанию, должность, руководителя, адрес, комментарий, метки, телефоны и социальные данные.
+
+`GET /api/v1/ab/fast`
+
+Ответ `body` — массив компактных подсказок вида:
+
+```json
+["<display-name>",["<email>", ...]]
+```
+
+### Фильтры
+
+`GET /api/v1/filters`
+
+Ответ `body[]` содержит:
+
+- `conditions[]`: `name`, `value`, `not`;
+- `actions`: `remove`, `move`, `read`, `flag`, `reject`, `forward`, `reply`, `notify`.
+
+`POST /api/v1/filters/add`
+
+Поля:
+
+- `filters` — JSON-массив создаваемых фильтров;
+- `apply_folders` — необязательный JSON-массив ID папок.
+
+Создаваемый фильтр содержит:
+
+- `enabled=true`;
+- `applyToSpam=false`;
+- `conditionsOr=true`;
+- `conditions[]`;
+- `actions`.
+
+Для условия отправителя:
+
+```json
+{"name":"from","not":false,"value":"<address>"}
+```
+
+Успешный `body[0]` — ID созданного фильтра.
+Ошибки: `exists`, `over_limit`.
+
+`POST /api/v1/filters/edit`
+
+Использует ту же модель, но в объект фильтра добавляется `id`.
+
+`POST /api/v1/filters/remove`
+
+Поле:
+
+- `ids` — JSON-массив ID фильтров.
+
+Успешный `body` возвращает удалённые ID.
+
+### Отписка и категории
+
+`POST /api/v1/messages/services/unsubscribe`
+
+Поле:
+
+- `ids` — JSON-массив строковых ID сообщений.
+
+Ошибка `ids[0].error=invalid` трактуется как отсутствие сообщения.
+
+`POST /api/v1/messages/services/category/change`
+
+Поля:
+
+- `ids` — массив ID;
+- `category`;
+- `drop_category`;
+- `add_filter`.
+
+Категория `newsletters` на уровне клиента преобразуется в `newsletter`.
+
+### Отложенные письма в списке
+
+`POST /api/v1/messages/snoozes/update`
+
+Поля:
+
+- `id`;
+- `date` — время в секундах, клиент делит миллисекунды на 1000.
+
+`POST /api/v1/messages/snoozes/remove`
+
+Поле:
+
+- `id`.
+
+---
+
+## 24. Что теперь действительно осталось неизвестным
+
+После разбора маршрутов и параметров основная неизвестность уже не в адресах API. Осталось точечно восстановить или подтвердить:
+
+1. точный ответ `/messages/send`, включая механизм отмены отправки и `cancellation_token`;
+2. отдельный маршрут отмены только что отправленного письма;
+3. точное удаление/отмена уже созданной отложенной отправки, если оно отличается от обычных операций с сообщением;
+4. полная схема `/messages/attaches/add` для каждого типа исходящего файла;
+5. точные параметры `/messages/attaches/view`;
+6. полный договор `/messages/message/download`;
+7. полный договор `/messages/meta`;
+8. полный договор подтверждения прочтения `/messages/notify/read`;
+9. точная схема `/messages/replies/smart`;
+10. точный разрешённый узел для нового `/api/v1/go/search/emails`;
+11. некоторые редко используемые ответы и коды ошибок.
+
+То есть маршруты удаления, очистки корзины, спама, папок, поиска, черновиков, адресной книги, фильтров, отписки, категорий, закрепления и отложенного показа уже больше не являются «кандидатами» — они подтверждены непосредственно текущим APK.
