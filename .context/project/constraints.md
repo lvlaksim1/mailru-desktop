@@ -2,22 +2,29 @@
 
 Owner directives:
 
-- Ignore official Mail.ru mail-client documentation as a protocol source for this project.
+- Ignore official Mail.ru mail-client documentation as protocol authority for this project.
 - Do not use IMAP or SMTP.
 - Do not use special/app-specific passwords.
 - Build the application from scratch.
-- Use good practices and lessons from other projects without cloning their product identity or copying their implementation.
-- If another project uses `aj-https.mail.ru` or the same internal API family, its endpoint knowledge must be investigated and captured in our reverse-spec.
-- Prefer observed traffic, verified working legacy code, and reproducible reverse-engineering evidence over assumptions.
-- Do not promote externally discovered endpoints to locally verified status without evidence.
-- Never commit real passwords, access/refresh tokens, mailbox content, HAR/PCAP captures containing private data, or other secrets.
+- Use good practices and lessons from other projects without copying their product identity or implementation.
+- Prefer observed traffic, verified working legacy code, official-client APK reverse engineering and reproducible runtime evidence over assumptions.
+- Never commit real passwords, access/refresh tokens, mailbox content, private captures or other secrets.
 - Keep the GitHub repository public unless the Owner explicitly changes that policy.
-- Do not accumulate build artifacts in Git; CI should not upload unnecessary artifacts.
+- Do not accumulate unnecessary build artifacts in Git.
+
+Current access-token scope:
+
+- Do not restrict eligible internal Mail.ru APIs by hostname alone.
+- An operation is in current scope when official-client evidence shows it uses the same mailbox OAuth credential `ru.mail.oauth2.access` obtained by the product authorization flow.
+- The token may be carried as `access_token`, under another parameter name, or in an authorization header.
+- Mechanisms requiring an independent credential/session are out of current scope unless the Owner explicitly changes the rule.
+- CAPTCHA/reCAPTCHA/additional interactive verification during authorization must be reported and authorization stopped; do not solve or bypass the challenge.
+- Static APK confirmation is implementation evidence; newly discovered operations require controlled live validation before default product enablement.
+- Preserve at least five seconds between research/probe/test network requests. This fixed delay does not belong in normal application runtime.
 
 Release/install policy:
 
-- First installation is distributed as a single Windows full installer named `MailRuDesktop_Setup_vX.Y.Z.exe`.
-- Subsequent application updates must be distributed as single update installers named `MailRuDesktop_Update_vX.Y.Z.exe`; the user should not need to uninstall/reinstall the full application.
-- Install into the current-user profile under `%LOCALAPPDATA%\\Programs\\MailRuDesktop` so normal installation/update does not require administrator rights.
-- Preserve user settings and working data across update installers.
-- GitHub Release assets are authoritative distributables and must be tied to an immutable version tag.
+- First installation: `MailRuDesktop_Setup_vX.Y.Z.exe`.
+- Updates: `MailRuDesktop_Update_vX.Y.Z.exe` without uninstall/reinstall.
+- Install under `%LOCALAPPDATA%\Programs\MailRuDesktop` and preserve user settings/data across updates.
+- GitHub Release assets tied to immutable version tags are authoritative distributables.

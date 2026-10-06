@@ -1,7 +1,8 @@
 # Current blockers and open risks
 
-1. AJ endpoints for full-message retrieval, incoming-attachment download, move/archive, permanent delete, contacts/address book, and server-side search have not yet been verified; those product actions are intentionally disabled.
-2. CAPTCHA/reCAPTCHA response variants of the mobile auth endpoint are not fully characterized. Policy is fixed: any detected interactive verification stops authorization.
-3. The exact server format/semantics of `send_date` still needs owner runtime validation.
-4. Attachment upload and compose share a message id; the known legacy implementation uses a fixed 32-character sentinel. Modern AJ constraints should be experimentally determined before replacing it.
-5. The current app must not regress into calling sibling Mail.ru hosts; CI now guards runtime source for non-AJ Mail.ru URLs.
+1. **Obsolete host guard:** v0.1.15 and CI still embody the old host allow-list. Before adding valid same-token endpoints on other hosts, protocol policy/guard must be refactored from host-only validation to explicit endpoint/evidence/credential-aware validation.
+2. **Static vs live evidence:** the APK establishes 100 same-token commands, but many newly discovered operations have not yet been exercised by our client against the live service. Product enablement requires controlled validation.
+3. **Authorization challenges:** CAPTCHA/reCAPTCHA variants are not exhaustively characterized. Policy is fixed: any interactive verification stops authorization; no bypass.
+4. **Delayed send:** exact live `send_date` semantics still need validation.
+5. **Compose message id:** modern constraints for the compose-session/message id shared by upload and send remain to be determined before replacing the legacy 32-character sentinel.
+6. **Owner runtime regression check:** v0.1.15's released full-message, attachment, marks and move/archive/trash behavior should still be checked in the Owner environment before broad protocol expansion.

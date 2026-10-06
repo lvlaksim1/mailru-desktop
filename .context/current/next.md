@@ -1,20 +1,16 @@
 # Next actions
 
-1. Owner installs `MailRuDesktop_Update_v0.1.15.exe` and validates:
-   - saved AJ authorization still restores;
-   - Inbox/folders still load normally with unchanged `last_modified`;
-   - selecting a message loads the full body through `aj-https.mail.ru/api/v1/messages/message`;
-   - incoming attachments download through the approved `af.attachmail.ru/cgi-bin/readmsg`;
-   - read/unread changes work through `/api/v1/messages/marks`;
-   - move, archive and trash work through `/api/v1/messages/move`;
-   - reply/send/outgoing attachments remain functional.
-2. Validate one delayed-send operation and record actual `send_date` behavior.
-3. Continue research for:
-   - permanent delete;
-   - server contacts/address book;
-   - server-side search;
-   - confirmed flag mutation.
-4. Preserve at least five seconds between network requests made by project research, probes, and automated tests; do not add this fixed delay back to normal application runtime.
-5. Keep current folder `last_modified` behavior unchanged unless the Owner explicitly authorizes work on it.
-6. Determine valid modern compose-session message-id semantics before replacing the known legacy fixed 32-character sentinel.
-7. Do not continue or merge the `research/web-api-token` runtime approach unless the Owner explicitly changes the current host policy.
+1. Refactor the runtime/CI protocol guard so eligibility is not tied to a fixed Mail.ru host list. Keep an explicit endpoint registry and require the same mailbox OAuth credential/evidence policy.
+2. Controlled live validation, in this order:
+   - permanent remove `/api/v1/messages/remove` and relevant bulk/clear operation;
+   - `flagged` and `pinned` mutations through marks;
+   - server search, including `https://go.mail.ru/api/v1/go/search/emails?t=<same token>`;
+   - address book/autocomplete;
+   - folder add/edit/remove/clear/archive.
+3. After each successful live validation, add sanitized evidence, regression coverage and only then wire the UI.
+4. Validate drafts/scheduled-message lifecycle and outgoing attachment remove/reattach.
+5. Then evaluate secondary access-token functions: aliases, collectors, filters, cloud attachment bundles/status, translation and profile information.
+6. Preserve at least five seconds between network requests made by research/probes/automated tests; do not add a fixed delay to ordinary application runtime.
+7. Keep current folder `last_modified` behavior unchanged unless explicitly authorized.
+8. Validate delayed-send `send_date` and modern compose-session message-id semantics.
+9. Do not revive independent web-cookie/touch sessions, IMAP/SMTP or app-password fallbacks; current scope is the mailbox OAuth access-token family.

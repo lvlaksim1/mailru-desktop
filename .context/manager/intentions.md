@@ -4,41 +4,44 @@
 status: completed
 
 ## I-002 — mailbox list/folder MVP
-status: active — AJ smart-thread path is the sole mailbox-list transport
+status: active
 
-The active endpoint is `aj-https.mail.ru/api/v1/m/threads/status/smart` using the mobile `access_token`. Touch/web mailbox fallbacks are removed.
+The released mailbox-list transport remains `/api/v1/m/threads/status/smart` with the mailbox OAuth token.
 
-## I-003 — expand reverse API coverage
-status: active — permitted-host research
+## I-003 — complete access-token API coverage
+status: active — static discovery completed; validation/integration phase active
 
-`aj-https.mail.ru` remains the primary API host and `af.attachmail.ru` is explicitly allowed for incoming attachment download. Full message, read/unread, move/archive/trash and incoming attachment download are now released; remaining priorities are permanent delete, contacts, server search and confirmed flag mutation.
+APK 15.107.0.148045 is statically mapped. Of 101 OAuth candidates, 100 are proven to carry the same `ru.mail.oauth2.access`; `QrGetInfoCommand` is excluded. Work now shifts from host-based discovery to live validation and product integration.
 
 ## I-004 — send/scheduled-send flow
-status: active — immediate send established; delayed send runtime validation pending
+status: active
 
-Both outgoing attachment upload and send/schedule remain on verified AJ endpoints.
+Immediate send is released. Delayed-send `send_date` semantics remain to be validated. Send, draft and schedule share the recovered official-client request model.
 
 ## I-005 — installer/update release channel
 status: completed
 
-v0.1.15 has been published with both `MailRuDesktop_Update_v0.1.15.exe` for existing installations and `MailRuDesktop_Setup_v0.1.15.exe` for first install/recovery.
+Latest public release remains v0.1.15 with full and update installers.
 
 ## I-006 — full-message read and incoming attachments
 status: released in v0.1.15
 
-Full-message retrieval uses `aj-https.mail.ru/api/v1/messages/message`. Incoming attachment download uses the Owner-approved `af.attachmail.ru/cgi-bin/readmsg` path.
+## I-007 — mailbox OAuth authorization
+status: released; challenge policy fixed
 
-## I-007 — AJ-only account authorization
-status: released; owner runtime validation of v0.1.15 remains pending
-
-Authentication uses only the mobile OAuth-style AJ request. Success requires `access_token`. CAPTCHA/reCAPTCHA/additional verification produces a user notification and stops authorization; there is no challenge solver and no web/touch fallback.
+Authorization obtains the mailbox OAuth `access_token`. CAPTCHA/reCAPTCHA/additional verification is reported and authorization stops. No challenge solver, web-cookie fallback, IMAP/SMTP or app-password fallback.
 
 ## I-008 — incoming message actions
-status: partially released in v0.1.15
+status: partially released; expansion ready for validation
 
-Read/unread uses `/api/v1/messages/marks`; move/archive/trash use `/api/v1/messages/move`. Permanent delete remains disabled pending a verified permitted-host operation.
+Read/unread and move/archive/trash are released. Permanent remove, bulk remove/clear, spam/unspam, flagged and pinned marks are statically confirmed and await controlled live validation plus product wiring.
 
 ## I-009 — desktop UX/settings
 status: active
 
-Existing desktop UX remains. v0.1.15 adds full-message viewing, incoming attachment download, read/unread control, move, archive and trash while leaving `last_modified` unchanged.
+Expose new operations only after their contract and live behavior are verified.
+
+## I-010 — high-value access-token expansion
+status: active
+
+Validate and integrate in priority order: permanent delete and mark mutations; server search including `go.mail.ru` with token parameter `t`; address book/autocomplete; folder management; drafts/scheduled-message lifecycle; outgoing attachment lifecycle; then aliases/collectors/filters/cloud and other useful secondary functions.
