@@ -46,7 +46,7 @@ public static class MailRuEndpointCatalog
         new("folders.remove", "POST", "aj-https.mail.ru", "/api/v1/folders/remove", EndpointEvidence.VerifiedLocal, "Delete folder"),
         new("folders.clear", "POST", "aj-https.mail.ru", "/api/v1/folders/clear", EndpointEvidence.VerifiedLocal, "Clear folder"),
         new("messages.draft", "POST", "aj-https.mail.ru", "/api/v1/messages/draft", EndpointEvidence.VerifiedLocal, "Save draft"),
-        new("oauth.refresh", "POST", "o2.mail.ru", "/token", EndpointEvidence.StaticOfficialClient, "Refresh mailbox access token")
+        new("oauth.refresh", "POST", "o2.mail.ru", "/token", EndpointEvidence.VerifiedLocal, "Refresh mailbox access token")
     ];
 
     public static bool IsRuntimeHostAllowed(string host) =>
