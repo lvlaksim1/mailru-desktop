@@ -4,6 +4,7 @@ using MailRuDesktop.Protocol;
 var login = Environment.GetEnvironmentVariable("MAILRU_TEST_LOGIN");
 var password = Environment.GetEnvironmentVariable("MAILRU_TEST_PASSWORD");
 var runId = Environment.GetEnvironmentVariable("GITHUB_RUN_ID") ?? "local";
+var scope = Environment.GetEnvironmentVariable("MAILRU_PROBE_SCOPE") ?? "full";
 
 if (string.IsNullOrWhiteSpace(login) || string.IsNullOrWhiteSpace(password))
 {
@@ -34,13 +35,18 @@ async Task<T?> ProbeAsync<T>(string name, Func<Task<T>> action, Func<T, bool>? s
         lastRequest = DateTimeOffset.UtcNow;
         var ok = success?.Invoke(result) ?? true;
         Console.WriteLine($"{name}: {(ok ? "PASS" : "FAIL")}");
-        if (!ok) failures.Add(name);
+        if (!ok)
+        {
+            failures.Add(name);
+            if (result is MailRuCommandResult command)
+                Console.WriteLine($"{name}_detail: {DescribeApiResponse(command.RawResponse)}");
+        }
         return result;
     }
     catch (Exception ex)
     {
         lastRequest = DateTimeOffset.UtcNow;
-        Console.WriteLine($"{name}: FAIL ({ex.GetType().Name})");
+        Console.WriteLine($"{name}: FAIL ({ex.GetType().Name}: {SafeText(ex.Message)})");
         failures.Add(name);
         return default;
     }
@@ -58,6 +64,58 @@ if (auth is null || !auth.Success || string.IsNullOrWhiteSpace(auth.AccessToken)
 }
 
 var token = auth.AccessToken!;
+
+if (string.Equals(scope, "diagnose", StringComparison.OrdinalIgnoreCase))
+{
+    await ProbeAsync("search_new",
+        () => client.SearchMessagesNewAsync(token, login!, "a", limit: 20),
+        x => x.RawResponse.Length > 0);
+
+    var diagSubject = $"MailRu Desktop diagnose draft {runId}";
+    var diagDraft = await ProbeAsync("draft_save",
+        () => client.SaveDraftAsync(
+            token,
+            login!,
+            new MailRuOutgoingMessage(
+                To: login!,
+                Subject: diagSubject,
+                Text: "MailRu Desktop diagnostic draft.",
+                MessageId: MailRuClient.KnownWorkingMessageId)),
+        x => x.Success);
+
+    if (diagDraft?.Success == true)
+    {
+        var draftsRaw = await ProbeAsync("draft_list", () => client.GetFolderThreadsAsync(token, 500001));
+        string? draftId = null;
+        if (!string.IsNullOrWhiteSpace(draftsRaw))
+        {
+            try
+            {
+                var snapshot = MailRuThreadStatusParser.Parse(draftsRaw, 500001);
+                draftId = snapshot.Messages.FirstOrDefault(x =>
+                    string.Equals(x.Subject, diagSubject, StringComparison.Ordinal))?.Id;
+            }
+            catch { }
+        }
+
+        if (!string.IsNullOrWhiteSpace(draftId))
+        {
+            await ProbeAsync("permanent_remove",
+                () => client.RemoveMessagesAsync(token, login!, new[] { draftId }),
+                x => x.Success);
+        }
+        else
+        {
+            failures.Add("permanent_remove:draft_not_found");
+            Console.WriteLine("permanent_remove: FAIL (draft_not_found)");
+        }
+    }
+
+    Console.WriteLine($"probe_total_failures: {failures.Count}");
+    Console.WriteLine(failures.Count == 0 ? "probe: PASS" : "probe: FAIL");
+    return failures.Count == 0 ? 0 : 1;
+}
+
 var inboxRaw = await ProbeAsync("inbox", () => client.GetFolderThreadsAsync(token, 0));
 MailRuFolderSnapshot? inbox = null;
 if (!string.IsNullOrWhiteSpace(inboxRaw))
