@@ -1,0 +1,33 @@
+name: AJ mobile auth probe
+
+on:
+  push:
+    branches:
+      - research/web-api-token
+    paths:
+      - "tools/AjMobileAuthProbe/**"
+      - ".github/workflows/aj-mobile-auth-probe.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      MAILRU_TEST_LOGIN: ${{ secrets.MAILRU_TEST_LOGIN }}
+      MAILRU_TEST_PASSWORD: ${{ secrets.MAILRU_TEST_PASSWORD }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Verify secrets
+        shell: bash
+        run: |
+          test -n "$MAILRU_TEST_LOGIN"
+          test -n "$MAILRU_TEST_PASSWORD"
+      - name: Probe AJ mobile auth
+        run: dotnet run --project tools/AjMobileAuthProbe/AjMobileAuthProbe.csproj -c Release
