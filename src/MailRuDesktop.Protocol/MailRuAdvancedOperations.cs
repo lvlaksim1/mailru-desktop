@@ -100,7 +100,7 @@ public sealed partial class MailRuClient
         string query,
         int offset = 0,
         int limit = 100,
-        bool preferNewSearch = true,
+        bool preferNewSearch = false,
         CancellationToken cancellationToken = default)
     {
         RequireToken(accessToken);
