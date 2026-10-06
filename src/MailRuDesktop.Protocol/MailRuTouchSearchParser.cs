@@ -5,7 +5,7 @@ namespace MailRuDesktop.Protocol;
 
 public static class MailRuTouchSearchParser
 {
-    public static MailRuFolderSnapshot Parse(string payload)
+    public static MailRuFolderSnapshot Parse(string payload, int requestedFolderId = 0)
     {
         if (string.IsNullOrWhiteSpace(payload))
             throw new MailRuProtocolException("Touch search response is empty.");
@@ -13,30 +13,57 @@ public static class MailRuTouchSearchParser
         try
         {
             using var document = JsonDocument.Parse(payload);
-            var messages = new List<MailRuMessageSummary>();
+            var allMessages = new List<MailRuMessageSummary>();
             var seen = new HashSet<string>(StringComparer.Ordinal);
-            Collect(document.RootElement, messages, seen);
+            Collect(document.RootElement, allMessages, seen);
 
-            messages.Sort((left, right) =>
+            allMessages.Sort((left, right) =>
                 Nullable.Compare(right.DateUnix, left.DateUnix));
 
-            var total = FindInteger(document.RootElement, "count") ?? messages.Count;
-            var unread = messages.LongCount(message => message.Unread);
+            // Hackus uses q_folder=all and does not send q_query="*" for the
+            // normal mailbox pass. Keep the server call identical and split the
+            // standard Mail.ru folders locally by the folder id carried by each
+            // search result.
+            var knownFolders = new (int Id, string Type, string Name)[]
+            {
+                (0, "inbox", "Входящие"),
+                (500000, "sent", "Отправленные"),
+                (500001, "drafts", "Черновики"),
+                (950, "spam", "Спам"),
+                (500002, "trash", "Корзина")
+            };
 
+            var hasFolderIds = allMessages.Any(message => message.FolderId is not null);
+            var selected = hasFolderIds
+                ? allMessages.Where(message => message.FolderId == requestedFolderId).ToList()
+                : requestedFolderId == 0
+                    ? allMessages.ToList()
+                    : new List<MailRuMessageSummary>();
+
+            var folders = knownFolders
+                .Select(folder =>
+                {
+                    var folderMessages = allMessages
+                        .Where(message => message.FolderId == folder.Id)
+                        .ToList();
+
+                    return new MailRuFolderSummary(
+                        folder.Id,
+                        folder.Type,
+                        folder.Name,
+                        folderMessages.LongCount(message => message.Unread),
+                        folderMessages.Count,
+                        true);
+                })
+                .ToArray();
+
+            var unread = selected.LongCount(message => message.Unread);
             return new MailRuFolderSnapshot(
-                -100,
-                total,
+                requestedFolderId,
+                selected.Count,
                 unread,
-                [
-                    new MailRuFolderSummary(
-                        -100,
-                        "touch-search",
-                        "Все письма",
-                        unread,
-                        total,
-                        true)
-                ],
-                messages,
+                folders,
+                selected,
                 payload);
         }
         catch (JsonException ex)
