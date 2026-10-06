@@ -24,6 +24,12 @@ Active AJ operations:
 
 Until AJ equivalents are verified, full-message retrieval, incoming attachment download, contacts server lookup, move/archive and permanent delete are disabled.
 
+Historical note:
+
+- `research/web-api-token` contains obsolete exploratory web/touch auth research;
+- it is evidence only and is not an allowed product runtime path;
+- do not merge or revive it without an explicit Owner reversal.
+
 Implementation branch: `release/0.1.13-aj-only`
 PR: #18
 Version: 0.1.13
