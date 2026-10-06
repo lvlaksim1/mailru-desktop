@@ -1,0 +1,83 @@
+name: Extract Mail.ru APK host resources
+
+on:
+  push:
+    branches:
+      - research/mail-apk-15.107.0.148045
+    paths:
+      - '.github/workflows/extract-apk-hosts.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/mail-apk-15.107.0.148045
+          fetch-depth: 1
+
+      - name: Reassemble APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT=research/apk-15.107.0.148045
+          cat "$ROOT"/package/parts/Mail_ru_15.107.0.148045_APKs.zip.part-* > /tmp/mail-bundle.zip
+          unzip -q /tmp/mail-bundle.zip -d /tmp/mail-bundle
+          test -f /tmp/mail-bundle/Mail-15.107.0.148045.apk
+
+      - name: Dump Android resources
+        shell: bash
+        run: |
+          set -euo pipefail
+          AAPT2=$(find "$ANDROID_HOME/build-tools" -type f -name aapt2 | sort -V | tail -n 1)
+          test -x "$AAPT2"
+          "$AAPT2" dump resources /tmp/mail-bundle/Mail-15.107.0.148045.apk > /tmp/resources.txt
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          text=Path("/tmp/resources.txt").read_text(errors="replace")
+          keys=[
+            "search_new_host","search_new_default_scheme",
+            "mail_api_default_host","new_mail_api_default_host","mail_api_defualt_scheme",
+            "auth_default_host","attach_preview_default_host","avatar_default_host",
+            "push_default_host","doreg_default_host","doreg_captcha_def_host"
+          ]
+          out=["# Серверные ресурсы Mail.ru Android 15.107.0.148045","",
+               "Значения извлечены из resources.arsc основного APK через aapt2.",""]
+          lines=text.splitlines()
+          for key in keys:
+              out.append("## "+key)
+              found=[]
+              for i,line in enumerate(lines):
+                  if key in line:
+                      found.extend(lines[max(0,i-1):min(len(lines),i+8)])
+              if found:
+                  # Keep only concise unique lines.
+                  uniq=[]
+                  for line in found:
+                      s=line.strip()
+                      if s and s not in uniq:
+                          uniq.append(s)
+                  out.extend(["    "+x for x in uniq[:20]])
+              else:
+                  out.append("    не найдено")
+              out.append("")
+          # Also extract likely host-looking string literals near resource entries.
+          hosts=sorted(set(re.findall(r'(?<![A-Za-z0-9.-])(?:[A-Za-z0-9-]+\\.)+(?:mail\\.ru|vk\\.com)(?![A-Za-z0-9.-])',text)))
+          out += ["## Все домены mail.ru / vk.com из таблицы ресурсов",""]
+          out += ["- "+h for h in hosts]
+          Path("research/apk-15.107.0.148045/APK_HOST_RESOURCES.md").write_text("\\n".join(out)+"\\n",encoding="utf-8")
+          PY
+
+      - name: Commit resource report
+        shell: bash
+        run: |
+          git config user.name "mailru-apk-research"
+          git config user.email "actions@users.noreply.github.com"
+          git add research/apk-15.107.0.148045/APK_HOST_RESOURCES.md
+          git commit -m "research: extract host resources from Mail.ru APK"
+          git pull --rebase origin research/mail-apk-15.107.0.148045
+          git push origin HEAD:research/mail-apk-15.107.0.148045
