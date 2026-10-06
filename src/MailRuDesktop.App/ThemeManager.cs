@@ -18,9 +18,9 @@ internal static class ThemeManager
     public static bool IsDarkEffective { get; private set; }
     public static event EventHandler? ThemeChanged;
 
-    public static string ReaderBackgroundHtml => IsDarkEffective ? "#1E1E1E" : "#FFFFFF";
-    public static string ReaderForegroundHtml => IsDarkEffective ? "#F2F2F2" : "#202124";
-    public static string ReaderMutedHtml => IsDarkEffective ? "#B7B7B7" : "#70757A";
+    public static string ReaderBackgroundHtml => IsDarkEffective ? "#17191D" : "#FFFFFF";
+    public static string ReaderForegroundHtml => IsDarkEffective ? "#F4F6F8" : "#202124";
+    public static string ReaderMutedHtml => IsDarkEffective ? "#AAB2BD" : "#70757A";
     public static string ReaderLinkHtml => IsDarkEffective ? "#6CB6FF" : "#0B57D0";
 
     public static void Initialize()
@@ -68,18 +68,18 @@ internal static class ThemeManager
 
         if (IsDarkEffective)
         {
-            SetBrush(resources, "AppWindowBrush", "#1E1E1E");
-            SetBrush(resources, "AppPanelBrush", "#252526");
-            SetBrush(resources, "AppControlBrush", "#2D2D30");
-            SetBrush(resources, "AppControlHoverBrush", "#3A3A3D");
-            SetBrush(resources, "AppControlPressedBrush", "#454548");
-            SetBrush(resources, "AppTextBrush", "#F2F2F2");
-            SetBrush(resources, "AppMutedTextBrush", "#B7B7B7");
-            SetBrush(resources, "AppDisabledTextBrush", "#7F7F7F");
-            SetBrush(resources, "AppBorderBrush", "#4A4A4A");
-            SetBrush(resources, "AppSelectionBrush", "#365F91");
+            SetBrush(resources, "AppWindowBrush", "#17191D");
+            SetBrush(resources, "AppPanelBrush", "#1E2228");
+            SetBrush(resources, "AppControlBrush", "#252A31");
+            SetBrush(resources, "AppControlHoverBrush", "#303640");
+            SetBrush(resources, "AppControlPressedBrush", "#39414C");
+            SetBrush(resources, "AppTextBrush", "#F4F6F8");
+            SetBrush(resources, "AppMutedTextBrush", "#AAB2BD");
+            SetBrush(resources, "AppDisabledTextBrush", "#727B87");
+            SetBrush(resources, "AppBorderBrush", "#353B45");
+            SetBrush(resources, "AppSelectionBrush", "#263E5F");
             SetBrush(resources, "AppSelectionTextBrush", "#FFFFFF");
-            SetBrush(resources, "AppAccentBrush", "#4EA1FF");
+            SetBrush(resources, "AppAccentBrush", "#5AA7FF");
             SetBrush(resources, "AppAccentTextBrush", "#FFFFFF");
         }
         else
@@ -190,7 +190,7 @@ internal static class ThemeManager
             // Windows 11 otherwise renders the dark caption almost black.
             // Use a deliberately softer dark gray requested by the owner.
             var caption = IsDarkEffective
-                ? ToColorRef(0x2D, 0x2D, 0x30)
+                ? ToColorRef(0x1E, 0x22, 0x28)
                 : ToColorRef(0xF3, 0xF3, 0xF3);
             var text = IsDarkEffective
                 ? ToColorRef(0xF2, 0xF2, 0xF2)
