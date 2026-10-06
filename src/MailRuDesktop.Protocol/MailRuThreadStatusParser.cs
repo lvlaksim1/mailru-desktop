@@ -29,7 +29,8 @@ public sealed record MailRuMessageSummary(
     int? FolderId,
     bool Unread,
     bool Flagged,
-    bool HasAttachment)
+    bool HasAttachment,
+    bool Pinned = false)
 {
     public string SenderDisplay =>
         !string.IsNullOrWhiteSpace(SenderName)
@@ -76,6 +77,7 @@ public sealed record MailRuMessageSummary(
     public string UnreadMark => Unread ? "●" : string.Empty;
     public string AttachmentMark => HasAttachment ? "📎" : string.Empty;
     public string FlagMark => Flagged ? "★" : string.Empty;
+    public string PinMark => Pinned ? "📌" : string.Empty;
 }
 
 public sealed record MailRuFolderSnapshot(
@@ -316,6 +318,12 @@ public static class MailRuThreadStatusParser
         var attach = attachmentsCount > 0 ||
                      ReadBoolean(message, "attach") == true ||
                      ReadFlag(message, "attach") == true;
+        var pinned =
+            ReadBoolean(message, "pinned") ??
+            ReadBoolean(message, "pin") ??
+            ReadFlag(message, "pinned") ??
+            ReadFlag(message, "pin") ??
+            false;
 
         var (senderName, senderEmail) = ReadSender(message);
 
@@ -330,7 +338,8 @@ public static class MailRuThreadStatusParser
             folder is null ? null : checked((int)folder.Value),
             unread,
             flagged,
-            attach);
+            attach,
+            pinned);
     }
 
     private static (string Name, string Email) ReadSender(JsonElement element)
