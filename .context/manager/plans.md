@@ -27,7 +27,7 @@
 
 ## Near-term product plan
 
-- release v0.1.13 with AJ-only transport enforcement;
+- owner-install and runtime-validate released v0.1.13;
 - validate saved access-token migration and folder loading on owner runtime;
 - validate delayed-send `send_date` semantics through the verified AJ schedule endpoint;
 - determine valid modern compose-session message-id semantics;
