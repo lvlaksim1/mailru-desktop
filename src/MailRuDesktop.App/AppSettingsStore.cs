@@ -29,17 +29,17 @@ internal sealed class AppSettingsStore
         try
         {
             if (!File.Exists(_path))
-                return AppThemeMode.System;
+                return AppThemeMode.Dark;
 
             var json = File.ReadAllText(_path, Encoding.UTF8);
             var state = JsonSerializer.Deserialize<SettingsState>(json);
             return Enum.TryParse<AppThemeMode>(state?.Theme, true, out var mode)
                 ? mode
-                : AppThemeMode.System;
+                : AppThemeMode.Dark;
         }
         catch
         {
-            return AppThemeMode.System;
+            return AppThemeMode.Dark;
         }
     }
 
@@ -56,6 +56,6 @@ internal sealed class AppSettingsStore
 
     private sealed class SettingsState
     {
-        public string Theme { get; set; } = AppThemeMode.System.ToString();
+        public string Theme { get; set; } = AppThemeMode.Dark.ToString();
     }
 }
