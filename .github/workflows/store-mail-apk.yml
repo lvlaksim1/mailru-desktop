@@ -13,7 +13,7 @@ permissions:
 jobs:
   store-and-inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - name: Checkout research branch
         uses: actions/checkout@v4
@@ -44,20 +44,6 @@ jobs:
           sha256sum "$SRC" | sed 's#research/apk-15.107.0.148045/work/##' > research/apk-15.107.0.148045/package/SHA256SUMS.txt
           split -b 45m -d -a 3 "$SRC" research/apk-15.107.0.148045/package/parts/Mail_ru_15.107.0.148045_APKs.zip.part-
           sha256sum research/apk-15.107.0.148045/package/parts/* >> research/apk-15.107.0.148045/package/SHA256SUMS.txt
-          cat > research/apk-15.107.0.148045/package/README.md <<'EOF'
-          # Исходный пакет Mail.ru 15.107.0.148045
-
-          Пакет разбит на части по 45 МиБ, чтобы хранить его в GitHub.
-
-          Восстановление:
-
-          ```bash
-          cat parts/Mail_ru_15.107.0.148045_APKs.zip.part-* > Mail_ru_15.107.0.148045_APKs.zip
-          sha256sum -c <(head -n 1 SHA256SUMS.txt)
-          ```
-
-          Исходный пакет: `ru.mail.mailapp`, версия `15.107.0.148045`.
-          EOF
 
       - name: Unpack and inventory APKs
         shell: bash
@@ -99,7 +85,8 @@ jobs:
           grep -Ei '(^|[^A-Za-z0-9.-])([A-Za-z0-9-]+\.)+(mail\.ru|vk\.com)([^A-Za-z0-9.-]|$)' "$ROOT/findings/all-binary-strings.txt" |
             sort -u > "$ROOT/findings/mailru-host-hints.txt" || true
 
-          grep -Ei 'aj-https\.mail\.ru|alt-aj-https\.mail\.ru|attachmail\.ru|/api/v[0-9]+/|/cgi-bin/auth|messages/|threads/|folders/|attaches/|schedule|marks|move|search|draft|spam|flagged|contacts|addressbook|access_token|oauth'             "$ROOT/findings/all-binary-strings.txt" |
+          grep -Ei 'aj-https\.mail\.ru|alt-aj-https\.mail\.ru|attachmail\.ru|/api/v[0-9]+/|/cgi-bin/auth|messages/|threads/|folders/|attaches/|schedule|marks|move|search|draft|spam|flagged|contacts|addressbook|access_token|oauth' \
+            "$ROOT/findings/all-binary-strings.txt" |
             sort -u > "$ROOT/findings/api-and-auth-hints.txt" || true
 
           grep -Eo '/api/v[0-9]+/[A-Za-z0-9_./?&=%{}:+-]+' "$ROOT/findings/all-binary-strings.txt" |
@@ -107,6 +94,89 @@ jobs:
 
           grep -Ei 'aj-https\.mail\.ru|alt-aj-https\.mail\.ru' "$ROOT/findings/all-binary-strings.txt" |
             sort -u > "$ROOT/findings/aj-host-evidence.txt" || true
+
+      - name: Download JADX 1.5.6
+        shell: bash
+        run: |
+          set -euo pipefail
+          sleep 5
+          curl --fail --location --retry 2 --retry-delay 5 --connect-timeout 30 --max-time 600 \
+            'https://github.com/skylot/jadx/releases/download/v1.5.6/jadx-1.5.6.zip' \
+            -o "$RUNNER_TEMP/jadx.zip"
+          echo "545ea2be9c242511bc145755cf4bda2485ade42966e096f8b4d3da2a230e8974  $RUNNER_TEMP/jadx.zip" | sha256sum -c -
+          mkdir -p "$RUNNER_TEMP/jadx-bin"
+          unzip -q "$RUNNER_TEMP/jadx.zip" -d "$RUNNER_TEMP/jadx-bin"
+          chmod +x "$RUNNER_TEMP/jadx-bin/bin/jadx"
+
+      - name: Decompile code
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT=research/apk-15.107.0.148045
+          BASE="$ROOT/work/package/Mail-15.107.0.148045.apk"
+          mkdir -p "$RUNNER_TEMP/jadx-out"
+          "$RUNNER_TEMP/jadx-bin/bin/jadx" -r -j 4 -d "$RUNNER_TEMP/jadx-out" "$BASE" > "$RUNNER_TEMP/jadx.log" 2>&1 || true
+          test -d "$RUNNER_TEMP/jadx-out/sources"
+          {
+            echo '# Последние сообщения JADX'
+            tail -n 200 "$RUNNER_TEMP/jadx.log"
+          } > "$ROOT/findings/jadx-log-tail.txt"
+
+      - name: Save Mail.ru network source
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT=research/apk-15.107.0.148045
+          SRC="$RUNNER_TEMP/jadx-out/sources"
+          DEST="$ROOT/decompiled"
+          rm -rf "$DEST"
+          mkdir -p "$DEST/relevant" "$DEST/packages"
+
+          if [ -d "$SRC/ru/mail/serverapi" ]; then
+            mkdir -p "$DEST/packages/ru/mail"
+            cp -a "$SRC/ru/mail/serverapi" "$DEST/packages/ru/mail/"
+          fi
+          if [ -d "$SRC/ru/mail/auth/request" ]; then
+            mkdir -p "$DEST/packages/ru/mail/auth"
+            cp -a "$SRC/ru/mail/auth/request" "$DEST/packages/ru/mail/auth/"
+          fi
+          if [ -d "$SRC/ru/mail/mailbox/cmd" ]; then
+            mkdir -p "$DEST/packages/ru/mail/mailbox"
+            cp -a "$SRC/ru/mail/mailbox/cmd" "$DEST/packages/ru/mail/mailbox/"
+          fi
+
+          PAT='aj-https\.mail\.ru|alt-aj-https\.mail\.ru|mail_api_default_host|new_mail_api_default_host|auth_default_host|/cgi-bin/auth|messages/message|messages/marks|messages/move|messages/send|messages/schedule|messages/attaches/add|m/threads/status/smart|threads/status|messages/search|access_token|af\.attachmail\.ru'
+          grep -RIlE "$PAT" "$SRC" > "$ROOT/findings/jadx-matched-files.txt" || true
+
+          while IFS= read -r f; do
+            [ -n "$f" ] || continue
+            rel=$(realpath --relative-to="$SRC" "$f")
+            mkdir -p "$DEST/relevant/$(dirname "$rel")"
+            cp "$f" "$DEST/relevant/$rel"
+          done < "$ROOT/findings/jadx-matched-files.txt"
+
+          grep -RInE -C 5 "$PAT" "$SRC" > "$ROOT/findings/jadx-api-context.txt" || true
+
+          if [ -d "$DEST/packages/ru/mail/serverapi" ]; then
+            grep -RInE -C 4 '(@GET|@POST|@PUT|@DELETE|Request\.Builder|HttpUrl|addQueryParameter|addFormDataPart|FormBody|MultipartBody|ServerApi|ApiRequest)' \
+              "$DEST/packages/ru/mail/serverapi" > "$ROOT/findings/serverapi-http-context.txt" || true
+          else
+            : > "$ROOT/findings/serverapi-http-context.txt"
+          fi
+
+          grep -RhoE '["'\'''][^"'\''']*(/api/v[0-9]+/|/cgi-bin/auth|messages/|threads/|folders/|attaches/)[^"'\''']*["'\''']' \
+            "$SRC/ru/mail" 2>/dev/null | sort -u > "$ROOT/findings/decompiled-endpoint-strings.txt" || true
+
+          {
+            echo '# Декомпилированный сетевой слой'
+            echo
+            echo '- JADX: 1.5.6'
+            echo "- совпавших исходных файлов: $(wc -l < "$ROOT/findings/jadx-matched-files.txt" 2>/dev/null || echo 0)"
+            echo "- файлов ru/mail/serverapi: $(find "$DEST/packages/ru/mail/serverapi" -type f 2>/dev/null | wc -l)"
+            echo "- размер сохранённого сетевого слоя: $(du -sh "$DEST" | awk '{print $1}')"
+            echo
+            echo 'Каталог packages/ содержит сетевые пакеты Mail.ru целиком; relevant/ — файлы с прямыми совпадениями по AJ, авторизации и почтовым маршрутам.'
+          } > "$DEST/README.md"
 
       - name: Build research summary
         shell: bash
@@ -116,24 +186,26 @@ jobs:
           PARTS=$(find "$ROOT/package/parts" -type f | wc -l)
           APIS=$(wc -l < "$ROOT/findings/api-path-candidates.txt" || echo 0)
           URLS=$(wc -l < "$ROOT/findings/urls.txt" || echo 0)
+          MATCHED=$(wc -l < "$ROOT/findings/jadx-matched-files.txt" || echo 0)
+          SERVERAPI=$(find "$ROOT/decompiled/packages/ru/mail/serverapi" -type f 2>/dev/null | wc -l)
           cat > "$ROOT/README.md" <<EOF
           # Разбор Mail.ru Android 15.107.0.148045
 
-          Исходный комплект `ru.mail.mailapp` сохранён в этой исследовательской ветке частями.
+          Исходный комплект ru.mail.mailapp сохранён в этой исследовательской ветке частями.
 
           - частей исходного архива: **$PARTS**
-          - найдено строк-кандидатов маршрутов `/api/vN/...`: **$APIS**
+          - DEX-файлов: **$(wc -l < "$ROOT/inventory/dex-files.txt")**
+          - найдено строк-кандидатов маршрутов /api/vN/: **$APIS**
           - найдено строк, похожих на URL: **$URLS**
+          - файлов с прямыми совпадениями AJ/почтовых маршрутов после декомпиляции: **$MATCHED**
+          - сохранено файлов пакета ru/mail/serverapi: **$SERVERAPI**
 
           Основные материалы:
-          - `package/` — исходный пакет, разбитый на части, и контрольные суммы;
-          - `inventory/` — состав APK, DEX, машинных библиотек и ресурсов;
-          - `findings/aj-host-evidence.txt` — прямые упоминания AJ-хостов;
-          - `findings/api-path-candidates.txt` — кандидаты маршрутов API;
-          - `findings/api-and-auth-hints.txt` — строки, связанные с API и авторизацией;
-          - `findings/urls.txt` — URL, найденные в DEX/машинных библиотеках.
-
-          Это первичный статический разбор строк. Следующий этап — точечная декомпиляция классов, которые строят запросы к AJ, с восстановлением методов, параметров и моделей ответов.
+          - package/ — исходный пакет, разбитый на части, и контрольные суммы;
+          - inventory/ — состав APK, DEX, машинных библиотек и ресурсов;
+          - findings/ — результаты поиска адресов, маршрутов и контекста вызовов;
+          - decompiled/packages/ru/mail/serverapi/ — декомпилированный сетевой слой Mail.ru;
+          - decompiled/relevant/ — исходные файлы с прямыми совпадениями по AJ, авторизации и почтовым маршрутам.
           EOF
 
       - name: Commit research corpus
@@ -144,5 +216,9 @@ jobs:
           git config user.name "mailru-apk-research"
           git config user.email "actions@users.noreply.github.com"
           git add research/apk-15.107.0.148045
-          git commit -m "research: store and inventory Mail.ru Android 15.107.0.148045"
-          git push origin HEAD:research/mail-apk-15.107.0.148045
+          if git diff --cached --quiet; then
+            echo 'No research changes to commit'
+          else
+            git commit -m "research: decompile Mail.ru Android network layer"
+            git push origin HEAD:research/mail-apk-15.107.0.148045
+          fi
