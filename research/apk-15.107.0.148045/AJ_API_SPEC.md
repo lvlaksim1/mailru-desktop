@@ -1444,3 +1444,135 @@ Mail.ru Desktop должен разделять транспортный HTTP-к
 Для проекта Mail.ru Desktop это подтверждает, что новый поиск `/api/v1/go/search/emails` уходит на отдельный узел `go.mail.ru` и не соответствует принятому правилу AJ-only.
 
 Полный сырой отчёт сохранён в `APK_HOST_RESOURCES.md`.
+
+
+---
+
+## 28. Точные параметры загрузки почты
+
+### Список сообщений
+
+`GET /api/v1/messages/status`
+
+Параметры:
+
+- `folder`;
+- `last_modified`;
+- `limit`;
+- `offset`;
+- `snippet_limit`;
+- `prefetch=1`;
+- `refresh_mailbox=1`;
+- `sort={"type":"id", "order":"desc"}`;
+- общие `email`, `lang`, `access_token`.
+
+Команда также устанавливает `Accept-Encoding`.
+
+Ответ:
+
+- `body.messages[]`;
+- `body.folders[]`;
+- корневой `last_modified`.
+
+### Умный список цепочек
+
+`GET /api/v1/m/threads/status/smart`
+
+Параметры:
+
+- `folders` — формируется получателем `getFolders`;
+- `last_modified`;
+- `metathread_subjects=true`;
+- `refresh_mailbox` — необязательный;
+- `remove_emoji_opts`;
+- `reset_nc`;
+- `snippet_limit`;
+- `u_known`;
+- общие `email`, `lang`, `access_token`.
+
+Ответ:
+
+- `body.folders[]`;
+- `body.folders_content[]`;
+- `body.threads_mode_enabled`;
+- корневой `last_modified`.
+
+Каждый элемент `folders_content[]` привязан к `id` папки и содержит состояние сообщений/цепочек этой папки.
+
+### Получение одной цепочки
+
+`GET /api/v1/m/threads/thread`
+
+Параметры:
+
+- `id`;
+- `folder`;
+- `last_modified`;
+- `limit`;
+- `offset`;
+- `snippet_limit`;
+- `refresh_mailbox=1`;
+- `remove_emoji_opts`;
+- общие `email`, `lang`, `access_token`.
+
+Ответ:
+
+- `body.messages[]`;
+- данные цепочки;
+- корневой `last_modified`.
+
+### Полное письмо
+
+`GET /api/v1/messages/message`
+
+Текущий APK передаёт существенно больше параметров, чем минимальный ранее подтверждённый живой запрос:
+
+- `id`;
+- `folder_id`;
+- `mark_read`;
+- `htmlencoded=false`;
+- `let_body_type=let_body`;
+- `no_banner=Y`;
+- `thumbnails`;
+- `use_color_scheme`;
+- `bulk_show_images`;
+- `disable_quotation_parser`;
+- `remove_emoji_opts`;
+- `ajax_call=1`;
+- `multi_msg_prev=0`;
+- `multi_msg_past=0`;
+- `mobile=1`;
+- общие `email`, `lang`, `access_token`.
+
+Дополнительный заголовок:
+
+- `X-DomPurify-Version`.
+
+Минимальный живой AJ-вызов с `id`, `mark_read=false`, `mp=android` и `access_token` уже ранее подтверждён. Остальные поля выше — точная конфигурация текущего официального Android-клиента.
+
+### Список вложений письма
+
+`GET /api/v1/messages/attaches`
+
+Параметры:
+
+- `id`;
+- `attach_types` — формируется из массива типов;
+- общие `email`, `lang`, `access_token`.
+
+Ответ содержит:
+
+- `body.attaches`;
+- `attaches.list`.
+
+---
+
+## 29. Уровни подтверждения
+
+Для дальнейшей реализации применяются три уровня:
+
+- **Живой AJ + APK** — маршрут уже наблюдался в рабочем запросе и подтверждён кодом APK. Это максимальная уверенность.
+- **APK** — метод, маршрут и параметры восстановлены непосредственно из текущего официального приложения, но конкретная операция ещё не прогонялась нашим тестовым аккаунтом.
+- **Не AJ** — APK явно отправляет операцию на другой узел; такую функцию нельзя включать в Mail.ru Desktop при текущем правиле проекта.
+
+Наличие уровня **APK** не означает гипотезу: это подтверждённый клиентский договор текущего приложения. Живая проверка нужна только для проверки совместимости нашей собственной реализации и текущего состояния сервера.
