@@ -1,0 +1,1051 @@
+{
+  "package": "ru.mail.mailapp",
+  "version": "15.107.0.148045",
+  "token_type": "ru.mail.oauth2.access",
+  "token_parameter": "access_token",
+  "routes": [
+    {
+      "method": "GET",
+      "route": "/api/v1/m/threads/status/smart",
+      "class": "BatchSmartStatusCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "BatchSmartStatusCommand"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/m/threads/thread",
+      "class": "ThreadRequestCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "ThreadRequestCommand",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/m/threads/marks",
+      "class": "MarkThreadCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "MarkThreadCommand",
+        "ThreadPostServerRequest",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/m/threads/move",
+      "class": "MoveThreadCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "MoveThreadCommand",
+        "ThreadPostServerRequest",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/m/threads/remove",
+      "class": "RemoveThreadCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "RemoveThreadCommand",
+        "ThreadPostServerRequest",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/m/threads/services/spam",
+      "class": "SpamThreadCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "SpamThreadCommand",
+        "ThreadPostServerRequest",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/m/threads/services/unspam",
+      "class": "UnspamThreadCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "UnspamThreadCommand",
+        "ThreadPostServerRequest",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/messages/status",
+      "class": "MessagesStatusCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "MessagesStatusCommand",
+        "RequestWithImapActivation",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/messages/message",
+      "class": "MailMessageRequestCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "MailMessageRequestCommand",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/messages/attaches",
+      "class": "MessageAttachesRequestCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "MessageAttachesRequestCommand",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/messages/attaches/add",
+      "class": "TornadoUploadRequest",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "TornadoUploadRequest",
+        "UploadFileCommand",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/messages/attaches/remove",
+      "class": "TornadoRemoveRequest",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "TornadoRemoveRequest",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/messages/attaches/reattach",
+      "class": "TornadoReattachRequest",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "TornadoReattachRequest",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/messages/attaches/view",
+      "class": "DownloadFileInMemoryCmd",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "DownloadFileInMemoryCmd",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/messages/marks",
+      "class": "MarkMessageCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "MarkMessageCommand",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/messages/marks/all",
+      "class": "MarkAllMessageCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "MarkAllMessageCommand",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/messages/move",
+      "class": "TornadoMoveMessage",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "TornadoMoveMessage",
+        "TornadoBaseMoveMessage",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/messages/move/all",
+      "class": "MoveAllMessageCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "MoveAllMessageCommand",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/messages/remove",
+      "class": "TornadoRemoveMessage",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "TornadoRemoveMessage",
+        "TornadoBaseMoveMessage",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/messages/remove/all",
+      "class": "RemoveAllMessageCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "RemoveAllMessageCommand",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/messages/services/spam",
+      "class": "TornadoSpamAbuse",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "TornadoSpamAbuse",
+        "TornadoBaseMoveMessage",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/messages/services/unspam",
+      "class": "TornadoNoSpam",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "TornadoNoSpam",
+        "TornadoBaseMoveMessage",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/messages/services/unsubscribe",
+      "class": "UnsubscribeMessageCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "UnsubscribeMessageCommand",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/messages/services/bounce",
+      "class": "TornadoRedirectRequest",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "TornadoRedirectRequest",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/messages/services/category/change",
+      "class": "ChangeMessageCategoryRequest",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "ChangeMessageCategoryRequest",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/messages/services/category/feedback",
+      "class": "MailCategoryFeedbackCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "MailCategoryFeedbackCommand",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/messages/send",
+      "class": "TornadoSendRequest",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "TornadoSendRequest",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/messages/draft",
+      "class": "TornadoDraftRequest",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "TornadoDraftRequest",
+        "TornadoSendRequest",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/messages/schedule",
+      "class": "TornadoScheduleRequest",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "TornadoScheduleRequest",
+        "TornadoSendRequest",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/messages/search",
+      "class": "MessagesSearchCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "MessagesSearchCommand",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/go/search/emails",
+      "class": "MessagesSearchCommandNew",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "search_new_host",
+      "scheme_resource": "search_new_default_scheme",
+      "auth_chain": [
+        "MessagesSearchCommandNew",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "decompiled/packages/ru/mail/data/cmd/server/MessagesSearchCommandNew.java",
+      "host": "go.mail.ru"
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/messages/search/suggest",
+      "class": "GetSuggestionsCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "GetSuggestionsCommand",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/messages/replies/smart",
+      "class": "SmartReplyRequestCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "SmartReplyRequestCommand",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/messages/snoozes/update",
+      "class": "UpdateSnoozeRequest",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "UpdateSnoozeRequest",
+        "AbstractSnoozeRequest",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/messages/snoozes/remove",
+      "class": "RemoveSnoozeRequest",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "RemoveSnoozeRequest",
+        "AbstractSnoozeRequest",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/messages/colortags/set",
+      "class": "SetCustomTagsCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "SetCustomTagsCommand",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/messages/colortags/unset",
+      "class": "UnsetCustomTagsCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "UnsetCustomTagsCommand",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/messages/meta",
+      "class": "RequestMessageMetaCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "RequestMessageMetaCommand",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/messages/notify/read",
+      "class": "MailReadVerifyRequest",
+      "default_auth": "TORNADO",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "MailReadVerifyRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/messages/message/download",
+      "class": "DownloadMessageEmlCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "DownloadMessageEmlCommand",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/messages/message/summarize",
+      "class": "MailSummarizeRequest",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "MailSummarizeRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/messages/count/all",
+      "class": "CountAllRequestCmd",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "CountAllRequestCmd",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/folders",
+      "class": "DirectoriesListRequest",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "DirectoriesListRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/folders/add",
+      "class": "CreateFolder",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "CreateFolder",
+        "UpdateFolder",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/folders/edit",
+      "class": "UpdateFolder",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "UpdateFolder",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/folders/remove",
+      "class": "DeleteFolder",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "DeleteFolder",
+        "UpdateFolder",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/folders/clear",
+      "class": "TornadoCleanFolder",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "TornadoCleanFolder",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/folders/archive/ensure",
+      "class": "CreateArchiveFolderCmd",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "CreateArchiveFolderCmd",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/folders/open",
+      "class": "FolderLoginCommandImpl",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "FolderLoginCommandImpl",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/folders/close",
+      "class": "FoldersLogoutCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "FoldersLogoutCommand",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/filters",
+      "class": "RequestFiltersCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "RequestFiltersCommand",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/filters/add",
+      "class": "AddFilterCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "AddFilterCommand",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/filters/edit",
+      "class": "UpdateFilterCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "UpdateFilterCommand",
+        "AddFilterCommand",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/filters/remove",
+      "class": "DeleteFilter",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "DeleteFilter",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/ab/smart",
+      "class": "AddressBookFetchV2",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "AddressBookFetchV2",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/ab/fast",
+      "class": "SearchPeopleCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "SearchPeopleCommand",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "GET",
+      "route": "/api/v1/ab/lastseen",
+      "class": "UsersLastSeenRequest",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "UsersLastSeenRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    },
+    {
+      "method": "POST",
+      "route": "/api/v1/attaches/add/to-cloud",
+      "class": "SaveAttachmentsToCloudCommand",
+      "default_auth": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "auth_chain": [
+        "SaveAttachmentsToCloudCommand",
+        "PostServerRequest",
+        "ServerCommandBase",
+        "NetworkCommandWithSession"
+      ],
+      "host_source": "",
+      "host": "aj-https.mail.ru / alt-aj-https.mail.ru family"
+    }
+  ]
+}
