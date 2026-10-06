@@ -463,6 +463,39 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void MessagesGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message ||
+            string.IsNullOrWhiteSpace(_activeLogin))
+        {
+            return;
+        }
+
+        var folders = (FolderListBox.ItemsSource as IEnumerable<MailRuFolderSummary>)?.ToArray()
+            ?? Array.Empty<MailRuFolderSummary>();
+
+        var window = new MessageWindow(
+            _mailRu,
+            message,
+            _activeLogin,
+            _accessToken,
+            _webToken,
+            _searchToken,
+            _webCookieHeader,
+            _touchCookieHeader,
+            _currentFolderId,
+            folders,
+            _currentFullMessage?.Id == message.Id ? _currentFullMessage : null)
+        {
+            Owner = this
+        };
+
+        window.ShowDialog();
+
+        if (window.MailboxChanged)
+            await LoadFolderAsync(_currentFolderId);
+    }
+
     private async void MessagesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (MessagesGrid.SelectedItem is not MailRuMessageSummary message)
