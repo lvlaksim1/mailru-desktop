@@ -1138,16 +1138,14 @@ public partial class MainWindow : Window
             }
         }
 
-        if (!string.IsNullOrWhiteSpace(_searchToken) &&
-            !string.IsNullOrWhiteSpace(_activeLogin))
+        if (!string.IsNullOrWhiteSpace(_searchToken))
         {
-            _lastFolderUsedTouchSearch = true;
-            return await _mailRu.SearchTouchAsync(
-                _searchToken,
-                _activeLogin,
-                _touchCookieHeader,
-                query: "*",
-                count: 200);
+            // A Hackus touch/search token is valid for search/contacts, but
+            // gosearch?q_query=* is NOT a folder listing endpoint. Returning it
+            // here produced an apparently successful empty mailbox in v0.1.9.
+            throw webFailure ?? mobileFailure ?? new InvalidOperationException(
+                "Touch/search token получен, но mobile access_token для загрузки папок отсутствует. " +
+                "Повторите вход; диагностическая причина сохранена.");
         }
 
         throw webFailure ?? mobileFailure ?? new InvalidOperationException(
