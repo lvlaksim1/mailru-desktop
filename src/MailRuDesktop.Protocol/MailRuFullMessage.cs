@@ -296,9 +296,9 @@ public static class MailRuFullMessageParser
         if (Uri.TryCreate(value, UriKind.Absolute, out _))
             return value;
 
-        if (value.StartsWith("/", StringComparison.Ordinal))
-            return "https://e.mail.ru" + value;
-
+        // AJ-only mode does not synthesize external Mail.ru hosts for
+        // relative attachment links. Such links remain unresolved until an
+        // aj-https.mail.ru download endpoint is verified.
         return value;
     }
 
