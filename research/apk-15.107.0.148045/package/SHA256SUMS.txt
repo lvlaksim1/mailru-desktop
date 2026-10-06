@@ -1,0 +1,8 @@
+42c976a0c2f3d5fb186a88bc855f782c81c8ce35f952fcf22f99c64828880af6  Mail_ru_15.107.0.148045_APKs.zip
+9be043411bf822bde3bb3048a67974b7b66f920b8ed40f0f6d2964c22cb0e08d  research/apk-15.107.0.148045/package/parts/Mail_ru_15.107.0.148045_APKs.zip.part-000
+6dd1a5569d9f86dbb60eecc39c48935960cbccc55a56f6e923cdbd63f6972f44  research/apk-15.107.0.148045/package/parts/Mail_ru_15.107.0.148045_APKs.zip.part-001
+55510dcb730ae31ac345b227203d33ee97eb00a2a159c46312771092c457fe89  research/apk-15.107.0.148045/package/parts/Mail_ru_15.107.0.148045_APKs.zip.part-002
+02207384a0e8abd372d2c4f7c61bfdafdc12cbe6327745c2f0561a95571f4659  research/apk-15.107.0.148045/package/parts/Mail_ru_15.107.0.148045_APKs.zip.part-003
+66e0be69fc1e5f9c777bafd6e1b526c6ed3e039ae512992ca48e072586b4b7c0  research/apk-15.107.0.148045/package/parts/Mail_ru_15.107.0.148045_APKs.zip.part-004
+140e04d1d89a2866a32d581594ee9f54f0141900cc70aa7706f32390ac6ff48c  research/apk-15.107.0.148045/package/parts/Mail_ru_15.107.0.148045_APKs.zip.part-005
+fbf263fc6dfd2c5a8154e3b4135e1086d7fac90542936c203e81f4b5b20cde18  research/apk-15.107.0.148045/package/parts/Mail_ru_15.107.0.148045_APKs.zip.part-006

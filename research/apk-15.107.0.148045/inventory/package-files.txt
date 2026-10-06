@@ -1,0 +1,10 @@
+# Файлы комплекта
+
+Mail-15.107.0.148045.apk	268517299 bytes
+config.armeabi_v7a.apk	36873838 bytes
+config.xxhdpi.apk	12004991 bytes
+
+# SHA-256
+737dcad2a7c5796aa991a1a25e8f436b85a0aaf6db863cb214280766bc5ba370  Mail-15.107.0.148045.apk
+5c672ea7fc54537eed080ce0f66867179616bef2999d32941171ca76bac7cb9c  config.armeabi_v7a.apk
+37e6141116eecc266e612bf0d797e27270e20738c6913fa0e1fd2d9ac32ef3f9  config.xxhdpi.apk
