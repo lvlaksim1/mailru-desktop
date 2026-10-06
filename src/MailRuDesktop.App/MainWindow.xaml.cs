@@ -661,7 +661,7 @@ public partial class MainWindow : Window
 
             var bytes = await _mailRu.DownloadIncomingAttachmentAsync(
                 attachment,
-                _webCookieHeader ?? _touchCookieHeader);
+                _touchCookieHeader ?? _webCookieHeader);
 
             await File.WriteAllBytesAsync(dialog.FileName, bytes);
             FolderStatusText.Text =
