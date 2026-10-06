@@ -198,7 +198,7 @@ public sealed class MailRuClient : IDisposable
                 web.Challenge);
         }
 
-        return new MailRuAuthResult(true, web.AccessToken, web.RefreshToken, null)
+        return new MailRuAuthResult(true, null, null, null)
         {
             State = MailRuAuthState.Success,
             WebToken = web.WebToken,
