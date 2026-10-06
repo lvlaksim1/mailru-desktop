@@ -221,7 +221,7 @@ public partial class MessageWindow : Window
 
         var document =
             "<!doctype html><html><head><meta charset='utf-8'>" +
-            "<meta http-equiv='Content-Security-Policy' content=\"default-src 'none'; img-src data: https:; style-src 'unsafe-inline';\">" +
+            "<meta http-equiv='Content-Security-Policy' content=\"default-src 'none'; img-src data:; style-src 'unsafe-inline';\">" +
             "<style>" +
             $"html,body{{background:{background}!important;color:{foreground}!important;}}" +
             "body{font-family:'Segoe UI',Arial,sans-serif;font-size:14px;margin:16px;overflow-wrap:anywhere;}" +
