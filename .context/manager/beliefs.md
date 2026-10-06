@@ -127,3 +127,12 @@ statement: GitHub Release `v0.1.14` was published on 2026-10-06. It removes the 
 source: direct Owner directive; commits `0e95bfec07a86f66f89444377a43858be0232d7a` and `9070cae8824950dda1d6dc4c9b3ace66485ff5a2`; GitHub Release id `404651871`.
 authority: owner-directive + verified-repository
 supersedes: any interpretation that the five-second research pacing rule belongs in normal product runtime
+
+
+## B-017 — af.attachmail.ru explicitly allowed
+
+statement: By Owner decision on 2026-10-06, `https://af.attachmail.ru` is explicitly permitted for product runtime. It is an allowed auxiliary Mail.ru host alongside `https://aj-https.mail.ru`; the currently verified VBA use is downloading incoming attachments through `/cgi-bin/readmsg` with the existing `access_token`. Other sibling Mail.ru hosts remain prohibited unless separately approved.
+
+source: direct Owner directive in the active project conversation; Owner-provided VBA source showing `https://af.attachmail.ru/cgi-bin/readmsg`.
+authority: owner-directive + owner-provided-runtime-source
+supersedes: B-012 only insofar as it previously prohibited every Mail.ru runtime host except `aj-https.mail.ru`
