@@ -110,67 +110,12 @@ public partial class MessageWindow : Window
         }
     }
 
-    private async Task LoadFullMessageAsync()
+    private Task LoadFullMessageAsync()
     {
-        StatusText.Text = "Загрузка полного письма...";
-
-        string? raw = null;
-        Exception? failure = null;
-
-        // Hackus full-message path is authoritative.
-        if (!string.IsNullOrWhiteSpace(_searchToken))
-        {
-            try
-            {
-                raw = await _mailRu.GetFullMessageTouchAsync(
-                    _searchToken,
-                    _login,
-                    _summary.Id,
-                    _touchCookieHeader);
-            }
-            catch (Exception ex)
-            {
-                failure = ex;
-                DiagnosticLog.Write("message_window_touch", ex.GetType().Name + ": " + ex.Message);
-            }
-        }
-
-        if (raw is null && !string.IsNullOrWhiteSpace(_webToken))
-        {
-            try
-            {
-                raw = await _mailRu.GetFullMessageWebAsync(
-                    _webToken,
-                    _login,
-                    _summary.Id,
-                    _webCookieHeader,
-                    _currentFolderId);
-            }
-            catch (Exception ex)
-            {
-                failure ??= ex;
-                DiagnosticLog.Write("message_window_web", ex.GetType().Name + ": " + ex.Message);
-            }
-        }
-
-        if (raw is null)
-        {
-            StatusText.Text = failure?.Message ?? "Полное письмо недоступно.";
-            ShowBody(_summary.Snippet, html: false);
-            return;
-        }
-
-        try
-        {
-            ApplyFullMessage(MailRuFullMessageParser.Parse(raw, _summary.Id));
-            StatusText.Text = "Письмо загружено";
-        }
-        catch (Exception ex)
-        {
-            StatusText.Text = "Ошибка разбора письма: " + ex.Message;
-            DiagnosticLog.Write("message_window_parse", ex.GetType().Name + ": " + ex.Message);
-            ShowBody(_summary.Snippet, html: false);
-        }
+        StatusText.Text =
+            "Полное письмо пока не загружается: используется только aj-https.mail.ru.";
+        ShowBody(_summary.Snippet, html: false);
+        return Task.CompletedTask;
     }
 
     private void ApplyFullMessage(MailRuFullMessage full)
@@ -280,8 +225,7 @@ public partial class MessageWindow : Window
         if (string.IsNullOrWhiteSpace(_accessToken))
         {
             ComposeStatusText.Text =
-                "Для отправки этой сессии пока нет mobile access_token. " +
-                "Чтение и действия работают через Hackus touch-сессию.";
+                "Для отправки нет AJ access_token. Выполните авторизацию заново.";
             return;
         }
 
@@ -346,83 +290,18 @@ public partial class MessageWindow : Window
         await MoveAsync(folder.Id, $"Перемещение в «{folder.Name}»");
     }
 
-    private async Task MoveAsync(int folderId, string operation)
+    private Task MoveAsync(int folderId, string operation)
     {
-        StatusText.Text = operation + "...";
-
-        try
-        {
-            MailRuCommandResult result;
-
-            if (!string.IsNullOrWhiteSpace(_searchToken))
-            {
-                result = await _mailRu.MoveTouchMessagesToFolderAsync(
-                    _searchToken,
-                    _login,
-                    [_summary.Id],
-                    folderId,
-                    _touchCookieHeader);
-            }
-            else if (!string.IsNullOrWhiteSpace(_webToken))
-            {
-                result = await _mailRu.MoveWebMessagesToFolderAsync(
-                    _webToken,
-                    _login,
-                    [_summary.Id],
-                    folderId,
-                    _webCookieHeader);
-            }
-            else
-            {
-                StatusText.Text = "Для перемещения нет действующего транспорта.";
-                return;
-            }
-
-            if (!result.Success)
-            {
-                StatusText.Text = operation + " не выполнено.";
-                DiagnosticLog.Write("message_window_move", result.RawResponse);
-                return;
-            }
-
-            MailboxChanged = true;
-            StatusText.Text = operation + " выполнено.";
-        }
-        catch (Exception ex)
-        {
-            StatusText.Text = ex.Message;
-            DiagnosticLog.Write("message_window_move", ex.GetType().Name + ": " + ex.Message);
-        }
+        StatusText.Text =
+            "Перемещение временно отключено: для него ещё не подтверждён endpoint aj-https.mail.ru.";
+        return Task.CompletedTask;
     }
 
-    private async void AttachmentButton_Click(object sender, RoutedEventArgs e)
+    private void AttachmentButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button { Tag: MailRuIncomingAttachment attachment })
-            return;
-
-        var dialog = new SaveFileDialog
-        {
-            FileName = SanitizeFileName(attachment.DisplayName),
-            Title = "Сохранить вложение"
-        };
-
-        if (dialog.ShowDialog(this) != true)
-            return;
-
-        try
-        {
-            StatusText.Text = "Скачивание вложения...";
-            var bytes = await _mailRu.DownloadIncomingAttachmentAsync(
-                attachment,
-                _touchCookieHeader ?? _webCookieHeader);
-            await File.WriteAllBytesAsync(dialog.FileName, bytes);
-            StatusText.Text = "Вложение сохранено.";
-        }
-        catch (Exception ex)
-        {
-            StatusText.Text = "Ошибка скачивания: " + ex.Message;
-            DiagnosticLog.Write("message_window_attachment", ex.GetType().Name + ": " + ex.Message);
-        }
+        StatusText.Text =
+            "Скачивание входящих вложений временно отключено: " +
+            "для него ещё не подтверждён endpoint aj-https.mail.ru.";
     }
 
     private static string PrefixSubject(string prefix, string subject) =>
