@@ -1,6 +1,14 @@
 # Latest handoff
 
-MailRu Desktop is being moved from the v0.1.12 Hackus touch/web architecture to owner-mandated **AJ-only** v0.1.13.
+MailRu Desktop v0.1.13 is now released and `main` is authoritative.
+
+Release state:
+
+- PR #18 was merged into `main`;
+- product commit: `6c5638ae8fa85ca9db63378bec8531d8356fe692`;
+- GitHub Release: `v0.1.13`;
+- existing installations use `MailRuDesktop_Update_v0.1.13.exe`;
+- first install/recovery uses `MailRuDesktop_Setup_v0.1.13.exe`.
 
 Authoritative runtime rule:
 
@@ -30,6 +38,11 @@ Historical note:
 - it is evidence only and is not an allowed product runtime path;
 - do not merge or revive it without an explicit Owner reversal.
 
-Implementation branch: `release/0.1.13-aj-only`
-PR: #18
+Immediate work:
+
+1. owner runtime-validation of v0.1.13;
+2. delayed-send validation;
+3. AJ-only discovery of the missing message operations;
+4. maintain at least five seconds between project network requests.
+
 Version: 0.1.13
