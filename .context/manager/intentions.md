@@ -9,9 +9,9 @@ status: active — AJ smart-thread path is the sole mailbox-list transport
 The active endpoint is `aj-https.mail.ru/api/v1/m/threads/status/smart` using the mobile `access_token`. Touch/web mailbox fallbacks are removed.
 
 ## I-003 — expand reverse API coverage
-status: active — AJ-only research
+status: active — permitted-host research
 
-Only `aj-https.mail.ru` candidates may be promoted into runtime. Next priorities are full message, incoming attachments, move/archive/delete, contacts and search.
+`aj-https.mail.ru` remains the primary API host and `af.attachmail.ru` is explicitly allowed for incoming attachment download. Full message, read/unread, move/archive/trash and incoming attachment download are now released; remaining priorities are permanent delete, contacts, server search and confirmed flag mutation.
 
 ## I-004 — send/scheduled-send flow
 status: active — immediate send established; delayed send runtime validation pending
@@ -21,24 +21,24 @@ Both outgoing attachment upload and send/schedule remain on verified AJ endpoint
 ## I-005 — installer/update release channel
 status: completed
 
-v0.1.14 has been published with both `MailRuDesktop_Update_v0.1.14.exe` for existing installations and `MailRuDesktop_Setup_v0.1.14.exe` for first install/recovery.
+v0.1.15 has been published with both `MailRuDesktop_Update_v0.1.15.exe` for existing installations and `MailRuDesktop_Setup_v0.1.15.exe` for first install/recovery.
 
 ## I-006 — full-message read and incoming attachments
-status: blocked on AJ endpoint discovery
+status: released in v0.1.15
 
-The previous touch/web implementation is removed from active runtime. UI falls back to the thread snippet and explains that full content/download is unavailable until an AJ endpoint is verified.
+Full-message retrieval uses `aj-https.mail.ru/api/v1/messages/message`. Incoming attachment download uses the Owner-approved `af.attachmail.ru/cgi-bin/readmsg` path.
 
 ## I-007 — AJ-only account authorization
-status: released; owner runtime validation of v0.1.14 remains pending
+status: released; owner runtime validation of v0.1.15 remains pending
 
 Authentication uses only the mobile OAuth-style AJ request. Success requires `access_token`. CAPTCHA/reCAPTCHA/additional verification produces a user notification and stops authorization; there is no challenge solver and no web/touch fallback.
 
 ## I-008 — incoming message actions
-status: blocked on AJ endpoint discovery
+status: partially released in v0.1.15
 
-Move/archive/permanent delete are disabled until verified AJ endpoints are found.
+Read/unread uses `/api/v1/messages/marks`; move/archive/trash use `/api/v1/messages/move`. Permanent delete remains disabled pending a verified permitted-host operation.
 
 ## I-009 — desktop UX/settings
 status: active
 
-Existing desktop UX remains. v0.1.14 removes the artificial five-second runtime request delay without changing `last_modified` folder semantics.
+Existing desktop UX remains. v0.1.15 adds full-message viewing, incoming attachment download, read/unread control, move, archive and trash while leaving `last_modified` unchanged.
