@@ -30,7 +30,7 @@ jobs:
         run: |
           $catalogPath = 'src/MailRuDesktop.Protocol/MailRuProtocol.cs'
           $catalog = Get-Content $catalogPath -Raw
-          $approved = [regex]::Matches($catalog, 'new\("[^"]+",\s*"[^"]+",\s*"([^"]+\.mail\.ru)"') |
+          $approved = [regex]::Matches($catalog, 'new\("[^"]+",\s*"[^"]+",\s*"([A-Za-z0-9.-]+)"') |
             ForEach-Object { $_.Groups[1].Value.ToLowerInvariant() } |
             Sort-Object -Unique
 
@@ -43,7 +43,7 @@ jobs:
             Get-Content $path | ForEach-Object {
               $lineNumber++
               $line = $_
-              foreach ($match in [regex]::Matches($line, 'https://([A-Za-z0-9.-]*mail\.ru)')) {
+              foreach ($match in [regex]::Matches($line, 'https://([A-Za-z0-9.-]*(?:mail\.ru|attachmail\.ru))')) {
                 $mailHost = $match.Groups[1].Value.ToLowerInvariant()
                 if ($approved -notcontains $mailHost) {
                   $violations += ('{0}:{1}: {2}' -f $path, $lineNumber, $line.Trim())
