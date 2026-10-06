@@ -120,10 +120,10 @@ source: merged PR #18; product commit `6c5638ae8fa85ca9db63378bec8531d8356fe692`
 authority: verified-repository
 supersedes: state that v0.1.13 was only being prepared
 
-## B-015 — v0.1.13 AJ-only release
+## B-016 — v0.1.14 removes runtime pacing delay
 
-statement: Pull request #18 was merged into `main` on 2026-10-06 and GitHub Release `v0.1.13` was published. The release contains both `MailRuDesktop_Setup_v0.1.13.exe` and `MailRuDesktop_Update_v0.1.13.exe`.
+statement: GitHub Release `v0.1.14` was published on 2026-10-06. It removes the artificial five-second delay from normal application protocol requests while retaining request serialization. The `last_modified` behavior of folder loading was intentionally left unchanged. The five-second spacing rule remains mandatory for project research, probes, and automated tests.
 
-source: merged PR #18; product commit `6c5638ae8fa85ca9db63378bec8531d8356fe692`; GitHub Release id `404300426`.
-authority: verified-repository
-supersedes: state that v0.1.13 was only being prepared
+source: direct Owner directive; commits `0e95bfec07a86f66f89444377a43858be0232d7a` and `9070cae8824950dda1d6dc4c9b3ace66485ff5a2`; GitHub Release id `404651871`.
+authority: owner-directive + verified-repository
+supersedes: any interpretation that the five-second research pacing rule belongs in normal product runtime
