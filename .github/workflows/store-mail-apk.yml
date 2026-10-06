@@ -1,0 +1,148 @@
+name: Store and inspect Mail.ru APK
+
+on:
+  push:
+    branches:
+      - research/mail-apk-15.107.0.148045
+    paths:
+      - '.github/workflows/store-mail-apk.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  store-and-inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout research branch
+        uses: actions/checkout@v4
+        with:
+          ref: research/mail-apk-15.107.0.148045
+          fetch-depth: 1
+
+      - name: Download package
+        shell: bash
+        env:
+          DOWNLOAD_URL: 'https://srv6.apk.contact/storage/24/102/2102/split/594134/Mail.zip?apk_id=3823&e=1791387453&file_id=3526975&lang=en&premium_speed=0&s=BY2B-ODheCWQ9DKFXO2_dA&split_id=594134'
+        run: |
+          set -euo pipefail
+          mkdir -p research/apk-15.107.0.148045/{package/parts,inventory,findings,work}
+          sleep 5
+          curl --fail --location --retry 2 --retry-delay 5 --connect-timeout 30 --max-time 900 \
+            --user-agent 'Mozilla/5.0' \
+            "$DOWNLOAD_URL" \
+            --output research/apk-15.107.0.148045/work/Mail_ru_15.107.0.148045_APKs.zip
+          test "$(stat -c%s research/apk-15.107.0.148045/work/Mail_ru_15.107.0.148045_APKs.zip)" -gt 100000000
+          unzip -t research/apk-15.107.0.148045/work/Mail_ru_15.107.0.148045_APKs.zip >/dev/null
+
+      - name: Split source package for repository storage
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC=research/apk-15.107.0.148045/work/Mail_ru_15.107.0.148045_APKs.zip
+          sha256sum "$SRC" | sed 's#research/apk-15.107.0.148045/work/##' > research/apk-15.107.0.148045/package/SHA256SUMS.txt
+          split -b 45m -d -a 3 "$SRC" research/apk-15.107.0.148045/package/parts/Mail_ru_15.107.0.148045_APKs.zip.part-
+          sha256sum research/apk-15.107.0.148045/package/parts/* >> research/apk-15.107.0.148045/package/SHA256SUMS.txt
+          cat > research/apk-15.107.0.148045/package/README.md <<'EOF'
+          # Исходный пакет Mail.ru 15.107.0.148045
+
+          Пакет разбит на части по 45 МиБ, чтобы хранить его в GitHub.
+
+          Восстановление:
+
+          ```bash
+          cat parts/Mail_ru_15.107.0.148045_APKs.zip.part-* > Mail_ru_15.107.0.148045_APKs.zip
+          sha256sum -c <(head -n 1 SHA256SUMS.txt)
+          ```
+
+          Исходный пакет: `ru.mail.mailapp`, версия `15.107.0.148045`.
+          EOF
+
+      - name: Unpack and inventory APKs
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT=research/apk-15.107.0.148045
+          unzip -q "$ROOT/work/Mail_ru_15.107.0.148045_APKs.zip" -d "$ROOT/work/package"
+          {
+            echo '# Файлы комплекта'
+            echo
+            find "$ROOT/work/package" -maxdepth 1 -type f -printf '%f\t%s bytes\n' | sort
+            echo
+            echo '# SHA-256'
+            (cd "$ROOT/work/package" && sha256sum *.apk)
+          } > "$ROOT/inventory/package-files.txt"
+
+          BASE="$ROOT/work/package/Mail-15.107.0.148045.apk"
+          unzip -l "$BASE" > "$ROOT/inventory/base-apk-contents.txt"
+          unzip -Z1 "$BASE" | grep -E '^classes([0-9]+)?\.dex$' > "$ROOT/inventory/dex-files.txt" || true
+          unzip -Z1 "$BASE" | grep -E '^lib/.+\.so$' > "$ROOT/inventory/native-libraries.txt" || true
+          unzip -Z1 "$BASE" | grep -E '(^|/)(res|assets)/' > "$ROOT/inventory/resources-and-assets.txt" || true
+
+      - name: Extract DEX and native strings
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT=research/apk-15.107.0.148045
+          BASE="$ROOT/work/package/Mail-15.107.0.148045.apk"
+          mkdir -p "$ROOT/work/base"
+          (cd "$ROOT/work/base" && unzip -q "$GITHUB_WORKSPACE/$BASE" 'classes*.dex' 'lib/*/*.so' 'assets/*' 2>/dev/null || true)
+
+          find "$ROOT/work/base" -type f \( -name '*.dex' -o -name '*.so' \) -print0 |
+            xargs -0 -r strings -a -n 4 |
+            LC_ALL=C sort -u > "$ROOT/findings/all-binary-strings.txt"
+
+          grep -Eio 'https?://[^[:space:]"'\''<>]+' "$ROOT/findings/all-binary-strings.txt" |
+            sed 's/[),;]$//' | sort -u > "$ROOT/findings/urls.txt" || true
+
+          grep -Ei '(^|[^A-Za-z0-9.-])([A-Za-z0-9-]+\.)+(mail\.ru|vk\.com)([^A-Za-z0-9.-]|$)' "$ROOT/findings/all-binary-strings.txt" |
+            sort -u > "$ROOT/findings/mailru-host-hints.txt" || true
+
+          grep -Ei 'aj-https\.mail\.ru|alt-aj-https\.mail\.ru|attachmail\.ru|/api/v[0-9]+/|/cgi-bin/auth|messages/|threads/|folders/|attaches/|schedule|marks|move|search|draft|spam|flagged|contacts|addressbook|access_token|oauth'             "$ROOT/findings/all-binary-strings.txt" |
+            sort -u > "$ROOT/findings/api-and-auth-hints.txt" || true
+
+          grep -Eo '/api/v[0-9]+/[A-Za-z0-9_./?&=%{}:+-]+' "$ROOT/findings/all-binary-strings.txt" |
+            sed 's/[),;]$//' | sort -u > "$ROOT/findings/api-path-candidates.txt" || true
+
+          grep -Ei 'aj-https\.mail\.ru|alt-aj-https\.mail\.ru' "$ROOT/findings/all-binary-strings.txt" |
+            sort -u > "$ROOT/findings/aj-host-evidence.txt" || true
+
+      - name: Build research summary
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT=research/apk-15.107.0.148045
+          PARTS=$(find "$ROOT/package/parts" -type f | wc -l)
+          APIS=$(wc -l < "$ROOT/findings/api-path-candidates.txt" || echo 0)
+          URLS=$(wc -l < "$ROOT/findings/urls.txt" || echo 0)
+          cat > "$ROOT/README.md" <<EOF
+          # Разбор Mail.ru Android 15.107.0.148045
+
+          Исходный комплект `ru.mail.mailapp` сохранён в этой исследовательской ветке частями.
+
+          - частей исходного архива: **$PARTS**
+          - найдено строк-кандидатов маршрутов `/api/vN/...`: **$APIS**
+          - найдено строк, похожих на URL: **$URLS**
+
+          Основные материалы:
+          - `package/` — исходный пакет, разбитый на части, и контрольные суммы;
+          - `inventory/` — состав APK, DEX, машинных библиотек и ресурсов;
+          - `findings/aj-host-evidence.txt` — прямые упоминания AJ-хостов;
+          - `findings/api-path-candidates.txt` — кандидаты маршрутов API;
+          - `findings/api-and-auth-hints.txt` — строки, связанные с API и авторизацией;
+          - `findings/urls.txt` — URL, найденные в DEX/машинных библиотеках.
+
+          Это первичный статический разбор строк. Следующий этап — точечная декомпиляция классов, которые строят запросы к AJ, с восстановлением методов, параметров и моделей ответов.
+          EOF
+
+      - name: Commit research corpus
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf research/apk-15.107.0.148045/work
+          git config user.name "mailru-apk-research"
+          git config user.email "actions@users.noreply.github.com"
+          git add research/apk-15.107.0.148045
+          git commit -m "research: store and inventory Mail.ru Android 15.107.0.148045"
+          git push origin HEAD:research/mail-apk-15.107.0.148045
