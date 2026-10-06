@@ -442,6 +442,8 @@ public partial class MainWindow : Window
             (string.IsNullOrWhiteSpace(message.SizeDisplay) ? string.Empty : $" · {message.SizeDisplay}") +
             (markers.Count == 0 ? string.Empty : $" · {string.Join(", ", markers)}");
 
+        ReadStateButton.Content = message.Unread ? "Прочитано" : "Непрочитано";
+
         IncomingAttachmentsListBox.ItemsSource = null;
         _currentFullMessage = null;
         ShowReaderText(string.IsNullOrWhiteSpace(message.Snippet)
@@ -449,27 +451,142 @@ public partial class MainWindow : Window
             : message.Snippet);
     }
 
-    private Task LoadFullMessageAsync(MailRuMessageSummary message)
+    private async Task LoadFullMessageAsync(MailRuMessageSummary message)
     {
+        if (string.IsNullOrWhiteSpace(_accessToken))
+            return;
+
+        var generation = ++_messageLoadGeneration;
         _currentFullMessage = null;
         IncomingAttachmentsListBox.ItemsSource = null;
-        ShowReaderText(
-            string.IsNullOrWhiteSpace(message.Snippet)
-                ? "Полное содержимое письма пока недоступно: для него ещё не подтверждён endpoint aj-https.mail.ru."
-                : message.Snippet +
-                  "\n\nПолное содержимое пока не загружается: используется только aj-https.mail.ru.");
-        return Task.CompletedTask;
+
+        try
+        {
+            var full = await _mailRu.GetFullMessageAsync(
+                _accessToken,
+                message.Id,
+                markRead: false);
+
+            if (generation != _messageLoadGeneration ||
+                MessagesGrid.SelectedItem is not MailRuMessageSummary selected ||
+                selected.Id != message.Id)
+            {
+                return;
+            }
+
+            _currentFullMessage = full;
+            IncomingAttachmentsListBox.ItemsSource = full.Attachments;
+            ResponseTextBox.Text = full.RawJson;
+
+            if (!string.IsNullOrWhiteSpace(full.Html))
+                ShowReaderHtml(full.Html);
+            else if (!string.IsNullOrWhiteSpace(full.Text))
+                ShowReaderText(full.Text);
+            else
+                ShowReaderText(message.Snippet);
+        }
+        catch (Exception ex)
+        {
+            if (generation != _messageLoadGeneration)
+                return;
+
+            ShowReaderText(string.IsNullOrWhiteSpace(message.Snippet)
+                ? "Не удалось загрузить полное письмо."
+                : message.Snippet);
+            DiagnosticLog.Write("full_message", ex.GetType().Name + ": " + ex.Message);
+        }
     }
 
-    private void DownloadAttachmentButton_Click(object sender, RoutedEventArgs e)
+    private async void DownloadAttachmentButton_Click(object sender, RoutedEventArgs e)
     {
-        MessageBox.Show(
-            this,
-            "Скачивание входящих вложений временно отключено: " +
-            "для него ещё не подтверждён endpoint на aj-https.mail.ru.",
-            "MailRu Desktop",
-            MessageBoxButton.OK,
-            MessageBoxImage.Information);
+        if (_currentFullMessage is null ||
+            IncomingAttachmentsListBox.SelectedItem is not MailRuIncomingAttachment attachment ||
+            string.IsNullOrWhiteSpace(_accessToken))
+        {
+            FolderStatusText.Text = "Выберите вложение.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(attachment.Id))
+        {
+            FolderStatusText.Text = "У вложения отсутствует идентификатор.";
+            return;
+        }
+
+        var dialog = new SaveFileDialog
+        {
+            FileName = SafeFileName(attachment.DisplayName),
+            Title = "Сохранить вложение"
+        };
+
+        if (dialog.ShowDialog(this) != true)
+            return;
+
+        DownloadAttachmentButton.IsEnabled = false;
+        FolderStatusText.Text = $"Скачивание «{attachment.DisplayName}»...";
+
+        try
+        {
+            var bytes = await _mailRu.DownloadIncomingAttachmentAsync(
+                _accessToken,
+                _currentFullMessage.Id,
+                attachment.Id);
+
+            await File.WriteAllBytesAsync(dialog.FileName, bytes);
+            FolderStatusText.Text = $"Вложение сохранено: {Path.GetFileName(dialog.FileName)}";
+        }
+        catch (Exception ex)
+        {
+            FolderStatusText.Text = "Ошибка скачивания вложения.";
+            DiagnosticLog.Write("incoming_attachment", ex.GetType().Name + ": " + ex.Message);
+        }
+        finally
+        {
+            DownloadAttachmentButton.IsEnabled = true;
+        }
+    }
+
+    private async void ReadStateButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message ||
+            string.IsNullOrWhiteSpace(_accessToken))
+        {
+            FolderStatusText.Text = "Выберите письмо.";
+            return;
+        }
+
+        ReadStateButton.IsEnabled = false;
+        var makeUnread = !message.Unread;
+        FolderStatusText.Text = makeUnread
+            ? "Отмечаем непрочитанным..."
+            : "Отмечаем прочитанным...";
+
+        try
+        {
+            var result = await _mailRu.SetUnreadAsync(
+                _accessToken,
+                _activeLogin ?? string.Empty,
+                message.Id,
+                makeUnread);
+
+            ResponseTextBox.Text = result.RawResponse;
+            if (!result.Success)
+            {
+                FolderStatusText.Text = "Mail.ru отклонил изменение статуса.";
+                return;
+            }
+
+            await LoadFolderAsync(_currentFolderId);
+        }
+        catch (Exception ex)
+        {
+            FolderStatusText.Text = "Ошибка изменения статуса.";
+            DiagnosticLog.Write("message_marks", ex.GetType().Name + ": " + ex.Message);
+        }
+        finally
+        {
+            ReadStateButton.IsEnabled = true;
+        }
     }
 
     private void ApplyFilterButton_Click(object sender, RoutedEventArgs e)
@@ -605,14 +722,47 @@ public partial class MainWindow : Window
             await MoveMessagesAsync([message.Id], 500002, "Перемещение в корзину");
     }
 
-    private Task MoveMessagesAsync(
+    private async Task MoveMessagesAsync(
         IReadOnlyCollection<string> ids,
         int destinationFolderId,
         string operationName)
     {
-        FolderStatusText.Text =
-            "Операция временно отключена: для перемещения ещё не подтверждён endpoint aj-https.mail.ru.";
-        return Task.CompletedTask;
+        if (string.IsNullOrWhiteSpace(_accessToken))
+        {
+            FolderStatusText.Text = "Нет access_token. Выполните авторизацию заново.";
+            return;
+        }
+
+        MoveMessageButton.IsEnabled = false;
+        TrashMessageButton.IsEnabled = false;
+        FolderStatusText.Text = operationName + "...";
+
+        try
+        {
+            var result = await _mailRu.MoveMessagesAsync(
+                _accessToken,
+                ids,
+                destinationFolderId);
+
+            ResponseTextBox.Text = result.RawResponse;
+            if (!result.Success)
+            {
+                FolderStatusText.Text = "Mail.ru отклонил перемещение.";
+                return;
+            }
+
+            await LoadFolderAsync(_currentFolderId);
+        }
+        catch (Exception ex)
+        {
+            FolderStatusText.Text = "Ошибка перемещения.";
+            DiagnosticLog.Write("message_move", ex.GetType().Name + ": " + ex.Message);
+        }
+        finally
+        {
+            MoveMessageButton.IsEnabled = true;
+            TrashMessageButton.IsEnabled = true;
+        }
     }
 
     private Task DeleteSelectedPermanentlyAsync(MailRuMessageSummary message)
@@ -637,6 +787,7 @@ public partial class MainWindow : Window
         SelectedDateText.Text = string.Empty;
         SelectedMetaText.Text = string.Empty;
         IncomingAttachmentsListBox.ItemsSource = null;
+        ReadStateButton.Content = "Прочитано";
         ShowReaderText("Выберите письмо.");
     }
 
