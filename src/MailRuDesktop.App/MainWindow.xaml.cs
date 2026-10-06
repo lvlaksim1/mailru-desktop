@@ -405,7 +405,7 @@ public partial class MainWindow : Window
             ResponseTextBox.Text = raw;
 
             var snapshot = _lastFolderUsedTouchSearch
-                ? MailRuTouchSearchParser.Parse(raw)
+                ? MailRuTouchSearchParser.Parse(raw, folderId)
                 : MailRuThreadStatusParser.Parse(raw, folderId);
 
             _currentFolderId = snapshot.SelectedFolderId ?? folderId;
@@ -1106,21 +1106,36 @@ public partial class MainWindow : Window
     private async Task<string> LoadFolderRawAsync(int folderId)
     {
         _lastFolderUsedTouchSearch = false;
-        Exception? mobileFailure = null;
+        Exception? touchFailure = null;
         Exception? webFailure = null;
+        Exception? mobileFailure = null;
 
-        if (!string.IsNullOrWhiteSpace(_accessToken))
+        // Hackus mailbox path: after Login() the authoritative credential is
+        // _searchToken.  For an ordinary mailbox pass Hackus calls gosearch
+        // with q_folder=all and NO q_query="*".  The response is then split
+        // into folders locally by message.folder.
+        if (!string.IsNullOrWhiteSpace(_searchToken) &&
+            !string.IsNullOrWhiteSpace(_activeLogin))
         {
             try
             {
-                return await _mailRu.GetFolderThreadsAsync(_accessToken, folderId);
+                _lastFolderUsedTouchSearch = true;
+                return await _mailRu.SearchTouchAsync(
+                    _searchToken,
+                    _activeLogin,
+                    _touchCookieHeader,
+                    query: null,
+                    count: 1000);
             }
             catch (Exception ex)
             {
-                mobileFailure = ex;
+                touchFailure = ex;
+                _lastFolderUsedTouchSearch = false;
             }
         }
 
+        // Keep older transports only as compatibility fallbacks for sessions
+        // created by previous versions. They are not part of the Hackus path.
         if (!string.IsNullOrWhiteSpace(_webToken) &&
             !string.IsNullOrWhiteSpace(_activeLogin))
         {
@@ -1138,17 +1153,19 @@ public partial class MainWindow : Window
             }
         }
 
-        if (!string.IsNullOrWhiteSpace(_searchToken))
+        if (!string.IsNullOrWhiteSpace(_accessToken))
         {
-            // A Hackus touch/search token is valid for search/contacts, but
-            // gosearch?q_query=* is NOT a folder listing endpoint. Returning it
-            // here produced an apparently successful empty mailbox in v0.1.9.
-            throw webFailure ?? mobileFailure ?? new InvalidOperationException(
-                "Touch/search token получен, но mobile access_token для загрузки папок отсутствует. " +
-                "Повторите вход; диагностическая причина сохранена.");
+            try
+            {
+                return await _mailRu.GetFolderThreadsAsync(_accessToken, folderId);
+            }
+            catch (Exception ex)
+            {
+                mobileFailure = ex;
+            }
         }
 
-        throw webFailure ?? mobileFailure ?? new InvalidOperationException(
+        throw touchFailure ?? webFailure ?? mobileFailure ?? new InvalidOperationException(
             "Для этой сохранённой сессии нет доступного транспорта списка писем. Выполните вход ещё раз.");
     }
 
