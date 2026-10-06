@@ -10,8 +10,6 @@ namespace MailRuDesktop.App;
 
 public partial class MessageWindow : Window
 {
-    private const int ArchiveFolderId = 500003;
-
     private readonly MailRuClient _mailRu;
     private readonly MailRuMessageSummary _summary;
     private readonly string _login;
@@ -329,7 +327,12 @@ public partial class MessageWindow : Window
 
     private async void ArchiveButton_Click(object sender, RoutedEventArgs e)
     {
-        await MoveAsync(ArchiveFolderId, "Перемещение в архив");
+        var archive = _folders.FirstOrDefault(folder =>
+            folder.Type.Equals("archive", StringComparison.OrdinalIgnoreCase) ||
+            folder.Name.Equals("Архив", StringComparison.CurrentCultureIgnoreCase) ||
+            folder.Id is 500003 or 500005);
+
+        await MoveAsync(archive?.Id ?? 500003, "Перемещение в архив");
     }
 
     private async void MoveButton_Click(object sender, RoutedEventArgs e)
