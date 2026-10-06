@@ -44,8 +44,8 @@ jobs:
               $lineNumber++
               $line = $_
               foreach ($match in [regex]::Matches($line, 'https://([A-Za-z0-9.-]*mail\.ru)')) {
-                $host = $match.Groups[1].Value.ToLowerInvariant()
-                if ($approved -notcontains $host) {
+                $mailHost = $match.Groups[1].Value.ToLowerInvariant()
+                if ($approved -notcontains $mailHost) {
                   $violations += ('{0}:{1}: {2}' -f $path, $lineNumber, $line.Trim())
                 }
               }
