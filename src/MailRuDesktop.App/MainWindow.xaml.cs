@@ -702,7 +702,7 @@ public partial class MainWindow : Window
                 _activeLogin,
                 query,
                 limit: 200,
-                preferNewSearch: true);
+                preferNewSearch: false);
 
             _currentMessages = result.Messages.ToList();
             _serverSearchMode = true;
