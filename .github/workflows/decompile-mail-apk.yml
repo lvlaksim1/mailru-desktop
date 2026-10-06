@@ -1,4 +1,4 @@
-name: Decompile Mail.ru APK network layer
+name: Decompile Mail.ru APK network layer\n# extraction syntax fixed 2026-10-06
 
 on:
   push:
