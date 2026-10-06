@@ -1,0 +1,5350 @@
+{
+  "package": "ru.mail.mailapp",
+  "version": "15.107.0.148045",
+  "urlpath_commands": [
+    {
+      "class": "SendAnswerCommand",
+      "path": "/api/v1/survey/answer",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"survey\", \"answer\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/survey/network/SendAnswerCommand.java"
+    },
+    {
+      "class": "GetSurveysAnswerTimeCommand",
+      "path": "/api/v1/survey/last_answers",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"survey\", \"last_answers\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/survey/network/GetSurveysAnswerTimeCommand.java"
+    },
+    {
+      "class": "GetSurveyJsonCommand",
+      "path": "/api/v1/survey",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"survey\", XmailMigrationPromoSheet.BUTTON_INFO",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/survey/network/GetSurveyJsonCommand.java"
+    },
+    {
+      "class": "YahooEmailRequest",
+      "path": "/openid/v1/userinfo",
+      "path_raw": "\"openid\", \"v1\", \"userinfo\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "yahoo_social_api_default_host",
+      "scheme_resource": "yahoo_default_scheme",
+      "source": "ru/mail/auth/request/YahooEmailRequest.java"
+    },
+    {
+      "class": "OAuthAccessRefreshYahoo",
+      "path": "",
+      "path_raw": "",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/OAuthAccessRefreshYahoo.java"
+    },
+    {
+      "class": "PushAuthInfoRequest",
+      "path": "/api/v1/pushauth",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"pushauth\", XmailMigrationPromoSheet.BUTTON_INFO",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "swa_default_host",
+      "scheme_resource": "swa_default_scheme",
+      "source": "ru/mail/auth/request/PushAuthInfoRequest.java"
+    },
+    {
+      "class": "HttpsAuthorizeLoginCommand",
+      "path": "/cgi-bin/auth",
+      "path_raw": "\"cgi-bin\", \"auth\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/HttpsAuthorizeLoginCommand.java"
+    },
+    {
+      "class": "OutlookOAuthLoginRequest",
+      "path": "/oauth2_outlook_token",
+      "path_raw": "\"oauth2_outlook_token\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/OutlookOAuthLoginRequest.java"
+    },
+    {
+      "class": "GoogleGetEmailRequest",
+      "path": "/oauth2/v1/userinfo",
+      "path_raw": "\"oauth2\", \"v1\", \"userinfo\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "google_api_default_host",
+      "scheme_resource": "google_default_scheme",
+      "source": "ru/mail/auth/request/GoogleGetEmailRequest.java"
+    },
+    {
+      "class": "ClientCheckRequest",
+      "path": "/api/v1/check",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", PreferenceHostProvider.URL_PARAM_CLIENT, \"check\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "oauth_default_host",
+      "scheme_resource": "oauth_default_scheme",
+      "source": "ru/mail/auth/request/ClientCheckRequest.java"
+    },
+    {
+      "class": "GetNameRequest",
+      "path": "/api/v1/user/external",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"external\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/GetNameRequest.java"
+    },
+    {
+      "class": "SendSmsCode",
+      "path": "/PhoneAuth",
+      "path_raw": "\"PhoneAuth\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/SendSmsCode.java"
+    },
+    {
+      "class": "MpopTokenRequest",
+      "path": "/api/v1/tokens",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"tokens\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/MpopTokenRequest.java"
+    },
+    {
+      "class": "OAuthLoginBase",
+      "path": "/token",
+      "path_raw": "\"token\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/OAuthLoginBase.java"
+    },
+    {
+      "class": "GoogleOAuthLoginRequest",
+      "path": "/oauth2_google_token",
+      "path_raw": "\"oauth2_google_token\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/GoogleOAuthLoginRequest.java"
+    },
+    {
+      "class": "YandexEmailRequest",
+      "path": "",
+      "path_raw": "XmailMigrationPromoSheet.BUTTON_INFO",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "yandex_api_default_host",
+      "scheme_resource": "yandex_default_scheme",
+      "source": "ru/mail/auth/request/YandexEmailRequest.java"
+    },
+    {
+      "class": "YandexOAuthLoginRequest",
+      "path": "/oauth2_yandex_token",
+      "path_raw": "\"oauth2_yandex_token\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/YandexOAuthLoginRequest.java"
+    },
+    {
+      "class": "ExternalAccountRegistrationRequest",
+      "path": "/api/v1/user/signup/external",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"signup\", \"external\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/ExternalAccountRegistrationRequest.java"
+    },
+    {
+      "class": "AuthorizeTokenCommand",
+      "path": "/cgi-bin/auth",
+      "path_raw": "\"cgi-bin\", \"auth\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/AuthorizeTokenCommand.java"
+    },
+    {
+      "class": "SmsLogin",
+      "path": "/PhoneAuthCheck",
+      "path_raw": "\"PhoneAuthCheck\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/SmsLogin.java"
+    },
+    {
+      "class": "MailServerParametersRequest",
+      "path": "/api/v1/user/signup/external/unknown",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"signup\", \"external\", \"unknown\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/MailServerParametersRequest.java"
+    },
+    {
+      "class": "OAuthAccessRefreshMicrosoft",
+      "path": "",
+      "path_raw": "",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/OAuthAccessRefreshMicrosoft.java"
+    },
+    {
+      "class": "YahooOAuthLoginRequest",
+      "path": "/oauth2_yahoo_token",
+      "path_raw": "\"oauth2_yahoo_token\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/YahooOAuthLoginRequest.java"
+    },
+    {
+      "class": "GetEmailAllowedInfoRequest",
+      "path": "/api/v1/auth/user/allowed",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"auth\", \"user\", \"allowed\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "swa_default_host",
+      "scheme_resource": "swa_default_scheme",
+      "source": "ru/mail/auth/request/GetEmailAllowedInfoRequest.java"
+    },
+    {
+      "class": "AuthPhoneToken",
+      "path": "/cgi-bin/auth",
+      "path_raw": "\"cgi-bin\", \"auth\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/AuthPhoneToken.java"
+    },
+    {
+      "class": "UploadContactsToServerCommand",
+      "path": "/api/v1/ab/contacts/backup",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"ab\", \"contacts\", RbParams.Default.URL_PARAM_KEY_DEVICE, \"backup\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/addressbook/backup/server/UploadContactsToServerCommand.java"
+    },
+    {
+      "class": "BoundAccsListCmd",
+      "path": "/api/v1/user/social/bind/list",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"social\", \"bind\", \"list\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/BoundAccsListCmd.java"
+    },
+    {
+      "class": "FoldersLogoutCommand",
+      "path": "/api/v1/folders/close",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"folders\", \"close\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/FoldersLogoutCommand.java"
+    },
+    {
+      "class": "CheckPhoneConfirmCommand",
+      "path": "/api/v1/tokens/check",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"tokens\", \"check\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/CheckPhoneConfirmCommand.java"
+    },
+    {
+      "class": "GetLiberoAdParamsCommand",
+      "path": "/api/getAccountData.php",
+      "path_raw": "ApiUris.AUTHORITY_API, \"getAccountData.php\"",
+      "auth_type": "LEGACY",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "libero_default_host",
+      "scheme_resource": "libero_default_scheme",
+      "source": "ru/mail/data/cmd/server/GetLiberoAdParamsCommand.java"
+    },
+    {
+      "class": "TornadoSendRequest",
+      "path": "/api/v1/messages/send",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"send\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoSendRequest.java"
+    },
+    {
+      "class": "MarkThreadCommand",
+      "path": "/api/v1/m/threads/marks",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"m\", \"threads\", \"marks\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MarkThreadCommand.java"
+    },
+    {
+      "class": "GetUserVerifiedPhone",
+      "path": "/api/v1/payment/phone",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"payment\", \"phone\", XmailMigrationPromoSheet.BUTTON_INFO",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/GetUserVerifiedPhone.java"
+    },
+    {
+      "class": "GolangGetUserDataCommand",
+      "path": "/api/v1/golang/user",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"golang\", \"user\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/GolangGetUserDataCommand.java"
+    },
+    {
+      "class": "DeleteAccountCommand",
+      "path": "/api/v1/user/mobile/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"mobile\", \"remove\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/DeleteAccountCommand.java"
+    },
+    {
+      "class": "AddressBookFetchV2",
+      "path": "/api/v1/ab/smart",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"ab\", \"smart\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/AddressBookFetchV2.java"
+    },
+    {
+      "class": "RemoveFromCloudBundle",
+      "path": "/api/v1/cloud/attachment/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"cloud\", \"attachment\", \"remove\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RemoveFromCloudBundle.java"
+    },
+    {
+      "class": "MoveAllMessageCommand",
+      "path": "/api/v1/messages/move/all",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"move\", \"all\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MoveAllMessageCommand.java"
+    },
+    {
+      "class": "CancelTransactionRequest",
+      "path": "/api/v1/money/p2p/cancel",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"money\", \"p2p\", \"cancel\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/CancelTransactionRequest.java"
+    },
+    {
+      "class": "TornadoMoveMessage",
+      "path": "/api/v1/messages/move",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"move\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoMoveMessage.java"
+    },
+    {
+      "class": "RequestSanitizeUrlCommand",
+      "path": "/api/v1/mobauth/get",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"mobauth\", \"get\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "swa_default_host",
+      "scheme_resource": "swa_default_scheme",
+      "source": "ru/mail/data/cmd/server/RequestSanitizeUrlCommand.java"
+    },
+    {
+      "class": "GolangUserShortCommand",
+      "path": "/api/v1/golang/user/short",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"golang\", \"user\", \"short\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/GolangUserShortCommand.java"
+    },
+    {
+      "class": "TornadoNoSpam",
+      "path": "/api/v1/messages/services/unspam",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"services\", \"unspam\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoNoSpam.java"
+    },
+    {
+      "class": "RemoveAllMessageCommand",
+      "path": "/api/v1/messages/remove/all",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"remove\", \"all\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RemoveAllMessageCommand.java"
+    },
+    {
+      "class": "TornadoReattachRequest",
+      "path": "/api/v1/messages/attaches/reattach",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"attaches\", \"reattach\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoReattachRequest.java"
+    },
+    {
+      "class": "GetSocialAndServicesPushFiltersCommand",
+      "path": "/mail_filter",
+      "path_raw": "\"mail_filter\"",
+      "auth_type": "LEGACY",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "push_default_host",
+      "scheme_resource": "push_default_scheme",
+      "source": "ru/mail/data/cmd/server/GetSocialAndServicesPushFiltersCommand.java"
+    },
+    {
+      "class": "RBTranslationsCommand",
+      "path": "/mobile",
+      "path_raw": "\"mobile\", BuildConfig.TRANSLATIONS_SLOT",
+      "auth_type": "LEGACY",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RBTranslationsCommand.java"
+    },
+    {
+      "class": "MarkAllMessageCommand",
+      "path": "/api/v1/messages/marks/all",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"marks\", \"all\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MarkAllMessageCommand.java"
+    },
+    {
+      "class": "UpdateSnoozeRequest",
+      "path": "/api/v1/messages/snoozes/update",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"snoozes\", \"update\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UpdateSnoozeRequest.java"
+    },
+    {
+      "class": "TornadoRemoveRequest",
+      "path": "/api/v1/messages/attaches/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"attaches\", \"remove\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoRemoveRequest.java"
+    },
+    {
+      "class": "UserSecurityCommand",
+      "path": "/api/v1/golang/user",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"golang\", \"user\", BaseSettingsActivity.KEY_PREF_SECURITY",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UserSecurityCommand.java"
+    },
+    {
+      "class": "TornadoUploadRequest",
+      "path": "/api/v1/messages/attaches",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"attaches\", ProductAction.ACTION_ADD",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoUploadRequest.java"
+    },
+    {
+      "class": "DownloadFileInMemoryCmd",
+      "path": "/api/v1/messages/attaches",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"attaches\", Promotion.ACTION_VIEW",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/DownloadFileInMemoryCmd.java"
+    },
+    {
+      "class": "MailReadVerifyRequest",
+      "path": "/api/v1/messages/notify/read",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"notify\", \"read\"",
+      "auth_type": "TORNADO",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MailReadVerifyRequest.java"
+    },
+    {
+      "class": "QrGetInfoCommand",
+      "path": "/api/v1/auth/qr/get",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"auth\", \"qr\", \"get\"",
+      "auth_type": "TORNADO",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/QrGetInfoCommand.java"
+    },
+    {
+      "class": "RemoveSnoozeRequest",
+      "path": "/api/v1/messages/snoozes/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"snoozes\", \"remove\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RemoveSnoozeRequest.java"
+    },
+    {
+      "class": "MessagesSearchCommand",
+      "path": "/api/v1/messages/search",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"search\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MessagesSearchCommand.java"
+    },
+    {
+      "class": "FolderLoginCommandImpl",
+      "path": "/api/v1/folders/open",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"folders\", \"open\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/FolderLoginCommandImpl.java"
+    },
+    {
+      "class": "SaveAttachmentsToCloudCommand",
+      "path": "/api/v1/attaches/to-cloud",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"attaches\", ProductAction.ACTION_ADD, \"to-cloud\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/SaveAttachmentsToCloudCommand.java"
+    },
+    {
+      "class": "DeleteFilter",
+      "path": "/api/v1/filters/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"filters\", \"remove\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/DeleteFilter.java"
+    },
+    {
+      "class": "MessageAttachesRequestCommand",
+      "path": "/api/v1/messages/attaches",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"attaches\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MessageAttachesRequestCommand.java"
+    },
+    {
+      "class": "CheckPhoneCommand",
+      "path": "/api/v1/user/mobile/phone/change/confirm-current",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"mobile\", \"phone\", \"change\", \"confirm-current\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/CheckPhoneCommand.java"
+    },
+    {
+      "class": "UnsubscribeMessageCommand",
+      "path": "/api/v1/messages/services",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"services\", PendingAction.UNSUBSCRIBE_TYPE",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UnsubscribeMessageCommand.java"
+    },
+    {
+      "class": "GetCloudDispatcherCommand",
+      "path": "",
+      "path_raw": "RequestConfiguration.MAX_AD_CONTENT_RATING_G",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "cloud_dispatcher_default_host",
+      "scheme_resource": "cloud_dispatcher_default_scheme",
+      "source": "ru/mail/data/cmd/server/GetCloudDispatcherCommand.java"
+    },
+    {
+      "class": "CreateFolder",
+      "path": "/api/v1/folders",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"folders\", ProductAction.ACTION_ADD",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/CreateFolder.java"
+    },
+    {
+      "class": "MarkMessageCommand",
+      "path": "/api/v1/messages/marks",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"marks\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MarkMessageCommand.java"
+    },
+    {
+      "class": "MailCategoryFeedbackCommand",
+      "path": "/api/v1/messages/services/category/feedback",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"services\", \"category\", \"feedback\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MailCategoryFeedbackCommand.java"
+    },
+    {
+      "class": "GetUserDataCommand",
+      "path": "/api/v1/user",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/GetUserDataCommand.java"
+    },
+    {
+      "class": "DeleteAccountConfirmCommand",
+      "path": "/api/v1/user/mobile/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"mobile\", \"remove\", VKApiCodes.EXTRA_CONFIRM",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/DeleteAccountConfirmCommand.java"
+    },
+    {
+      "class": "RequestFiltersCommand",
+      "path": "/api/v1/filters",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"filters\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RequestFiltersCommand.java"
+    },
+    {
+      "class": "ThreadRequestCommand",
+      "path": "/api/v1/m/threads/thread",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"m\", \"threads\", \"thread\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/ThreadRequestCommand.java"
+    },
+    {
+      "class": "UsersLastSeenRequest",
+      "path": "/api/v1/ab/lastseen",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"ab\", \"lastseen\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UsersLastSeenRequest.java"
+    },
+    {
+      "class": "TokensSendCommand",
+      "path": "/api/v1/tokens/send",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"tokens\", \"send\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TokensSendCommand.java"
+    },
+    {
+      "class": "AddressGeocodingRequestCommand",
+      "path": "/api/v1/golang/maps/decode",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"golang\", \"maps\", \"decode\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/AddressGeocodingRequestCommand.java"
+    },
+    {
+      "class": "RequestClickerTokenCommand",
+      "path": "/api/v1/clickerproxy/autogen",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"clickerproxy\", \"autogen\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RequestClickerTokenCommand.java"
+    },
+    {
+      "class": "ChildboxAuthCommand",
+      "path": "/api/v1/childbox/auth",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"childbox\", \"auth\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "swa_default_host",
+      "scheme_resource": "swa_default_scheme",
+      "source": "ru/mail/data/cmd/server/ChildboxAuthCommand.java"
+    },
+    {
+      "class": "QrAuthWebCommand",
+      "path": "/api/v1/auth/qr/allow",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"auth\", \"qr\", \"allow\"",
+      "auth_type": "TORNADO",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/QrAuthWebCommand.java"
+    },
+    {
+      "class": "MailMessageRequestCommand",
+      "path": "/api/v1/messages/message",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"message\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MailMessageRequestCommand.java"
+    },
+    {
+      "class": "ShareMailCommand",
+      "path": "/api/v1/invites/letter",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"invites\", \"letter\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/ShareMailCommand.java"
+    },
+    {
+      "class": "AddToCloudBundle",
+      "path": "/api/v1/cloud/attachment",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"cloud\", \"attachment\", ProductAction.ACTION_ADD",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/AddToCloudBundle.java"
+    },
+    {
+      "class": "SetCustomTagsCommand",
+      "path": "/api/v1/messages/colortags/set",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"colortags\", \"set\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/SetCustomTagsCommand.java"
+    },
+    {
+      "class": "MessagesSearchCommandNew",
+      "path": "/api/v1/go/search/emails",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"go\", \"search\", \"emails\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "search_new_host",
+      "scheme_resource": "search_new_default_scheme",
+      "source": "ru/mail/data/cmd/server/MessagesSearchCommandNew.java"
+    },
+    {
+      "class": "GetCloudInfoCommand",
+      "path": "/api/v1/cloud/status",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"cloud\", \"status\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/GetCloudInfoCommand.java"
+    },
+    {
+      "class": "CreateCloudBundle",
+      "path": "/api/v1/cloud/attachment/create",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"cloud\", \"attachment\", \"create\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/CreateCloudBundle.java"
+    },
+    {
+      "class": "UpdateFolder",
+      "path": "/api/v1/folders/edit",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"folders\", \"edit\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UpdateFolder.java"
+    },
+    {
+      "class": "MessagesStatusCommand",
+      "path": "/api/v1/messages/status",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"status\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MessagesStatusCommand.java"
+    },
+    {
+      "class": "UnspamThreadCommand",
+      "path": "/api/v1/m/threads/services/unspam",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"m\", \"threads\", \"services\", \"unspam\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UnspamThreadCommand.java"
+    },
+    {
+      "class": "GetSuggestionsCommand",
+      "path": "/api/v1/messages/search/suggest",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"search\", \"suggest\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/GetSuggestionsCommand.java"
+    },
+    {
+      "class": "UpdateFilterCommand",
+      "path": "/api/v1/filters/edit",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"filters\", \"edit\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UpdateFilterCommand.java"
+    },
+    {
+      "class": "SaveHelperOnServerCommand",
+      "path": "/api/v1/helpers/update",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"helpers\", \"update\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/SaveHelperOnServerCommand.java"
+    },
+    {
+      "class": "ShareSmsCommand",
+      "path": "/api/v1/sms/send",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"sms\", \"send\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/ShareSmsCommand.java"
+    },
+    {
+      "class": "TerminateSessionsCommand",
+      "path": "/cgi-bin/logout",
+      "path_raw": "\"cgi-bin\", \"logout\"",
+      "auth_type": "LEGACY",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TerminateSessionsCommand.java"
+    },
+    {
+      "class": "GetCityNameCommand",
+      "path": "/api/v1/golang/geo/cities/city",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"golang\", \"geo\", \"cities\", \"city\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/GetCityNameCommand.java"
+    },
+    {
+      "class": "TornadoScheduleRequest",
+      "path": "/api/v1/messages",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", TornadoSendRequest.FIELD_SCHEDULE",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoScheduleRequest.java"
+    },
+    {
+      "class": "ChangeMessageCategoryRequest",
+      "path": "/api/v1/messages/services/category/change",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"services\", \"category\", \"change\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/ChangeMessageCategoryRequest.java"
+    },
+    {
+      "class": "AddFilterCommand",
+      "path": "/api/v1/filters",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"filters\", ProductAction.ACTION_ADD",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/AddFilterCommand.java"
+    },
+    {
+      "class": "LoadHelpersFromServerCommand",
+      "path": "/api/v1/helpers",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"helpers\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/LoadHelpersFromServerCommand.java"
+    },
+    {
+      "class": "DownloadMessageEmlCommand",
+      "path": "/api/v1/messages/message",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"message\", R7Analytics.EVENT_DOWNLOAD",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/DownloadMessageEmlCommand.java"
+    },
+    {
+      "class": "DeleteFolder",
+      "path": "/api/v1/folders/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"folders\", \"remove\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/DeleteFolder.java"
+    },
+    {
+      "class": "SmartReplyRequestCommand",
+      "path": "/api/v1/messages/smart",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", SmartReplyRequestCommand.TAG_REPLIES, \"smart\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/SmartReplyRequestCommand.java"
+    },
+    {
+      "class": "UnsetCustomTagsCommand",
+      "path": "/api/v1/messages/colortags/unset",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"colortags\", \"unset\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UnsetCustomTagsCommand.java"
+    },
+    {
+      "class": "RequestHasFiltersCommand",
+      "path": "/api/v1/filters",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"filters\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RequestHasFiltersCommand.java"
+    },
+    {
+      "class": "UserEditCommand",
+      "path": "/api/v1/user/edit",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"edit\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UserEditCommand.java"
+    },
+    {
+      "class": "MoveThreadCommand",
+      "path": "/api/v1/m/threads/move",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"m\", \"threads\", \"move\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MoveThreadCommand.java"
+    },
+    {
+      "class": "RequestCollectorsCommand",
+      "path": "/api/v1/collectors",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"collectors\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RequestCollectorsCommand.java"
+    },
+    {
+      "class": "TornadoDraftRequest",
+      "path": "/api/v1/messages",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", TornadoSendRequest.FIELD_DRAFT",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoDraftRequest.java"
+    },
+    {
+      "class": "ChildboxListCommand",
+      "path": "/api/v1/childbox/list",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"childbox\", \"list\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "swa_default_host",
+      "scheme_resource": "swa_default_scheme",
+      "source": "ru/mail/data/cmd/server/ChildboxListCommand.java"
+    },
+    {
+      "class": "UserShortCommand",
+      "path": "/api/v1/user/short",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"short\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UserShortCommand.java"
+    },
+    {
+      "class": "RemoveThreadCommand",
+      "path": "/api/v1/m/threads/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"m\", \"threads\", \"remove\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RemoveThreadCommand.java"
+    },
+    {
+      "class": "GetVirgilioAdParamsCommand",
+      "path": "/api/getAccountData.php",
+      "path_raw": "ApiUris.AUTHORITY_API, \"getAccountData.php\"",
+      "auth_type": "LEGACY",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "virgilio_default_host",
+      "scheme_resource": "virgilio_default_scheme",
+      "source": "ru/mail/data/cmd/server/GetVirgilioAdParamsCommand.java"
+    },
+    {
+      "class": "SpamThreadCommand",
+      "path": "/api/v1/m/threads/services/spam",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"m\", \"threads\", \"services\", \"spam\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/SpamThreadCommand.java"
+    },
+    {
+      "class": "TornadoCleanFolder",
+      "path": "/api/v1/folders/clear",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"folders\", \"clear\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoCleanFolder.java"
+    },
+    {
+      "class": "RequestMessageMetaCommand",
+      "path": "/api/v1/messages/meta",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"meta\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RequestMessageMetaCommand.java"
+    },
+    {
+      "class": "TranslateLetterCommand",
+      "path": "/api/v1/utils/translate",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"utils\", \"translate\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TranslateLetterCommand.java"
+    },
+    {
+      "class": "ChangePhoneConfirmCommand",
+      "path": "/api/v1/user/mobile/phone/change",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"mobile\", \"phone\", \"change\", VKApiCodes.EXTRA_CONFIRM",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/ChangePhoneConfirmCommand.java"
+    },
+    {
+      "class": "LogoutRequestCommand",
+      "path": "/cgi-bin/logout",
+      "path_raw": "\"cgi-bin\", \"logout\"",
+      "auth_type": "LEGACY",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/LogoutRequestCommand.java"
+    },
+    {
+      "class": "UserEditMetathreadsCommand",
+      "path": "/api/v1/golang/user/edit/metathreads",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"golang\", \"user\", \"edit\", \"metathreads\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UserEditMetathreadsCommand.java"
+    },
+    {
+      "class": "RequestAliasesCommand",
+      "path": "/api/v1/aliases",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"aliases\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RequestAliasesCommand.java"
+    },
+    {
+      "class": "TornadoRedirectRequest",
+      "path": "/api/v1/messages/services/bounce",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"services\", \"bounce\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoRedirectRequest.java"
+    },
+    {
+      "class": "SendAppStartCommand",
+      "path": "",
+      "path_raw": "AppStartTriggerStartup.TRIGGER_APP_START",
+      "auth_type": "LEGACY_MPOP",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/SendAppStartCommand.java"
+    },
+    {
+      "class": "ChangeAvatarCommand",
+      "path": "/api/v1/user",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", WebActionSituationalTemplate.AVATARS, ProductAction.ACTION_ADD",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "change_avatar_default_host",
+      "scheme_resource": "change_avatar_default_scheme",
+      "source": "ru/mail/data/cmd/server/ChangeAvatarCommand.java"
+    },
+    {
+      "class": "DirectoriesListRequest",
+      "path": "/api/v1/folders",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"folders\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/DirectoriesListRequest.java"
+    },
+    {
+      "class": "TornadoSpamAbuse",
+      "path": "/api/v1/messages/services/spam",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"services\", \"spam\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoSpamAbuse.java"
+    },
+    {
+      "class": "CountAllRequestCmd",
+      "path": "/api/v1/messages/count/all",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"count\", \"all\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/CountAllRequestCmd.java"
+    },
+    {
+      "class": "TornadoLogoutRequestCommand",
+      "path": "/revoke",
+      "path_raw": "\"revoke\"",
+      "auth_type": "LEGACY",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "oauth_default_host",
+      "scheme_resource": "oauth_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoLogoutRequestCommand.java"
+    },
+    {
+      "class": "CreateArchiveFolderCmd",
+      "path": "/api/v1/folders/ensure",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"folders\", BaseSettingsActivity.KEY_PREF_ARCHIVE, \"ensure\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/CreateArchiveFolderCmd.java"
+    },
+    {
+      "class": "ChangePhoneCommand",
+      "path": "/api/v1/user/mobile/phone/change",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"mobile\", \"phone\", \"change\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/ChangePhoneCommand.java"
+    },
+    {
+      "class": "BatchSmartStatusCommand",
+      "path": "/api/v1/m/status/smart",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"m\", BatchSmartStatusCommand.JSON_THREADS_KEY, \"status\", \"smart\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/BatchSmartStatusCommand.java"
+    },
+    {
+      "class": "TornadoRemoveMessage",
+      "path": "/api/v1/messages/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"remove\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoRemoveMessage.java"
+    },
+    {
+      "class": "SearchPeopleCommand",
+      "path": "/api/v1/ab/fast",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"ab\", \"fast\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/SearchPeopleCommand.java"
+    },
+    {
+      "class": "MailSummarizeRequest",
+      "path": "/api/v1/messages/message",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"message\", MailMessageContent.COL_NAME_SUMMARIZE",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/summarize/MailSummarizeRequest.java"
+    },
+    {
+      "class": "CallsCsrfTokenRequest",
+      "path": "/api/v1/token",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"token\"",
+      "auth_type": "TORNADO",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/calls/CallsCsrfTokenRequest.java"
+    },
+    {
+      "class": "CallsTokenRequest",
+      "path": "/api/v1/user/token",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"token\"",
+      "auth_type": "TORNADO",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/calls/CallsTokenRequest.java"
+    },
+    {
+      "class": "CallsAnonymTokenRequest",
+      "path": "/api/v1",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", SessionParamsProviderImpl.PARAM_SESSION_ID, AnonymousFeatureManager.DEFAULT_ANONYMOUS_STORAGE_NAME",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/calls/CallsAnonymTokenRequest.java"
+    },
+    {
+      "class": "PushMeUnsubscribeByTokenCommand",
+      "path": "/api/unsubscribe_by_token",
+      "path_raw": "ApiUris.AUTHORITY_API, FileHandlerArchive.VERSION_POSTFIX, \"unsubscribe_by_token\"",
+      "auth_type": "LEGACY",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/pusher/pushme/PushMeUnsubscribeByTokenCommand.java"
+    },
+    {
+      "class": "PushMeCheckPushTokenCommand",
+      "path": "/ss",
+      "path_raw": "\"ss\", BaseSettingsActivity.CHECK_PUSH_TOKEN",
+      "auth_type": "LEGACY",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/pusher/pushme/PushMeCheckPushTokenCommand.java"
+    },
+    {
+      "class": "PushMeRemovePushSettingsCmd",
+      "path": "/ss/unsubscribe_by_device_id",
+      "path_raw": "\"ss\", \"unsubscribe_by_device_id\"",
+      "auth_type": "LEGACY",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/pusher/pushme/PushMeRemovePushSettingsCmd.java"
+    },
+    {
+      "class": "PushMeSendPushSettingsV1Command",
+      "path": "/api/v1/set_settings",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"set_settings\"",
+      "auth_type": "LEGACY",
+      "oauth_supported": true,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/pusher/pushme/PushMeSendPushSettingsV1Command.java"
+    },
+    {
+      "class": "RegConfirmCmd",
+      "path": "/api/v1/user/signup/mobile",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"signup\", \"mobile\", VKApiCodes.EXTRA_CONFIRM",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/registration/request/RegConfirmCmd.java"
+    },
+    {
+      "class": "RegCodeCmd",
+      "path": "/api/v1/user/signup",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"signup\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/registration/request/RegCodeCmd.java"
+    },
+    {
+      "class": "RegSocialCmd",
+      "path": "/api/v1/user/signup",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"signup\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/registration/request/RegSocialCmd.java"
+    },
+    {
+      "class": "RegCheckSocialCmd",
+      "path": "/api/v1/user/signup",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"signup\", VKApiCodes.EXTRA_CONFIRM",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/registration/request/RegCheckSocialCmd.java"
+    },
+    {
+      "class": "RegQstCmd",
+      "path": "/api/v1/user/signup",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"signup\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/registration/request/RegQstCmd.java"
+    },
+    {
+      "class": "RegTokenCmd",
+      "path": "/api/v1/tokens/send",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"tokens\", \"send\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/registration/request/RegTokenCmd.java"
+    },
+    {
+      "class": "RegCheckCmd",
+      "path": "/api/v1/user/signup",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"signup\", VKApiCodes.EXTRA_CONFIRM",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/registration/request/RegCheckCmd.java"
+    },
+    {
+      "class": "SignupPrepareRequest",
+      "path": "/api/v1/user/signup/prepare",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"signup\", \"prepare\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "account_default_host",
+      "scheme_resource": "account_default_scheme",
+      "source": "ru/mail/registration/request/SignupPrepareRequest.java"
+    },
+    {
+      "class": "CheckCaptchaCmd",
+      "path": "/api/v1/user/signup",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"signup\", VKApiCodes.EXTRA_CONFIRM",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/registration/request/CheckCaptchaCmd.java"
+    },
+    {
+      "class": "RequestCookieUrlByLibverifyToken",
+      "path": "/api/v1/user/signup",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"signup\", VKApiCodes.EXTRA_CONFIRM",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/registration/request/RequestCookieUrlByLibverifyToken.java"
+    },
+    {
+      "class": "UploadRadarEventsCommand",
+      "path": "/batch",
+      "path_raw": "\"batch\"",
+      "auth_type": "LEGACY",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "radar_default_host",
+      "scheme_resource": "radar_default_scheme",
+      "source": "ru/mail/util/analytics/logger/radar/UploadRadarEventsCommand.java"
+    },
+    {
+      "class": "GetAuthCodeByAccessTokenCommand",
+      "path": "/token",
+      "path_raw": "\"token\"",
+      "auth_type": "TORNADO",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "oauth_default_host",
+      "scheme_resource": "oauth_default_scheme",
+      "source": "ru/mail/logic/auth/GetAuthCodeByAccessTokenCommand.java"
+    },
+    {
+      "class": "ChangeAuthTypeCommand",
+      "path": "/api/v1/pushauth/method/set",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"pushauth\", \"method\", \"set\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "account_default_host",
+      "scheme_resource": "account_default_scheme",
+      "source": "ru/mail/logic/auth/ChangeAuthTypeCommand.java"
+    }
+  ],
+  "access_token_commands": [
+    {
+      "class": "UploadContactsToServerCommand",
+      "path": "/api/v1/ab/contacts/backup",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"ab\", \"contacts\", RbParams.Default.URL_PARAM_KEY_DEVICE, \"backup\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/addressbook/backup/server/UploadContactsToServerCommand.java"
+    },
+    {
+      "class": "FoldersLogoutCommand",
+      "path": "/api/v1/folders/close",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"folders\", \"close\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/FoldersLogoutCommand.java"
+    },
+    {
+      "class": "CheckPhoneConfirmCommand",
+      "path": "/api/v1/tokens/check",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"tokens\", \"check\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/CheckPhoneConfirmCommand.java"
+    },
+    {
+      "class": "TornadoSendRequest",
+      "path": "/api/v1/messages/send",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"send\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoSendRequest.java"
+    },
+    {
+      "class": "MarkThreadCommand",
+      "path": "/api/v1/m/threads/marks",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"m\", \"threads\", \"marks\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MarkThreadCommand.java"
+    },
+    {
+      "class": "GetUserVerifiedPhone",
+      "path": "/api/v1/payment/phone",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"payment\", \"phone\", XmailMigrationPromoSheet.BUTTON_INFO",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/GetUserVerifiedPhone.java"
+    },
+    {
+      "class": "GolangGetUserDataCommand",
+      "path": "/api/v1/golang/user",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"golang\", \"user\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/GolangGetUserDataCommand.java"
+    },
+    {
+      "class": "DeleteAccountCommand",
+      "path": "/api/v1/user/mobile/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"mobile\", \"remove\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/DeleteAccountCommand.java"
+    },
+    {
+      "class": "AddressBookFetchV2",
+      "path": "/api/v1/ab/smart",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"ab\", \"smart\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/AddressBookFetchV2.java"
+    },
+    {
+      "class": "RemoveFromCloudBundle",
+      "path": "/api/v1/cloud/attachment/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"cloud\", \"attachment\", \"remove\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RemoveFromCloudBundle.java"
+    },
+    {
+      "class": "MoveAllMessageCommand",
+      "path": "/api/v1/messages/move/all",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"move\", \"all\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MoveAllMessageCommand.java"
+    },
+    {
+      "class": "CancelTransactionRequest",
+      "path": "/api/v1/money/p2p/cancel",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"money\", \"p2p\", \"cancel\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/CancelTransactionRequest.java"
+    },
+    {
+      "class": "TornadoMoveMessage",
+      "path": "/api/v1/messages/move",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"move\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoMoveMessage.java"
+    },
+    {
+      "class": "RequestSanitizeUrlCommand",
+      "path": "/api/v1/mobauth/get",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"mobauth\", \"get\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "swa_default_host",
+      "scheme_resource": "swa_default_scheme",
+      "source": "ru/mail/data/cmd/server/RequestSanitizeUrlCommand.java"
+    },
+    {
+      "class": "GolangUserShortCommand",
+      "path": "/api/v1/golang/user/short",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"golang\", \"user\", \"short\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/GolangUserShortCommand.java"
+    },
+    {
+      "class": "TornadoNoSpam",
+      "path": "/api/v1/messages/services/unspam",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"services\", \"unspam\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoNoSpam.java"
+    },
+    {
+      "class": "RemoveAllMessageCommand",
+      "path": "/api/v1/messages/remove/all",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"remove\", \"all\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RemoveAllMessageCommand.java"
+    },
+    {
+      "class": "TornadoReattachRequest",
+      "path": "/api/v1/messages/attaches/reattach",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"attaches\", \"reattach\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoReattachRequest.java"
+    },
+    {
+      "class": "MarkAllMessageCommand",
+      "path": "/api/v1/messages/marks/all",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"marks\", \"all\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MarkAllMessageCommand.java"
+    },
+    {
+      "class": "UpdateSnoozeRequest",
+      "path": "/api/v1/messages/snoozes/update",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"snoozes\", \"update\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UpdateSnoozeRequest.java"
+    },
+    {
+      "class": "TornadoRemoveRequest",
+      "path": "/api/v1/messages/attaches/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"attaches\", \"remove\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoRemoveRequest.java"
+    },
+    {
+      "class": "UserSecurityCommand",
+      "path": "/api/v1/golang/user",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"golang\", \"user\", BaseSettingsActivity.KEY_PREF_SECURITY",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UserSecurityCommand.java"
+    },
+    {
+      "class": "TornadoUploadRequest",
+      "path": "/api/v1/messages/attaches",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"attaches\", ProductAction.ACTION_ADD",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoUploadRequest.java"
+    },
+    {
+      "class": "DownloadFileInMemoryCmd",
+      "path": "/api/v1/messages/attaches",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"attaches\", Promotion.ACTION_VIEW",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/DownloadFileInMemoryCmd.java"
+    },
+    {
+      "class": "MailReadVerifyRequest",
+      "path": "/api/v1/messages/notify/read",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"notify\", \"read\"",
+      "auth_type": "TORNADO",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MailReadVerifyRequest.java"
+    },
+    {
+      "class": "QrGetInfoCommand",
+      "path": "/api/v1/auth/qr/get",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"auth\", \"qr\", \"get\"",
+      "auth_type": "TORNADO",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/QrGetInfoCommand.java"
+    },
+    {
+      "class": "RemoveSnoozeRequest",
+      "path": "/api/v1/messages/snoozes/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"snoozes\", \"remove\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RemoveSnoozeRequest.java"
+    },
+    {
+      "class": "MessagesSearchCommand",
+      "path": "/api/v1/messages/search",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"search\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MessagesSearchCommand.java"
+    },
+    {
+      "class": "FolderLoginCommandImpl",
+      "path": "/api/v1/folders/open",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"folders\", \"open\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/FolderLoginCommandImpl.java"
+    },
+    {
+      "class": "SaveAttachmentsToCloudCommand",
+      "path": "/api/v1/attaches/to-cloud",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"attaches\", ProductAction.ACTION_ADD, \"to-cloud\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/SaveAttachmentsToCloudCommand.java"
+    },
+    {
+      "class": "DeleteFilter",
+      "path": "/api/v1/filters/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"filters\", \"remove\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/DeleteFilter.java"
+    },
+    {
+      "class": "MessageAttachesRequestCommand",
+      "path": "/api/v1/messages/attaches",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"attaches\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MessageAttachesRequestCommand.java"
+    },
+    {
+      "class": "CheckPhoneCommand",
+      "path": "/api/v1/user/mobile/phone/change/confirm-current",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"mobile\", \"phone\", \"change\", \"confirm-current\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/CheckPhoneCommand.java"
+    },
+    {
+      "class": "UnsubscribeMessageCommand",
+      "path": "/api/v1/messages/services",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"services\", PendingAction.UNSUBSCRIBE_TYPE",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UnsubscribeMessageCommand.java"
+    },
+    {
+      "class": "GetCloudDispatcherCommand",
+      "path": "",
+      "path_raw": "RequestConfiguration.MAX_AD_CONTENT_RATING_G",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "cloud_dispatcher_default_host",
+      "scheme_resource": "cloud_dispatcher_default_scheme",
+      "source": "ru/mail/data/cmd/server/GetCloudDispatcherCommand.java"
+    },
+    {
+      "class": "CreateFolder",
+      "path": "/api/v1/folders",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"folders\", ProductAction.ACTION_ADD",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/CreateFolder.java"
+    },
+    {
+      "class": "MarkMessageCommand",
+      "path": "/api/v1/messages/marks",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"marks\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MarkMessageCommand.java"
+    },
+    {
+      "class": "MailCategoryFeedbackCommand",
+      "path": "/api/v1/messages/services/category/feedback",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"services\", \"category\", \"feedback\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MailCategoryFeedbackCommand.java"
+    },
+    {
+      "class": "GetUserDataCommand",
+      "path": "/api/v1/user",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/GetUserDataCommand.java"
+    },
+    {
+      "class": "DeleteAccountConfirmCommand",
+      "path": "/api/v1/user/mobile/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"mobile\", \"remove\", VKApiCodes.EXTRA_CONFIRM",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/DeleteAccountConfirmCommand.java"
+    },
+    {
+      "class": "RequestFiltersCommand",
+      "path": "/api/v1/filters",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"filters\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RequestFiltersCommand.java"
+    },
+    {
+      "class": "ThreadRequestCommand",
+      "path": "/api/v1/m/threads/thread",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"m\", \"threads\", \"thread\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/ThreadRequestCommand.java"
+    },
+    {
+      "class": "UsersLastSeenRequest",
+      "path": "/api/v1/ab/lastseen",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"ab\", \"lastseen\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UsersLastSeenRequest.java"
+    },
+    {
+      "class": "TokensSendCommand",
+      "path": "/api/v1/tokens/send",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"tokens\", \"send\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TokensSendCommand.java"
+    },
+    {
+      "class": "AddressGeocodingRequestCommand",
+      "path": "/api/v1/golang/maps/decode",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"golang\", \"maps\", \"decode\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/AddressGeocodingRequestCommand.java"
+    },
+    {
+      "class": "RequestClickerTokenCommand",
+      "path": "/api/v1/clickerproxy/autogen",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"clickerproxy\", \"autogen\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RequestClickerTokenCommand.java"
+    },
+    {
+      "class": "ChildboxAuthCommand",
+      "path": "/api/v1/childbox/auth",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"childbox\", \"auth\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "swa_default_host",
+      "scheme_resource": "swa_default_scheme",
+      "source": "ru/mail/data/cmd/server/ChildboxAuthCommand.java"
+    },
+    {
+      "class": "QrAuthWebCommand",
+      "path": "/api/v1/auth/qr/allow",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"auth\", \"qr\", \"allow\"",
+      "auth_type": "TORNADO",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/QrAuthWebCommand.java"
+    },
+    {
+      "class": "MailMessageRequestCommand",
+      "path": "/api/v1/messages/message",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"message\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MailMessageRequestCommand.java"
+    },
+    {
+      "class": "ShareMailCommand",
+      "path": "/api/v1/invites/letter",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"invites\", \"letter\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/ShareMailCommand.java"
+    },
+    {
+      "class": "AddToCloudBundle",
+      "path": "/api/v1/cloud/attachment",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"cloud\", \"attachment\", ProductAction.ACTION_ADD",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/AddToCloudBundle.java"
+    },
+    {
+      "class": "SetCustomTagsCommand",
+      "path": "/api/v1/messages/colortags/set",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"colortags\", \"set\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/SetCustomTagsCommand.java"
+    },
+    {
+      "class": "MessagesSearchCommandNew",
+      "path": "/api/v1/go/search/emails",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"go\", \"search\", \"emails\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "search_new_host",
+      "scheme_resource": "search_new_default_scheme",
+      "source": "ru/mail/data/cmd/server/MessagesSearchCommandNew.java"
+    },
+    {
+      "class": "GetCloudInfoCommand",
+      "path": "/api/v1/cloud/status",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"cloud\", \"status\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/GetCloudInfoCommand.java"
+    },
+    {
+      "class": "CreateCloudBundle",
+      "path": "/api/v1/cloud/attachment/create",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"cloud\", \"attachment\", \"create\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/CreateCloudBundle.java"
+    },
+    {
+      "class": "UpdateFolder",
+      "path": "/api/v1/folders/edit",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"folders\", \"edit\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UpdateFolder.java"
+    },
+    {
+      "class": "MessagesStatusCommand",
+      "path": "/api/v1/messages/status",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"status\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MessagesStatusCommand.java"
+    },
+    {
+      "class": "UnspamThreadCommand",
+      "path": "/api/v1/m/threads/services/unspam",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"m\", \"threads\", \"services\", \"unspam\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UnspamThreadCommand.java"
+    },
+    {
+      "class": "GetSuggestionsCommand",
+      "path": "/api/v1/messages/search/suggest",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"search\", \"suggest\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/GetSuggestionsCommand.java"
+    },
+    {
+      "class": "UpdateFilterCommand",
+      "path": "/api/v1/filters/edit",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"filters\", \"edit\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UpdateFilterCommand.java"
+    },
+    {
+      "class": "SaveHelperOnServerCommand",
+      "path": "/api/v1/helpers/update",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"helpers\", \"update\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/SaveHelperOnServerCommand.java"
+    },
+    {
+      "class": "ShareSmsCommand",
+      "path": "/api/v1/sms/send",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"sms\", \"send\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/ShareSmsCommand.java"
+    },
+    {
+      "class": "GetCityNameCommand",
+      "path": "/api/v1/golang/geo/cities/city",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"golang\", \"geo\", \"cities\", \"city\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/GetCityNameCommand.java"
+    },
+    {
+      "class": "TornadoScheduleRequest",
+      "path": "/api/v1/messages",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", TornadoSendRequest.FIELD_SCHEDULE",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoScheduleRequest.java"
+    },
+    {
+      "class": "ChangeMessageCategoryRequest",
+      "path": "/api/v1/messages/services/category/change",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"services\", \"category\", \"change\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/ChangeMessageCategoryRequest.java"
+    },
+    {
+      "class": "AddFilterCommand",
+      "path": "/api/v1/filters",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"filters\", ProductAction.ACTION_ADD",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/AddFilterCommand.java"
+    },
+    {
+      "class": "LoadHelpersFromServerCommand",
+      "path": "/api/v1/helpers",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"helpers\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/LoadHelpersFromServerCommand.java"
+    },
+    {
+      "class": "DownloadMessageEmlCommand",
+      "path": "/api/v1/messages/message",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"message\", R7Analytics.EVENT_DOWNLOAD",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/DownloadMessageEmlCommand.java"
+    },
+    {
+      "class": "DeleteFolder",
+      "path": "/api/v1/folders/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"folders\", \"remove\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/DeleteFolder.java"
+    },
+    {
+      "class": "SmartReplyRequestCommand",
+      "path": "/api/v1/messages/smart",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", SmartReplyRequestCommand.TAG_REPLIES, \"smart\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/SmartReplyRequestCommand.java"
+    },
+    {
+      "class": "UnsetCustomTagsCommand",
+      "path": "/api/v1/messages/colortags/unset",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"colortags\", \"unset\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UnsetCustomTagsCommand.java"
+    },
+    {
+      "class": "RequestHasFiltersCommand",
+      "path": "/api/v1/filters",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"filters\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RequestHasFiltersCommand.java"
+    },
+    {
+      "class": "UserEditCommand",
+      "path": "/api/v1/user/edit",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"edit\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UserEditCommand.java"
+    },
+    {
+      "class": "MoveThreadCommand",
+      "path": "/api/v1/m/threads/move",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"m\", \"threads\", \"move\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MoveThreadCommand.java"
+    },
+    {
+      "class": "RequestCollectorsCommand",
+      "path": "/api/v1/collectors",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"collectors\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RequestCollectorsCommand.java"
+    },
+    {
+      "class": "TornadoDraftRequest",
+      "path": "/api/v1/messages",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", TornadoSendRequest.FIELD_DRAFT",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoDraftRequest.java"
+    },
+    {
+      "class": "ChildboxListCommand",
+      "path": "/api/v1/childbox/list",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"childbox\", \"list\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "swa_default_host",
+      "scheme_resource": "swa_default_scheme",
+      "source": "ru/mail/data/cmd/server/ChildboxListCommand.java"
+    },
+    {
+      "class": "UserShortCommand",
+      "path": "/api/v1/user/short",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"short\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UserShortCommand.java"
+    },
+    {
+      "class": "RemoveThreadCommand",
+      "path": "/api/v1/m/threads/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"m\", \"threads\", \"remove\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RemoveThreadCommand.java"
+    },
+    {
+      "class": "SpamThreadCommand",
+      "path": "/api/v1/m/threads/services/spam",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"m\", \"threads\", \"services\", \"spam\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/SpamThreadCommand.java"
+    },
+    {
+      "class": "TornadoCleanFolder",
+      "path": "/api/v1/folders/clear",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"folders\", \"clear\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoCleanFolder.java"
+    },
+    {
+      "class": "RequestMessageMetaCommand",
+      "path": "/api/v1/messages/meta",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"meta\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RequestMessageMetaCommand.java"
+    },
+    {
+      "class": "TranslateLetterCommand",
+      "path": "/api/v1/utils/translate",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"utils\", \"translate\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TranslateLetterCommand.java"
+    },
+    {
+      "class": "ChangePhoneConfirmCommand",
+      "path": "/api/v1/user/mobile/phone/change",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"mobile\", \"phone\", \"change\", VKApiCodes.EXTRA_CONFIRM",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/ChangePhoneConfirmCommand.java"
+    },
+    {
+      "class": "UserEditMetathreadsCommand",
+      "path": "/api/v1/golang/user/edit/metathreads",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"golang\", \"user\", \"edit\", \"metathreads\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UserEditMetathreadsCommand.java"
+    },
+    {
+      "class": "RequestAliasesCommand",
+      "path": "/api/v1/aliases",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"aliases\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RequestAliasesCommand.java"
+    },
+    {
+      "class": "TornadoRedirectRequest",
+      "path": "/api/v1/messages/services/bounce",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"services\", \"bounce\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoRedirectRequest.java"
+    },
+    {
+      "class": "ChangeAvatarCommand",
+      "path": "/api/v1/user",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", WebActionSituationalTemplate.AVATARS, ProductAction.ACTION_ADD",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "change_avatar_default_host",
+      "scheme_resource": "change_avatar_default_scheme",
+      "source": "ru/mail/data/cmd/server/ChangeAvatarCommand.java"
+    },
+    {
+      "class": "DirectoriesListRequest",
+      "path": "/api/v1/folders",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"folders\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/DirectoriesListRequest.java"
+    },
+    {
+      "class": "TornadoSpamAbuse",
+      "path": "/api/v1/messages/services/spam",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"services\", \"spam\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoSpamAbuse.java"
+    },
+    {
+      "class": "CountAllRequestCmd",
+      "path": "/api/v1/messages/count/all",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"count\", \"all\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/CountAllRequestCmd.java"
+    },
+    {
+      "class": "CreateArchiveFolderCmd",
+      "path": "/api/v1/folders/ensure",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"folders\", BaseSettingsActivity.KEY_PREF_ARCHIVE, \"ensure\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/CreateArchiveFolderCmd.java"
+    },
+    {
+      "class": "ChangePhoneCommand",
+      "path": "/api/v1/user/mobile/phone/change",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"mobile\", \"phone\", \"change\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/ChangePhoneCommand.java"
+    },
+    {
+      "class": "BatchSmartStatusCommand",
+      "path": "/api/v1/m/status/smart",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"m\", BatchSmartStatusCommand.JSON_THREADS_KEY, \"status\", \"smart\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/BatchSmartStatusCommand.java"
+    },
+    {
+      "class": "TornadoRemoveMessage",
+      "path": "/api/v1/messages/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"remove\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoRemoveMessage.java"
+    },
+    {
+      "class": "SearchPeopleCommand",
+      "path": "/api/v1/ab/fast",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"ab\", \"fast\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/SearchPeopleCommand.java"
+    },
+    {
+      "class": "MailSummarizeRequest",
+      "path": "/api/v1/messages/message",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"message\", MailMessageContent.COL_NAME_SUMMARIZE",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/summarize/MailSummarizeRequest.java"
+    },
+    {
+      "class": "CallsCsrfTokenRequest",
+      "path": "/api/v1/token",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"token\"",
+      "auth_type": "TORNADO",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/calls/CallsCsrfTokenRequest.java"
+    },
+    {
+      "class": "CallsTokenRequest",
+      "path": "/api/v1/user/token",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"token\"",
+      "auth_type": "TORNADO",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/calls/CallsTokenRequest.java"
+    },
+    {
+      "class": "GetAuthCodeByAccessTokenCommand",
+      "path": "/token",
+      "path_raw": "\"token\"",
+      "auth_type": "TORNADO",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "oauth_default_host",
+      "scheme_resource": "oauth_default_scheme",
+      "source": "ru/mail/logic/auth/GetAuthCodeByAccessTokenCommand.java"
+    },
+    {
+      "class": "ChangeAuthTypeCommand",
+      "path": "/api/v1/pushauth/method/set",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"pushauth\", \"method\", \"set\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "account_default_host",
+      "scheme_resource": "account_default_scheme",
+      "source": "ru/mail/logic/auth/ChangeAuthTypeCommand.java"
+    }
+  ],
+  "non_access_token_commands": [
+    {
+      "class": "SendAnswerCommand",
+      "path": "/api/v1/survey/answer",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"survey\", \"answer\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/survey/network/SendAnswerCommand.java"
+    },
+    {
+      "class": "GetSurveysAnswerTimeCommand",
+      "path": "/api/v1/survey/last_answers",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"survey\", \"last_answers\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/survey/network/GetSurveysAnswerTimeCommand.java"
+    },
+    {
+      "class": "GetSurveyJsonCommand",
+      "path": "/api/v1/survey",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"survey\", XmailMigrationPromoSheet.BUTTON_INFO",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/survey/network/GetSurveyJsonCommand.java"
+    },
+    {
+      "class": "YahooEmailRequest",
+      "path": "/openid/v1/userinfo",
+      "path_raw": "\"openid\", \"v1\", \"userinfo\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "yahoo_social_api_default_host",
+      "scheme_resource": "yahoo_default_scheme",
+      "source": "ru/mail/auth/request/YahooEmailRequest.java"
+    },
+    {
+      "class": "OAuthAccessRefreshYahoo",
+      "path": "",
+      "path_raw": "",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/OAuthAccessRefreshYahoo.java"
+    },
+    {
+      "class": "PushAuthInfoRequest",
+      "path": "/api/v1/pushauth",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"pushauth\", XmailMigrationPromoSheet.BUTTON_INFO",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "swa_default_host",
+      "scheme_resource": "swa_default_scheme",
+      "source": "ru/mail/auth/request/PushAuthInfoRequest.java"
+    },
+    {
+      "class": "HttpsAuthorizeLoginCommand",
+      "path": "/cgi-bin/auth",
+      "path_raw": "\"cgi-bin\", \"auth\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/HttpsAuthorizeLoginCommand.java"
+    },
+    {
+      "class": "OutlookOAuthLoginRequest",
+      "path": "/oauth2_outlook_token",
+      "path_raw": "\"oauth2_outlook_token\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/OutlookOAuthLoginRequest.java"
+    },
+    {
+      "class": "GoogleGetEmailRequest",
+      "path": "/oauth2/v1/userinfo",
+      "path_raw": "\"oauth2\", \"v1\", \"userinfo\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "google_api_default_host",
+      "scheme_resource": "google_default_scheme",
+      "source": "ru/mail/auth/request/GoogleGetEmailRequest.java"
+    },
+    {
+      "class": "ClientCheckRequest",
+      "path": "/api/v1/check",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", PreferenceHostProvider.URL_PARAM_CLIENT, \"check\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "oauth_default_host",
+      "scheme_resource": "oauth_default_scheme",
+      "source": "ru/mail/auth/request/ClientCheckRequest.java"
+    },
+    {
+      "class": "GetNameRequest",
+      "path": "/api/v1/user/external",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"external\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/GetNameRequest.java"
+    },
+    {
+      "class": "SendSmsCode",
+      "path": "/PhoneAuth",
+      "path_raw": "\"PhoneAuth\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/SendSmsCode.java"
+    },
+    {
+      "class": "MpopTokenRequest",
+      "path": "/api/v1/tokens",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"tokens\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/MpopTokenRequest.java"
+    },
+    {
+      "class": "OAuthLoginBase",
+      "path": "/token",
+      "path_raw": "\"token\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/OAuthLoginBase.java"
+    },
+    {
+      "class": "GoogleOAuthLoginRequest",
+      "path": "/oauth2_google_token",
+      "path_raw": "\"oauth2_google_token\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/GoogleOAuthLoginRequest.java"
+    },
+    {
+      "class": "YandexEmailRequest",
+      "path": "",
+      "path_raw": "XmailMigrationPromoSheet.BUTTON_INFO",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "yandex_api_default_host",
+      "scheme_resource": "yandex_default_scheme",
+      "source": "ru/mail/auth/request/YandexEmailRequest.java"
+    },
+    {
+      "class": "YandexOAuthLoginRequest",
+      "path": "/oauth2_yandex_token",
+      "path_raw": "\"oauth2_yandex_token\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/YandexOAuthLoginRequest.java"
+    },
+    {
+      "class": "ExternalAccountRegistrationRequest",
+      "path": "/api/v1/user/signup/external",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"signup\", \"external\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/ExternalAccountRegistrationRequest.java"
+    },
+    {
+      "class": "AuthorizeTokenCommand",
+      "path": "/cgi-bin/auth",
+      "path_raw": "\"cgi-bin\", \"auth\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/AuthorizeTokenCommand.java"
+    },
+    {
+      "class": "SmsLogin",
+      "path": "/PhoneAuthCheck",
+      "path_raw": "\"PhoneAuthCheck\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/SmsLogin.java"
+    },
+    {
+      "class": "MailServerParametersRequest",
+      "path": "/api/v1/user/signup/external/unknown",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"signup\", \"external\", \"unknown\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/MailServerParametersRequest.java"
+    },
+    {
+      "class": "OAuthAccessRefreshMicrosoft",
+      "path": "",
+      "path_raw": "",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/OAuthAccessRefreshMicrosoft.java"
+    },
+    {
+      "class": "YahooOAuthLoginRequest",
+      "path": "/oauth2_yahoo_token",
+      "path_raw": "\"oauth2_yahoo_token\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/YahooOAuthLoginRequest.java"
+    },
+    {
+      "class": "GetEmailAllowedInfoRequest",
+      "path": "/api/v1/auth/user/allowed",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"auth\", \"user\", \"allowed\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "swa_default_host",
+      "scheme_resource": "swa_default_scheme",
+      "source": "ru/mail/auth/request/GetEmailAllowedInfoRequest.java"
+    },
+    {
+      "class": "AuthPhoneToken",
+      "path": "/cgi-bin/auth",
+      "path_raw": "\"cgi-bin\", \"auth\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/auth/request/AuthPhoneToken.java"
+    },
+    {
+      "class": "BoundAccsListCmd",
+      "path": "/api/v1/user/social/bind/list",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"social\", \"bind\", \"list\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/BoundAccsListCmd.java"
+    },
+    {
+      "class": "GetLiberoAdParamsCommand",
+      "path": "/api/getAccountData.php",
+      "path_raw": "ApiUris.AUTHORITY_API, \"getAccountData.php\"",
+      "auth_type": "LEGACY",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "libero_default_host",
+      "scheme_resource": "libero_default_scheme",
+      "source": "ru/mail/data/cmd/server/GetLiberoAdParamsCommand.java"
+    },
+    {
+      "class": "GetSocialAndServicesPushFiltersCommand",
+      "path": "/mail_filter",
+      "path_raw": "\"mail_filter\"",
+      "auth_type": "LEGACY",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "push_default_host",
+      "scheme_resource": "push_default_scheme",
+      "source": "ru/mail/data/cmd/server/GetSocialAndServicesPushFiltersCommand.java"
+    },
+    {
+      "class": "RBTranslationsCommand",
+      "path": "/mobile",
+      "path_raw": "\"mobile\", BuildConfig.TRANSLATIONS_SLOT",
+      "auth_type": "LEGACY",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RBTranslationsCommand.java"
+    },
+    {
+      "class": "TerminateSessionsCommand",
+      "path": "/cgi-bin/logout",
+      "path_raw": "\"cgi-bin\", \"logout\"",
+      "auth_type": "LEGACY",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TerminateSessionsCommand.java"
+    },
+    {
+      "class": "GetVirgilioAdParamsCommand",
+      "path": "/api/getAccountData.php",
+      "path_raw": "ApiUris.AUTHORITY_API, \"getAccountData.php\"",
+      "auth_type": "LEGACY",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "virgilio_default_host",
+      "scheme_resource": "virgilio_default_scheme",
+      "source": "ru/mail/data/cmd/server/GetVirgilioAdParamsCommand.java"
+    },
+    {
+      "class": "LogoutRequestCommand",
+      "path": "/cgi-bin/logout",
+      "path_raw": "\"cgi-bin\", \"logout\"",
+      "auth_type": "LEGACY",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/LogoutRequestCommand.java"
+    },
+    {
+      "class": "SendAppStartCommand",
+      "path": "",
+      "path_raw": "AppStartTriggerStartup.TRIGGER_APP_START",
+      "auth_type": "LEGACY_MPOP",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/SendAppStartCommand.java"
+    },
+    {
+      "class": "TornadoLogoutRequestCommand",
+      "path": "/revoke",
+      "path_raw": "\"revoke\"",
+      "auth_type": "LEGACY",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "oauth_default_host",
+      "scheme_resource": "oauth_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoLogoutRequestCommand.java"
+    },
+    {
+      "class": "CallsAnonymTokenRequest",
+      "path": "/api/v1",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", SessionParamsProviderImpl.PARAM_SESSION_ID, AnonymousFeatureManager.DEFAULT_ANONYMOUS_STORAGE_NAME",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/calls/CallsAnonymTokenRequest.java"
+    },
+    {
+      "class": "PushMeUnsubscribeByTokenCommand",
+      "path": "/api/unsubscribe_by_token",
+      "path_raw": "ApiUris.AUTHORITY_API, FileHandlerArchive.VERSION_POSTFIX, \"unsubscribe_by_token\"",
+      "auth_type": "LEGACY",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/pusher/pushme/PushMeUnsubscribeByTokenCommand.java"
+    },
+    {
+      "class": "PushMeCheckPushTokenCommand",
+      "path": "/ss",
+      "path_raw": "\"ss\", BaseSettingsActivity.CHECK_PUSH_TOKEN",
+      "auth_type": "LEGACY",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/pusher/pushme/PushMeCheckPushTokenCommand.java"
+    },
+    {
+      "class": "PushMeRemovePushSettingsCmd",
+      "path": "/ss/unsubscribe_by_device_id",
+      "path_raw": "\"ss\", \"unsubscribe_by_device_id\"",
+      "auth_type": "LEGACY",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/pusher/pushme/PushMeRemovePushSettingsCmd.java"
+    },
+    {
+      "class": "PushMeSendPushSettingsV1Command",
+      "path": "/api/v1/set_settings",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"set_settings\"",
+      "auth_type": "LEGACY",
+      "oauth_supported": true,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/pusher/pushme/PushMeSendPushSettingsV1Command.java"
+    },
+    {
+      "class": "RegConfirmCmd",
+      "path": "/api/v1/user/signup/mobile",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"signup\", \"mobile\", VKApiCodes.EXTRA_CONFIRM",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/registration/request/RegConfirmCmd.java"
+    },
+    {
+      "class": "RegCodeCmd",
+      "path": "/api/v1/user/signup",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"signup\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/registration/request/RegCodeCmd.java"
+    },
+    {
+      "class": "RegSocialCmd",
+      "path": "/api/v1/user/signup",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"signup\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/registration/request/RegSocialCmd.java"
+    },
+    {
+      "class": "RegCheckSocialCmd",
+      "path": "/api/v1/user/signup",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"signup\", VKApiCodes.EXTRA_CONFIRM",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/registration/request/RegCheckSocialCmd.java"
+    },
+    {
+      "class": "RegQstCmd",
+      "path": "/api/v1/user/signup",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"signup\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/registration/request/RegQstCmd.java"
+    },
+    {
+      "class": "RegTokenCmd",
+      "path": "/api/v1/tokens/send",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"tokens\", \"send\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/registration/request/RegTokenCmd.java"
+    },
+    {
+      "class": "RegCheckCmd",
+      "path": "/api/v1/user/signup",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"signup\", VKApiCodes.EXTRA_CONFIRM",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/registration/request/RegCheckCmd.java"
+    },
+    {
+      "class": "SignupPrepareRequest",
+      "path": "/api/v1/user/signup/prepare",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"signup\", \"prepare\"",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "account_default_host",
+      "scheme_resource": "account_default_scheme",
+      "source": "ru/mail/registration/request/SignupPrepareRequest.java"
+    },
+    {
+      "class": "CheckCaptchaCmd",
+      "path": "/api/v1/user/signup",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"signup\", VKApiCodes.EXTRA_CONFIRM",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/registration/request/CheckCaptchaCmd.java"
+    },
+    {
+      "class": "RequestCookieUrlByLibverifyToken",
+      "path": "/api/v1/user/signup",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"signup\", VKApiCodes.EXTRA_CONFIRM",
+      "auth_type": "",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/registration/request/RequestCookieUrlByLibverifyToken.java"
+    },
+    {
+      "class": "UploadRadarEventsCommand",
+      "path": "/batch",
+      "path_raw": "\"batch\"",
+      "auth_type": "LEGACY",
+      "oauth_supported": false,
+      "access_token_capable": false,
+      "host_resource": "radar_default_host",
+      "scheme_resource": "radar_default_scheme",
+      "source": "ru/mail/util/analytics/logger/radar/UploadRadarEventsCommand.java"
+    }
+  ],
+  "direct_access_token_sources": [
+    {
+      "source": "com/vk/superapp/VkSdkExtendedNetworkCheck.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/api/BaseLoader.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/js/bridge/events/GetAuthToken.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/base/js/bridge/BaseJsBridge.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/auth/js/bridge/api/events/GetAuthToken.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/browser/ui/VkUiActivityResultDelegate.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/browser/internal/bridges/BaseWebBridge.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/browser/internal/cache/AppStateStoreCached.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/browser/internal/bridges/js/JsVkBrowserCoreBridge.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/browser/internal/bridges/js/JsAndroidBridge.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/browser/internal/bridges/js/features/JsAuthDelegate.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/core/errors/VkAppsErrors.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/core/api/models/BanInfo.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/core/api/models/AuthAnswer.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/api/contract/GeneratedSuperappApi.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/api/core/WebPersistentRequest.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/api/internal/WebApiRequest.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/api/generated/account/AccountService.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/api/generated/auth/AuthService.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/api/generated/multiaccount/MultiaccountService.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/api/dto/auth/AuthCheckAuthCodeResponseDto.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/api/internal/oauthrequests/AuthByAccessToken.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/api/internal/oauthrequests/WebAuthApiCommand.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/api/internal/oauthrequests/AuthExtendProvidedTokenCommand.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/api/internal/oauthrequests/AuthGetAccessToken.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/common/js/bridge/api/events/UsersSearch.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/common/js/bridge/api/events/GetCommunityToken.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/superapp/sessionmanagment/impl/data/source/SessionSQLiteHelper.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/stat/scheme/SchemeStat.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/auth/restore/RestoreNavValue.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/auth/verification/url/UrlCheckFragment.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/log/internal/utils/DefaultSecureStripper.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/pushme/network/model/request/InternalSubscriptionRequest$$serializer.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/pushme/network/model/request/InternalSubscriptionRequest.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/api/external/AnonymousOkHttpExecutor.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/api/external/SuperMethodChainCall.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/api/generated/auth/dto/AuthRefreshTokenDto.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/api/generated/auth/dto/AuthGetAuthCodeStatusResponseDto.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/api/generated/auth/dto/AuthCheckAuthCodeResponseDto.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/api/generated/auth/dto/AuthBanInfoDto.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/api/generated/apps/dto/AppsGetEmbeddedUrlResponseDto.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/api/generated/apps/dto/AppsGetAppLaunchParamsResponseDto.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/api/generated/apps/dto/AppsJoinAndGetResponseDto.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/api/external/exceptions/VKWebAuthException.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/api/external/anonymous/AnonymousTokenRequest.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/api/external/anonymous/GetAnonymousTokenApiCommand.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/api/sdk/utils/SecureInfoStripper.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/api/sdk/auth/VKAccessToken.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/api/sdk/auth/VKAuthParams.java",
+      "urls": [
+        "https://vk.com/dev/access_token"
+      ],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/api/sdk/ui/VKWebViewAuthActivity.java",
+      "urls": [
+        "https://api.vk.com/oauth/authorize"
+      ],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/api/sdk/exceptions/VKApiCodes.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/api/sdk/exceptions/VKApiExecutionException.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/api/sdk/okhttp/LoggingInterceptor.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/api/sdk/internal/QueryStringGenerator.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/api/sdk/internal/VKErrorUtils.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/vk/accountmanager/data/AccountManagerRepositoryImpl.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/appsflyer/internal/AFa1eSDK.java",
+      "urls": [
+        "https://%sstats.%s/stats"
+      ],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/google/api/client/auth/oauth2/TokenResponse.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/google/api/client/auth/oauth2/BearerToken.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "com/my/target/vk.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/ok/android/sdk/OkAuthActivity.java",
+      "urls": [
+        "https://connect.ok.ru/oauth/authorize?client_id="
+      ],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/ok/android/sdk/Odnoklassniki.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/ok/android/sdk/AbstractWidgetActivity.java",
+      "urls": [
+        "https://connect.ok.ru/dk?st.cmd="
+      ],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/ok/android/sdk/SharedKt.java",
+      "urls": [
+        "https://api.ok.ru/",
+        "https://connect.ok.ru/"
+      ],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/serverapi/PostServerRequest.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/serverapi/TornadoSession.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/serverapi/ServerCommandBase.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/serverapi/TornadoSessionProvider.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/auth/MailAccountConstants.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": true
+    },
+    {
+      "source": "ru/mail/auth/AccountManagerWrapper.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/auth/Authenticator.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": true
+    },
+    {
+      "source": "ru/mail/smoothie/web/auth/MultiAccountAuthCallback.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/onpremiseauthsdk/api/OnPremiseRefreshTokenUseCaseImpl.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/onpremiseauthsdk/internal/OnPremiseAuthViewModel.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/onpremiseauthsdk/internal/OnPremiseAuthUtilsKt.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/onpremiseauthsdk/internal/network/OnPremiseParser.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/cloud/app/network/interceptors/AuthInterceptor.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/cloud/app/data/auth/RefreshTokenResp.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/calendar/data/network/download/CalendarAttachmentDownloader.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/calendar/domain/download/AttachRedirectResolver.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/network/utils/filter/LogFilters.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/serverapi/retrofit/session/OAuthSession.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": true
+    },
+    {
+      "source": "ru/mail/serverapi/retrofit/session/TornadoSessionSensitiveFilters.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/help/di/HelpInternalLogger.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/auth/am/AccountManagerPreference.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/auth/request/OAuthAccessRefresh.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/auth/request/OAuthLoginBase.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/auth/request/YandexOAuthLoginRequest.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/auth/request/AuthorizeRequestCommand.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/auth/webview/SharedPreferencesCredentialStore.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/auth/webview/OAuthAccessTokenFragment.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/auth/webview/OAuth2Helper.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/auth/sdk/api/ApiCommand.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/auth/sdk/api/user/UserInfoRequest.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/auth/sdk/api/token/RefreshAccessTokenRequest.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/auth/sdk/api/token/AccessTokenRequest.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/ads/leadform/impl/Token.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/ui/fragments/settings/BaseSettingsActivity.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/credentialsexchanger/data/network/BindCurrentAccountRequest.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/credentialsexchanger/data/network/BindEmailToVkIdRequestAsync.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/credentialsexchanger/data/network/BindEmailToVkIdRequestSync.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/credentialsexchanger/data/network/GetVkAuthRequest.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/credentialsexchanger/data/network/GetAuthEmailDataByVKIDRequest.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/credentialsexchanger/data/network/MailOAuthRequest.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/credentialsexchanger/data/network/GetSocialAccountsBindsToEmailRequest.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/data/cmd/VkCountersCmd.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/data/cmd/BoundAccsListCmd.java",
+      "urls": [],
+      "host_annotations": [
+        "defHostStrRes = \"string/mail_api_default_host\", defSchemeStrRes = \"string/mail_api_default_scheme\", needPlatformParams = false, needSign = false, needUserAgent = false, prefKey = MailOAuthRequest.BODY_KEY"
+      ],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/data/cmd/VkStatEventsCmd.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/data/cmd/server/OAuthChildCommand.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/data/cmd/server/UploadCloudRequest.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/data/cmd/server/GetCloudAttachmentInfo.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/search/metasearch/data/datasource/AuthRemoteDataSource.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/search/metasearch/data/api/UrlsBuilder.java",
+      "urls": [
+        "https://filin.mail.ru/pic",
+        "https://go.mail.ru/api/v1/go",
+        "https://o2.mail.ru/token",
+        "https://suggests.go.mail.ru"
+      ],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/kotlett/services/billing/network/plugins/AuthPluginBuilder$createAuthPlugin$1$1.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/plugin/auth/sdk/OnPremiseTokenStorageImpl.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/portal/kit/auth/PortalAuthProvider.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": true
+    },
+    {
+      "source": "ru/mail/registration/request/RegCheckSocialCmd.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/registration/request/childsignup/ChildSignUpCodeCmd.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/chrome/tools/client/WebChromeClientWithFileChooser.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/util/push/pusher/params/PushMeParamsPreparerImpl.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/imageloader/downloader/InlineImageDownloaderDelegate.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/imageloader/downloader/FileThumbnailsDownloader.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/logic/auth/GetAuthCodeByAccessTokenCommand.java",
+      "urls": [],
+      "host_annotations": [
+        "defHostStrRes = \"string/oauth_default_host\", defSchemeStrRes = \"string/oauth_default_scheme\", needPlatformParams = false, needSign = false, needUserAgent = false, prefKey = MailOAuthRequest.BODY_KEY"
+      ],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/logic/auth/GetClientAuthCodeByAccessTokenCommand.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/logic/auth/GetAccessTokenByRefreshToken.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/logic/auth/GetConvertAuthCodeByAccessTokenCommand.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/logic/auth/TokenExchangeCommand.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/logic/content/HtmlFormatter.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/logic/cmd/socialbind/SocialBindAddApi.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [
+        [
+          "POST",
+          "api/v1/user/social/bind/add"
+        ]
+      ],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/authorizationsdk/feature/external/accesstokenrefresh/data/model/AccessTokenDataDto.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/authorizationsdk/feature/login/data/phone/model/CredentialHolderDTO.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/authorizationsdk/feature/login/data/phone/model/CredentialHolderDTO$$serializer.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/authorizationsdk/feature/ok/presentation/OKAuthDelegate$onActivityResult$1$onSuccess$1.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/authorizationsdk/feature/ok/data/OkAuthTokens.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/authorizationsdk/feature/ok/data/OkAuthTokens$$serializer.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/authorizationsdk/feature/yandex/data/mappers/YandexMapper.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/authorizationsdk/feature/google/common/data/model/GoogleTokenResponse.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/authorizationsdk/feature/core/utils/CoreConstants.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/authorizationsdk/feature/registration/data/api/SignupApi.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [
+        [
+          "POST",
+          "api/v1/user/signup"
+        ],
+        [
+          "POST",
+          "api/v1/user/signup/confirm"
+        ],
+        [
+          "POST",
+          "api/v1/user/exists"
+        ]
+      ],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/authorizationsdk/data/model/MailOAuthTokens.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/authorizationsdk/data/model/MailOAuthTokens$$serializer.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "ru/mail/authorizationsdk/data/externalaccount/ExternalAccMailApi.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [
+        [
+          "POST",
+          "{path}"
+        ],
+        [
+          "POST",
+          "oauth2_google_token"
+        ],
+        [
+          "POST",
+          "cgi-bin/oauth2_ok_token"
+        ],
+        [
+          "POST",
+          "oauth2_outlook_token"
+        ],
+        [
+          "POST",
+          "oauth2_yahoo_token"
+        ],
+        [
+          "POST",
+          "oauth2_yandex_token"
+        ]
+      ],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "net/openid/appauth/TokenResponse.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "net/openid/appauth/RegistrationResponse.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    },
+    {
+      "source": "net/openid/appauth/AuthorizationResponse.java",
+      "urls": [],
+      "host_annotations": [],
+      "retrofit": [],
+      "mentions_oauth_token_type": false
+    }
+  ],
+  "host_provider_annotations": [
+    {
+      "source": "ru/mail/auth/request/YahooEmailRequest.java",
+      "annotation": "defHostStrRes = \"string/yahoo_social_api_default_host\", defSchemeStrRes = \"string/yahoo_default_scheme\", needPlatformParams = false, needSign = false, needUserAgent = false, prefKey = \"yahoo_get_email\""
+    },
+    {
+      "source": "ru/mail/auth/request/PushAuthInfoRequest.java",
+      "annotation": "defHostStrRes = \"string/swa_default_host\", defSchemeStrRes = \"string/swa_default_scheme\", needPlatformParams = false, needSign = false, needUserAgent = false, prefKey = \"swa\""
+    },
+    {
+      "source": "ru/mail/auth/request/GoogleGetEmailRequest.java",
+      "annotation": "defHostStrRes = \"string/google_api_default_host\", defSchemeStrRes = \"string/google_default_scheme\", needPlatformParams = false, needSign = false, needUserAgent = false, prefKey = \"google_apis\""
+    },
+    {
+      "source": "ru/mail/auth/request/ClientCheckRequest.java",
+      "annotation": "defHostStrRes = \"string/oauth_default_host\", defSchemeStrRes = \"string/oauth_default_scheme\", needPlatformParams = false, needSign = false, needUserAgent = false, prefKey = MailOAuthRequest.BODY_KEY"
+    },
+    {
+      "source": "ru/mail/auth/request/YandexEmailRequest.java",
+      "annotation": "defHostStrRes = \"string/yandex_api_default_host\", defSchemeStrRes = \"string/yandex_default_scheme\", needPlatformParams = false, needSign = false, needUserAgent = false, prefKey = \"yandex_get_email\""
+    },
+    {
+      "source": "ru/mail/auth/request/GetEmailAllowedInfoRequest.java",
+      "annotation": "defHostStrRes = \"string/swa_default_host\", defSchemeStrRes = \"string/swa_default_scheme\", needPlatformParams = false, needSign = false, needUserAgent = false, prefKey = \"swa\""
+    },
+    {
+      "source": "ru/mail/data/cmd/BoundAccsListCmd.java",
+      "annotation": "defHostStrRes = \"string/mail_api_default_host\", defSchemeStrRes = \"string/mail_api_default_scheme\", needPlatformParams = false, needSign = false, needUserAgent = false, prefKey = MailOAuthRequest.BODY_KEY"
+    },
+    {
+      "source": "ru/mail/data/cmd/server/GetLiberoAdParamsCommand.java",
+      "annotation": "defHostStrRes = \"string/libero_default_host\", defSchemeStrRes = \"string/libero_default_scheme\", needPlatformParams = false, needSign = false, needUserAgent = false, prefKey = \"libero_api\""
+    },
+    {
+      "source": "ru/mail/data/cmd/server/RequestSanitizeUrlCommand.java",
+      "annotation": "defHostStrRes = \"string/swa_default_host\", defSchemeStrRes = \"string/swa_default_scheme\", prefKey = \"swa\""
+    },
+    {
+      "source": "ru/mail/data/cmd/server/GetSocialAndServicesPushFiltersCommand.java",
+      "annotation": "defHostStrRes = \"string/push_default_host\", defSchemeStrRes = \"string/push_default_scheme\", prefKey = \"push\""
+    },
+    {
+      "source": "ru/mail/data/cmd/server/RBTranslationsCommand.java",
+      "annotation": "defHost = R.string.rb_default_host, defScheme = R.string.rb_default_scheme, needPlatformParams = false, needSign = false, needUserAgent = false, prefKey = \"rb\""
+    },
+    {
+      "source": "ru/mail/data/cmd/server/QrGetInfoCommand.java",
+      "annotation": "defHost = R.string.account_default_host, defScheme = R.string.account_default_scheme, prefKey = \"account\""
+    },
+    {
+      "source": "ru/mail/data/cmd/server/GetCloudDispatcherCommand.java",
+      "annotation": "defHostStrRes = \"string/cloud_dispatcher_default_host\", defSchemeStrRes = \"string/cloud_dispatcher_default_scheme\", prefKey = \"cloud_dispatcher\""
+    },
+    {
+      "source": "ru/mail/data/cmd/server/AttachLinkLoadCommand.java",
+      "annotation": "defHostStrRes = \"string/files_default_host\", defSchemeStrRes = \"string/files_default_scheme\", prefKey = AttachLinkLoadCommand.PREF_ATTACHLINK"
+    },
+    {
+      "source": "ru/mail/data/cmd/server/ChildboxAuthCommand.java",
+      "annotation": "defHostStrRes = \"string/swa_default_host\", defSchemeStrRes = \"string/swa_default_scheme\", prefKey = \"swa\""
+    },
+    {
+      "source": "ru/mail/data/cmd/server/QrAuthWebCommand.java",
+      "annotation": "defHost = R.string.account_default_host, defScheme = R.string.account_default_scheme, prefKey = \"account\""
+    },
+    {
+      "source": "ru/mail/data/cmd/server/MessagesSearchCommandNew.java",
+      "annotation": "defHostStrRes = \"string/search_new_host\", defSchemeStrRes = \"string/search_new_default_scheme\", prefKey = \"search\""
+    },
+    {
+      "source": "ru/mail/data/cmd/server/ChildboxListCommand.java",
+      "annotation": "defHostStrRes = \"string/swa_default_host\", defSchemeStrRes = \"string/swa_default_scheme\", prefKey = \"swa\""
+    },
+    {
+      "source": "ru/mail/data/cmd/server/GetVirgilioAdParamsCommand.java",
+      "annotation": "defHostStrRes = \"string/virgilio_default_host\", defSchemeStrRes = \"string/virgilio_default_scheme\", needPlatformParams = false, needSign = false, needUserAgent = false, prefKey = \"virgilio_api\""
+    },
+    {
+      "source": "ru/mail/data/cmd/server/ChangeAvatarCommand.java",
+      "annotation": "defHostStrRes = \"string/change_avatar_default_host\", defSchemeStrRes = \"string/change_avatar_default_scheme\", prefKey = \"change_avatar\""
+    },
+    {
+      "source": "ru/mail/data/cmd/server/TornadoLogoutRequestCommand.java",
+      "annotation": "defHostStrRes = \"string/oauth_default_host\", defSchemeStrRes = \"string/oauth_default_scheme\", needSign = false, prefKey = \"oauth2\""
+    },
+    {
+      "source": "ru/mail/data/cmd/server/pusher/pushme/PushMeUnsubscribeByTokenCommand.java",
+      "annotation": "defHost = R.string.push_default_host, defScheme = R.string.push_default_scheme, prefKey = \"push\""
+    },
+    {
+      "source": "ru/mail/data/cmd/server/pusher/pushme/PushMeSendPushSettingsCommand.java",
+      "annotation": "defHostStrRes = \"string/push_default_host\", defSchemeStrRes = \"string/push_default_scheme\", prefKey = \"push\""
+    },
+    {
+      "source": "ru/mail/data/cmd/server/pusher/pushme/PushMeCheckPushTokenCommand.java",
+      "annotation": "defHost = R.string.push_default_host, defScheme = R.string.push_default_scheme, prefKey = \"push\""
+    },
+    {
+      "source": "ru/mail/data/cmd/server/pusher/pushme/PushMeRemovePushSettingsCmd.java",
+      "annotation": "defHost = R.string.push_default_host, defScheme = R.string.push_default_scheme, prefKey = \"push\""
+    },
+    {
+      "source": "ru/mail/data/cmd/server/pusher/pushme/PushMeSendPushSettingsV1Command.java",
+      "annotation": "defHost = R.string.push_default_host, defScheme = R.string.push_default_scheme, prefKey = \"push\""
+    },
+    {
+      "source": "ru/mail/registration/request/SignupPrepareRequest.java",
+      "annotation": "defHostStrRes = \"string/account_default_host\", defSchemeStrRes = \"string/account_default_scheme\", prefKey = \"account\""
+    },
+    {
+      "source": "ru/mail/util/analytics/logger/radar/UploadRadarEventsCommand.java",
+      "annotation": "defHostStrRes = \"string/radar_default_host\", defSchemeStrRes = \"string/radar_default_scheme\", needPlatformParams = false, needSign = false, needUserAgent = false, prefKey = \"radar\""
+    },
+    {
+      "source": "ru/mail/logic/auth/GetAuthCodeByAccessTokenCommand.java",
+      "annotation": "defHostStrRes = \"string/oauth_default_host\", defSchemeStrRes = \"string/oauth_default_scheme\", needPlatformParams = false, needSign = false, needUserAgent = false, prefKey = MailOAuthRequest.BODY_KEY"
+    },
+    {
+      "source": "ru/mail/logic/auth/ChangeAuthTypeCommand.java",
+      "annotation": "defHostStrRes = \"string/account_default_host\", defSchemeStrRes = \"string/account_default_scheme\", prefKey = \"account\""
+    }
+  ],
+  "host_resources": [
+    {
+      "resource": "access_default_host",
+      "values": [
+        "access.mail.ru"
+      ]
+    },
+    {
+      "resource": "account_default_host",
+      "values": [
+        "account.mail.ru"
+      ]
+    },
+    {
+      "resource": "account_test_def_host",
+      "values": [
+        "account.test.mail.ru"
+      ]
+    },
+    {
+      "resource": "ad_deeplink_host",
+      "values": [
+        "ads.mail.ru"
+      ]
+    },
+    {
+      "resource": "attach_preview_default_host",
+      "values": [
+        "alt-apf.mail.ru"
+      ]
+    },
+    {
+      "resource": "attach_preview_default_host_mini_mail",
+      "values": [
+        "https"
+      ]
+    },
+    {
+      "resource": "auth_capcha_host",
+      "values": [
+        "alt-c.mail.ru"
+      ]
+    },
+    {
+      "resource": "auth_default_host",
+      "values": []
+    },
+    {
+      "resource": "auth_default_host_mini_mail",
+      "values": [
+        "Log in with QR code"
+      ]
+    },
+    {
+      "resource": "auth_pre_default_host",
+      "values": [
+        "aj-pre.test.mail.ru"
+      ]
+    },
+    {
+      "resource": "authstat_default_host",
+      "values": []
+    },
+    {
+      "resource": "authstat_default_host_mini_mail",
+      "values": [
+        "Open"
+      ]
+    },
+    {
+      "resource": "avatar_default_host",
+      "values": [
+        "alt-mpandroid-filin.mail.ru"
+      ]
+    },
+    {
+      "resource": "avatar_default_host_mini_mail",
+      "values": [
+        "mpandroid.filin.mail.ru"
+      ]
+    },
+    {
+      "resource": "avatar_default_host_v1",
+      "values": [
+        "mpandroid.filin.mail.ru"
+      ]
+    },
+    {
+      "resource": "avatar_default_host_v1_mini_mail",
+      "values": [
+        "https"
+      ]
+    },
+    {
+      "resource": "calls_default_host",
+      "values": [
+        "alt-calls.mail.ru"
+      ]
+    },
+    {
+      "resource": "captcha_default_host",
+      "values": [
+        "alt-swa.mail.ru"
+      ]
+    },
+    {
+      "resource": "change_avatar_default_host",
+      "values": []
+    },
+    {
+      "resource": "change_avatar_default_host_mini_mail",
+      "values": [
+        "Tap on the avatar to change it"
+      ]
+    },
+    {
+      "resource": "cloud_dispatcher_default_host",
+      "values": [
+        "dispatcher.cloud.mail.ru"
+      ]
+    },
+    {
+      "resource": "cloud_dispatcher_default_host_mini_mail",
+      "values": [
+        "https"
+      ]
+    },
+    {
+      "resource": "cloud_public_host",
+      "values": [
+        "cloud.mail.ru"
+      ]
+    },
+    {
+      "resource": "cloud_referer_default_host",
+      "values": [
+        "alt-cloud.mail.ru"
+      ]
+    },
+    {
+      "resource": "cloud_referer_default_host_mini_mail",
+      "values": [
+        "https"
+      ]
+    },
+    {
+      "resource": "credentials_exchanger_account_mail_host",
+      "values": [
+        "account.mail.ru"
+      ]
+    },
+    {
+      "resource": "credentials_exchanger_alt_aj_auth_host",
+      "values": [
+        "alt-aj-https.mail.ru"
+      ]
+    },
+    {
+      "resource": "credentials_exchanger_auth_host",
+      "values": [
+        "alt-auth.mail.ru"
+      ]
+    },
+    {
+      "resource": "credentials_exchanger_help_mail_host",
+      "values": [
+        "alt-help.mail.ru"
+      ]
+    },
+    {
+      "resource": "domain_settings_default_host",
+      "values": []
+    },
+    {
+      "resource": "domain_settings_default_host_mini_mail",
+      "values": [
+        "xmail.ru"
+      ]
+    },
+    {
+      "resource": "doreg_captcha_default_host",
+      "values": [
+        "alt-swa.mail.ru"
+      ]
+    },
+    {
+      "resource": "doreg_captcha_default_host_mini_mail",
+      "values": [
+        "https"
+      ]
+    },
+    {
+      "resource": "doreg_default_host",
+      "values": [
+        "alt-android-mobile-api.e.mail.ru"
+      ]
+    },
+    {
+      "resource": "doreg_default_host_mini_mail",
+      "values": [
+        "https"
+      ]
+    },
+    {
+      "resource": "doreg_name_default_host",
+      "values": [
+        "pre.test.mail.ru"
+      ]
+    },
+    {
+      "resource": "error_code_unknow_domain_field_host",
+      "values": [
+        "host"
+      ]
+    },
+    {
+      "resource": "error_host_lookup",
+      "values": [
+        "Server or proxy hostname lookup failed"
+      ]
+    },
+    {
+      "resource": "files_default_host",
+      "values": [
+        "alt-files.mail.ru"
+      ]
+    },
+    {
+      "resource": "files_default_host_mini_mail",
+      "values": [
+        "https"
+      ]
+    },
+    {
+      "resource": "for_google_web_auth_server_host",
+      "values": [
+        "accounts.google.com"
+      ]
+    },
+    {
+      "resource": "for_google_web_mailru_redirect_host",
+      "values": [
+        "fluor.mail.ru"
+      ]
+    },
+    {
+      "resource": "for_google_web_mycom_redirect_host",
+      "values": [
+        "fluor.my.com"
+      ]
+    },
+    {
+      "resource": "for_google_web_token_server_host",
+      "values": [
+        "accounts.google.com"
+      ]
+    },
+    {
+      "resource": "for_outlook_auth_server_host",
+      "values": [
+        "login.live.com"
+      ]
+    },
+    {
+      "resource": "for_outlook_mailru_redirect_host",
+      "values": [
+        "auth.mail.ru"
+      ]
+    },
+    {
+      "resource": "for_outlook_mycom_redirect_host",
+      "values": [
+        "alt-auth.my.com"
+      ]
+    },
+    {
+      "resource": "for_outlook_token_server_host",
+      "values": [
+        "login.live.com"
+      ]
+    },
+    {
+      "resource": "for_yahoo_auth_server_host",
+      "values": [
+        "api.login.yahoo.com"
+      ]
+    },
+    {
+      "resource": "for_yahoo_mailru_redirect_host",
+      "values": [
+        "auth.mail.ru"
+      ]
+    },
+    {
+      "resource": "for_yahoo_mycom_redirect_host",
+      "values": [
+        "mail.my.com"
+      ]
+    },
+    {
+      "resource": "for_yahoo_token_server_host",
+      "values": [
+        "api.login.yahoo.com"
+      ]
+    },
+    {
+      "resource": "for_yandex_auth_server_host",
+      "values": [
+        "oauth.yandex.ru"
+      ]
+    },
+    {
+      "resource": "for_yandex_mailru_redirect_host",
+      "values": [
+        "auth.mail.ru"
+      ]
+    },
+    {
+      "resource": "for_yandex_mycom_redirect_host",
+      "values": [
+        "mail.my.com"
+      ]
+    },
+    {
+      "resource": "for_yandex_token_server_host",
+      "values": [
+        "oauth.yandex.ru"
+      ]
+    },
+    {
+      "resource": "generate_strong_password_host",
+      "values": [
+        "e.mail.ru"
+      ]
+    },
+    {
+      "resource": "goauth_default_host",
+      "values": []
+    },
+    {
+      "resource": "goauth_default_host_mini_mail",
+      "values": [
+        "Gmail"
+      ]
+    },
+    {
+      "resource": "google_api_default_host",
+      "values": [
+        "www.googleapis.com"
+      ]
+    },
+    {
+      "resource": "host",
+      "values": [
+        "Host"
+      ]
+    },
+    {
+      "resource": "libero_default_host",
+      "values": [
+        "login.libero.it"
+      ]
+    },
+    {
+      "resource": "mail_api_default_host",
+      "values": [
+        "alt-aj-https.mail.ru"
+      ]
+    },
+    {
+      "resource": "mail_api_default_host_mini_mail",
+      "values": [
+        "https"
+      ]
+    },
+    {
+      "resource": "new_mail_api_default_host",
+      "values": []
+    },
+    {
+      "resource": "new_mail_api_default_host_mini_mail",
+      "values": [
+        "Incorrect emails. Please check the blind carbon copy field."
+      ]
+    },
+    {
+      "resource": "nf_new_mobs_host",
+      "values": [
+        "https://media-mobs.mail.ru"
+      ]
+    },
+    {
+      "resource": "not_vk_service_privacy_policy_host",
+      "values": [
+        "help.mail.ru"
+      ]
+    },
+    {
+      "resource": "not_vk_service_user_agreement_host",
+      "values": [
+        "help.mail.ru"
+      ]
+    },
+    {
+      "resource": "null_webview_base_host",
+      "values": [
+        "about:null"
+      ]
+    },
+    {
+      "resource": "oauth_default_host",
+      "values": [
+        "o2.mail.ru"
+      ]
+    },
+    {
+      "resource": "omicron_api_default_host",
+      "values": [
+        "portal.mail.ru"
+      ]
+    },
+    {
+      "resource": "omicron_fallback_api_host",
+      "values": [
+        "portal.mail.ru"
+      ]
+    },
+    {
+      "resource": "outlook_default_host",
+      "values": [
+        "apis.live.net"
+      ]
+    },
+    {
+      "resource": "portal_widget_host",
+      "values": [
+        "alt-ad.mail.ru"
+      ]
+    },
+    {
+      "resource": "pre_test_host",
+      "values": [
+        "pre.test.mail.ru"
+      ]
+    },
+    {
+      "resource": "pre_test_host_mini_mail",
+      "values": [
+        "https"
+      ]
+    },
+    {
+      "resource": "push_default_host",
+      "values": [
+        "alt-push-me.mail.ru"
+      ]
+    },
+    {
+      "resource": "push_default_host_dev",
+      "values": [
+        "push-me.devmail.ru"
+      ]
+    },
+    {
+      "resource": "push_default_host_mini_mail",
+      "values": [
+        "https"
+      ]
+    },
+    {
+      "resource": "qr_fallback_host",
+      "values": [
+        "account.mail.ru"
+      ]
+    },
+    {
+      "resource": "radar_default_host",
+      "values": [
+        "alt-xray.imgsmail.ru"
+      ]
+    },
+    {
+      "resource": "radar_default_host_mini_mail",
+      "values": [
+        "https"
+      ]
+    },
+    {
+      "resource": "rb_default_host",
+      "values": [
+        "alt-ad.mail.ru"
+      ]
+    },
+    {
+      "resource": "rb_default_host_mini_mail",
+      "values": [
+        "https"
+      ]
+    },
+    {
+      "resource": "registration_default_host",
+      "values": []
+    },
+    {
+      "resource": "registration_default_host_mini_mail",
+      "values": []
+    },
+    {
+      "resource": "sdk_account_default_host",
+      "values": [
+        "account.mail.ru"
+      ]
+    },
+    {
+      "resource": "sdk_account_default_test_host",
+      "values": [
+        "account.mini-mail.ru"
+      ]
+    },
+    {
+      "resource": "sdk_auth_capcha_host",
+      "values": [
+        "alt-c.mail.ru"
+      ]
+    },
+    {
+      "resource": "sdk_auth_default_host",
+      "values": [
+        "alt-aj-https.mail.ru"
+      ]
+    },
+    {
+      "resource": "sdk_auth_mail_host",
+      "values": [
+        "auth.mail.ru"
+      ]
+    },
+    {
+      "resource": "sdk_auth_mail_test_host",
+      "values": [
+        "auth.mini-mail.ru"
+      ]
+    },
+    {
+      "resource": "sdk_auth_test_capcha_host",
+      "values": [
+        "c.mini-mail.ru"
+      ]
+    },
+    {
+      "resource": "sdk_auth_test_default_host",
+      "values": [
+        "aj-https.mini-mail.ru"
+      ]
+    },
+    {
+      "resource": "sdk_avatar_default_host",
+      "values": [
+        "alt-mpandroid-filin.mail.ru"
+      ]
+    },
+    {
+      "resource": "sdk_avatar_test_default_host",
+      "values": [
+        "mpandroid-filin.mini-mail.ru"
+      ]
+    },
+    {
+      "resource": "sdk_doreg_captcha_default_host",
+      "values": [
+        "alt-swa.mail.ru"
+      ]
+    },
+    {
+      "resource": "sdk_doreg_captcha_default_test_host",
+      "values": [
+        "swa.mini-mail.ru"
+      ]
+    },
+    {
+      "resource": "sdk_for_google_web_auth_server_host",
+      "values": [
+        "accounts.google.com"
+      ]
+    },
+    {
+      "resource": "sdk_for_google_web_mailru_redirect_host",
+      "values": [
+        "fluor.mail.ru"
+      ]
+    },
+    {
+      "resource": "sdk_for_google_web_mailru_test_redirect_host",
+      "values": [
+        "fluor.mini-mail.ru"
+      ]
+    },
+    {
+      "resource": "sdk_for_google_web_token_server_host",
+      "values": [
+        "accounts.google.com"
+      ]
+    },
+    {
+      "resource": "sdk_for_outlook_auth_server_host",
+      "values": [
+        "login.live.com"
+      ]
+    },
+    {
+      "resource": "sdk_for_outlook_mailru_redirect_host",
+      "values": [
+        "auth.mail.ru"
+      ]
+    },
+    {
+      "resource": "sdk_for_outlook_mailru_test_redirect_host",
+      "values": [
+        "auth.mini-mail.ru"
+      ]
+    },
+    {
+      "resource": "sdk_for_outlook_token_server_host",
+      "values": [
+        "login.live.com"
+      ]
+    },
+    {
+      "resource": "sdk_for_yahoo_auth_server_host",
+      "values": [
+        "api.login.yahoo.com"
+      ]
+    },
+    {
+      "resource": "sdk_for_yahoo_mailru_redirect_host",
+      "values": [
+        "auth.mail.ru"
+      ]
+    },
+    {
+      "resource": "sdk_for_yahoo_mailru_test_redirect_host",
+      "values": [
+        "auth.mini-mail.ru"
+      ]
+    },
+    {
+      "resource": "sdk_for_yahoo_token_server_host",
+      "values": [
+        "api.login.yahoo.com"
+      ]
+    },
+    {
+      "resource": "sdk_for_yandex_auth_server_host",
+      "values": [
+        "oauth.yandex.ru"
+      ]
+    },
+    {
+      "resource": "sdk_for_yandex_mailru_redirect_host",
+      "values": [
+        "auth.mail.ru"
+      ]
+    },
+    {
+      "resource": "sdk_for_yandex_mailru_test_redirect_host",
+      "values": [
+        "auth.mini-mail.ru"
+      ]
+    },
+    {
+      "resource": "sdk_for_yandex_token_server_host",
+      "values": [
+        "oauth.yandex.ru"
+      ]
+    },
+    {
+      "resource": "sdk_google_api_default_host",
+      "values": [
+        "www.googleapis.com"
+      ]
+    },
+    {
+      "resource": "sdk_oauth_mail_host",
+      "values": [
+        "o2.mail.ru"
+      ]
+    },
+    {
+      "resource": "sdk_outlook_default_host",
+      "values": [
+        "apis.live.net"
+      ]
+    },
+    {
+      "resource": "sdk_swa_default_host",
+      "values": [
+        "alt-auth.mail.ru"
+      ]
+    },
+    {
+      "resource": "sdk_swa_test_def_host",
+      "values": [
+        "auth.mini-mail.ru"
+      ]
+    },
+    {
+      "resource": "sdk_yahoo_social_api_default_host",
+      "values": [
+        "api.login.yahoo.com"
+      ]
+    },
+    {
+      "resource": "sdk_yandex_api_default_host",
+      "values": [
+        "login.yandex.ru"
+      ]
+    },
+    {
+      "resource": "search_new_host",
+      "values": [
+        "go.mail.ru"
+      ]
+    },
+    {
+      "resource": "sharing_mail_link_host",
+      "values": [
+        "sharing.mail.ru"
+      ]
+    },
+    {
+      "resource": "swa_default_host",
+      "values": [
+        "alt-auth.mail.ru"
+      ]
+    },
+    {
+      "resource": "swa_test_def_host",
+      "values": [
+        "test.auth.mail.ru"
+      ]
+    },
+    {
+      "resource": "test_host",
+      "values": [
+        "test"
+      ]
+    },
+    {
+      "resource": "test_host_mini_mail",
+      "values": [
+        "msg"
+      ]
+    },
+    {
+      "resource": "universal_link_calendar_host",
+      "values": [
+        "calendar.mail.ru"
+      ]
+    },
+    {
+      "resource": "universal_link_host",
+      "values": [
+        "universal-link.mail.ru"
+      ]
+    },
+    {
+      "resource": "universal_link_notes_host",
+      "values": [
+        "notes.mail.ru"
+      ]
+    },
+    {
+      "resource": "universal_link_wallet_host",
+      "values": [
+        "wallet.mail.ru"
+      ]
+    },
+    {
+      "resource": "virgilio_default_host",
+      "values": [
+        "login.virgilio.it"
+      ]
+    },
+    {
+      "resource": "vk_service_privacy_policy_host",
+      "values": [
+        "static.vk.ru"
+      ]
+    },
+    {
+      "resource": "vk_service_user_agreement_host",
+      "values": [
+        "static.vk.ru"
+      ]
+    },
+    {
+      "resource": "webview_base_host",
+      "values": [
+        "e.mail.ru"
+      ]
+    },
+    {
+      "resource": "yahoo_social_api_default_host",
+      "values": [
+        "api.login.yahoo.com"
+      ]
+    },
+    {
+      "resource": "yandex_api_default_host",
+      "values": [
+        "login.yandex.ru"
+      ]
+    }
+  ]
+}
