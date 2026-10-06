@@ -1,0 +1,481 @@
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-5-import ru.mail.network.HostProvider;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-6-import ru.mail.network.NetworkCommand;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-7-import ru.mail.network.ResponseProcessor;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:8:import ru.mail.network.ServerApi;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-9-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-10-/* JADX INFO: compiled from: ProGuard */
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-11-/* JADX INFO: loaded from: classes16.dex */
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:12:public class MailAuthorizationApiFactory implements MailAuthorizationApiType.Factory<ServerApi> {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-13-    private final AccountManagerSettings mAccountManagerSettings;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-14-    private final PlatformInfo mPlatformInfo;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-15-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-16-    /* JADX INFO: compiled from: ProGuard */
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:17:    public static class LegacyMpopServerApi extends MailServerApi {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:18:        public LegacyMpopServerApi(PlatformInfo platformInfo, AccountManagerSettings accountManagerSettings) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-19-            super(platformInfo, accountManagerSettings);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-20-        }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-21-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:22:        @Override // ru.mail.network.ServerApi
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-23-        public HostProvider createApiHostProvider(Context context) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-24-            return new MailHostProvider(context, "mail_api", R.string.mail_api_default_scheme, R.string.mail_api_default_host, getPlatformInfo());
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-25-        }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-26-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:27:        @Override // ru.mail.network.ServerApi
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-28-        public ResponseProcessor createResponseProcessor(NetworkCommand.Response response, NetworkCommand.NetworkCommandBaseDelegate networkCommandBaseDelegate) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-29-            return new LegacyResponseProcessor(response, networkCommandBaseDelegate);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-30-        }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-31-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:32:        @Override // ru.mail.network.ServerApi
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-33-        public ServerCommandBase.ServerCommandBaseDelegate createDefaultDelegate(ServerCommandBase serverCommandBase) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-34-            Objects.requireNonNull(serverCommandBase);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-35-            return new ServerCommandBase.LegacyDelegate();
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-37-    }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-38-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-39-    /* JADX INFO: compiled from: ProGuard */
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:40:    public static class LegacyServerApi extends MailServerApi {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:41:        public LegacyServerApi(PlatformInfo platformInfo, AccountManagerSettings accountManagerSettings) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-42-            super(platformInfo, accountManagerSettings);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-43-        }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-44-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:45:        @Override // ru.mail.network.ServerApi
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-46-        public HostProvider createApiHostProvider(Context context) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-47-            return new MailHostProvider(context, "mail_api", ru.mail.Authenticator.R.string.auth_default_scheme, R.string.authstat_default_host, getPlatformInfo());
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-48-        }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-49-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:50:        @Override // ru.mail.network.ServerApi
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-51-        public ResponseProcessor createResponseProcessor(NetworkCommand.Response response, NetworkCommand.NetworkCommandBaseDelegate networkCommandBaseDelegate) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-52-            return new LegacyResponseProcessor(response, networkCommandBaseDelegate);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-53-        }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-54-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:55:        @Override // ru.mail.network.ServerApi
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-56-        public ServerCommandBase.ServerCommandBaseDelegate createDefaultDelegate(ServerCommandBase serverCommandBase) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-57-            Objects.requireNonNull(serverCommandBase);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-58-            return new ServerCommandBase.LegacyDelegate();
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-60-    }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-61-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-62-    /* JADX INFO: compiled from: ProGuard */
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:63:    public static abstract class MailServerApi implements ServerApi<ServerCommandBase> {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-64-        private final AccountManagerSettings mAccountManagerSettings;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-65-        private final PlatformInfo mPlatformInfo;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-66-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:67:        protected MailServerApi(PlatformInfo platformInfo, AccountManagerSettings accountManagerSettings) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-68-            this.mPlatformInfo = platformInfo;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-69-            this.mAccountManagerSettings = accountManagerSettings;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-70-        }
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-80-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-81-    /* JADX INFO: compiled from: ProGuard */
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-82-    /* JADX INFO: loaded from: classes11.dex */
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:83:    public static class TornadoMpopTokenServerApi extends MailServerApi {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:84:        public TornadoMpopTokenServerApi(PlatformInfo platformInfo, AccountManagerSettings accountManagerSettings) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-85-            super(platformInfo, accountManagerSettings);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-86-        }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-87-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:88:        @Override // ru.mail.network.ServerApi
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-89-        public HostProvider createApiHostProvider(Context context) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-90-            return new MailHostProvider(context, "new_mail_api", R.string.new_mail_api_default_scheme, R.string.new_mail_api_default_host, getPlatformInfo());
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-91-        }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-92-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:93:        @Override // ru.mail.network.ServerApi
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-94-        public ResponseProcessor createResponseProcessor(NetworkCommand.Response response, NetworkCommand.NetworkCommandBaseDelegate networkCommandBaseDelegate) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-95-            return new TornadoResponseProcessor(response, networkCommandBaseDelegate);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-96-        }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-97-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:98:        @Override // ru.mail.network.ServerApi
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-99-        public NetworkCommand.NetworkCommandBaseDelegate createDefaultDelegate(ServerCommandBase serverCommandBase) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-100-            Objects.requireNonNull(serverCommandBase);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-101-            return new ServerCommandBase.TornadoDelegate();
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-104-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-105-    /* JADX INFO: compiled from: ProGuard */
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-106-    /* JADX INFO: loaded from: classes11.dex */
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:107:    public static class TornadoServerApi extends MailServerApi {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:108:        public TornadoServerApi(PlatformInfo platformInfo, AccountManagerSettings accountManagerSettings) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-109-            super(platformInfo, accountManagerSettings);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-110-        }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-111-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:112:        @Override // ru.mail.network.ServerApi
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-113-        public HostProvider createApiHostProvider(Context context) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-114-            return new MailHostProvider(context, "new_mail_api", R.string.new_mail_api_default_scheme, R.string.new_mail_api_default_host, getPlatformInfo());
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-115-        }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-116-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:117:        @Override // ru.mail.network.ServerApi
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-118-        public ResponseProcessor createResponseProcessor(NetworkCommand.Response response, NetworkCommand.NetworkCommandBaseDelegate networkCommandBaseDelegate) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-119-            return new TornadoResponseProcessor(response, networkCommandBaseDelegate);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-120-        }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-121-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:122:        @Override // ru.mail.network.ServerApi
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-123-        public ServerCommandBase.ServerCommandBaseDelegate createDefaultDelegate(ServerCommandBase serverCommandBase) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-124-            Objects.requireNonNull(serverCommandBase);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-125-            return new ServerCommandBase.TornadoDelegate();
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-132-    }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-133-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-134-    @Override // ru.mail.serverapi.MailAuthorizationApiType.Factory
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:135:    public ServerApi legacy() {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:136:        return new LegacyServerApi(this.mPlatformInfo, this.mAccountManagerSettings);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-137-    }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-138-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-139-    @Override // ru.mail.serverapi.MailAuthorizationApiType.Factory
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:140:    public ServerApi legacyMpop() {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:141:        return new LegacyMpopServerApi(this.mPlatformInfo, this.mAccountManagerSettings);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-142-    }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-143-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-144-    @Override // ru.mail.serverapi.MailAuthorizationApiType.Factory
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:145:    public ServerApi tornado() {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:146:        return new TornadoServerApi(this.mPlatformInfo, this.mAccountManagerSettings);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-147-    }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-148-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-149-    @Override // ru.mail.serverapi.MailAuthorizationApiType.Factory
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:150:    public ServerApi tornadoMpop() {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java:151:        return new TornadoMpopTokenServerApi(this.mPlatformInfo, this.mAccountManagerSettings);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-152-    }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/MailAuthorizationApiFactory.java-153-}
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-11-import ru.mail.auth.AccountManagerWrapper;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-12-import ru.mail.network.NoAuthInfo;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-13-import ru.mail.network.api.RequestBodyCreator;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java:14:import ru.mail.network.api.ServerApi;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-15-import ru.mail.network.api.SessionProvider;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-16-import ru.mail.network.api.SignCreator;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-17-import ru.mail.network.api.TornadoRequestBodyCreator;
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-25-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-26-/* JADX INFO: compiled from: ProGuard */
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-27-/* JADX INFO: loaded from: classes11.dex */
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java:28:@Metadata(d1 = {"\u0000\u0096\u0001\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000e\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010 \n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0002\u0018\u0000*\u0004\b\u0000\u0010\u00012\u000e\u0012\u0004\u0012\u0002H\u0001\u0012\u0004\u0012\u00020\u00030\u0002BM\u0012\u0006\u0010\u0004\u001a\u00020\u0005\u0012\b\u0010\u0006\u001a\u0004\u0018\u00010\u0007\u0012\f\u0010\b\u001a\b\u0012\u0004\u0012\u00028\u00000\t\u0012\u0006\u0010\n\u001a\u00020\u000b\u0012\u0006\u0010\f\u001a\u00020\r\u0012\u0006\u0010\u000e\u001a\u00020\u000f\u0012\f\u0010\u0010\u001a\b\u0012\u0004\u0012\u00020\u00070\u0011¢\u0006\u0004\b\u0012\u0010\u0013J\u001a\u0010 \u001a\u0014\u0012\u0010\u0012\u000e\u0012\u0004\u0012\u00028\u0000\u0012\u0004\u0012\u00020\u00030\"0!H\u0016J\b\u0010#\u001a\u00020$H\u0016J\u000e\u0010%\u001a\b\u0012\u0004\u0012\u00020\u00030&H\u0016J\b\u0010'\u001a\u00020(H\u0016J\b\u0010)\u001a\u00020*H\u0016J\b\u0010+\u001a\u00020,H\u0016J$\u0010-\u001a\u00020.2\f\u0010\u0010\u001a\b\u0012\u0004\u0012\u00020\u00070\u00112\f\u0010/\u001a\b\u0012\u0004\u0012\u0002000\u0011H\u0016J\n\u00101\u001a\u0004\u0018\u00010\u0007H\u0016R\u0014\u0010\u0014\u001a\b\u0012\u0004\u0012\u00028\u00000\u0015X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0016\u001a\u00020\u0017X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0018\u001a\u00020\u0019X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u001a\u001a\u00020\u001bX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u001c\u001a\u00020\u001dX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u001e\u001a\u00020\u001fX\u0082\u0004¢\u0006\u0002\n\u0000¨\u00062"}, d2 = {"Lru/mail/serverapi/TornadoServerApi;", "TResult", "Lru/mail/network/api/ServerApi;", "Lru/mail/network/NoAuthInfo;", "context", "Landroid/content/Context;", "login", "", "responseProcessorDelegate", "Lru/mail/network/response/TornadoResponseProcessorDelegate;", "platformInfo", "Lru/mail/serverapi/PlatformInfo;", "accountManagerWrapper", "Lru/mail/auth/AccountManagerWrapper;", "accountManagerSettings", "Lru/mail/serverapi/AccountManagerSettings;", "pathSegments", "", "<init>", "(Landroid/content/Context;Ljava/lang/String;Lru/mail/network/response/TornadoResponseProcessorDelegate;Lru/mail/serverapi/PlatformInfo;Lru/mail/auth/AccountManagerWrapper;Lru/mail/serverapi/AccountManagerSettings;Ljava/util/List;)V", "responseProcessor", "Lru/mail/network/response/TornadoResponseProcessor;", "signCreator", "Lru/mail/network/api/TornadoSignCreator;", "uriCreator", "Lru/mail/network/api/TornadoUriCreator;", "requestBodyCreator", "Lru/mail/network/api/TornadoRequestBodyCreator;", "sessionProvider", "Lru/mail/serverapi/TornadoSessionProvider;", "hostInfoProvider", "Lru/mail/serverapi/MailHostInfoProvider;", "getResponseProcessor", "Lru/mail/network/response/ResponseProcessor;", "Lru/mail/network/processor/AuthResult;", "getApiHostInfoProvider", "Lru/mail/network/hostprovider/HostInfoProvider;", "getSessionProvider", "Lru/mail/network/api/SessionProvider;", "getSignCreator", "Lru/mail/network/api/SignCreator;", "getUriCreator", "Lru/mail/network/processor/UriCreator;", "getRequestBodyCreator", "Lru/mail/network/api/RequestBodyCreator;", "getConfiguredUri", "Landroid/net/Uri;", "params", "Lorg/apache/http/NameValuePair;", "getUserAgentHeader", "server-api_release"}, k = 1, mv = {2, 2, 0}, xi = 48)
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java:29:public final class TornadoServerApi<TResult> implements ServerApi<TResult, NoAuthInfo> {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-30-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-31-    @NotNull
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-32-    private final MailHostInfoProvider hostInfoProvider;
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-46-    @NotNull
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-47-    private final TornadoUriCreator uriCreator;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-48-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java:49:    public TornadoServerApi(@NotNull Context context, @Nullable String str, @NotNull TornadoResponseProcessorDelegate<TResult> responseProcessorDelegate, @NotNull PlatformInfo platformInfo, @NotNull AccountManagerWrapper accountManagerWrapper, @NotNull AccountManagerSettings accountManagerSettings, @NotNull List<String> pathSegments) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-50-        Intrinsics.checkNotNullParameter(context, "context");
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-51-        Intrinsics.checkNotNullParameter(responseProcessorDelegate, "responseProcessorDelegate");
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-52-        Intrinsics.checkNotNullParameter(platformInfo, "platformInfo");
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-61-        this.hostInfoProvider = new MailHostInfoProvider(platformInfo, "new_mail_api", context, R.string.new_mail_api_default_scheme, R.string.new_mail_api_default_host, null, true, false, 128, null);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-62-    }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-63-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java:64:    @Override // ru.mail.network.api.ServerApi
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-65-    @NotNull
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-66-    /* JADX INFO: renamed from: getApiHostInfoProvider */
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-67-    public HostInfoProvider getHostInfoProvider() {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-68-        return this.hostInfoProvider;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-69-    }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-70-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java:71:    @Override // ru.mail.network.api.ServerApi
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-72-    @NotNull
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-73-    public Uri getConfiguredUri(@NotNull List<String> pathSegments, @NotNull List<? extends NameValuePair> params) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-74-        Intrinsics.checkNotNullParameter(pathSegments, "pathSegments");
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-76-        return this.uriCreator.createUri(pathSegments, params, this.hostInfoProvider, this.sessionProvider.getSessionInfo(), this.signCreator);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-77-    }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-78-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java:79:    @Override // ru.mail.network.api.ServerApi
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-80-    @NotNull
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-81-    public RequestBodyCreator getRequestBodyCreator() {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-82-        return this.requestBodyCreator;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-83-    }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-84-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java:85:    @Override // ru.mail.network.api.ServerApi
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-86-    @NotNull
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-87-    public ResponseProcessor<AuthResult<TResult, NoAuthInfo>> getResponseProcessor() {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-88-        return this.responseProcessor;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-89-    }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-90-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java:91:    @Override // ru.mail.network.api.ServerApi
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-92-    @NotNull
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-93-    public SessionProvider<NoAuthInfo> getSessionProvider() {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-94-        return this.sessionProvider;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-95-    }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-96-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java:97:    @Override // ru.mail.network.api.ServerApi
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-98-    @NotNull
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-99-    public SignCreator getSignCreator() {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-100-        return this.signCreator;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-101-    }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-102-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java:103:    @Override // ru.mail.network.api.ServerApi
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-104-    @NotNull
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-105-    public UriCreator getUriCreator() {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-106-        return this.uriCreator;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-107-    }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-108-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java:109:    @Override // ru.mail.network.api.ServerApi
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-110-    @Nullable
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-111-    public String getUserAgentHeader() {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/TornadoServerApi.java-112-        return this.hostInfoProvider.getUserAgent();
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-5-import kotlin.Metadata;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-6-import kotlin.jvm.internal.Intrinsics;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-7-import kotlin.jvm.internal.SourceDebugExtension;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java:8:import okhttp3.FormBody;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-9-import okhttp3.Interceptor;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-10-import okhttp3.Request;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-11-import okhttp3.RequestBody;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-12-import okhttp3.Response;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-13-import org.jetbrains.annotations.NotNull;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-14-import ru.mail.kotlett.services.billing.analytics.Event;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java:15:import ru.mail.network.FormBodyExtensionsKt;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-16-import ru.mail.network.ParamNameValuePair;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-17-import ru.mail.network.PostSignCreator;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-18-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-19-/* JADX INFO: compiled from: ProGuard */
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-20-/* JADX INFO: loaded from: classes11.dex */
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-21-@Metadata(d1 = {"\u0000 \n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0002\u0018\u00002\u00020\u0001B\u0007¢\u0006\u0004\b\u0002\u0010\u0003J\u0010\u0010\u0004\u001a\u00020\u00052\u0006\u0010\u0006\u001a\u00020\u0007H\u0016J\u0010\u0010\b\u001a\u00020\t2\u0006\u0010\n\u001a\u00020\tH\u0002¨\u0006\u000b"}, d2 = {"Lru/mail/serverapi/retrofit/PostParamsSignatureInterceptor;", "Lokhttp3/Interceptor;", "<init>", "()V", "intercept", "Lokhttp3/Response;", "chain", "Lokhttp3/Interceptor$Chain;", "appendSignatureToRequest", "Lokhttp3/Request;", Event.Companion.Network.Fail.REQUEST_TAG, "server-api_release"}, k = 1, mv = {2, 2, 0}, xi = 48)
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java:22:@SourceDebugExtension({"SMAP\nPostParamsSignatureInterceptor.kt\nKotlin\n*S Kotlin\n*F\n+ 1 PostParamsSignatureInterceptor.kt\nru/mail/serverapi/retrofit/PostParamsSignatureInterceptor\n+ 2 FormBodyExtensions.kt\nru/mail/network/FormBodyExtensionsKt\n*L\n1#1,43:1\n6#2,4:44\n*S KotlinDebug\n*F\n+ 1 PostParamsSignatureInterceptor.kt\nru/mail/serverapi/retrofit/PostParamsSignatureInterceptor\n*L\n30#1:44,4\n*E\n"})
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-23-public final class PostParamsSignatureInterceptor implements Interceptor {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-24-    private final Request appendSignatureToRequest(Request request) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-25-        if (Intrinsics.areEqual(request.method(), "POST")) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-26-            RequestBody requestBodyBody = request.body();
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java:27:            FormBody formBody = requestBodyBody instanceof FormBody ? (FormBody) requestBodyBody : null;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-28-            if (formBody != null) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-29-                ArrayList arrayList = new ArrayList();
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-30-                int size = formBody.size();
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-32-                    arrayList.add(new ParamNameValuePair(formBody.name(i10), formBody.value(i10)));
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-33-                }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-34-                String strCreate = new PostSignCreator(Uri.EMPTY, arrayList).create();
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java:35:                FormBody.Builder builderNewBuilder = FormBodyExtensionsKt.newBuilder(formBody);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-36-                Intrinsics.checkNotNull(strCreate);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-37-                return request.newBuilder().post(builderNewBuilder.add("md5_post_signature", strCreate).build()).build();
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PostParamsSignatureInterceptor.java-38-            }
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/AppBuildParamsInterceptor.java-2-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/AppBuildParamsInterceptor.java-3-import kotlin.Metadata;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/AppBuildParamsInterceptor.java-4-import kotlin.jvm.internal.Intrinsics;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/AppBuildParamsInterceptor.java:5:import okhttp3.HttpUrl;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/AppBuildParamsInterceptor.java-6-import okhttp3.Interceptor;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/AppBuildParamsInterceptor.java-7-import okhttp3.Request;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/AppBuildParamsInterceptor.java-8-import okhttp3.Response;
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/AppBuildParamsInterceptor.java-27-    public Response intercept(@NotNull Interceptor.Chain chain) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/AppBuildParamsInterceptor.java-28-        Intrinsics.checkNotNullParameter(chain, "chain");
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/AppBuildParamsInterceptor.java-29-        Request request = chain.request();
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/AppBuildParamsInterceptor.java:30:        HttpUrl httpUrlUrl = request.url();
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/AppBuildParamsInterceptor.java-31-        if (httpUrlUrl.queryParameterNames().contains("appbuild")) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/AppBuildParamsInterceptor.java-32-            return chain.proceed(request);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/AppBuildParamsInterceptor.java-33-        }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/AppBuildParamsInterceptor.java:34:        return chain.proceed(request.newBuilder().url(httpUrlUrl.newBuilder().addQueryParameter("appbuild", this.appVersionProvider.getVersionCode()).build()).build());
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/AppBuildParamsInterceptor.java-35-    }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/AppBuildParamsInterceptor.java-36-}
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-7-import kotlin.jvm.internal.Intrinsics;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-8-import kotlin.jvm.internal.SourceDebugExtension;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-9-import kotlin.text.StringsKt;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java:10:import okhttp3.FormBody;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java:11:import okhttp3.HttpUrl;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-12-import okhttp3.Interceptor;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-13-import okhttp3.Request;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-14-import okhttp3.RequestBody;
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-16-import org.apache.http.NameValuePair;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-17-import org.jetbrains.annotations.NotNull;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-18-import ru.mail.kotlett.services.billing.analytics.Event;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java:19:import ru.mail.network.FormBodyExtensionsKt;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-20-import ru.mail.network.HostProvider;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-21-import ru.mail.network.request.FilteredParamsProvider;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-22-import ru.mail.network.request.NecessaryParamsProvider;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-23-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-24-/* JADX INFO: compiled from: ProGuard */
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-25-/* JADX INFO: loaded from: classes11.dex */
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java:26:@Metadata(d1 = {"\u00002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\u0018\u00002\u00020\u0001B\u000f\u0012\u0006\u0010\u0002\u001a\u00020\u0003¢\u0006\u0004\b\u0004\u0010\u0005J\u0010\u0010\u0006\u001a\u00020\u00072\u0006\u0010\b\u001a\u00020\tH\u0016J\u0012\u0010\n\u001a\u0004\u0018\u00010\u00072\u0006\u0010\b\u001a\u00020\tH\u0002J\u0012\u0010\u000b\u001a\u0004\u0018\u00010\f2\u0006\u0010\r\u001a\u00020\u000eH\u0002J\b\u0010\u000f\u001a\u00020\u0010H\u0002R\u000e\u0010\u0002\u001a\u00020\u0003X\u0082\u0004¢\u0006\u0002\n\u0000¨\u0006\u0011"}, d2 = {"Lru/mail/serverapi/retrofit/PlatformParamsInterceptor;", "Lokhttp3/Interceptor;", "hostProvider", "Lru/mail/network/HostProvider;", "<init>", "(Lru/mail/network/HostProvider;)V", "intercept", "Lokhttp3/Response;", "chain", "Lokhttp3/Interceptor$Chain;", "interceptWithPlatformParams", "getFormBody", "Lokhttp3/FormBody;", Event.Companion.Network.Fail.REQUEST_TAG, "Lokhttp3/Request;", "getFilteredParamsProvider", "Lru/mail/network/request/FilteredParamsProvider;", "server-api_release"}, k = 1, mv = {2, 2, 0}, xi = 48)
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-27-@SourceDebugExtension({"SMAP\nPlatformParamsInterceptor.kt\nKotlin\n*S Kotlin\n*F\n+ 1 PlatformParamsInterceptor.kt\nru/mail/serverapi/retrofit/PlatformParamsInterceptor\n+ 2 fake.kt\nkotlin/jvm/internal/FakeKt\n+ 3 _Collections.kt\nkotlin/collections/CollectionsKt___CollectionsKt\n*L\n1#1,59:1\n1#2:60\n1869#3,2:61\n1869#3,2:63\n*S KotlinDebug\n*F\n+ 1 PlatformParamsInterceptor.kt\nru/mail/serverapi/retrofit/PlatformParamsInterceptor\n*L\n30#1:61,2\n35#1:63,2\n*E\n"})
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-28-public final class PlatformParamsInterceptor implements Interceptor {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-29-
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-44-        return new NecessaryParamsProvider(listEmptyList, uriBuild, CollectionsKt.emptyList());
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-45-    }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-46-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java:47:    private final FormBody getFormBody(Request request) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-48-        if (!Intrinsics.areEqual(request.method(), "POST")) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-49-            return null;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-50-        }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-51-        RequestBody requestBodyBody = request.body();
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java:52:        if (requestBodyBody instanceof FormBody) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java:53:            return (FormBody) requestBodyBody;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-54-        }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-55-        return null;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-56-    }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-57-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-58-    private final Response interceptWithPlatformParams(Interceptor.Chain chain) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-59-        Request request = chain.request();
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java:60:        FormBody formBody = getFormBody(request);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-61-        String str = null;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-62-        if (formBody == null) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-63-            return null;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-64-        }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java:65:        String str2 = FormBodyExtensionsKt.get(formBody, "email");
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-66-        if (str2 != null && !StringsKt.isBlank(str2)) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-67-            str = str2;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-68-        }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-69-        FilteredParamsProvider filteredParamsProvider = getFilteredParamsProvider();
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java:70:        HttpUrl.Builder builderNewBuilder = request.url().newBuilder();
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-71-        for (NameValuePair nameValuePair : filteredParamsProvider.provideGetParams(str)) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-72-            String name = nameValuePair.getName();
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-73-            Intrinsics.checkNotNullExpressionValue(name, "getName(...)");
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java:74:            builderNewBuilder.addQueryParameter(name, nameValuePair.getValue());
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-75-        }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java:76:        FormBody.Builder builderNewBuilder2 = FormBodyExtensionsKt.newBuilder(formBody);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-77-        for (NameValuePair nameValuePair2 : filteredParamsProvider.providePostParams()) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-78-            String name2 = nameValuePair2.getName();
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/PlatformParamsInterceptor.java-79-            Intrinsics.checkNotNullExpressionValue(name2, "getName(...)");
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/OAuthSession.java-4-import kotlin.Metadata;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/OAuthSession.java-5-import kotlin.jvm.internal.DefaultConstructorMarker;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/OAuthSession.java-6-import kotlin.jvm.internal.Intrinsics;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/OAuthSession.java:7:import okhttp3.FormBody;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/OAuthSession.java-8-import okhttp3.Request;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/OAuthSession.java-9-import org.jetbrains.annotations.NotNull;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/OAuthSession.java-10-import org.jetbrains.annotations.Nullable;
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/OAuthSession.java-12-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/OAuthSession.java-13-/* JADX INFO: compiled from: ProGuard */
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/OAuthSession.java-14-/* JADX INFO: loaded from: classes11.dex */
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/OAuthSession.java:15:@Metadata(d1 = {"\u00002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000e\n\u0002\b\u0004\n\u0002\u0010\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0003\u0018\u0000 \u00122\u00020\u0001:\u0002\u0011\u0012B\u0019\b\u0002\u0012\u0006\u0010\u0002\u001a\u00020\u0003\u0012\u0006\u0010\u0004\u001a\u00020\u0003¢\u0006\u0004\b\u0005\u0010\u0006J\u0018\u0010\u0007\u001a\u00020\b2\u0006\u0010\t\u001a\u00020\n2\u0006\u0010\u000b\u001a\u00020\fH\u0016J\u0010\u0010\r\u001a\u00020\u000e2\u0006\u0010\u000f\u001a\u00020\u0010H\u0016R\u000e\u0010\u0002\u001a\u00020\u0003X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0004\u001a\u00020\u0003X\u0082\u0004¢\u0006\u0002\n\u0000¨\u0006\u0013"}, d2 = {"Lru/mail/serverapi/retrofit/session/OAuthSession;", "Lru/mail/serverapi/retrofit/session/TornadoSession;", "login", "", CommonConstant.KEY_ACCESS_TOKEN, "<init>", "(Ljava/lang/String;Ljava/lang/String;)V", "applyToRequest", "", Event.Companion.Network.Fail.REQUEST_TAG, "Lokhttp3/Request$Builder;", "body", "Lokhttp3/FormBody$Builder;", "prepareSessionException", "Lru/mail/serverapi/retrofit/session/RequestSessionException;", "reason", "Lru/mail/serverapi/retrofit/session/RequestSessionException$Reason;", "Creator", "Companion", "server-api_release"}, k = 1, mv = {2, 2, 0}, xi = 48)
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/OAuthSession.java-16-public final class OAuthSession implements TornadoSession {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/OAuthSession.java-17-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/OAuthSession.java-18-    @NotNull
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/OAuthSession.java-54-    }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/OAuthSession.java-55-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/OAuthSession.java-56-    @Override // ru.mail.serverapi.retrofit.session.TornadoSession
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/OAuthSession.java:57:    public void applyToRequest(@NotNull Request.Builder request, @NotNull FormBody.Builder body) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/OAuthSession.java-58-        Intrinsics.checkNotNullParameter(request, "request");
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/OAuthSession.java-59-        Intrinsics.checkNotNullParameter(body, "body");
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/OAuthSession.java-60-        body.add("access_token", this.accessToken);
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/MpopSession.java-3-import kotlin.Metadata;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/MpopSession.java-4-import kotlin.jvm.internal.DefaultConstructorMarker;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/MpopSession.java-5-import kotlin.jvm.internal.Intrinsics;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/MpopSession.java:6:import okhttp3.FormBody;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/MpopSession.java-7-import okhttp3.Request;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/MpopSession.java-8-import org.apache.http.cookie.SM;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/MpopSession.java-9-import org.jetbrains.annotations.NotNull;
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/MpopSession.java-14-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/MpopSession.java-15-/* JADX INFO: compiled from: ProGuard */
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/MpopSession.java-16-/* JADX INFO: loaded from: classes11.dex */
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/MpopSession.java:17:@Metadata(d1 = {"\u00002\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\u000e\n\u0002\b\u0006\n\u0002\u0010\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0003\u0018\u0000 \u00142\u00020\u0001:\u0002\u0013\u0014B)\b\u0002\u0012\u0006\u0010\u0002\u001a\u00020\u0003\u0012\u0006\u0010\u0004\u001a\u00020\u0003\u0012\u0006\u0010\u0005\u001a\u00020\u0003\u0012\u0006\u0010\u0006\u001a\u00020\u0003¢\u0006\u0004\b\u0007\u0010\bJ\u0018\u0010\t\u001a\u00020\n2\u0006\u0010\u000b\u001a\u00020\f2\u0006\u0010\r\u001a\u00020\u000eH\u0016J\u0010\u0010\u000f\u001a\u00020\u00102\u0006\u0010\u0011\u001a\u00020\u0012H\u0016R\u000e\u0010\u0002\u001a\u00020\u0003X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0004\u001a\u00020\u0003X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0005\u001a\u00020\u0003X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0006\u001a\u00020\u0003X\u0082\u0004¢\u0006\u0002\n\u0000¨\u0006\u0015"}, d2 = {"Lru/mail/serverapi/retrofit/session/MpopSession;", "Lru/mail/serverapi/retrofit/session/TornadoSession;", "login", "", "mpopToken", "mpopCookie", "cookieHeader", "<init>", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V", "applyToRequest", "", Event.Companion.Network.Fail.REQUEST_TAG, "Lokhttp3/Request$Builder;", "body", "Lokhttp3/FormBody$Builder;", "prepareSessionException", "Lru/mail/serverapi/retrofit/session/RequestSessionException;", "reason", "Lru/mail/serverapi/retrofit/session/RequestSessionException$Reason;", "Creator", "Companion", "server-api_release"}, k = 1, mv = {2, 2, 0}, xi = 48)
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/MpopSession.java-18-public final class MpopSession implements TornadoSession {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/MpopSession.java-19-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/MpopSession.java-20-    @NotNull
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/MpopSession.java-71-    }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/MpopSession.java-72-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/MpopSession.java-73-    @Override // ru.mail.serverapi.retrofit.session.TornadoSession
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/MpopSession.java:74:    public void applyToRequest(@NotNull Request.Builder request, @NotNull FormBody.Builder body) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/MpopSession.java-75-        Intrinsics.checkNotNullParameter(request, "request");
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/MpopSession.java-76-        Intrinsics.checkNotNullParameter(body, "body");
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/MpopSession.java-77-        request.header(SM.COOKIE, this.cookieHeader);
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-5-import kotlin.jvm.internal.Intrinsics;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-6-import kotlin.jvm.internal.SourceDebugExtension;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-7-import kotlin.text.StringsKt;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java:8:import okhttp3.FormBody;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-9-import okhttp3.Interceptor;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-10-import okhttp3.Request;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-11-import okhttp3.RequestBody;
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-14-import org.jetbrains.annotations.NotNull;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-15-import ru.mail.ads.core.impl.analytics.SessionParamsProviderImpl;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-16-import ru.mail.kotlett.services.billing.analytics.Event;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java:17:import ru.mail.network.FormBodyExtensionsKt;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-18-import ru.mail.serverapi.retrofit.RetrofitConfig;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-19-import ru.mail.util.log.Logger;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-20-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-21-/* JADX INFO: compiled from: ProGuard */
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-22-/* JADX INFO: loaded from: classes11.dex */
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java:23:@Metadata(d1 = {"\u0000B\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0004\u0018\u00002\u00020\u0001B\u001f\u0012\u0006\u0010\u0002\u001a\u00020\u0003\u0012\u0006\u0010\u0004\u001a\u00020\u0005\u0012\u0006\u0010\u0006\u001a\u00020\u0007¢\u0006\u0004\b\b\u0010\tJ\u0010\u0010\n\u001a\u00020\u000b2\u0006\u0010\f\u001a\u00020\rH\u0016J\u0012\u0010\u000e\u001a\u0004\u0018\u00010\u000b2\u0006\u0010\f\u001a\u00020\rH\u0002J\u0012\u0010\u000f\u001a\u0004\u0018\u00010\u00102\u0006\u0010\u0011\u001a\u00020\u0012H\u0002J \u0010\u0013\u001a\u00020\u00122\u0006\u0010\u0014\u001a\u00020\u00152\u0006\u0010\u0011\u001a\u00020\u00122\u0006\u0010\u0016\u001a\u00020\u0010H\u0002J\u0018\u0010\u0017\u001a\u00020\u000b2\u0006\u0010\u0018\u001a\u00020\u000b2\u0006\u0010\u0014\u001a\u00020\u0015H\u0002R\u000e\u0010\u0002\u001a\u00020\u0003X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0004\u001a\u00020\u0005X\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u0006\u001a\u00020\u0007X\u0082\u0004¢\u0006\u0002\n\u0000¨\u0006\u0019"}, d2 = {"Lru/mail/serverapi/retrofit/session/TornadoSessionInterceptor;", "Lokhttp3/Interceptor;", "logger", "Lru/mail/util/log/Logger;", "sessionCreator", "Lru/mail/serverapi/retrofit/session/SessionCreator;", "config", "Lru/mail/serverapi/retrofit/RetrofitConfig;", "<init>", "(Lru/mail/util/log/Logger;Lru/mail/serverapi/retrofit/session/SessionCreator;Lru/mail/serverapi/retrofit/RetrofitConfig;)V", "intercept", "Lokhttp3/Response;", "chain", "Lokhttp3/Interceptor$Chain;", "interceptWithSession", "getFormBody", "Lokhttp3/FormBody;", Event.Companion.Network.Fail.REQUEST_TAG, "Lokhttp3/Request;", "applySession", SessionParamsProviderImpl.PARAM_SESSION_ID, "Lru/mail/serverapi/retrofit/session/TornadoSession;", "body", "handleResponse", "response", "server-api_release"}, k = 1, mv = {2, 2, 0}, xi = 48)
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-24-@SourceDebugExtension({"SMAP\nTornadoSessionInterceptor.kt\nKotlin\n*S Kotlin\n*F\n+ 1 TornadoSessionInterceptor.kt\nru/mail/serverapi/retrofit/session/TornadoSessionInterceptor\n+ 2 fake.kt\nkotlin/jvm/internal/FakeKt\n*L\n1#1,111:1\n1#2:112\n*E\n"})
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-25-public final class TornadoSessionInterceptor implements Interceptor {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-26-
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-42-        this.config = config;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-43-    }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-44-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java:45:    private final Request applySession(TornadoSession session, Request request, FormBody body) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java:46:        Request.Builder builderNewBuilder = request.newBuilder();
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java:47:        FormBody.Builder builderNewBuilder2 = FormBodyExtensionsKt.newBuilder(body);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-48-        session.applyToRequest(builderNewBuilder, builderNewBuilder2);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-49-        return builderNewBuilder.post(builderNewBuilder2.build()).build();
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-50-    }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-51-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java:52:    private final FormBody getFormBody(Request request) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-53-        if (!Intrinsics.areEqual(request.method(), "POST")) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-54-            return null;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-55-        }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-56-        RequestBody requestBodyBody = request.body();
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java:57:        if (requestBodyBody instanceof FormBody) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java:58:            return (FormBody) requestBodyBody;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-59-        }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-60-        return null;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-61-    }
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-102-    private final Response interceptWithSession(Interceptor.Chain chain) throws RequestSessionException {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-103-        try {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-104-            Request request = chain.request();
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java:105:            FormBody formBody = getFormBody(request);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-106-            if (formBody == null) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-107-                return null;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-108-            }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java:109:            String str = FormBodyExtensionsKt.get(formBody, "email");
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-110-            if (str == null || StringsKt.isBlank(str)) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-111-                str = null;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSessionInterceptor.java-112-            }
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSession.java-1-package ru.mail.serverapi.retrofit.session;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSession.java-2-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSession.java-3-import kotlin.Metadata;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSession.java:4:import okhttp3.FormBody;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSession.java-5-import okhttp3.Request;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSession.java-6-import org.jetbrains.annotations.NotNull;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSession.java-7-import ru.mail.kotlett.services.billing.analytics.Event;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSession.java-8-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSession.java-9-/* JADX INFO: compiled from: ProGuard */
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSession.java-10-/* JADX INFO: loaded from: classes11.dex */
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSession.java:11:@Metadata(d1 = {"\u0000(\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\n\u0002\u0010\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0000\bf\u0018\u00002\u00020\u0001J\u0018\u0010\u0002\u001a\u00020\u00032\u0006\u0010\u0004\u001a\u00020\u00052\u0006\u0010\u0006\u001a\u00020\u0007H&J\u0010\u0010\b\u001a\u00020\t2\u0006\u0010\n\u001a\u00020\u000bH&¨\u0006\fÀ\u0006\u0003"}, d2 = {"Lru/mail/serverapi/retrofit/session/TornadoSession;", "", "applyToRequest", "", Event.Companion.Network.Fail.REQUEST_TAG, "Lokhttp3/Request$Builder;", "body", "Lokhttp3/FormBody$Builder;", "prepareSessionException", "Lru/mail/serverapi/retrofit/session/RequestSessionException;", "reason", "Lru/mail/serverapi/retrofit/session/RequestSessionException$Reason;", "server-api_release"}, k = 1, mv = {2, 2, 0}, xi = 48)
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSession.java-12-public interface TornadoSession {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSession.java:13:    void applyToRequest(@NotNull Request.Builder request, @NotNull FormBody.Builder body);
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSession.java-14-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSession.java-15-    @NotNull
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/retrofit/session/TornadoSession.java-16-    RequestSessionException prepareSessionException(@NotNull RequestSessionException.Reason reason);
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java-38-import ru.mail.network.NoAuthInfo;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java-39-import ru.mail.network.ParamNameValuePair;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java-40-import ru.mail.network.PostSignCreator;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java:41:import ru.mail.network.ServerApi;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java-42-import ru.mail.network.SessionSetter;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java-43-import ru.mail.network.requestbody.ParamsRequestBody;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java-44-import ru.mail.network.requestbody.RequestBody;
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java-59-    private final MailAuthCommandCreatorFactory mAuthCommandCreatorFactory;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java-60-    private final PlatformInfo mPlatformInfo;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java-61-    private final List<CommandStatusMessageGenerator> mPredefinedStatuses;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java:62:    private ServerApi mServerApi;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java-63-    private SessionSetter mSessionSetter;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java-64-    private String mTokenType;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java-65-    private final NetworkTrafficListener mTrafficListener;
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java-182-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java-183-    private void initAuthEntities(Context context) {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java-184-        MailAuthorizationApiType apiType = getApiType();
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java:185:        this.mServerApi = (ServerApi) apiType.create(new MailAuthorizationApiFactory(this.mPlatformInfo, this.mAccountManagerSettings));
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java-186-        this.mSessionSetter = (SessionSetter) apiType.create(new MailSessionSetterFactory(context, this.mAccountManagerSettings, this));
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java-187-        this.mTokenType = (String) apiType.create(new MailApiTokenTypeFactory());
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java-188-    }
+--
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java-243-    }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java-244-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java-245-    @Override // ru.mail.network.NetworkCommand
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java:246:    protected ServerApi getServerApi() {
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java:247:        return this.mServerApi;
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java-248-    }
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java-249-
+research/apk-15.107.0.148045/decompiled/packages/ru/mail/serverapi/ServerCommandBase.java-250-    public String getTokenType() {
