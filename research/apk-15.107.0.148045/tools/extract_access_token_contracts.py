@@ -3,16 +3,26 @@ import json,re
 
 ROOT=Path("research/apk-15.107.0.148045")
 SRC=ROOT/"decompiled"/"packages"
+RELEVANT=ROOT/"decompiled"/"relevant"
 disc=json.loads((ROOT/"FULL_ACCESS_TOKEN_DISCOVERY.json").read_text(encoding="utf-8"))
 
 index={}
-for p in SRC.rglob("*.java"):
-    index[str(p.relative_to(SRC))]=p
-    index.setdefault(p.stem,p)
+for base in (SRC,RELEVANT):
+    if not base.exists():
+        continue
+    for p in base.rglob("*.java"):
+        try:
+            index[str(p.relative_to(base))]=p
+        except ValueError:
+            pass
+        index.setdefault(p.stem,p)
 
 def by_source(rel):
-    p=SRC/rel
-    return p if p.exists() else None
+    for base in (SRC,RELEVANT):
+        p=base/rel
+        if p.exists():
+            return p
+    return None
 
 def parse_params(text):
     out=[]
@@ -92,4 +102,4 @@ if missing:
     for x in missing: md.append("- "+x["source"]+" — "+x["class"]+" — "+(x["path"] or x["path_raw"]))
 (ROOT/"ACCESS_TOKEN_CONTRACTS.md").write_text("\n".join(md)+"\n",encoding="utf-8")
 
-# run 1
+# run 2: include targeted relevant sources
