@@ -4,39 +4,41 @@
 status: completed
 
 ## I-002 — mailbox list/folder MVP
-status: active — Hackus touch implementation complete, owner validation pending
+status: active — AJ smart-thread path is the sole mailbox-list transport
 
-v0.1.12 no longer expects a mobile access_token from Hackus login. Mailbox loading follows Hackus touch gosearch without q_query wildcard and reconstructs standard folders from returned folder ids.
+The active endpoint is `aj-https.mail.ru/api/v1/m/threads/status/smart` using the mobile `access_token`. Touch/web mailbox fallbacks are removed.
 
 ## I-003 — expand reverse API coverage
-status: active — owner runtime validation pending
+status: active — AJ-only research
 
-Touch token/cookie session is authoritative for Hackus-backed search, full message, contacts, move/delete and attachment download. Web/mobile routes remain compatibility or separate proven VBA paths where appropriate.
+Only `aj-https.mail.ru` candidates may be promoted into runtime. Next priorities are full message, incoming attachments, move/archive/delete, contacts and search.
 
 ## I-004 — send/scheduled-send flow
-status: active — immediate send previously established; delayed send runtime validation pending
+status: active — immediate send established; delayed send runtime validation pending
+
+Both outgoing attachment upload and send/schedule remain on verified AJ endpoints.
 
 ## I-005 — installer/update release channel
 status: completed
 
-Current release: `v0.1.12`. Release workflow `37398787496` succeeded; Setup + Update are release assets; Actions artifacts are absent; only the latest binary Release is retained.
+v0.1.13 is being prepared as the AJ-only update. Existing installations receive the Update installer; Setup remains for first install/recovery.
 
-## I-006 — full-message read and attachments
-status: active — UI implementation complete, owner validation pending
+## I-006 — full-message read and incoming attachments
+status: blocked on AJ endpoint discovery
 
-Dedicated message window opens on double click, renders full content, exposes compact attachments with tooltips/download, and uses Hackus touch full-message/attachment paths first.
+The previous touch/web implementation is removed from active runtime. UI falls back to the thread snippet and explains that full content/download is unavailable until an AJ endpoint is verified.
 
-## I-007 — Hackus-equivalent account/challenge authorization
-status: active — CAPTCHA flow owner-verified; post-login mailbox path corrected to Hackus touch semantics
+## I-007 — AJ-only account authorization
+status: implemented, release validation pending
 
-No mobile access_token is expected as part of Hackus Login. GetSearchToken is the post-login credential step.
+Authentication uses only the mobile OAuth-style AJ request. Success requires `access_token`. CAPTCHA/reCAPTCHA/additional verification produces a user notification and stops authorization; there is no challenge solver and no web/touch fallback.
 
 ## I-008 — incoming message actions
-status: active — implementation complete, owner validation pending
+status: blocked on AJ endpoint discovery
 
-Reply, Forward, Archive and Move to folder are exposed in the full-message window; touch move/delete is preferred.
+Move/archive/permanent delete are disabled until verified AJ endpoints are found.
 
 ## I-009 — desktop UX/settings
-status: active — requested v0.1.12 fixes implemented, owner validation pending
+status: active
 
-Softer dark title bar, themed calendar, corrected folder ComboBox text, message-grid cleanup and centralized theme behavior are implemented.
+Existing desktop UX remains; v0.1.13 changes protocol behavior rather than reopening unrelated UI work.
