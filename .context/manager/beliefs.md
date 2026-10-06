@@ -136,3 +136,12 @@ statement: By Owner decision on 2026-10-06, `https://af.attachmail.ru` is explic
 source: direct Owner directive in the active project conversation; Owner-provided VBA source showing `https://af.attachmail.ru/cgi-bin/readmsg`.
 authority: owner-directive + owner-provided-runtime-source
 supersedes: B-012 only insofar as it previously prohibited every Mail.ru runtime host except `aj-https.mail.ru`
+
+
+## B-018 — v0.1.15 message operations release
+
+statement: GitHub Release `v0.1.15` was published on 2026-10-06. The release wires Owner-verified full-message retrieval through `aj-https.mail.ru/api/v1/messages/message`, unread/read marks through `/api/v1/messages/marks`, move/archive/trash through `/api/v1/messages/move`, and incoming attachment download through the explicitly approved `af.attachmail.ru/cgi-bin/readmsg`. The release build and approved-host CI checks completed successfully. Permanent delete, server contacts, server search, and confirmed flag mutation remain unresolved.
+
+source: Owner-provided VBA source; CI run `37465331504`; release workflow run `37465590209`; GitHub Release id `404697757`.
+authority: owner-provided-runtime-source + verified-ci + verified-repository
+supersedes: state that these operations were verified but not wired into the released client
