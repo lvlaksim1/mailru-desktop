@@ -193,12 +193,12 @@
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="2">
                             <Grid>
-                                <ContentPresenter Margin="7,3,28,3"
-                                                  VerticalAlignment="Center"
-                                                  HorizontalAlignment="Left"
-                                                  Content="{TemplateBinding SelectionBoxItem}"
-                                                  ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                                                  ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"/>
+                                <TextBlock Margin="7,3,28,3"
+                                           VerticalAlignment="Center"
+                                           HorizontalAlignment="Left"
+                                           Foreground="{TemplateBinding Foreground}"
+                                           Text="{TemplateBinding Text}"
+                                           TextTrimming="CharacterEllipsis"/>
                                 <Path Width="8" Height="5"
                                       Margin="0,0,9,0"
                                       HorizontalAlignment="Right"
