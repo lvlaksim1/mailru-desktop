@@ -8,14 +8,15 @@ Manager-state authority: `main`
 Current public release before this change: `v0.1.12`
 Release being prepared: `v0.1.13`
 
-Owner decision on 2026-10-06:
+Final Owner protocol decision on 2026-10-06:
 
 - runtime protocol is **AJ-only**;
 - every Mail.ru API request must target `https://aj-https.mail.ru`;
 - mobile `access_token` is the sole accepted mailbox credential;
 - CAPTCHA/reCAPTCHA/additional interactive verification is reported to the user and authorization stops;
 - no challenge solving;
-- no `touch.mail.ru`, `e.mail.ru`, `account.mail.ru`, `auth.mail.ru`, or `c.mail.ru` runtime fallbacks.
+- no `touch.mail.ru`, `e.mail.ru`, `account.mail.ru`, `auth.mail.ru`, `c.mail.ru`, or other sibling Mail.ru runtime fallbacks;
+- the previous web-API-token research course is cancelled for product runtime.
 
 Live evidence:
 
@@ -35,6 +36,11 @@ v0.1.13 implementation:
 - full-message retrieval, incoming-attachment download, contacts server lookup, move/archive and permanent delete are disabled until AJ endpoints are verified;
 - CI includes a source guard against non-AJ Mail.ru runtime URLs;
 - application version bumped to 0.1.13.
+
+Historical research status:
+
+- branch `research/web-api-token` is non-authoritative research evidence only;
+- it must not be merged into runtime and must not be used to reintroduce web/touch fallbacks without an explicit new Owner decision.
 
 Release branch: `release/0.1.13-aj-only`
 Pull request: #18.
