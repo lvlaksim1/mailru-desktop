@@ -121,6 +121,8 @@ public sealed class MailRuClient : IDisposable
     private readonly MailRuClientOptions _options;
     private readonly HttpClient _http;
     private readonly bool _ownsHttpClient;
+    private readonly SemaphoreSlim _requestGate = new(1, 1);
+    private DateTimeOffset _lastRequestAt = DateTimeOffset.MinValue;
 
     public MailRuClient(MailRuClientOptions? options = null, HttpClient? httpClient = null)
     {
@@ -234,7 +236,7 @@ public sealed class MailRuClient : IDisposable
         });
 
         using var request = CreateRequest(HttpMethod.Get, uri);
-        using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        using var response = await SendPacedAsync(request, cancellationToken).ConfigureAwait(false);
         var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
@@ -279,7 +281,7 @@ public sealed class MailRuClient : IDisposable
             });
 
         using var request = CreateBrowserRequest(HttpMethod.Get, uri, cookieHeader);
-        using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        using var response = await SendPacedAsync(request, cancellationToken).ConfigureAwait(false);
         var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
@@ -332,7 +334,7 @@ public sealed class MailRuClient : IDisposable
             });
 
         using (var request = CreateBrowserRequest(HttpMethod.Get, messageUri, cookieHeader))
-        using (var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false))
+        using (var response = await SendPacedAsync(request, cancellationToken).ConfigureAwait(false))
         {
             var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             if (response.IsSuccessStatusCode && !string.IsNullOrWhiteSpace(payload))
@@ -395,7 +397,7 @@ public sealed class MailRuClient : IDisposable
             folder_id = destinationFolderId.ToString(CultureInfo.InvariantCulture)
         });
 
-        using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        using var response = await SendPacedAsync(request, cancellationToken).ConfigureAwait(false);
         var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         return new MailRuCommandResult(
             response.IsSuccessStatusCode && (HasStatus200(payload) || string.IsNullOrWhiteSpace(payload)),
@@ -426,7 +428,7 @@ public sealed class MailRuClient : IDisposable
         using var request = CreateBrowserRequest(HttpMethod.Post, uri, cookieHeader);
         request.Content = JsonContent.Create(new { email_ids = ids });
 
-        using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        using var response = await SendPacedAsync(request, cancellationToken).ConfigureAwait(false);
         var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         return new MailRuCommandResult(
             response.IsSuccessStatusCode && (HasStatus200(payload) || string.IsNullOrWhiteSpace(payload)),
@@ -456,7 +458,7 @@ public sealed class MailRuClient : IDisposable
             });
 
         using var request = CreateBrowserRequest(HttpMethod.Get, uri, cookieHeader);
-        using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        using var response = await SendPacedAsync(request, cancellationToken).ConfigureAwait(false);
         var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
@@ -507,7 +509,7 @@ public sealed class MailRuClient : IDisposable
 
         var uri = BuildAbsoluteUri(new Uri("https://touch.mail.ru/cgi-bin/gosearch"), parameters);
         using var request = CreateBrowserRequest(HttpMethod.Get, uri, cookieHeader);
-        using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        using var response = await SendPacedAsync(request, cancellationToken).ConfigureAwait(false);
         var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
         if (!response.IsSuccessStatusCode)
@@ -545,7 +547,7 @@ public sealed class MailRuClient : IDisposable
             ["token"] = searchToken
         });
 
-        using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        using var response = await SendPacedAsync(request, cancellationToken).ConfigureAwait(false);
         var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         return new MailRuCommandResult(response.IsSuccessStatusCode && HasStatus200(payload), payload);
     }
@@ -578,7 +580,7 @@ public sealed class MailRuClient : IDisposable
             ["token"] = searchToken
         });
 
-        using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        using var response = await SendPacedAsync(request, cancellationToken).ConfigureAwait(false);
         var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         return new MailRuCommandResult(response.IsSuccessStatusCode && HasStatus200(payload), payload);
     }
@@ -597,7 +599,7 @@ public sealed class MailRuClient : IDisposable
         }
 
         using var request = CreateBrowserRequest(HttpMethod.Get, uri, cookieHeader);
-        using var response = await _http.SendAsync(
+        using var response = await SendPacedAsync(
             request,
             HttpCompletionOption.ResponseHeadersRead,
             cancellationToken).ConfigureAwait(false);
@@ -643,7 +645,7 @@ public sealed class MailRuClient : IDisposable
             ["__urlp"] = route
         });
 
-        using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        using var response = await SendPacedAsync(request, cancellationToken).ConfigureAwait(false);
         return await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
     }
 
@@ -678,7 +680,7 @@ public sealed class MailRuClient : IDisposable
         using var request = CreateRequest(HttpMethod.Post, uri);
         request.Content = multipart;
 
-        using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        using var response = await SendPacedAsync(request, cancellationToken).ConfigureAwait(false);
         var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
         if (payload.Contains("filesize_limit_exceeded", StringComparison.OrdinalIgnoreCase))
@@ -756,11 +758,43 @@ public sealed class MailRuClient : IDisposable
             ["priority"] = message.Priority.ToString(CultureInfo.InvariantCulture)
         });
 
-        using var response = await _http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        using var response = await SendPacedAsync(request, cancellationToken).ConfigureAwait(false);
         var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
         var success = response.IsSuccessStatusCode && HasStatus200(payload);
         return new MailRuCommandResult(success, payload);
+    }
+
+    private Task<HttpResponseMessage> SendPacedAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken) =>
+        SendPacedAsync(request, HttpCompletionOption.ResponseContentRead, cancellationToken);
+
+    private async Task<HttpResponseMessage> SendPacedAsync(
+        HttpRequestMessage request,
+        HttpCompletionOption completionOption,
+        CancellationToken cancellationToken)
+    {
+        await _requestGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var elapsed = DateTimeOffset.UtcNow - _lastRequestAt;
+            var remaining = TimeSpan.FromSeconds(5) - elapsed;
+            if (remaining > TimeSpan.Zero)
+                await Task.Delay(remaining, cancellationToken).ConfigureAwait(false);
+
+            // Record immediately before dispatch so any following request is
+            // guaranteed to start no sooner than five seconds later.
+            _lastRequestAt = DateTimeOffset.UtcNow;
+            return await _http.SendAsync(
+                request,
+                completionOption,
+                cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _requestGate.Release();
+        }
     }
 
     private HttpRequestMessage CreateRequest(HttpMethod method, Uri uri)
@@ -925,6 +959,7 @@ public sealed class MailRuClient : IDisposable
 
     public void Dispose()
     {
+        _requestGate.Dispose();
         if (_ownsHttpClient)
             _http.Dispose();
     }
