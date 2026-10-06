@@ -480,7 +480,7 @@ public partial class MainWindow : Window
 
         try
         {
-            var raw = await LoadFolderRawAsync(folderId);
+            var raw = await LoadFolderWithRefreshAsync(folderId);
             ResponseTextBox.Text = raw;
 
             var snapshot = MailRuThreadStatusParser.Parse(raw, folderId);
@@ -1542,6 +1542,37 @@ public partial class MainWindow : Window
             AttachButton.IsEnabled = true;
         }
     }
+
+    private async Task<string> LoadFolderWithRefreshAsync(int folderId)
+    {
+        try
+        {
+            return await LoadFolderRawAsync(folderId);
+        }
+        catch (MailRuProtocolException ex) when (
+            IsAuthorizationFailure(ex) &&
+            !string.IsNullOrWhiteSpace(_refreshToken) &&
+            !string.IsNullOrWhiteSpace(_activeLogin))
+        {
+            AuthStatusText.Text = "Обновляем авторизацию...";
+
+            var refreshed = await _mailRu.RefreshAccessTokenAsync(_refreshToken);
+            if (!refreshed.Success || string.IsNullOrWhiteSpace(refreshed.AccessToken))
+                throw;
+
+            _accessToken = refreshed.AccessToken;
+            _refreshToken = refreshed.RefreshToken ?? _refreshToken;
+            SaveAuthorization(_activeLogin);
+            AuthStatusText.Text = "Авторизация обновлена";
+            DiagnosticLog.Write("auth_refresh", "access_token refreshed successfully");
+
+            return await LoadFolderRawAsync(folderId);
+        }
+    }
+
+    private static bool IsAuthorizationFailure(MailRuProtocolException ex) =>
+        ex.Message.Contains("HTTP 401", StringComparison.OrdinalIgnoreCase) ||
+        ex.Message.Contains("HTTP 403", StringComparison.OrdinalIgnoreCase);
 
     private async Task<string> LoadFolderRawAsync(int folderId)
     {
