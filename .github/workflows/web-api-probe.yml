@@ -7,6 +7,7 @@ on:
     paths:
       - "tools/WebApiProbe/**"
       - "tools/WebApiLegacyProbe/**"
+      - "tools/WebApiActTokenProbe/**"
       - ".github/workflows/web-api-probe.yml"
 
 permissions:
@@ -15,7 +16,7 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     env:
       MAILRU_TEST_LOGIN: ${{ secrets.MAILRU_TEST_LOGIN }}
       MAILRU_TEST_PASSWORD: ${{ secrets.MAILRU_TEST_PASSWORD }}
@@ -39,7 +40,7 @@ jobs:
         continue-on-error: true
         run: dotnet run --project tools/WebApiProbe/WebApiProbe.csproj -c Release
 
-      - name: Safety pause
+      - name: Safety pause before VBA flow
         if: always()
         run: sleep 10
 
@@ -47,3 +48,12 @@ jobs:
         if: always()
         continue-on-error: true
         run: dotnet run --project tools/WebApiLegacyProbe/WebApiLegacyProbe.csproj -c Release
+
+      - name: Safety pause before act-token flow
+        if: always()
+        run: sleep 10
+
+      - name: Probe act-token web auth flow
+        if: always()
+        continue-on-error: true
+        run: dotnet run --project tools/WebApiActTokenProbe/WebApiActTokenProbe.csproj -c Release
