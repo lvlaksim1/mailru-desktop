@@ -12,13 +12,7 @@ public partial class MessageWindow : Window
 {
     private readonly MailRuClient _mailRu;
     private readonly MailRuMessageSummary _summary;
-    private readonly string _login;
     private readonly string? _accessToken;
-    private readonly string? _webToken;
-    private readonly string? _searchToken;
-    private readonly string? _webCookieHeader;
-    private readonly string? _touchCookieHeader;
-    private readonly int _currentFolderId;
     private readonly IReadOnlyList<MailRuFolderSummary> _folders;
     private readonly MailRuFullMessage? _initialFullMessage;
 
@@ -31,25 +25,14 @@ public partial class MessageWindow : Window
     public MessageWindow(
         MailRuClient mailRu,
         MailRuMessageSummary summary,
-        string login,
         string? accessToken,
-        string? webToken,
-        string? searchToken,
-        string? webCookieHeader,
-        string? touchCookieHeader,
         int currentFolderId,
         IReadOnlyList<MailRuFolderSummary> folders,
         MailRuFullMessage? initialFullMessage = null)
     {
         _mailRu = mailRu;
         _summary = summary;
-        _login = login;
         _accessToken = accessToken;
-        _webToken = webToken;
-        _searchToken = searchToken;
-        _webCookieHeader = webCookieHeader;
-        _touchCookieHeader = touchCookieHeader;
-        _currentFolderId = currentFolderId;
         _folders = folders;
         _initialFullMessage = initialFullMessage?.Id == summary.Id
             ? initialFullMessage
