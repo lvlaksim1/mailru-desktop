@@ -1,0 +1,3203 @@
+{
+  "package": "ru.mail.mailapp",
+  "version": "15.107.0.148045",
+  "commands": [
+    {
+      "class": "UploadContactsToServerCommand",
+      "path": "/api/v1/ab/contacts/backup",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"ab\", \"contacts\", RbParams.Default.URL_PARAM_KEY_DEVICE, \"backup\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/addressbook/backup/server/UploadContactsToServerCommand.java",
+      "source_available": false,
+      "params": [],
+      "json_keys": []
+    },
+    {
+      "class": "FoldersLogoutCommand",
+      "path": "/api/v1/folders/close",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"folders\", \"close\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/FoldersLogoutCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/FoldersLogoutCommand.java",
+      "params": [
+        {
+          "name": "ids",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String ids;"
+        }
+      ],
+      "json_keys": []
+    },
+    {
+      "class": "CheckPhoneConfirmCommand",
+      "path": "/api/v1/tokens/check",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"tokens\", \"check\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/CheckPhoneConfirmCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/CheckPhoneConfirmCommand.java",
+      "params": [],
+      "json_keys": [
+        "body"
+      ]
+    },
+    {
+      "class": "TornadoSendRequest",
+      "path": "/api/v1/messages/send",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"send\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoSendRequest.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/TornadoSendRequest.java",
+      "params": [],
+      "json_keys": [
+        "body"
+      ]
+    },
+    {
+      "class": "MarkThreadCommand",
+      "path": "/api/v1/m/threads/marks",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"m\", \"threads\", \"marks\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MarkThreadCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/MarkThreadCommand.java",
+      "params": [
+        {
+          "name": "email",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String mEmail;"
+        }
+      ],
+      "json_keys": []
+    },
+    {
+      "class": "GetUserVerifiedPhone",
+      "path": "/api/v1/payment/phone",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"payment\", \"phone\", XmailMigrationPromoSheet.BUTTON_INFO",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/GetUserVerifiedPhone.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/GetUserVerifiedPhone.java",
+      "params": [],
+      "json_keys": [
+        "body",
+        "operator",
+        "phone"
+      ]
+    },
+    {
+      "class": "GolangGetUserDataCommand",
+      "path": "/api/v1/golang/user",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"golang\", \"user\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/GolangGetUserDataCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/GolangGetUserDataCommand.java",
+      "params": [
+        {
+          "name": "Accept-Encoding",
+          "method": "HEADER_ADD",
+          "getter": "getAcceptEncoding",
+          "type": "",
+          "field": "private final String acceptEncoding;"
+        }
+      ],
+      "json_keys": [
+        "90x90",
+        "b2b_flags",
+        "birthday",
+        "body",
+        "city",
+        "common_purpose_flags",
+        "day",
+        "email",
+        "metathreads_visible",
+        "name",
+        "parental_control_can_disable",
+        "parental_control_mode",
+        "phone",
+        "phones",
+        "status",
+        "theme"
+      ]
+    },
+    {
+      "class": "DeleteAccountCommand",
+      "path": "/api/v1/user/mobile/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"mobile\", \"remove\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/DeleteAccountCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/DeleteAccountCommand.java",
+      "params": [],
+      "json_keys": [
+        "body",
+        "id"
+      ]
+    },
+    {
+      "class": "AddressBookFetchV2",
+      "path": "/api/v1/ab/smart",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"ab\", \"smart\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/AddressBookFetchV2.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/AddressBookFetchV2.java",
+      "params": [
+        {
+          "name": "Accept-Encoding",
+          "method": "HEADER_ADD",
+          "getter": "getAcceptEncoding",
+          "type": "",
+          "field": "private String mAcceptEncoding;"
+        },
+        {
+          "name": "limit",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "static final int LIMIT = Integer.MAX_VALUE;"
+        }
+      ],
+      "json_keys": [
+        "birthday",
+        "body",
+        "contacts",
+        "emails",
+        "labels",
+        "name",
+        "phones",
+        "priority",
+        "social"
+      ]
+    },
+    {
+      "class": "RemoveFromCloudBundle",
+      "path": "/api/v1/cloud/attachment/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"cloud\", \"attachment\", \"remove\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RemoveFromCloudBundle.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/RemoveFromCloudBundle.java",
+      "params": [
+        {
+          "name": "bundle_id",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String mBundleId;"
+        },
+        {
+          "name": "file_id",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String mFileId;"
+        }
+      ],
+      "json_keys": []
+    },
+    {
+      "class": "MoveAllMessageCommand",
+      "path": "/api/v1/messages/move/all",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"move\", \"all\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MoveAllMessageCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/MoveAllMessageCommand.java",
+      "params": [
+        {
+          "name": "folder_from",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final long mFolderIdFrom;"
+        },
+        {
+          "name": "folder",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final long mFolderIdTo;"
+        },
+        {
+          "name": "from",
+          "method": "POST",
+          "getter": "getFromJsonArray",
+          "type": "",
+          "field": "private List<String> mFrom;"
+        },
+        {
+          "name": "only_newsletters",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private Boolean mIsNewslettersOnly;"
+        },
+        {
+          "name": "older_than",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private Long mMoveTime;"
+        }
+      ],
+      "json_keys": []
+    },
+    {
+      "class": "CancelTransactionRequest",
+      "path": "/api/v1/money/p2p/cancel",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"money\", \"p2p\", \"cancel\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/CancelTransactionRequest.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/CancelTransactionRequest.java",
+      "params": [
+        {
+          "name": "transaction_id",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private final String mId;"
+        }
+      ],
+      "json_keys": []
+    },
+    {
+      "class": "TornadoMoveMessage",
+      "path": "/api/v1/messages/move",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"move\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoMoveMessage.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/TornadoMoveMessage.java",
+      "params": [
+        {
+          "name": "folder",
+          "method": "POST",
+          "getter": "",
+          "type": "STRING",
+          "field": "private final long mDestinationFolder;"
+        }
+      ],
+      "json_keys": [
+        "folder"
+      ]
+    },
+    {
+      "class": "RequestSanitizeUrlCommand",
+      "path": "/api/v1/mobauth/get",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"mobauth\", \"get\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "swa_default_host",
+      "scheme_resource": "swa_default_scheme",
+      "source": "ru/mail/data/cmd/server/RequestSanitizeUrlCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/RequestSanitizeUrlCommand.java",
+      "params": [
+        {
+          "name": "page",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final String page;"
+        }
+      ],
+      "json_keys": [
+        "body",
+        "expires",
+        "url"
+      ]
+    },
+    {
+      "class": "GolangUserShortCommand",
+      "path": "/api/v1/golang/user/short",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"golang\", \"user\", \"short\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/GolangUserShortCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/GolangUserShortCommand.java",
+      "params": [],
+      "json_keys": [
+        "account_type",
+        "b2b_flags",
+        "body",
+        "common_purpose_flags",
+        "domain",
+        "esia",
+        "login",
+        "metathreads_visible",
+        "name",
+        "parental_control_can_disable",
+        "parental_control_mode",
+        "privacy_settings",
+        "reader_mode",
+        "social_bind",
+        "theme",
+        "vkid"
+      ]
+    },
+    {
+      "class": "TornadoNoSpam",
+      "path": "/api/v1/messages/services/unspam",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"services\", \"unspam\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoNoSpam.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/TornadoNoSpam.java",
+      "params": [],
+      "json_keys": []
+    },
+    {
+      "class": "RemoveAllMessageCommand",
+      "path": "/api/v1/messages/remove/all",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"remove\", \"all\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RemoveAllMessageCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/RemoveAllMessageCommand.java",
+      "params": [
+        {
+          "name": "folder_from",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private Long mFolderFromId;"
+        },
+        {
+          "name": "only_newsletters",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private Boolean mIsNewslettersOnly;"
+        },
+        {
+          "name": "spam_folder",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private Boolean mIsSpamFolder;"
+        },
+        {
+          "name": "older_than",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private Long mRemoveTime;"
+        }
+      ],
+      "json_keys": []
+    },
+    {
+      "class": "TornadoReattachRequest",
+      "path": "/api/v1/messages/attaches/reattach",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"attaches\", \"reattach\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoReattachRequest.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/TornadoReattachRequest.java",
+      "params": [
+        {
+          "name": "forwarded_id",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String mForwardedId;"
+        },
+        {
+          "name": "message_id",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String mMessageId;"
+        }
+      ],
+      "json_keys": [
+        "attach",
+        "body",
+        "error",
+        "error_files",
+        "id",
+        "okay_files",
+        "origin_id",
+        "type"
+      ]
+    },
+    {
+      "class": "MarkAllMessageCommand",
+      "path": "/api/v1/messages/marks/all",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"marks\", \"all\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MarkAllMessageCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/MarkAllMessageCommand.java",
+      "params": [
+        {
+          "name": "action",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String mAction;"
+        },
+        {
+          "name": "folder",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final long mFolderId;"
+        },
+        {
+          "name": "older_than",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final Long mMarkTime;"
+        },
+        {
+          "name": "marks",
+          "method": "POST",
+          "getter": "getMarks",
+          "type": "",
+          "field": "private final String[] mMarks;"
+        }
+      ],
+      "json_keys": []
+    },
+    {
+      "class": "UpdateSnoozeRequest",
+      "path": "/api/v1/messages/snoozes/update",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"snoozes\", \"update\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UpdateSnoozeRequest.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/UpdateSnoozeRequest.java",
+      "params": [
+        {
+          "name": "id",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String mailId;"
+        },
+        {
+          "name": "date",
+          "method": "POST",
+          "getter": "getDateInSec",
+          "type": "",
+          "field": "private final long snoozeDate;"
+        }
+      ],
+      "json_keys": []
+    },
+    {
+      "class": "TornadoRemoveRequest",
+      "path": "/api/v1/messages/attaches/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"attaches\", \"remove\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoRemoveRequest.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/TornadoRemoveRequest.java",
+      "params": [
+        {
+          "name": "ids",
+          "method": "POST",
+          "getter": "getAttachesJson",
+          "type": "",
+          "field": "private final List<Attach> mAttaches;"
+        },
+        {
+          "name": "message_id",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String mMessageId;"
+        }
+      ],
+      "json_keys": []
+    },
+    {
+      "class": "UserSecurityCommand",
+      "path": "/api/v1/golang/user",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"golang\", \"user\", BaseSettingsActivity.KEY_PREF_SECURITY",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UserSecurityCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/UserSecurityCommand.java",
+      "params": [],
+      "json_keys": [
+        "body",
+        "extra_emails",
+        "phones"
+      ]
+    },
+    {
+      "class": "TornadoUploadRequest",
+      "path": "/api/v1/messages/attaches",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"attaches\", ProductAction.ACTION_ADD",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoUploadRequest.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/TornadoUploadRequest.java",
+      "params": [
+        {
+          "name": "message_id",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String mMessageId;"
+        }
+      ],
+      "json_keys": [
+        "attach",
+        "body",
+        "id"
+      ]
+    },
+    {
+      "class": "DownloadFileInMemoryCmd",
+      "path": "/api/v1/messages/attaches",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"attaches\", Promotion.ACTION_VIEW",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/DownloadFileInMemoryCmd.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/DownloadFileInMemoryCmd.java",
+      "params": [
+        {
+          "name": "type",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private static final String TYPE = \"attach\";"
+        },
+        {
+          "name": "id",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private final String mId;"
+        }
+      ],
+      "json_keys": [
+        "body"
+      ]
+    },
+    {
+      "class": "MailReadVerifyRequest",
+      "path": "/api/v1/messages/notify/read",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"notify\", \"read\"",
+      "auth_type": "TORNADO",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MailReadVerifyRequest.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/MailReadVerifyRequest.java",
+      "params": [
+        {
+          "name": "id",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final String msgId;"
+        }
+      ],
+      "json_keys": []
+    },
+    {
+      "class": "QrGetInfoCommand",
+      "path": "/api/v1/auth/qr/get",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"auth\", \"qr\", \"get\"",
+      "auth_type": "TORNADO",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/QrGetInfoCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/QrGetInfoCommand.java",
+      "params": [
+        {
+          "name": "token",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String autogenToken;"
+        }
+      ],
+      "json_keys": [
+        "body",
+        "login"
+      ]
+    },
+    {
+      "class": "RemoveSnoozeRequest",
+      "path": "/api/v1/messages/snoozes/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"snoozes\", \"remove\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RemoveSnoozeRequest.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/RemoveSnoozeRequest.java",
+      "params": [
+        {
+          "name": "id",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String mailId;"
+        }
+      ],
+      "json_keys": []
+    },
+    {
+      "class": "MessagesSearchCommand",
+      "path": "/api/v1/messages/search",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"search\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MessagesSearchCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/MessagesSearchCommand.java",
+      "params": [
+        {
+          "name": "aqid",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final String mAqid;"
+        },
+        {
+          "name": "search_categories",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final JSONArray mCategory;"
+        },
+        {
+          "name": "correspondents",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final String mCorrespondents;"
+        },
+        {
+          "name": "custom_tags",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final JSONArray mCustomTags;"
+        },
+        {
+          "name": "interval",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final String mDateRange;"
+        },
+        {
+          "name": "Collector.FLAGS",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final String mFlags;"
+        },
+        {
+          "name": "folder",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final String mFolder;"
+        },
+        {
+          "name": "htmlencoded",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final Boolean mHtmlEncodingEnabled;"
+        },
+        {
+          "name": "in_excluded_folders",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final Boolean mInExcludedFolders;"
+        },
+        {
+          "name": "limit",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final Integer mLimit;"
+        },
+        {
+          "name": "offset",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final Integer mOffset;"
+        },
+        {
+          "name": "query",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final String mQuery;"
+        },
+        {
+          "name": "remove_emoji_opts",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final String mRemoveEmojiFlags;"
+        },
+        {
+          "name": "snippet_limit",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final Integer mSnippetLimit;"
+        },
+        {
+          "name": "subject",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final String mSubject;"
+        },
+        {
+          "name": "with_threads",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final Boolean mThreadIdEnabled;"
+        },
+        {
+          "name": "transaction_category",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final String mTransactCategory;"
+        }
+      ],
+      "json_keys": [
+        "body",
+        "folders",
+        "found",
+        "from",
+        "messages",
+        "to"
+      ]
+    },
+    {
+      "class": "FolderLoginCommandImpl",
+      "path": "/api/v1/folders/open",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"folders\", \"open\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/FolderLoginCommandImpl.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/FolderLoginCommandImpl.java",
+      "params": [
+        {
+          "name": "folders",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String folders;"
+        }
+      ],
+      "json_keys": [
+        "error",
+        "folder_password",
+        "id"
+      ]
+    },
+    {
+      "class": "SaveAttachmentsToCloudCommand",
+      "path": "/api/v1/attaches/to-cloud",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"attaches\", ProductAction.ACTION_ADD, \"to-cloud\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/SaveAttachmentsToCloudCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/SaveAttachmentsToCloudCommand.java",
+      "params": [
+        {
+          "name": "ids",
+          "method": "POST",
+          "getter": "getFileIds",
+          "type": "STRING",
+          "field": "private final Collection<Attach> mAttaches;"
+        },
+        {
+          "name": "folder",
+          "method": "POST",
+          "getter": "getFolder",
+          "type": "STRING",
+          "field": "private final String mFolderName;"
+        }
+      ],
+      "json_keys": [
+        "body",
+        "error",
+        "ids[0]"
+      ]
+    },
+    {
+      "class": "DeleteFilter",
+      "path": "/api/v1/filters/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"filters\", \"remove\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/DeleteFilter.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/DeleteFilter.java",
+      "params": [
+        {
+          "name": "ids",
+          "method": "POST",
+          "getter": "getMIdsStr",
+          "type": "",
+          "field": "private final String[] mIds;"
+        }
+      ],
+      "json_keys": [
+        "body"
+      ]
+    },
+    {
+      "class": "MessageAttachesRequestCommand",
+      "path": "/api/v1/messages/attaches",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"attaches\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MessageAttachesRequestCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/MessageAttachesRequestCommand.java",
+      "params": [
+        {
+          "name": "attach_types",
+          "method": "GET",
+          "getter": "getAttachTypes",
+          "type": "",
+          "field": "private final String[] mAttachTypes;"
+        },
+        {
+          "name": "id",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private final String mId;"
+        }
+      ],
+      "json_keys": [
+        "attaches",
+        "body",
+        "error",
+        "list",
+        "value"
+      ]
+    },
+    {
+      "class": "CheckPhoneCommand",
+      "path": "/api/v1/user/mobile/phone/change/confirm-current",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"mobile\", \"phone\", \"change\", \"confirm-current\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/CheckPhoneCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/CheckPhoneCommand.java",
+      "params": [],
+      "json_keys": [
+        "body"
+      ]
+    },
+    {
+      "class": "UnsubscribeMessageCommand",
+      "path": "/api/v1/messages/services",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"services\", PendingAction.UNSUBSCRIBE_TYPE",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UnsubscribeMessageCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/UnsubscribeMessageCommand.java",
+      "params": [
+        {
+          "name": "ids",
+          "method": "POST",
+          "getter": "getIds",
+          "type": "",
+          "field": "private final String[] mMailMessageIds;"
+        }
+      ],
+      "json_keys": [
+        "error",
+        "ids[0]"
+      ]
+    },
+    {
+      "class": "GetCloudDispatcherCommand",
+      "path": "",
+      "path_raw": "RequestConfiguration.MAX_AD_CONTENT_RATING_G",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "cloud_dispatcher_default_host",
+      "scheme_resource": "cloud_dispatcher_default_scheme",
+      "source": "ru/mail/data/cmd/server/GetCloudDispatcherCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/GetCloudDispatcherCommand.java",
+      "params": [],
+      "json_keys": []
+    },
+    {
+      "class": "CreateFolder",
+      "path": "/api/v1/folders",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"folders\", ProductAction.ACTION_ADD",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/CreateFolder.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/CreateFolder.java",
+      "params": [],
+      "json_keys": [
+        "body",
+        "only_web"
+      ]
+    },
+    {
+      "class": "MarkMessageCommand",
+      "path": "/api/v1/messages/marks",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"marks\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MarkMessageCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/MarkMessageCommand.java",
+      "params": [],
+      "json_keys": []
+    },
+    {
+      "class": "MailCategoryFeedbackCommand",
+      "path": "/api/v1/messages/services/category/feedback",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"services\", \"category\", \"feedback\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MailCategoryFeedbackCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/MailCategoryFeedbackCommand.java",
+      "params": [
+        {
+          "name": "category",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String category;"
+        },
+        {
+          "name": "id",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String id;"
+        },
+        {
+          "name": "QUERY_PARAM_OTHER_CATEGORY",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final boolean otherCategory;"
+        }
+      ],
+      "json_keys": [
+        "body"
+      ]
+    },
+    {
+      "class": "GetUserDataCommand",
+      "path": "/api/v1/user",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/GetUserDataCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/GetUserDataCommand.java",
+      "params": [
+        {
+          "name": "Accept-Encoding",
+          "method": "HEADER_ADD",
+          "getter": "getAcceptEncoding",
+          "type": "",
+          "field": "private String mAcceptEncoding;"
+        }
+      ],
+      "json_keys": [
+        "90x90",
+        "b2b_flags",
+        "birthday",
+        "body",
+        "city",
+        "common_purpose_flags",
+        "day",
+        "email",
+        "name",
+        "parental_control_can_disable",
+        "parental_control_mode",
+        "phone",
+        "phones",
+        "status",
+        "theme"
+      ]
+    },
+    {
+      "class": "DeleteAccountConfirmCommand",
+      "path": "/api/v1/user/mobile/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"mobile\", \"remove\", VKApiCodes.EXTRA_CONFIRM",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/DeleteAccountConfirmCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/DeleteAccountConfirmCommand.java",
+      "params": [
+        {
+          "name": "reg_token",
+          "method": "GET",
+          "getter": "getRegTokenStr",
+          "type": "",
+          "field": "private final String mId;"
+        }
+      ],
+      "json_keys": [
+        "body",
+        "id",
+        "value"
+      ]
+    },
+    {
+      "class": "RequestFiltersCommand",
+      "path": "/api/v1/filters",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"filters\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RequestFiltersCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/RequestFiltersCommand.java",
+      "params": [],
+      "json_keys": [
+        "applyToSpam",
+        "body",
+        "conditions",
+        "enabled",
+        "flag",
+        "forward",
+        "id",
+        "move",
+        "name",
+        "not",
+        "notify",
+        "read",
+        "reject",
+        "remove",
+        "value"
+      ]
+    },
+    {
+      "class": "ThreadRequestCommand",
+      "path": "/api/v1/m/threads/thread",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"m\", \"threads\", \"thread\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/ThreadRequestCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/ThreadRequestCommand.java",
+      "params": [
+        {
+          "name": "ThreadRequestCommand.PARAM_KEY_REFRESH_MAILBOX",
+          "method": "GET",
+          "getter": "getRefreshMailBoxQueryValue",
+          "type": "",
+          "field": "private static final int PARAM_VALUE_REFRESH_MAILBOX = 1;"
+        },
+        {
+          "name": "ThreadRequestCommand.PARAM_KEY_LIMIT",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final int mCount;"
+        },
+        {
+          "name": "folder",
+          "method": "DEFAULT",
+          "getter": "getFolderIdIfNecessary",
+          "type": "",
+          "field": "private String mFolderId;"
+        },
+        {
+          "name": "ThreadRequestCommand.PARAM_KEY_LAST_MODIFIED",
+          "method": "DEFAULT",
+          "getter": "getLastModified",
+          "type": "",
+          "field": "private final long mLastModified;"
+        },
+        {
+          "name": "ThreadRequestCommand.PARAM_KEY_OFFSET",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final int mOffset;"
+        },
+        {
+          "name": "remove_emoji_opts",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final String mRemoveEmojiFlags;"
+        },
+        {
+          "name": "ThreadRequestCommand.PARAM_KEY_SNIPPET_LIMIT",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final int mSnippetLimit;"
+        },
+        {
+          "name": "id",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final String mThreadId;"
+        }
+      ],
+      "json_keys": [
+        "body",
+        "error",
+        "id",
+        "thread_id",
+        "value"
+      ]
+    },
+    {
+      "class": "UsersLastSeenRequest",
+      "path": "/api/v1/ab/lastseen",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"ab\", \"lastseen\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UsersLastSeenRequest.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/UsersLastSeenRequest.java",
+      "params": [
+        {
+          "name": "emails",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private final String emails;"
+        }
+      ],
+      "json_keys": [
+        "body",
+        "email",
+        "last_seen",
+        "status",
+        "status_id"
+      ]
+    },
+    {
+      "class": "TokensSendCommand",
+      "path": "/api/v1/tokens/send",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"tokens\", \"send\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TokensSendCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/TokensSendCommand.java",
+      "params": [
+        {
+          "name": "ivr",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private static final String IVR = String.valueOf(true);"
+        },
+        {
+          "name": "ConfirmPhoneFragment.EXT_REG_TOKEN",
+          "method": "GET",
+          "getter": "getRegTokenStr",
+          "type": "",
+          "field": "private final String mRegTokenId;"
+        }
+      ],
+      "json_keys": [
+        "address",
+        "body",
+        "id",
+        "index",
+        "transport"
+      ]
+    },
+    {
+      "class": "AddressGeocodingRequestCommand",
+      "path": "/api/v1/golang/maps/decode",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"golang\", \"maps\", \"decode\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/AddressGeocodingRequestCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/AddressGeocodingRequestCommand.java",
+      "params": [
+        {
+          "name": "street",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String address;"
+        },
+        {
+          "name": "city",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String city;"
+        }
+      ],
+      "json_keys": [
+        "body",
+        "lat",
+        "lon"
+      ]
+    },
+    {
+      "class": "RequestClickerTokenCommand",
+      "path": "/api/v1/clickerproxy/autogen",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"clickerproxy\", \"autogen\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RequestClickerTokenCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/RequestClickerTokenCommand.java",
+      "params": [],
+      "json_keys": [
+        "body",
+        "ttl"
+      ]
+    },
+    {
+      "class": "ChildboxAuthCommand",
+      "path": "/api/v1/childbox/auth",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"childbox\", \"auth\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "swa_default_host",
+      "scheme_resource": "swa_default_scheme",
+      "source": "ru/mail/data/cmd/server/ChildboxAuthCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/ChildboxAuthCommand.java",
+      "params": [
+        {
+          "name": "login",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private final String accountLogin;"
+        }
+      ],
+      "json_keys": [
+        "auth_url",
+        "body",
+        "children",
+        "login"
+      ]
+    },
+    {
+      "class": "QrAuthWebCommand",
+      "path": "/api/v1/auth/qr/allow",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"auth\", \"qr\", \"allow\"",
+      "auth_type": "TORNADO",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/QrAuthWebCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/QrAuthWebCommand.java",
+      "params": [
+        {
+          "name": "token",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String autogenToken;"
+        }
+      ],
+      "json_keys": [
+        "body",
+        "login"
+      ]
+    },
+    {
+      "class": "MailMessageRequestCommand",
+      "path": "/api/v1/messages/message",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"message\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MailMessageRequestCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/MailMessageRequestCommand.java",
+      "params": [
+        {
+          "name": "let_body_type",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private static final String BODY_TYPE = \"let_body\";"
+        },
+        {
+          "name": "no_banner",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private static final String NO_BANNER = \"Y\";"
+        },
+        {
+          "name": "htmlencoded",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private static final boolean mHtmlEncoded = false;"
+        },
+        {
+          "name": "bulk_show_images",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final int mBulkShowImages;"
+        },
+        {
+          "name": "disable_quotation_parser",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final boolean mDisabledQuotationParser;"
+        },
+        {
+          "name": "X-DomPurify-Version",
+          "method": "HEADER_ADD",
+          "getter": "",
+          "type": "",
+          "field": "private final String mDomPurifyHeader;"
+        },
+        {
+          "name": "folder_id",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private final String mFolderId;"
+        },
+        {
+          "name": "thumbnails",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private final int mHtmlThumbnails;"
+        },
+        {
+          "name": "id",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private final String mId;"
+        },
+        {
+          "name": "mark_read",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private final boolean mMarkRead;"
+        },
+        {
+          "name": "remove_emoji_opts",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final String mRemoveEmojiFlags;"
+        },
+        {
+          "name": "use_color_scheme",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private final int mUseColorScheme;"
+        },
+        {
+          "name": "ajax_call",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private static final String AJAX_CALL = String.valueOf(1);"
+        },
+        {
+          "name": "multi_msg_prev",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private static final String MULTI_MSG_PREV = String.valueOf(0);"
+        },
+        {
+          "name": "multi_msg_past",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private static final String MULTI_MSG_PAST = String.valueOf(0);"
+        },
+        {
+          "name": "mobile",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private static final String MOBILE = String.valueOf(1);"
+        }
+      ],
+      "json_keys": [
+        "body",
+        "error",
+        "value"
+      ]
+    },
+    {
+      "class": "ShareMailCommand",
+      "path": "/api/v1/invites/letter",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"invites\", \"letter\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/ShareMailCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/ShareMailCommand.java",
+      "params": [
+        {
+          "name": "addresses",
+          "method": "GET",
+          "getter": "getAddresses",
+          "type": "",
+          "field": "private final List<Contact> contacts;"
+        },
+        {
+          "name": "TornadoSendRequest.FIELD_TEMPLATE",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private final String template;"
+        }
+      ],
+      "json_keys": [
+        "email"
+      ]
+    },
+    {
+      "class": "AddToCloudBundle",
+      "path": "/api/v1/cloud/attachment",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"cloud\", \"attachment\", ProductAction.ACTION_ADD",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/AddToCloudBundle.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/AddToCloudBundle.java",
+      "params": [
+        {
+          "name": "bundle_id",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String mBundleId;"
+        },
+        {
+          "name": "EventParams.HASH",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String mHash;"
+        },
+        {
+          "name": "name",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String mName;"
+        },
+        {
+          "name": "size",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final long mSize;"
+        }
+      ],
+      "json_keys": [
+        "body",
+        "file_id",
+        "name"
+      ]
+    },
+    {
+      "class": "SetCustomTagsCommand",
+      "path": "/api/v1/messages/colortags/set",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"colortags\", \"set\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/SetCustomTagsCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/SetCustomTagsCommand.java",
+      "params": [
+        {
+          "name": "custom_tags",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String customTags;"
+        },
+        {
+          "name": "default_tags",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String defaultTags;"
+        },
+        {
+          "name": "folder_id",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final long folderId;"
+        },
+        {
+          "name": "ids",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String msgIds;"
+        }
+      ],
+      "json_keys": []
+    },
+    {
+      "class": "MessagesSearchCommandNew",
+      "path": "/api/v1/go/search/emails",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"go\", \"search\", \"emails\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "search_new_host",
+      "scheme_resource": "search_new_default_scheme",
+      "source": "ru/mail/data/cmd/server/MessagesSearchCommandNew.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/MessagesSearchCommandNew.java",
+      "params": [
+        {
+          "name": "aqid",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final String aqid;"
+        },
+        {
+          "name": "filters",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final String filters;"
+        },
+        {
+          "name": "limit",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final Integer mLimit;"
+        },
+        {
+          "name": "offset",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final Integer mOffset;"
+        },
+        {
+          "name": "snippet_limit",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final int mSnippetLimit;"
+        },
+        {
+          "name": "q",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final String query;"
+        }
+      ],
+      "json_keys": [
+        "attach",
+        "body",
+        "code",
+        "correspondents",
+        "count",
+        "error",
+        "flagged",
+        "folder",
+        "found",
+        "from",
+        "host",
+        "interval",
+        "mail_search_messages",
+        "messages",
+        "mruRequestId",
+        "pin",
+        "qid",
+        "query",
+        "response",
+        "result",
+        "status",
+        "subject",
+        "to",
+        "transaction_category",
+        "unread"
+      ]
+    },
+    {
+      "class": "GetCloudInfoCommand",
+      "path": "/api/v1/cloud/status",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"cloud\", \"status\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/GetCloudInfoCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/GetCloudInfoCommand.java",
+      "params": [
+        {
+          "name": "cloud_overquota_state",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final Boolean mCloudOverquotaState;"
+        },
+        {
+          "name": "remember_overquota",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final Boolean mRememberOverQuota;"
+        }
+      ],
+      "json_keys": [
+        "account_type",
+        "body",
+        "cloud_overquota_block_time",
+        "cloud_overquota_start_time",
+        "cloud_overquota_state",
+        "cloudflags",
+        "email",
+        "frozen",
+        "space",
+        "used",
+        "used_mail"
+      ]
+    },
+    {
+      "class": "CreateCloudBundle",
+      "path": "/api/v1/cloud/attachment/create",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"cloud\", \"attachment\", \"create\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/CreateCloudBundle.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/CreateCloudBundle.java",
+      "params": [],
+      "json_keys": [
+        "body",
+        "bundle_id",
+        "loader_url"
+      ]
+    },
+    {
+      "class": "UpdateFolder",
+      "path": "/api/v1/folders/edit",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"folders\", \"edit\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UpdateFolder.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/UpdateFolder.java",
+      "params": [
+        {
+          "name": "",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private String email;"
+        },
+        {
+          "name": "",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private String folders;"
+        }
+      ],
+      "json_keys": [
+        "body",
+        "error",
+        "folders[0].id",
+        "id",
+        "name"
+      ]
+    },
+    {
+      "class": "MessagesStatusCommand",
+      "path": "/api/v1/messages/status",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"status\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MessagesStatusCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/MessagesStatusCommand.java",
+      "params": [
+        {
+          "name": "MessagesStatusCommand.PARAM_KEY_PREFETCH",
+          "method": "GET",
+          "getter": "getPrefetchQueryValue",
+          "type": "",
+          "field": "private static final int PARAM_VALUE_PREFETCH = 1;"
+        },
+        {
+          "name": "MessagesStatusCommand.PARAM_KEY_REFRESH_MAILBOX",
+          "method": "GET",
+          "getter": "getRefreshMailBoxQueryValue",
+          "type": "",
+          "field": "private static final int PARAM_VALUE_REFRESH_MAILBOX = 1;"
+        },
+        {
+          "name": "MessagesStatusCommand.PARAM_KEY_SORT",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private static final String PARAM_VALUE_SORT = \"{\\\"type\\\":\\\"id\\\", \\\"order\\\":\\\"desc\\\"}\";"
+        },
+        {
+          "name": "MessagesStatusCommand.PARAM_KEY_LIMIT",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private final int mCount;"
+        },
+        {
+          "name": "folder",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private final long mFolderId;"
+        },
+        {
+          "name": "MessagesStatusCommand.PARAM_KEY_LAST_MODIFIED",
+          "method": "DEFAULT",
+          "getter": "getLastModified",
+          "type": "",
+          "field": "private final long mLastModified;"
+        },
+        {
+          "name": "MessagesStatusCommand.PARAM_KEY_OFFSET",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private final int mOffset;"
+        },
+        {
+          "name": "MessagesStatusCommand.PARAM_KEY_SNIPPET_LIMIT",
+          "method": "GET",
+          "getter": "getSnippetLimitQueryValue",
+          "type": "",
+          "field": "private final Integer mSnippetLimit;"
+        }
+      ],
+      "json_keys": [
+        "body",
+        "folders",
+        "messages"
+      ]
+    },
+    {
+      "class": "UnspamThreadCommand",
+      "path": "/api/v1/m/threads/services/unspam",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"m\", \"threads\", \"services\", \"unspam\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UnspamThreadCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/UnspamThreadCommand.java",
+      "params": [],
+      "json_keys": []
+    },
+    {
+      "class": "GetSuggestionsCommand",
+      "path": "/api/v1/messages/search/suggest",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"search\", \"suggest\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/GetSuggestionsCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/GetSuggestionsCommand.java",
+      "params": [
+        {
+          "name": "query",
+          "method": "GET",
+          "getter": "getQuery",
+          "type": "",
+          "field": "private final String mSubWord;"
+        }
+      ],
+      "json_keys": [
+        "body"
+      ]
+    },
+    {
+      "class": "UpdateFilterCommand",
+      "path": "/api/v1/filters/edit",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"filters\", \"edit\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UpdateFilterCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/UpdateFilterCommand.java",
+      "params": [],
+      "json_keys": [
+        "id"
+      ]
+    },
+    {
+      "class": "SaveHelperOnServerCommand",
+      "path": "/api/v1/helpers/update",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"helpers\", \"update\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/SaveHelperOnServerCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/SaveHelperOnServerCommand.java",
+      "params": [
+        {
+          "name": "index",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final int mIndex;"
+        },
+        {
+          "name": "update",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String mUpdateInfo;"
+        }
+      ],
+      "json_keys": [
+        "body",
+        "close",
+        "count",
+        "index",
+        "show",
+        "state",
+        "status",
+        "time"
+      ]
+    },
+    {
+      "class": "ShareSmsCommand",
+      "path": "/api/v1/sms/send",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"sms\", \"send\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/ShareSmsCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/ShareSmsCommand.java",
+      "params": [
+        {
+          "name": "phones",
+          "method": "GET",
+          "getter": "getPhones",
+          "type": "",
+          "field": "private final List<Contact> contacts;"
+        },
+        {
+          "name": "country",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private final String country;"
+        },
+        {
+          "name": "SharingPreferenceNavigator.EXTRA_MSG_TYPE",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private final String msgType;"
+        }
+      ],
+      "json_keys": []
+    },
+    {
+      "class": "GetCityNameCommand",
+      "path": "/api/v1/golang/geo/cities/city",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"golang\", \"geo\", \"cities\", \"city\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/GetCityNameCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/GetCityNameCommand.java",
+      "params": [
+        {
+          "name": "city_id",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String cityId;"
+        }
+      ],
+      "json_keys": [
+        "body",
+        "city",
+        "city_id",
+        "name"
+      ]
+    },
+    {
+      "class": "TornadoScheduleRequest",
+      "path": "/api/v1/messages",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", TornadoSendRequest.FIELD_SCHEDULE",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoScheduleRequest.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/TornadoScheduleRequest.java",
+      "params": [],
+      "json_keys": []
+    },
+    {
+      "class": "ChangeMessageCategoryRequest",
+      "path": "/api/v1/messages/services/category/change",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"services\", \"category\", \"change\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/ChangeMessageCategoryRequest.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/ChangeMessageCategoryRequest.java",
+      "params": [
+        {
+          "name": "KEY_ADD_FILTER",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final Boolean mAddFilter;"
+        },
+        {
+          "name": "category",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String mCategory;"
+        },
+        {
+          "name": "KEY_DROP_CATEGORY",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final Boolean mDropCategory;"
+        },
+        {
+          "name": "KEY_IDS",
+          "method": "POST",
+          "getter": "getMailIds",
+          "type": "",
+          "field": "private final String mMailId;"
+        }
+      ],
+      "json_keys": [
+        "error",
+        "ids[0]",
+        "status"
+      ]
+    },
+    {
+      "class": "AddFilterCommand",
+      "path": "/api/v1/filters",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"filters\", ProductAction.ACTION_ADD",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/AddFilterCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/AddFilterCommand.java",
+      "params": [
+        {
+          "name": "apply_folders",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private String applyFolders;"
+        },
+        {
+          "name": "",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private String filters;"
+        }
+      ],
+      "json_keys": [
+        "applyToSpam",
+        "body",
+        "conditions",
+        "conditionsOr",
+        "enabled",
+        "error",
+        "filters[0]",
+        "flag",
+        "move",
+        "name",
+        "not",
+        "read",
+        "reject",
+        "remove",
+        "value"
+      ]
+    },
+    {
+      "class": "LoadHelpersFromServerCommand",
+      "path": "/api/v1/helpers",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"helpers\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/LoadHelpersFromServerCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/LoadHelpersFromServerCommand.java",
+      "params": [],
+      "json_keys": [
+        "body",
+        "close",
+        "count",
+        "index",
+        "show",
+        "state",
+        "status",
+        "time"
+      ]
+    },
+    {
+      "class": "DownloadMessageEmlCommand",
+      "path": "/api/v1/messages/message",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"message\", R7Analytics.EVENT_DOWNLOAD",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/DownloadMessageEmlCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/DownloadMessageEmlCommand.java",
+      "params": [
+        {
+          "name": "folder_id",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final long folderId;"
+        },
+        {
+          "name": "id",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String messageId;"
+        }
+      ],
+      "json_keys": []
+    },
+    {
+      "class": "DeleteFolder",
+      "path": "/api/v1/folders/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"folders\", \"remove\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/DeleteFolder.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/DeleteFolder.java",
+      "params": [
+        {
+          "name": "",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private static final String ids = \"\";"
+        }
+      ],
+      "json_keys": [
+        "body",
+        "error",
+        "ids[0]"
+      ]
+    },
+    {
+      "class": "SmartReplyRequestCommand",
+      "path": "/api/v1/messages/smart",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", SmartReplyRequestCommand.TAG_REPLIES, \"smart\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/SmartReplyRequestCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/SmartReplyRequestCommand.java",
+      "params": [
+        {
+          "name": "id",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String mId;"
+        }
+      ],
+      "json_keys": [
+        "body",
+        "error",
+        "id"
+      ]
+    },
+    {
+      "class": "UnsetCustomTagsCommand",
+      "path": "/api/v1/messages/colortags/unset",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"colortags\", \"unset\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UnsetCustomTagsCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/UnsetCustomTagsCommand.java",
+      "params": [
+        {
+          "name": "custom_tags",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String customTags;"
+        },
+        {
+          "name": "default_tags",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String defaultTags;"
+        },
+        {
+          "name": "folder_id",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final long folderId;"
+        },
+        {
+          "name": "ids",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String msgIds;"
+        }
+      ],
+      "json_keys": []
+    },
+    {
+      "class": "RequestHasFiltersCommand",
+      "path": "/api/v1/filters",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"filters\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RequestHasFiltersCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/RequestHasFiltersCommand.java",
+      "params": [],
+      "json_keys": [
+        "body",
+        "enabled"
+      ]
+    },
+    {
+      "class": "UserEditCommand",
+      "path": "/api/v1/user/edit",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"edit\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UserEditCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/UserEditCommand.java",
+      "params": [],
+      "json_keys": []
+    },
+    {
+      "class": "MoveThreadCommand",
+      "path": "/api/v1/m/threads/move",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"m\", \"threads\", \"move\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/MoveThreadCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/MoveThreadCommand.java",
+      "params": [
+        {
+          "name": "folder",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final long mFolderId;"
+        }
+      ],
+      "json_keys": []
+    },
+    {
+      "class": "RequestCollectorsCommand",
+      "path": "/api/v1/collectors",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"collectors\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RequestCollectorsCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/RequestCollectorsCommand.java",
+      "params": [],
+      "json_keys": [
+        "body"
+      ]
+    },
+    {
+      "class": "TornadoDraftRequest",
+      "path": "/api/v1/messages",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", TornadoSendRequest.FIELD_DRAFT",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoDraftRequest.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/TornadoDraftRequest.java",
+      "params": [],
+      "json_keys": []
+    },
+    {
+      "class": "ChildboxListCommand",
+      "path": "/api/v1/childbox/list",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"childbox\", \"list\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "swa_default_host",
+      "scheme_resource": "swa_default_scheme",
+      "source": "ru/mail/data/cmd/server/ChildboxListCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/ChildboxListCommand.java",
+      "params": [],
+      "json_keys": [
+        "body",
+        "children",
+        "first_name",
+        "image",
+        "last_name",
+        "login",
+        "mail_counter"
+      ]
+    },
+    {
+      "class": "UserShortCommand",
+      "path": "/api/v1/user/short",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"short\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UserShortCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/UserShortCommand.java",
+      "params": [
+        {
+          "name": "Accept-Encoding",
+          "method": "HEADER_ADD",
+          "getter": "getAcceptEncoding",
+          "type": "",
+          "field": "private String mAcceptEncoding;"
+        }
+      ],
+      "json_keys": [
+        "account_type",
+        "b2b_flags",
+        "body",
+        "common_purpose_flags",
+        "parental_control_can_disable",
+        "parental_control_mode",
+        "phone_main",
+        "soft_vkid_bind",
+        "theme"
+      ]
+    },
+    {
+      "class": "RemoveThreadCommand",
+      "path": "/api/v1/m/threads/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"m\", \"threads\", \"remove\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RemoveThreadCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/RemoveThreadCommand.java",
+      "params": [],
+      "json_keys": []
+    },
+    {
+      "class": "SpamThreadCommand",
+      "path": "/api/v1/m/threads/services/spam",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"m\", \"threads\", \"services\", \"spam\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/SpamThreadCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/SpamThreadCommand.java",
+      "params": [
+        {
+          "name": "SpamThreadCommand.PARAM_KEY_VERIFIED",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final boolean mIsVerified;"
+        }
+      ],
+      "json_keys": []
+    },
+    {
+      "class": "TornadoCleanFolder",
+      "path": "/api/v1/folders/clear",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"folders\", \"clear\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoCleanFolder.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/TornadoCleanFolder.java",
+      "params": [
+        {
+          "name": "ids",
+          "method": "POST",
+          "getter": "getFolderIds",
+          "type": "STRING",
+          "field": "private final long[] mFolderIds;"
+        }
+      ],
+      "json_keys": []
+    },
+    {
+      "class": "RequestMessageMetaCommand",
+      "path": "/api/v1/messages/meta",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"meta\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RequestMessageMetaCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/RequestMessageMetaCommand.java",
+      "params": [
+        {
+          "name": "uidl",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private final String id;"
+        }
+      ],
+      "json_keys": [
+        "body",
+        "meta"
+      ]
+    },
+    {
+      "class": "TranslateLetterCommand",
+      "path": "/api/v1/utils/translate",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"utils\", \"translate\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TranslateLetterCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/TranslateLetterCommand.java",
+      "params": [
+        {
+          "name": "QUERY_PARAM_FROM_LANG",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String fromLang;"
+        },
+        {
+          "name": "QUERY_PARAM_HTML_ENCODED",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final boolean htmlencoded;"
+        },
+        {
+          "name": "message_id",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String messageId;"
+        },
+        {
+          "name": "query",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String query;"
+        },
+        {
+          "name": "QUERY_PARAM_TO_LANG",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String toLang;"
+        },
+        {
+          "name": "QUERY_PARAM_TRANSLATOR",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final int translator;"
+        }
+      ],
+      "json_keys": [
+        "body"
+      ]
+    },
+    {
+      "class": "ChangePhoneConfirmCommand",
+      "path": "/api/v1/user/mobile/phone/change",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"mobile\", \"phone\", \"change\", VKApiCodes.EXTRA_CONFIRM",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/ChangePhoneConfirmCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/ChangePhoneConfirmCommand.java",
+      "params": [],
+      "json_keys": [
+        "body",
+        "new_phone"
+      ]
+    },
+    {
+      "class": "UserEditMetathreadsCommand",
+      "path": "/api/v1/golang/user/edit/metathreads",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"golang\", \"user\", \"edit\", \"metathreads\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/UserEditMetathreadsCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/UserEditMetathreadsCommand.java",
+      "params": [
+        {
+          "name": "",
+          "method": "POST",
+          "getter": "",
+          "type": "COMPLEX_OBJECT",
+          "field": "private final Settings settings;"
+        }
+      ],
+      "json_keys": [
+        "folder_id",
+        "state"
+      ]
+    },
+    {
+      "class": "RequestAliasesCommand",
+      "path": "/api/v1/aliases",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"aliases\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/RequestAliasesCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/RequestAliasesCommand.java",
+      "params": [],
+      "json_keys": [
+        "alias",
+        "body"
+      ]
+    },
+    {
+      "class": "TornadoRedirectRequest",
+      "path": "/api/v1/messages/services/bounce",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"services\", \"bounce\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoRedirectRequest.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/TornadoRedirectRequest.java",
+      "params": [
+        {
+          "name": "id",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String mId;"
+        },
+        {
+          "name": "to",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final String mTo;"
+        }
+      ],
+      "json_keys": [
+        "body",
+        "error",
+        "to"
+      ]
+    },
+    {
+      "class": "ChangeAvatarCommand",
+      "path": "/api/v1/user",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", WebActionSituationalTemplate.AVATARS, ProductAction.ACTION_ADD",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "change_avatar_default_host",
+      "scheme_resource": "change_avatar_default_scheme",
+      "source": "ru/mail/data/cmd/server/ChangeAvatarCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/ChangeAvatarCommand.java",
+      "params": [],
+      "json_keys": [
+        "avatar",
+        "body",
+        "error",
+        "mainphoto",
+        "status"
+      ]
+    },
+    {
+      "class": "DirectoriesListRequest",
+      "path": "/api/v1/folders",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"folders\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/DirectoriesListRequest.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/DirectoriesListRequest.java",
+      "params": [],
+      "json_keys": [
+        "body"
+      ]
+    },
+    {
+      "class": "TornadoSpamAbuse",
+      "path": "/api/v1/messages/services/spam",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"services\", \"spam\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoSpamAbuse.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/TornadoSpamAbuse.java",
+      "params": [
+        {
+          "name": "folder",
+          "method": "GET",
+          "getter": "",
+          "type": "STRING",
+          "field": "private final Long mFolderTo;"
+        }
+      ],
+      "json_keys": []
+    },
+    {
+      "class": "CountAllRequestCmd",
+      "path": "/api/v1/messages/count/all",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"count\", \"all\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/CountAllRequestCmd.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/CountAllRequestCmd.java",
+      "params": [
+        {
+          "name": "folder",
+          "method": "POST",
+          "getter": "",
+          "type": "",
+          "field": "private final long mFolderId;"
+        },
+        {
+          "name": "from",
+          "method": "POST",
+          "getter": "getFromJsonArray",
+          "type": "",
+          "field": "private final List<String> mFrom;"
+        },
+        {
+          "name": "only_newsletters",
+          "method": "POST",
+          "getter": "isNewslettersOnly",
+          "type": "",
+          "field": "private final boolean mIsNewslettersOnly;"
+        }
+      ],
+      "json_keys": [
+        "body",
+        "count"
+      ]
+    },
+    {
+      "class": "CreateArchiveFolderCmd",
+      "path": "/api/v1/folders/ensure",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"folders\", BaseSettingsActivity.KEY_PREF_ARCHIVE, \"ensure\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/CreateArchiveFolderCmd.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/CreateArchiveFolderCmd.java",
+      "params": [
+        {
+          "name": "folder",
+          "method": "GET",
+          "getter": "",
+          "type": "STRING",
+          "field": "private final Long folderId;"
+        }
+      ],
+      "json_keys": [
+        "body"
+      ]
+    },
+    {
+      "class": "ChangePhoneCommand",
+      "path": "/api/v1/user/mobile/phone/change",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"mobile\", \"phone\", \"change\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/ChangePhoneCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/ChangePhoneCommand.java",
+      "params": [
+        {
+          "name": "phone",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private final String mNewPhone;"
+        },
+        {
+          "name": "reg_token_check",
+          "method": "GET",
+          "getter": "",
+          "type": "",
+          "field": "private final String mRegTokenCheck;"
+        }
+      ],
+      "json_keys": [
+        "body",
+        "error",
+        "id",
+        "phone"
+      ]
+    },
+    {
+      "class": "BatchSmartStatusCommand",
+      "path": "/api/v1/m/status/smart",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"m\", BatchSmartStatusCommand.JSON_THREADS_KEY, \"status\", \"smart\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/BatchSmartStatusCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/BatchSmartStatusCommand.java",
+      "params": [
+        {
+          "name": "metathread_subjects",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private static final boolean mMetathreadSubjects = true;"
+        },
+        {
+          "name": "folders",
+          "method": "DEFAULT",
+          "getter": "getFolders",
+          "type": "",
+          "field": "private final List<Folder> mFolders;"
+        },
+        {
+          "name": "BatchSmartStatusCommand.PARAM_KEY_LAST_MODIFIED",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final long mLastModified;"
+        },
+        {
+          "name": "refresh_mailbox",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final Integer mRefreshMailbox;"
+        },
+        {
+          "name": "remove_emoji_opts",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final String mRemoveEmojiFlags;"
+        },
+        {
+          "name": "reset_nc",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final boolean mResetNewEmailsCount;"
+        },
+        {
+          "name": "snippet_limit",
+          "method": "DEFAULT",
+          "getter": "getSnippetLimitValue",
+          "type": "",
+          "field": "private final int mSnippetLimit;"
+        },
+        {
+          "name": "u_known",
+          "method": "DEFAULT",
+          "getter": "",
+          "type": "",
+          "field": "private final boolean mUserKnown;"
+        }
+      ],
+      "json_keys": [
+        "body",
+        "error",
+        "folder",
+        "folders",
+        "id",
+        "limit",
+        "offset",
+        "value"
+      ]
+    },
+    {
+      "class": "TornadoRemoveMessage",
+      "path": "/api/v1/messages/remove",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"remove\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/TornadoRemoveMessage.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/TornadoRemoveMessage.java",
+      "params": [],
+      "json_keys": []
+    },
+    {
+      "class": "SearchPeopleCommand",
+      "path": "/api/v1/ab/fast",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"ab\", \"fast\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/SearchPeopleCommand.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/SearchPeopleCommand.java",
+      "params": [],
+      "json_keys": [
+        "body"
+      ]
+    },
+    {
+      "class": "MailSummarizeRequest",
+      "path": "/api/v1/messages/message",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"messages\", \"message\", MailMessageContent.COL_NAME_SUMMARIZE",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/summarize/MailSummarizeRequest.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/summarize/MailSummarizeRequest.java",
+      "params": [],
+      "json_keys": []
+    },
+    {
+      "class": "CallsCsrfTokenRequest",
+      "path": "/api/v1/token",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"token\"",
+      "auth_type": "TORNADO",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/calls/CallsCsrfTokenRequest.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/calls/CallsCsrfTokenRequest.java",
+      "params": [],
+      "json_keys": []
+    },
+    {
+      "class": "CallsTokenRequest",
+      "path": "/api/v1/user/token",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"user\", \"token\"",
+      "auth_type": "TORNADO",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/data/cmd/server/calls/CallsTokenRequest.java",
+      "source_available": true,
+      "saved_source": "decompiled/packages/ru/mail/data/cmd/server/calls/CallsTokenRequest.java",
+      "params": [],
+      "json_keys": [
+        "token"
+      ]
+    },
+    {
+      "class": "GetAuthCodeByAccessTokenCommand",
+      "path": "/token",
+      "path_raw": "\"token\"",
+      "auth_type": "TORNADO",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "oauth_default_host",
+      "scheme_resource": "oauth_default_scheme",
+      "source": "ru/mail/logic/auth/GetAuthCodeByAccessTokenCommand.java",
+      "source_available": false,
+      "params": [],
+      "json_keys": []
+    },
+    {
+      "class": "ChangeAuthTypeCommand",
+      "path": "/api/v1/pushauth/method/set",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"pushauth\", \"method\", \"set\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "account_default_host",
+      "scheme_resource": "account_default_scheme",
+      "source": "ru/mail/logic/auth/ChangeAuthTypeCommand.java",
+      "source_available": false,
+      "params": [],
+      "json_keys": []
+    }
+  ],
+  "missing_sources": [
+    {
+      "class": "UploadContactsToServerCommand",
+      "path": "/api/v1/ab/contacts/backup",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"ab\", \"contacts\", RbParams.Default.URL_PARAM_KEY_DEVICE, \"backup\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "mail_api_default_host",
+      "scheme_resource": "mail_api_default_scheme",
+      "source": "ru/mail/addressbook/backup/server/UploadContactsToServerCommand.java"
+    },
+    {
+      "class": "GetAuthCodeByAccessTokenCommand",
+      "path": "/token",
+      "path_raw": "\"token\"",
+      "auth_type": "TORNADO",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "oauth_default_host",
+      "scheme_resource": "oauth_default_scheme",
+      "source": "ru/mail/logic/auth/GetAuthCodeByAccessTokenCommand.java"
+    },
+    {
+      "class": "ChangeAuthTypeCommand",
+      "path": "/api/v1/pushauth/method/set",
+      "path_raw": "ApiUris.AUTHORITY_API, \"v1\", \"pushauth\", \"method\", \"set\"",
+      "auth_type": "TORNADO_MPOP",
+      "oauth_supported": true,
+      "access_token_capable": true,
+      "host_resource": "account_default_host",
+      "scheme_resource": "account_default_scheme",
+      "source": "ru/mail/logic/auth/ChangeAuthTypeCommand.java"
+    }
+  ]
+}
