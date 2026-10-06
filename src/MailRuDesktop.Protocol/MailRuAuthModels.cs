@@ -6,6 +6,9 @@ public static class MailRuFixedProfile
         "Mozilla/5.0 (iPhone; CPU iPhone OS 13_3_1 like Mac OS X) " +
         "AppleWebKit/604.1.34 (KHTML, like Gecko) GSA/50.0.197507736 " +
         "Mobile/17D50 Safari/604.1";
+
+    public const string MobileUserAgent =
+        "mobmail android 11.13.0.29089 ru.mail.mailapp";
 }
 
 public enum MailRuAuthState
