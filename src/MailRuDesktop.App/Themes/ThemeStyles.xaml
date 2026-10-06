@@ -193,8 +193,7 @@
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="2">
                             <Grid>
-                                <ContentPresenter Margin="{TemplateBinding Padding}"
-                                                  Margin="7,3,28,3"
+                                <ContentPresenter Margin="7,3,28,3"
                                                   VerticalAlignment="Center"
                                                   HorizontalAlignment="Left"
                                                   Content="{TemplateBinding SelectionBoxItem}"
