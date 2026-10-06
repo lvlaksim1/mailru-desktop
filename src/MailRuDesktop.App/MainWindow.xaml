@@ -169,14 +169,14 @@
                                   SelectionMode="Single"
                                   HeadersVisibility="Column"
                                   GridLinesVisibility="Horizontal"
-                                  SelectionChanged="MessagesGrid_SelectionChanged">
+                                  SelectionChanged="MessagesGrid_SelectionChanged"
+                                  MouseDoubleClick="MessagesGrid_MouseDoubleClick">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="" Width="28" Binding="{Binding UnreadMark}"/>
                                 <DataGridTextColumn Header="Отправитель" Width="170" Binding="{Binding SenderDisplay}"/>
                                 <DataGridTextColumn Header="Тема" Width="*" Binding="{Binding Subject}"/>
                                 <DataGridTextColumn Header="Дата" Width="125" Binding="{Binding DateDisplay}"/>
                                 <DataGridTextColumn Header="" Width="32" Binding="{Binding AttachmentMark}"/>
-                                <DataGridTextColumn Header="" Width="32" Binding="{Binding FlagMark}"/>
                                 <DataGridTextColumn Header="Размер" Width="80" Binding="{Binding SizeDisplay}"/>
                             </DataGrid.Columns>
                         </DataGrid>
