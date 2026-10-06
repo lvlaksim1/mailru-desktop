@@ -1,0 +1,93 @@
+name: Decompile missing access-token classes
+
+on:
+  push:
+    branches:
+      - research/mail-apk-15.107.0.148045
+    paths:
+      - '.github/workflows/decompile-missing-access-token.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  decompile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/mail-apk-15.107.0.148045
+          fetch-depth: 1
+
+      - name: Reassemble APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT=research/apk-15.107.0.148045
+          cat "$ROOT"/package/parts/Mail_ru_15.107.0.148045_APKs.zip.part-* > /tmp/mail-bundle.zip
+          unzip -q /tmp/mail-bundle.zip -d /tmp/mail-bundle
+          test -f /tmp/mail-bundle/Mail-15.107.0.148045.apk
+
+      - name: Prepare JADX
+        shell: bash
+        run: |
+          set -euo pipefail
+          sleep 5
+          curl --fail --location --retry 2 --retry-delay 5             'https://github.com/skylot/jadx/releases/download/v1.5.6/jadx-1.5.6.zip'             -o /tmp/jadx.zip
+          echo '545ea2be9c242511bc145755cf4bda2485ade42966e096f8b4d3da2a230e8974  /tmp/jadx.zip' | sha256sum -c -
+          mkdir -p /tmp/jadx
+          unzip -q /tmp/jadx.zip -d /tmp/jadx
+
+      - name: Decompile selected classes
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT=research/apk-15.107.0.148045
+          APK=/tmp/mail-bundle/Mail-15.107.0.148045.apk
+          OUT="$ROOT/decompiled/extra"
+          mkdir -p "$OUT"
+          classes=(
+            'ru.mail.addressbook.backup.server.UploadContactsToServerCommand'
+            'ru.mail.logic.auth.GetAuthCodeByAccessTokenCommand'
+            'ru.mail.logic.auth.ChangeAuthTypeCommand'
+            'ru.mail.data.cmd.BoundAccsListCmd'
+            'ru.mail.portal.kit.auth.PortalAuthProvider'
+          )
+          for cls in "${classes[@]}"; do
+            safe=$(echo "$cls" | tr '.' '_')
+            /tmp/jadx/bin/jadx -r --single-class "$cls" --single-class-output "/tmp/$safe.java" "$APK" >/tmp/"$safe".log 2>&1 || true
+            if [ -s "/tmp/$safe.java" ]; then
+              mkdir -p "$OUT/$(dirname "${cls//.//}")"
+              cp "/tmp/$safe.java" "$OUT/${cls//.//}.java"
+            else
+              echo "FAILED $cls" >> "$ROOT/findings/missing-access-token-decompile.log"
+              tail -n 50 /tmp/"$safe".log >> "$ROOT/findings/missing-access-token-decompile.log" || true
+            fi
+          done
+
+      - name: Extract focused evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT=research/apk-15.107.0.148045
+          EXTRA="$ROOT/decompiled/extra"
+          {
+            echo '# Дополнительные access_token-классы'
+            echo
+            grep -RInE -C 5 'UrlPath|HostProviderAnnotation|getDefaultApiType|isSupportOAuthAuthorization|access_token|oauth2.access|@Param|onPostExecuteRequest|JSONObject|JSONArray|FormBody|Request.Builder|token' "$EXTRA" || true
+          } > "$ROOT/findings/extra-access-token-context.txt"
+
+      - name: Commit
+        shell: bash
+        run: |
+          git config user.name "mailru-apk-research"
+          git config user.email "actions@users.noreply.github.com"
+          git add research/apk-15.107.0.148045/decompiled/extra research/apk-15.107.0.148045/findings/extra-access-token-context.txt research/apk-15.107.0.148045/findings/missing-access-token-decompile.log 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+          git commit -m "research: decompile missing access_token classes"
+          git pull --rebase origin research/mail-apk-15.107.0.148045
+          git push origin HEAD:research/mail-apk-15.107.0.148045
