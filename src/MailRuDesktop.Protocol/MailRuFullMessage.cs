@@ -4,6 +4,7 @@ using System.Text.Json;
 namespace MailRuDesktop.Protocol;
 
 public sealed record MailRuIncomingAttachment(
+    string Id,
     string Name,
     string ContentType,
     string DownloadUrl,
@@ -223,7 +224,10 @@ public static class MailRuFullMessageParser
         {
             if (LooksLikeAttachment(element))
             {
+                var id = Decode(ReadString(element, "id") ?? string.Empty);
                 var name = Decode(
+                    ReadString(element, "ContentName") ??
+                    ReadString(element, "content_name") ??
                     ReadString(element, "name") ??
                     ReadString(element, "filename") ??
                     "attachment");
@@ -254,14 +258,17 @@ public static class MailRuFullMessageParser
                 }
 
                 if (!string.IsNullOrWhiteSpace(download))
-                {
                     download = NormalizeDownloadUrl(download);
-                    var key = $"{name}\n{download}";
+
+                if (!string.IsNullOrWhiteSpace(id) || !string.IsNullOrWhiteSpace(download))
+                {
+                    var key = $"{id}\n{name}\n{download}";
                     if (seen.Add(key))
                         result.Add(new MailRuIncomingAttachment(
+                            id,
                             name,
                             contentType,
-                            download,
+                            download ?? string.Empty,
                             size));
                 }
             }
@@ -276,15 +283,24 @@ public static class MailRuFullMessageParser
         }
     }
 
-    private static bool LooksLikeAttachment(JsonElement element) =>
-        element.TryGetProperty("name", out _) ||
-        element.TryGetProperty("filename", out _)
-            ? element.TryGetProperty("href", out _) ||
-              element.TryGetProperty("download", out _) ||
-              element.TryGetProperty("url", out _) ||
-              element.TryGetProperty("content_type", out _) ||
-              element.TryGetProperty("mime_type", out _)
-            : false;
+    private static bool LooksLikeAttachment(JsonElement element)
+    {
+        var hasName =
+            element.TryGetProperty("ContentName", out _) ||
+            element.TryGetProperty("content_name", out _) ||
+            element.TryGetProperty("name", out _) ||
+            element.TryGetProperty("filename", out _);
+
+        if (!hasName)
+            return false;
+
+        return element.TryGetProperty("id", out _) ||
+               element.TryGetProperty("href", out _) ||
+               element.TryGetProperty("download", out _) ||
+               element.TryGetProperty("url", out _) ||
+               element.TryGetProperty("content_type", out _) ||
+               element.TryGetProperty("mime_type", out _);
+    }
 
     private static string NormalizeDownloadUrl(string value)
     {
