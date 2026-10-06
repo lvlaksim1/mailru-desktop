@@ -87,3 +87,20 @@ statement: v0.1.1 adds a tolerant parser for the verified smart-thread response,
 source: commits `065748b056f47fefba0972157078e8a5064037fc` and `45204412fe8394e403eb46d8916961c9d75d86a7`; GitHub Release `v0.1.1`.
 authority: verified-ci + verified-repository
 supersedes: none
+
+
+## B-012 — AJ-only runtime authority
+
+statement: By direct Owner decision on 2026-10-06, MailRu Desktop runtime may use only the `https://aj-https.mail.ru` API host. Mobile `access_token` is again the sole accepted mailbox credential. If authorization requires CAPTCHA/reCAPTCHA or another interactive verification, the application must notify the user and stop authorization; it must not solve or continue the challenge. Touch/web transports are prohibited fallbacks.
+
+source: direct Owner directive in the active project conversation.
+authority: owner-directive
+supersedes: the v0.1.9-v0.1.12 Hackus touch/web fallback architecture
+
+## B-013 — live AJ mobile auth probe
+
+statement: A controlled GitHub-hosted probe on 2026-10-06 sent the verified mobile auth request to `aj-https.mail.ru/cgi-bin/auth?mp=android&udid=mailru_app` using the repository test credentials. Mail.ru returned HTTP 200 JSON with top-level `oauth` and `status`, including both `access_token` and `refresh_token`, with no CAPTCHA signal.
+
+source: GitHub Actions run `37410564363`.
+authority: verified-runtime
+supersedes: uncertainty that the current test account could still obtain the mobile access token
