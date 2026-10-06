@@ -1,0 +1,30 @@
+name: Rebuild AJ contract inventory
+
+on:
+  push:
+    branches:
+      - research/mail-apk-15.107.0.148045
+    paths:
+      - 'research/apk-15.107.0.148045/tools/extract_contracts.py'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/mail-apk-15.107.0.148045
+          fetch-depth: 1
+      - name: Generate reports
+        run: python3 research/apk-15.107.0.148045/tools/extract_contracts.py
+      - name: Commit reports
+        run: |
+          git config user.name "mailru-apk-research"
+          git config user.email "actions@users.noreply.github.com"
+          git add research/apk-15.107.0.148045/APK_REQUEST_CONTRACTS.md research/apk-15.107.0.148045/APK_REQUEST_CONTRACTS.json
+          git commit -m "research: rebuild complete AJ contract inventory"
+          git pull --rebase origin research/mail-apk-15.107.0.148045
+          git push origin HEAD:research/mail-apk-15.107.0.148045
