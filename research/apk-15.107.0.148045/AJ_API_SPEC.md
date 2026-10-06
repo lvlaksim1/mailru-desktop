@@ -1061,7 +1061,7 @@ Mail.ru Desktop должен разделять транспортный HTTP-к
 - `found.count`;
 - `messages[]`.
 
-**Важно:** класс нового поиска имеет отдельный `HostProviderAnnotation` с настройкой `search_new_host`. Поэтому этот маршрут пока нельзя считать маршрутом `aj-https.mail.ru`. При принятом правиле проекта AJ-only для реализации следует использовать старый `/api/v1/messages/search`, пока отдельно не будет доказано, что `search_new_host` указывает на разрешённый узел.
+**Важно:** класс нового поиска имеет отдельный `HostProviderAnnotation`. Из `resources.arsc` текущего APK напрямую извлечено: `search_new_host = go.mail.ru`, `search_new_default_scheme = https`. Следовательно, `/api/v1/go/search/emails` не является маршрутом `aj-https.mail.ru`. При принятом правиле проекта использовать только AJ этот механизм в Mail.ru Desktop исключается; для поиска используется `GET /api/v1/messages/search`.
 
 Подсказки:
 
@@ -1423,3 +1423,24 @@ Mail.ru Desktop должен разделять транспортный HTTP-к
 6. редко используемые служебные команды, не необходимые для первого полного варианта Mail.ru Desktop.
 
 Для функций удаления, перемещения, отметок, папок, спама, поиска, отправки, черновиков, отложенной отправки, вложений, адресной книги, фильтров, отписки, категорий, EML, метаданных, подтверждения прочтения и умных ответов уже известны маршруты и основные параметры текущего официального Android-клиента.
+
+
+---
+
+## 27. Значения серверных ресурсов из resources.arsc
+
+Прямой разбор таблицы ресурсов основного APK через `aapt2` дал:
+
+- `search_new_host = go.mail.ru`;
+- `search_new_default_scheme = https`;
+- `new_mail_api_default_host = @string/mail_api_default_host`;
+- `new_mail_api_default_scheme = @string/mail_api_default_scheme`;
+- `auth_default_host = @string/mail_api_default_host`;
+- `attach_preview_default_host = alt-apf.mail.ru`;
+- `avatar_default_host = alt-mpandroid-filin.mail.ru`;
+- `push_default_host = alt-push-me.mail.ru`;
+- `doreg_default_host = alt-android-mobile-api.e.mail.ru`.
+
+Для проекта Mail.ru Desktop это подтверждает, что новый поиск `/api/v1/go/search/emails` уходит на отдельный узел `go.mail.ru` и не соответствует принятому правилу AJ-only.
+
+Полный сырой отчёт сохранён в `APK_HOST_RESOURCES.md`.
