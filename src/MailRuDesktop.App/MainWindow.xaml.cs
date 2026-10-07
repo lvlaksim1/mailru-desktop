@@ -786,8 +786,17 @@ public partial class MainWindow : Window
     private async void DownloadAttachmentButton_Click(object sender, RoutedEventArgs e)
     {
         if (_currentFullMessage is null ||
-            IncomingAttachmentsListBox.SelectedItem is not MailRuIncomingAttachment attachment ||
             string.IsNullOrWhiteSpace(_accessToken))
+        {
+            FolderStatusText.Text = "Вложение недоступно.";
+            return;
+        }
+
+        var attachment = _currentFullMessage.Attachments.Count == 1
+            ? _currentFullMessage.Attachments[0]
+            : IncomingAttachmentsListBox.SelectedItem as MailRuIncomingAttachment;
+
+        if (attachment is null)
         {
             FolderStatusText.Text = "Выберите вложение.";
             return;
