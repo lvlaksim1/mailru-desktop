@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.Web.WebView2.Core;
 
 namespace MailRuDesktop.App;
@@ -11,6 +12,144 @@ public partial class MainWindow
 {
     private readonly HttpClient _mailImageHttp = CreateMailImageHttpClient();
     private bool _mailImageProxyConfigured;
+
+    private static readonly Regex ProxyImageUrlRegex = new(
+        @"https://proxy\.imgsmail\.ru/[^\s\""'<>()]+",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private async Task<string> PrepareMailHtmlAsync(
+        string html,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(html))
+            return html;
+
+        var matches = ProxyImageUrlRegex
+            .Matches(html)
+            .Select(match => match.Value)
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+
+        if (matches.Length == 0)
+        {
+            DiagnosticLog.Write(
+                "mail_image_prepare",
+                "proxy-images-found=0");
+            return html;
+        }
+
+        var prepared = html;
+        var inlined = 0;
+        var failed = 0;
+
+        foreach (var encodedUrl in matches)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var decodedUrl = WebUtility.HtmlDecode(encodedUrl);
+            if (!Uri.TryCreate(decodedUrl, UriKind.Absolute, out var uri) ||
+                !uri.Host.Equals("proxy.imgsmail.ru", StringComparison.OrdinalIgnoreCase))
+            {
+                failed++;
+                continue;
+            }
+
+            try
+            {
+                var dataUri = await DownloadProxyImageAsDataUriAsync(
+                    uri,
+                    cancellationToken);
+
+                if (dataUri is null)
+                {
+                    failed++;
+                    continue;
+                }
+
+                prepared = prepared.Replace(
+                    encodedUrl,
+                    dataUri,
+                    StringComparison.Ordinal);
+                inlined++;
+            }
+            catch (Exception ex)
+            {
+                failed++;
+                DiagnosticLog.Write(
+                    "mail_image_prepare",
+                    ex.GetType().Name + ": " + ex.Message);
+            }
+        }
+
+        DiagnosticLog.Write(
+            "mail_image_prepare",
+            $"proxy-images-found={matches.Length}; inlined={inlined}; failed={failed}");
+
+        return prepared;
+    }
+
+    private async Task<string?> DownloadProxyImageAsDataUriAsync(
+        Uri uri,
+        CancellationToken cancellationToken)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, uri);
+        request.Headers.UserAgent.ParseAdd(
+            MailRuDesktop.Protocol.MailRuFixedProfile.UserAgent);
+        request.Headers.Accept.Add(
+            new MediaTypeWithQualityHeaderValue("image/avif"));
+        request.Headers.Accept.Add(
+            new MediaTypeWithQualityHeaderValue("image/webp"));
+        request.Headers.Accept.Add(
+            new MediaTypeWithQualityHeaderValue("image/apng"));
+        request.Headers.Accept.Add(
+            new MediaTypeWithQualityHeaderValue("image/svg+xml"));
+        request.Headers.Accept.Add(
+            new MediaTypeWithQualityHeaderValue("image/*"));
+        request.Headers.Accept.Add(
+            new MediaTypeWithQualityHeaderValue("*/*", 0.8));
+
+        using var response = await _mailImageHttp.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            DiagnosticLog.Write(
+                "mail_image_prepare",
+                $"proxy-http={(int)response.StatusCode}; final-host=" +
+                $"{response.RequestMessage?.RequestUri?.Host ?? uri.Host}");
+            return null;
+        }
+
+        if (response.Content.Headers.ContentLength is > 8 * 1024 * 1024)
+        {
+            DiagnosticLog.Write(
+                "mail_image_prepare",
+                "proxy-image-too-large");
+            return null;
+        }
+
+        var bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken);
+        if (bytes.Length == 0 || bytes.Length > 8 * 1024 * 1024)
+            return null;
+
+        var originalUrl = TryDecodeProxyOriginalUrl(uri);
+        var contentType = ResolveImageContentType(
+            response.Content.Headers.ContentType?.MediaType,
+            originalUrl,
+            bytes);
+
+        if (!IsImageContentType(contentType))
+        {
+            DiagnosticLog.Write(
+                "mail_image_prepare",
+                $"proxy-response-not-image; content-type={contentType}; bytes={bytes.Length}");
+            return null;
+        }
+
+        return $"data:{contentType};base64,{Convert.ToBase64String(bytes)}";
+    }
 
     private void ConfigureMailImageProxy()
     {
