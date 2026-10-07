@@ -157,6 +157,15 @@ internal sealed class MailRuVerificationWindow : Window
 
             await _webView.EnsureCoreWebView2Async(environment);
 
+            var existingCookies = await _webView.CoreWebView2.CookieManager
+                .GetCookiesAsync(_startUri.ToString());
+
+            DiagnosticLog.Write(
+                "auth_verification_profile_state",
+                $"cookies={existingCookies.Count}; " +
+                $"tsa={(existingCookies.Any(cookie => cookie.Name.Equals("tsa", StringComparison.OrdinalIgnoreCase)) ? "present" : "absent")}; " +
+                $"garage={(existingCookies.Any(cookie => cookie.Name.Equals("GarageID", StringComparison.OrdinalIgnoreCase)) ? "present" : "absent")}");
+
             _webView.CoreWebView2.Settings.AreDevToolsEnabled = false;
             _webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
             _webView.CoreWebView2.Settings.IsPasswordAutosaveEnabled = false;
