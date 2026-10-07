@@ -165,6 +165,9 @@ internal static class ThemeManager
         }
     }
 
+    public static void RefreshWindowChrome(Window window) =>
+        ApplyNativeWindowTheme(window);
+
     private static void ApplyNativeWindowTheme(Window window)
     {
         try

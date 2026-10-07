@@ -19,6 +19,7 @@ public partial class MessageWindow : Window
     private bool _readerReady;
     private MailRuFullMessage? _fullMessage;
     private ComposeMode _composeMode;
+    private readonly List<string> _composeAttachmentPaths = [];
 
     public bool MailboxChanged { get; private set; }
 
@@ -50,11 +51,20 @@ public partial class MessageWindow : Window
 
         ThemeManager.ThemeChanged += ThemeManager_ThemeChanged;
         Loaded += MessageWindow_Loaded;
+        Activated += MessageWindow_Activated;
+        SourceInitialized += (_, _) => ThemeManager.RefreshWindowChrome(this);
         Closed += MessageWindow_Closed;
     }
 
     private async void MessageWindow_Loaded(object sender, RoutedEventArgs e)
     {
+        ThemeManager.RefreshWindowChrome(this);
+        await Dispatcher.BeginInvoke(() =>
+        {
+            ThemeManager.RefreshWindowChrome(this);
+            ReplyButton.Focus();
+        });
+
         await InitializeReaderAsync();
 
         if (_initialFullMessage is not null)
@@ -64,6 +74,11 @@ public partial class MessageWindow : Window
         }
 
         await LoadFullMessageAsync();
+    }
+
+    private void MessageWindow_Activated(object? sender, EventArgs e)
+    {
+        Dispatcher.BeginInvoke(() => ThemeManager.RefreshWindowChrome(this));
     }
 
     private async Task InitializeReaderAsync()
@@ -192,6 +207,8 @@ public partial class MessageWindow : Window
         ComposeToTextBox.Text = target ?? string.Empty;
         ComposeSubjectTextBox.Text = PrefixSubject("Re:", _fullMessage?.Subject ?? _summary.Subject);
         ComposeBodyTextBox.Clear();
+        _composeAttachmentPaths.Clear();
+        RefreshComposeAttachments();
         ComposeStatusText.Text = string.Empty;
         ComposeBodyTextBox.Focus();
     }
@@ -213,7 +230,49 @@ public partial class MessageWindow : Window
               $"Тема: {full.Subject}\n\n" +
               full.Text;
 
+        _composeAttachmentPaths.Clear();
+        RefreshComposeAttachments();
         ComposeToTextBox.Focus();
+    }
+
+    private sealed record ComposeAttachmentItem(string Path, string Name);
+
+    private void ComposeAttachButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog
+        {
+            Multiselect = true,
+            CheckFileExists = true,
+            Title = "Выберите вложения"
+        };
+
+        if (dialog.ShowDialog(this) != true)
+            return;
+
+        foreach (var path in dialog.FileNames)
+        {
+            if (!_composeAttachmentPaths.Contains(path, StringComparer.OrdinalIgnoreCase))
+                _composeAttachmentPaths.Add(path);
+        }
+
+        RefreshComposeAttachments();
+    }
+
+    private void RemoveComposeAttachmentButton_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as Button)?.Tag is not string path)
+            return;
+
+        _composeAttachmentPaths.RemoveAll(item =>
+            string.Equals(item, path, StringComparison.OrdinalIgnoreCase));
+        RefreshComposeAttachments();
+    }
+
+    private void RefreshComposeAttachments()
+    {
+        ComposeAttachmentsItemsControl.ItemsSource = _composeAttachmentPaths
+            .Select(path => new ComposeAttachmentItem(path, Path.GetFileName(path)))
+            .ToArray();
     }
 
     private async void SendComposeButton_Click(object sender, RoutedEventArgs e)
@@ -236,13 +295,32 @@ public partial class MessageWindow : Window
 
         try
         {
+            var messageId = MailRuClient.KnownWorkingMessageId;
+            var attachmentIds = new List<string>();
+
+            for (var i = 0; i < _composeAttachmentPaths.Count; i++)
+            {
+                var path = _composeAttachmentPaths[i];
+                ComposeStatusText.Text = $"Загрузка вложения {i + 1}/{_composeAttachmentPaths.Count}...";
+
+                await using var stream = File.OpenRead(path);
+                attachmentIds.Add(await _mailRu.UploadAttachmentAsync(
+                    _accessToken,
+                    stream,
+                    Path.GetFileName(path),
+                    messageId));
+            }
+
+            ComposeStatusText.Text = "Отправка...";
             var result = await _mailRu.SendMessageAsync(
                 _accessToken,
                 new MailRuOutgoingMessage(
                     To: ComposeToTextBox.Text.Trim(),
                     Subject: ComposeSubjectTextBox.Text,
                     Text: ComposeBodyTextBox.Text,
-                    ReplyToId: _composeMode == ComposeMode.Reply ? _summary.Id : null));
+                    ReplyToId: _composeMode == ComposeMode.Reply ? _summary.Id : null,
+                    AttachmentIds: attachmentIds,
+                    MessageId: messageId));
 
             if (!result.Success)
             {
@@ -253,6 +331,8 @@ public partial class MessageWindow : Window
 
             ComposeStatusText.Text = "Отправлено.";
             ComposeBodyTextBox.Clear();
+            _composeAttachmentPaths.Clear();
+            RefreshComposeAttachments();
         }
         catch (Exception ex)
         {
@@ -404,6 +484,7 @@ public partial class MessageWindow : Window
     private void MessageWindow_Closed(object? sender, EventArgs e)
     {
         ThemeManager.ThemeChanged -= ThemeManager_ThemeChanged;
+        Activated -= MessageWindow_Activated;
         try
         {
             MessageWebView.Dispose();
