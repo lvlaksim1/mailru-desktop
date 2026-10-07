@@ -51,7 +51,7 @@ public partial class MainWindow
             AddMarkSelectedUnreadButton();
         }
 
-        ScheduleModernMailListRefresh();
+        RefreshModernMailListView();
         UpdateMarkSelectedUnreadButton();
     }
 
