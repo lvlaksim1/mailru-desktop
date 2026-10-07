@@ -150,10 +150,32 @@ public sealed partial class MailRuClient : IDisposable
         }
     }
 
-    public async Task<MailRuAuthResult> AuthenticateAsync(
+    public Task<MailRuAuthResult> AuthenticateAsync(
         string login,
         string password,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default) =>
+        AuthenticateCoreAsync(
+            login,
+            password,
+            sessionCookieHeader: null,
+            cancellationToken);
+
+    public Task<MailRuAuthResult> AuthenticateWithSessionCookiesAsync(
+        string login,
+        string password,
+        string? sessionCookieHeader,
+        CancellationToken cancellationToken = default) =>
+        AuthenticateCoreAsync(
+            login,
+            password,
+            sessionCookieHeader,
+            cancellationToken);
+
+    private async Task<MailRuAuthResult> AuthenticateCoreAsync(
+        string login,
+        string password,
+        string? sessionCookieHeader,
+        CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(login))
             throw new ArgumentException("Login is required.", nameof(login));
@@ -167,6 +189,13 @@ public sealed partial class MailRuClient : IDisposable
         });
 
         using var request = CreateRequest(HttpMethod.Post, uri);
+        if (!string.IsNullOrWhiteSpace(sessionCookieHeader))
+        {
+            request.Headers.TryAddWithoutValidation(
+                "Cookie",
+                sessionCookieHeader);
+        }
+
         request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
         {
             ["Password"] = password,
