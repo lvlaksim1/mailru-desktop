@@ -55,8 +55,6 @@ public partial class MainWindow
         ConfigureResizableMailColumns();
         ConfigureSelectablePreviewSubject();
         ConfigureDateRangeFilter();
-        ConfigureMessageListTemplate();
-        ConfigurePinnedSorting();
 
         Activated += V033_Activated;
         ThemeManager.ThemeChanged += V033_ThemeChanged;
