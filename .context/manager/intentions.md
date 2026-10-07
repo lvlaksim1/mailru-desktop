@@ -4,63 +4,63 @@
 status: completed
 
 ## I-002 — mailbox list/folder MVP
-status: active — parser hotfix released; owner runtime validation remains
+status: active — tolerant parser released and retained
 
-The released mailbox-list transport remains `/api/v1/m/threads/status/smart` with the mailbox OAuth token. Parser behavior must remain tolerant across all observed server shapes: `base_message`, `messages[]`, direct thread-like objects, and `threads[].representations[]`.
-
-v0.3.4 released support for the `representations[]` form observed on the Owner's second account. Build/CI validation is complete; the exact affected account still requires Owner runtime confirmation.
+The mailbox-list transport remains /api/v1/m/threads/status/smart with the mailbox OAuth token. Parser behavior must remain tolerant across all observed server shapes: base_message, messages[], direct thread-like objects, and threads[].representations[].
 
 ## I-003 — complete access-token API coverage
 status: active — static discovery completed; staged product integration active
 
-APK 15.107.0.148045 is statically mapped: 100 commands are confirmed to use the same `ru.mail.oauth2.access`. Product integration proceeds only after live or owner-runtime validation.
+APK 15.107.0.148045 is statically mapped. Newly enabled operations still require live or Owner-runtime validation before they are treated as stable.
 
 ## I-004 — send/scheduled-send flow
 status: active
 
-Immediate send, reply with attachments and server draft saving are released. Exact delayed-send `send_date` semantics still require dedicated validation.
+Immediate send, reply with attachments, server draft saving, signatures and named message templates are implemented. Exact delayed-send send_date semantics still require dedicated validation.
 
 ## I-005 — installer/update release channel
-status: completed
+status: active
 
-Current public release is v0.3.5 with both full and update installers. Future updates continue through the in-place update installer.
+Current public release is v0.3.17 with both full and update installers. v0.3.18 product code is merged and green on main but has not yet been published as a GitHub Release. The next release action is to package/publish v0.3.18, not to rewrite the merged feature bundle.
 
 ## I-006 — full-message read and incoming attachments
 status: released
 
-The preview pane is the normal full-message workspace. It supports full body, selectable addresses and subject, reply, forward, move/archive/trash, attachments and reply attachments.
+The preview pane is the normal full-message workspace. Full body, selectable addresses/subject, reply, forward, move/archive/trash, attachments and reply attachments remain supported.
 
 ## I-007 — mailbox OAuth authorization
-status: released; challenge policy fixed; refresh recovery released
+status: released and Owner-runtime confirmed for interactive verification
 
-Authorization obtains the mailbox OAuth `access_token`. CAPTCHA/reCAPTCHA/additional verification is reported and authorization stops. No challenge solver, web-cookie fallback, IMAP/SMTP or app-password fallback. Stored `refresh_token` is used to recover an expired access token through `https://o2.mail.ru/token`.
+Authorization obtains the mailbox OAuth access_token. Interactive verification is handled in a persistent browser profile isolated per mailbox account. Owner runtime on 2026-10-08 confirmed a previously problematic account completed a phone-confirmation step and authorized without password recovery. Do not revert to a disposable profile or mix these profiles with normal desktop browsers. No challenge solver or verification bypass is allowed. Stored refresh_token remains the normal expired-token recovery mechanism.
 
 ## I-008 — incoming message actions
 status: active — core per-message actions released
 
-Released operations include read/unread, move/archive/trash, permanent removal from Trash, flagged and pinned marks. Opening a message still marks it read automatically. v0.3.5 adds an explicit action that lets the currently selected message be marked unread again without immediately undoing that user action. Bulk/thread actions, spam/unspam, categories and related operations remain later work.
+Read/unread, move/archive/trash, permanent removal from Trash, flagged and pinned marks remain released. Opening a message marks it read automatically; the selected row can be marked unread again. Bulk/thread, spam/unspam and category operations remain later work.
 
 ## I-009 — desktop UX/settings
-status: active — v0.3.5 mail-list redesign released; owner visual validation pending
+status: active — v0.3.18 implementation merged; Owner runtime validation pending
 
-Current v0.3.5 mail-list baseline:
-- messages are grouped under separate date headers;
-- each message row has seven columns: fixed-size read/unread dot, sender name or fallback email, flag, thread count, subject plus first text line, attachment indicator, and time;
-- unread rows use a filled dot and bold text in the subject/text column;
-- attachment column is blank without attachments and shows a paperclip otherwise;
-- theme resources remain authoritative for light/dark/system appearance;
-- the preview toolbar can mark the selected message unread after automatic read-on-open.
-
-The surrounding v0.3.x three-pane layout, right-side account list, preview workspace, filters and compose workflow remain the current UX baseline unless the Owner revises them.
+The v0.3.18 merged baseline includes:
+- saving/restoring window normal/maximized state and panel/column widths;
+- preserving the divider between message list and message preview;
+- darker scrollbar thumb/arrows in dark theme;
+- compact icons to the left of sender names and account addresses without increasing row height;
+- persistent account ordering;
+- account sections/headings with the expand/collapse arrow on the right of the section name;
+- account dragging after 250–300 ms hold (implemented at 275 ms): the row detaches while the mouse remains held, follows the pointer, neighboring accounts animate out of the way, and mouse release fixes the new position; Escape has no role;
+- preview toolbar relocation requested by Owner;
+- reply/forward form shown above the message body;
+- Settings sections for named signatures and named message templates;
+- templates carry subject, body and attachments;
+- reply form selectors insert a signature or populate from a template.
 
 ## I-010 — high-value access-token expansion
-status: active — secondary to owner validation of v0.3.5 UI and multi-account parser
+status: active — secondary to v0.3.18 release and Owner validation
 
-After the current UI/parser validation is stable, resume thread/bulk message operations, spam/unspam, subscription/category actions, attachment lifecycle, EML/metadata/read receipt, and search improvements. The new `go.mail.ru` search remains deferred until its HTTP 520 live failure is explained.
+After v0.3.18 is published and validated, resume thread/bulk actions, spam/unspam, subscription/category actions, attachment lifecycle, EML/metadata/read receipt and search improvements. go.mail.ru new search remains deferred while its live HTTP 520 behavior is unresolved.
 
 ## I-011 — multi-account correctness
-status: active — v0.3.4 fix released; owner validation pending
+status: active
 
-Each authorized account must independently load folders, Inbox messages, preview content and unread counts. Switching accounts must not reuse another account's parsed mailbox state. The badge is specifically Inbox `messages_unread`.
-
-The confirmed `threads[].representations[]` parser defect was fixed and released in v0.3.4. The remaining gate is Owner runtime validation on the second account that originally exposed this response shape.
+Each account must independently preserve folders, messages, preview content, unread counts, authorization browser profile, ordering and section membership. Rapid account switching must not leak or mix state.
