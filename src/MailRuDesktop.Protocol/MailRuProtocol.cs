@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
@@ -125,6 +126,14 @@ public sealed partial class MailRuClient : IDisposable
     private readonly HttpClient _http;
     private readonly bool _ownsHttpClient;
     private readonly SemaphoreSlim _requestGate = new(1, 1);
+    private readonly ConcurrentDictionary<string, PendingAuthSession> _pendingAuthSessions =
+        new(StringComparer.Ordinal);
+
+    private sealed record PendingAuthSession(
+        string Login,
+        string Password,
+        string CookieHeader,
+        DateTimeOffset CreatedAtUtc);
 
     public MailRuClient(MailRuClientOptions? options = null, HttpClient? httpClient = null)
     {
@@ -136,7 +145,8 @@ public sealed partial class MailRuClient : IDisposable
             var handler = new HttpClientHandler
             {
                 AllowAutoRedirect = false,
-                AutomaticDecompression = DecompressionMethods.All
+                AutomaticDecompression = DecompressionMethods.All,
+                UseCookies = false
             };
 
             _http = new HttpClient(handler, disposeHandler: true)
@@ -158,6 +168,8 @@ public sealed partial class MailRuClient : IDisposable
             login,
             password,
             sessionCookieHeader: null,
+            reCaptchaResponse: null,
+            registerChallengeSession: true,
             cancellationToken);
 
     public Task<MailRuAuthResult> AuthenticateWithSessionCookiesAsync(
@@ -169,12 +181,16 @@ public sealed partial class MailRuClient : IDisposable
             login,
             password,
             sessionCookieHeader,
+            reCaptchaResponse: null,
+            registerChallengeSession: true,
             cancellationToken);
 
     private async Task<MailRuAuthResult> AuthenticateCoreAsync(
         string login,
         string password,
         string? sessionCookieHeader,
+        string? reCaptchaResponse,
+        bool registerChallengeSession,
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(login))
@@ -196,7 +212,7 @@ public sealed partial class MailRuClient : IDisposable
                 sessionCookieHeader);
         }
 
-        request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+        var form = new Dictionary<string, string>
         {
             ["Password"] = password,
             ["Login"] = login,
@@ -205,11 +221,17 @@ public sealed partial class MailRuClient : IDisposable
             ["mobile"] = "1",
             ["mob_json"] = "1",
             ["simple"] = "1"
-        });
+        };
+
+        if (!string.IsNullOrWhiteSpace(reCaptchaResponse))
+            form["g-recaptcha-response"] = reCaptchaResponse;
+
+        request.Content = new FormUrlEncodedContent(form);
 
         using var response = await SendSerializedAsync(request, cancellationToken).ConfigureAwait(false);
         var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         var location = response.Headers.Location?.ToString() ?? string.Empty;
+        var mergedSessionCookieHeader = MergeCookieHeader(sessionCookieHeader, response);
 
         JsonDocument? document = null;
         try
@@ -258,10 +280,19 @@ public sealed partial class MailRuClient : IDisposable
                 else if (state == MailRuAuthState.Unknown)
                     state = MailRuAuthState.RecoveryRequired;
 
+                var localSessionId =
+                    state == MailRuAuthState.ReCaptcha && registerChallengeSession
+                        ? RegisterPendingAuthSession(
+                            login,
+                            password,
+                            mergedSessionCookieHeader)
+                        : string.Empty;
+
                 challenge = BuildContinueChallenge(
                     state,
                     continueValue,
-                    _options.BaseUri);
+                    _options.BaseUri,
+                    localSessionId);
                 diagnosticReason = "aj_mobile_auth_continue_required";
             }
             else
@@ -270,6 +301,20 @@ public sealed partial class MailRuClient : IDisposable
                     document.RootElement,
                     state,
                     location);
+
+                if (state == MailRuAuthState.ReCaptcha &&
+                    challenge is not null &&
+                    registerChallengeSession)
+                {
+                    challenge = challenge with
+                    {
+                        SessionId = RegisterPendingAuthSession(
+                            login,
+                            password,
+                            mergedSessionCookieHeader)
+                    };
+                }
+
                 diagnosticReason = "aj_mobile_auth_returned_no_access_token";
             }
 
@@ -311,7 +356,15 @@ public sealed partial class MailRuClient : IDisposable
                         : "captcha_required",
                     state,
                     "aj_mobile_auth_requires_captcha",
-                    BuildRedirectChallenge(state, location),
+                    BuildRedirectChallenge(
+                        state,
+                        location,
+                        state == MailRuAuthState.ReCaptcha && registerChallengeSession
+                            ? RegisterPendingAuthSession(
+                                login,
+                                password,
+                                mergedSessionCookieHeader)
+                            : string.Empty),
                     $"http={(int)response.StatusCode}; response=non-json");
             }
 
@@ -341,14 +394,47 @@ public sealed partial class MailRuClient : IDisposable
         }
     }
 
-    public Task<MailRuAuthResult> CompleteChallengeAsync(
+    public async Task<MailRuAuthResult> CompleteChallengeAsync(
         string login,
         MailRuChallengeCompletion completion,
-        CancellationToken cancellationToken = default) =>
-        Task.FromResult(MailRuAuthResult.Failed(
-            "captcha_not_supported",
-            MailRuAuthState.Captcha,
-            "Access-token policy: CAPTCHA is reported to the user and authorization stops."));
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(completion.SessionId) ||
+            string.IsNullOrWhiteSpace(completion.Answer))
+        {
+            return MailRuAuthResult.Failed(
+                "recaptcha_result_missing",
+                MailRuAuthState.ReCaptcha,
+                "recaptcha_completion_missing");
+        }
+
+        if (!_pendingAuthSessions.TryRemove(completion.SessionId, out var session))
+        {
+            return MailRuAuthResult.Failed(
+                "recaptcha_session_expired",
+                MailRuAuthState.ReCaptcha,
+                "recaptcha_pending_session_not_found");
+        }
+
+        if (!string.Equals(
+                login,
+                session.Login,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return MailRuAuthResult.Failed(
+                "recaptcha_session_account_mismatch",
+                MailRuAuthState.ProtocolError,
+                "recaptcha_pending_session_account_mismatch");
+        }
+
+        return await AuthenticateCoreAsync(
+            session.Login,
+            session.Password,
+            session.CookieHeader,
+            completion.Answer,
+            registerChallengeSession: false,
+            cancellationToken).ConfigureAwait(false);
+    }
 
     public async Task<string> GetFolderThreadsAsync(
         string accessToken,
@@ -645,6 +731,75 @@ public sealed partial class MailRuClient : IDisposable
             payload);
     }
 
+    private string RegisterPendingAuthSession(
+        string login,
+        string password,
+        string cookieHeader)
+    {
+        var now = DateTimeOffset.UtcNow;
+
+        foreach (var item in _pendingAuthSessions)
+        {
+            if (now - item.Value.CreatedAtUtc > TimeSpan.FromMinutes(10))
+                _pendingAuthSessions.TryRemove(item.Key, out _);
+        }
+
+        var sessionId = Guid.NewGuid().ToString("N");
+        _pendingAuthSessions[sessionId] = new PendingAuthSession(
+            login,
+            password,
+            cookieHeader,
+            now);
+
+        return sessionId;
+    }
+
+    private static string MergeCookieHeader(
+        string? currentCookieHeader,
+        HttpResponseMessage response)
+    {
+        var cookies = new Dictionary<string, string>(
+            StringComparer.OrdinalIgnoreCase);
+
+        static void AddCookiePair(
+            Dictionary<string, string> target,
+            string? pair)
+        {
+            if (string.IsNullOrWhiteSpace(pair))
+                return;
+
+            var separator = pair.IndexOf('=');
+            if (separator <= 0)
+                return;
+
+            var name = pair[..separator].Trim();
+            var value = pair[(separator + 1)..].Trim();
+            if (name.Length == 0)
+                return;
+
+            target[name] = value;
+        }
+
+        if (!string.IsNullOrWhiteSpace(currentCookieHeader))
+        {
+            foreach (var part in currentCookieHeader.Split(';'))
+                AddCookiePair(cookies, part);
+        }
+
+        if (response.Headers.TryGetValues("Set-Cookie", out var setCookieValues))
+        {
+            foreach (var setCookie in setCookieValues)
+            {
+                var firstPart = setCookie.Split(';', 2)[0];
+                AddCookiePair(cookies, firstPart);
+            }
+        }
+
+        return string.Join(
+            "; ",
+            cookies.Select(pair => pair.Key + "=" + pair.Value));
+    }
+
     private Task<HttpResponseMessage> SendSerializedAsync(
         HttpRequestMessage request,
         CancellationToken cancellationToken) =>
@@ -777,7 +932,8 @@ public sealed partial class MailRuClient : IDisposable
     private static MailRuAuthChallenge BuildContinueChallenge(
         MailRuAuthState state,
         string continueValue,
-        Uri baseUri)
+        Uri baseUri,
+        string sessionId)
     {
         var kind = state switch
         {
@@ -789,14 +945,14 @@ public sealed partial class MailRuClient : IDisposable
 
         return new MailRuAuthChallenge(
             kind,
-            string.Empty,
-            NormalizeSafeMailRuContinueUrl(continueValue, baseUri),
+            sessionId,
+            NormalizeHttpsContinueUrl(continueValue, baseUri),
             null,
             null,
             "auth_continue_field_detected");
     }
 
-    private static string? NormalizeSafeMailRuContinueUrl(
+    private static string? NormalizeHttpsContinueUrl(
         string? value,
         Uri baseUri)
     {
@@ -820,8 +976,7 @@ public sealed partial class MailRuClient : IDisposable
         }
 
         if (uri is null ||
-            uri.Scheme != Uri.UriSchemeHttps ||
-            !IsMailRuHost(uri.Host))
+            uri.Scheme != Uri.UriSchemeHttps)
         {
             return null;
         }
@@ -1025,7 +1180,7 @@ public sealed partial class MailRuClient : IDisposable
             string.Empty;
 
         var url =
-            FindSafeMailRuUrlByNames(
+            FindSafeHttpsUrlByNames(
                 root,
                 "captcha_url",
                 "captchaUrl",
@@ -1035,7 +1190,7 @@ public sealed partial class MailRuClient : IDisposable
                 "challengeUrl",
                 "url",
                 "link") ??
-            NormalizeSafeMailRuUrl(location);
+            NormalizeSafeHttpsUrl(location);
 
         var siteKey = FindStringByNames(
             root,
@@ -1062,9 +1217,10 @@ public sealed partial class MailRuClient : IDisposable
 
     private static MailRuAuthChallenge? BuildRedirectChallenge(
         MailRuAuthState state,
-        string location)
+        string location,
+        string sessionId)
     {
-        var url = NormalizeSafeMailRuUrl(location);
+        var url = NormalizeSafeHttpsUrl(location);
         if (url is null)
             return null;
 
@@ -1072,7 +1228,7 @@ public sealed partial class MailRuClient : IDisposable
             state == MailRuAuthState.ReCaptcha
                 ? MailRuChallengeKind.ReCaptcha
                 : MailRuChallengeKind.Captcha,
-            string.Empty,
+            sessionId,
             url,
             null,
             null,
@@ -1185,7 +1341,7 @@ public sealed partial class MailRuClient : IDisposable
         return null;
     }
 
-    private static string? FindSafeMailRuUrlByNames(
+    private static string? FindSafeHttpsUrlByNames(
         JsonElement root,
         params string[] names)
     {
@@ -1197,7 +1353,7 @@ public sealed partial class MailRuClient : IDisposable
                 continue;
             }
 
-            var safe = NormalizeSafeMailRuUrl(value);
+            var safe = NormalizeSafeHttpsUrl(value);
             if (safe is not null)
                 return safe;
         }
@@ -1205,7 +1361,7 @@ public sealed partial class MailRuClient : IDisposable
         return null;
     }
 
-    private static string? NormalizeSafeMailRuUrl(string? value)
+    private static string? NormalizeSafeHttpsUrl(string? value)
     {
         if (string.IsNullOrWhiteSpace(value) ||
             !Uri.TryCreate(value, UriKind.Absolute, out var uri) ||
@@ -1214,14 +1370,7 @@ public sealed partial class MailRuClient : IDisposable
             return null;
         }
 
-        var host = uri.Host;
-        if (host.Equals("mail.ru", StringComparison.OrdinalIgnoreCase) ||
-            host.EndsWith(".mail.ru", StringComparison.OrdinalIgnoreCase))
-        {
-            return uri.ToString();
-        }
-
-        return null;
+        return uri.ToString();
     }
 
     private static string SafeHost(string? value)
@@ -1382,6 +1531,7 @@ public sealed partial class MailRuClient : IDisposable
 
     public void Dispose()
     {
+        _pendingAuthSessions.Clear();
         _requestGate.Dispose();
 
         if (_ownsHttpClient)
