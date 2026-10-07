@@ -3,7 +3,7 @@ using System.Windows.Data;
 
 namespace MailRuDesktop.App;
 
-internal sealed class MailDateConverter : IValueConverter
+public sealed class MailDateConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
         Format(value, "dd.MM.yy");
@@ -27,7 +27,7 @@ internal sealed class MailDateConverter : IValueConverter
     }
 }
 
-internal sealed class MailTimeConverter : IValueConverter
+public sealed class MailTimeConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
@@ -48,7 +48,7 @@ internal sealed class MailTimeConverter : IValueConverter
         Binding.DoNothing;
 }
 
-internal sealed class SenderLineConverter : IMultiValueConverter
+public sealed class SenderLineConverter : IMultiValueConverter
 {
     public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
     {
@@ -66,7 +66,7 @@ internal sealed class SenderLineConverter : IMultiValueConverter
         targetTypes.Select(_ => Binding.DoNothing).ToArray();
 }
 
-internal sealed class FirstLineConverter : IValueConverter
+public sealed class FirstLineConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
