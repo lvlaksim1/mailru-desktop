@@ -1,0 +1,2791 @@
+package ru.mail.authorizationsdk.di;
+
+import android.accounts.AccountManager;
+import android.content.Context;
+import android.content.SharedPreferences;
+import androidx.work.NetworkType;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import com.vk.mail.auth.MailAuth;
+import com.vk.silentauth.client.SilentAuthInfoProvider;
+import dagger.Lazy;
+import dagger.internal.DaggerGenerated;
+import dagger.internal.DoubleCheck;
+import dagger.internal.Factory;
+import dagger.internal.InstanceFactory;
+import dagger.internal.Preconditions;
+import dagger.internal.Provider;
+import dagger.internal.SingleCheck;
+import java.io.File;
+import java.util.List;
+import kotlin.jvm.functions.Function1;
+import kotlinx.coroutines.CoroutineDispatcher;
+import kotlinx.serialization.json.Json;
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Converter;
+import retrofit2.Retrofit;
+import ru.mail.android_utils.wrapper.Resources;
+import ru.mail.android_utils.xmlparser.XmlParser;
+import ru.mail.authorizationsdk.data.common.CommonAuthorizationMailApi;
+import ru.mail.authorizationsdk.data.common.CommonAuthorizationRepository;
+import ru.mail.authorizationsdk.data.common.NetworkRepository;
+import ru.mail.authorizationsdk.data.common.image.ImageLoadApi;
+import ru.mail.authorizationsdk.data.common.suggestions.SuggestionsAccountsRepository;
+import ru.mail.authorizationsdk.data.externalaccount.BaseOauthParams;
+import ru.mail.authorizationsdk.data.externalaccount.CloudGoogleApi;
+import ru.mail.authorizationsdk.data.externalaccount.ExternalAccMailApi;
+import ru.mail.authorizationsdk.data.externalaccount.ExternalAccMailAuthorizationRepository;
+import ru.mail.authorizationsdk.data.externalaccount.OauthTokenApi;
+import ru.mail.authorizationsdk.data.pikachucaptcha.PikachuCaptchaApi;
+import ru.mail.authorizationsdk.di.modules.AuthorizeConfigModule;
+import ru.mail.authorizationsdk.di.modules.AuthorizeConfigModule_ProvideBrowserConfigFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeConfigModule_ProvideFlavorConfigFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeConfigModule_ProvideOidcIssuerConfigFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeConfigModule_ProvidePushAuthInfoConfigFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeConfigModule_ProvideVkBindInLoginConfigFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeConfigModule_ProvidesCommonConfigFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeConfigModule_ProvidesImapConfigFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeConfigModule_ProvidesLoginConfigFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeConfigModule_ProvidesLudwigConfigFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeConfigModule_ProvidesMrimConfigFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeConfigModule_ProvidesRegConfigFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeConfigModule_ProvidesSecondStepConfigFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeConfigModule_ProvidesSessionRestoreConfigFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeConfigModule_ProvidesSocialAuthConfigFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeConfigModule_ProvidesYandexHelpConfigFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideAccessTokenRefreshApiFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideAccountManagerDelegateFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideAccountManagerRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideAccountManagerUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideDefaultDispatcherFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideDeviceIdFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideDeviceUdidFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideDomainUtilsFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideErrorDelegateHostFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideErrorDelegateSubscriberFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideErrorMediatorFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideInternalLoggerFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideIoDispatcherFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideLoadingDelegateFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideMailAuthByAgTokenUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideNetworkErrorDelegateFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideNetworkRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideNetworkUtilsFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideSecondStepInteractorFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideSerializationUtilsFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideSharedPreferencesFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideStatusNavBarHelperFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideStringResolverFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideUpdateAccessTokenRemoteSourceFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideUpdateAccessTokenRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideUpdateAccessTokenUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideUpdateTokensOkHttpClientFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideUpdateTokensRetrofitFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideViewModelDispatcherFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvideXmlParserFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvidesAutoLoginSnackShowDelegateHolderFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvidesFinishAutologinConsumerUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvidesFinishAutologinControllerUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvidesFinishAutologinUseCaseImplFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvidesFinishRestoreConsumerUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvidesFinishRestoreControllerUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvidesFinishRestoreUseCaseImplFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvidesFinishVkIdConsumerUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvidesFinishVkIdControllerUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvidesFinishVkIdUseCaseImplFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvidesMainImmediateDispatcherFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvidesRoomDBFactory;
+import ru.mail.authorizationsdk.di.modules.AuthorizeModule_ProvidesVkAvatarLoaderUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.ExternalMigrationModule;
+import ru.mail.authorizationsdk.di.modules.ExternalMigrationModule_ProvideExternalAuthAllowanceApiFactory;
+import ru.mail.authorizationsdk.di.modules.ExternalMigrationModule_ProvideExternalAuthAllowanceRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.ExternalMigrationModule_ProvideExternalAuthInteractorFactory;
+import ru.mail.authorizationsdk.di.modules.ExternalMigrationModule_ProvideExternalMigrationRetrofitFactory;
+import ru.mail.authorizationsdk.di.modules.ImageLoadConfigDependModule;
+import ru.mail.authorizationsdk.di.modules.ImageLoadConfigDependModule_ProvideVkAvatarLoadUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.ImageLoadModule;
+import ru.mail.authorizationsdk.di.modules.ImageLoadModule_ProvideAvatarLoadUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.ImageLoadModule_ProvideImageLoadApiFactory;
+import ru.mail.authorizationsdk.di.modules.ImageLoadModule_ProvideImageLoadClientFactory;
+import ru.mail.authorizationsdk.di.modules.ImageLoadModule_ProvideImageLoadRetrofitFactory;
+import ru.mail.authorizationsdk.di.modules.NetworkConfigDependModule;
+import ru.mail.authorizationsdk.di.modules.NetworkConfigDependModule_ProvidesAuthInteractorFactory;
+import ru.mail.authorizationsdk.di.modules.NetworkConfigDependModule_ProvidesRequestMapperFactory;
+import ru.mail.authorizationsdk.di.modules.NetworkModule;
+import ru.mail.authorizationsdk.di.modules.NetworkModule_ProvideAccountHttpClientFactory;
+import ru.mail.authorizationsdk.di.modules.NetworkModule_ProvideAccountRetrofitFactory;
+import ru.mail.authorizationsdk.di.modules.NetworkModule_ProvideAuthMailRetrofitFactory;
+import ru.mail.authorizationsdk.di.modules.NetworkModule_ProvideAuthUrlResponseMapperFactory;
+import ru.mail.authorizationsdk.di.modules.NetworkModule_ProvideBaseAuthRetrofitFactory;
+import ru.mail.authorizationsdk.di.modules.NetworkModule_ProvideBaseMailApiFactory;
+import ru.mail.authorizationsdk.di.modules.NetworkModule_ProvideBasePasswordOauthParamsFactory;
+import ru.mail.authorizationsdk.di.modules.NetworkModule_ProvideCloudGoogleApiFactory;
+import ru.mail.authorizationsdk.di.modules.NetworkModule_ProvideCommonAuthMailApiFactory;
+import ru.mail.authorizationsdk.di.modules.NetworkModule_ProvideCommonAuthorizationRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.NetworkModule_ProvideExternalAccMailAuthorizationRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.NetworkModule_ProvideExternalOkHttpClientFactory;
+import ru.mail.authorizationsdk.di.modules.NetworkModule_ProvideFilesDirFactory;
+import ru.mail.authorizationsdk.di.modules.NetworkModule_ProvideJsonConvertFactoryFactory;
+import ru.mail.authorizationsdk.di.modules.NetworkModule_ProvideJsonSerializerFactory;
+import ru.mail.authorizationsdk.di.modules.NetworkModule_ProvideMailAuthorizationSdkUrlsResolverFactory;
+import ru.mail.authorizationsdk.di.modules.NetworkModule_ProvideMailOkHttpClientFactory;
+import ru.mail.authorizationsdk.di.modules.NetworkModule_ProvidesAuthDelegateFactory;
+import ru.mail.authorizationsdk.di.modules.NetworkModule_ProvidesLogFilterFactory;
+import ru.mail.authorizationsdk.di.modules.NetworkModule_ProvidesLogInterceptorFactory;
+import ru.mail.authorizationsdk.di.modules.NetworkModule_ProvidesPlatformParamsInterceptorFactory;
+import ru.mail.authorizationsdk.di.modules.NetworkModule_ProvidesRegPlatformParamsInterceptorFactory;
+import ru.mail.authorizationsdk.di.modules.NetworkModule_ProvidesRetryInterceptorFactory;
+import ru.mail.authorizationsdk.di.modules.OidcLocalModule;
+import ru.mail.authorizationsdk.di.modules.OidcLocalModule_ProvideOidcDiscoveryLocalRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.OidcLocalModule_ProvideOidcDiscoveryLocalSourceFactory;
+import ru.mail.authorizationsdk.di.modules.OidcLocalModule_ProvideOidcDiscoveryLocalUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.OidcRemoteModule;
+import ru.mail.authorizationsdk.di.modules.OidcRemoteModule_ProvideOidcDiscoverApiFactory;
+import ru.mail.authorizationsdk.di.modules.OidcRemoteModule_ProvideOidcDiscoveryRemoteRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.OidcRemoteModule_ProvideOidcDiscoveryRemoteSourceFactory;
+import ru.mail.authorizationsdk.di.modules.OidcRemoteModule_ProvideOidcDiscoveryRetrofitFactory;
+import ru.mail.authorizationsdk.di.modules.OidcRemoteModule_ProvideOidcDiscoveryUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.PlatformModule;
+import ru.mail.authorizationsdk.di.modules.PlatformModule_ProvidePlatformParamsFactory;
+import ru.mail.authorizationsdk.di.modules.PlatformModule_ProvideRegPlatformParamsFactory;
+import ru.mail.authorizationsdk.di.modules.PlatformModule_ProvidesDeviceIdProviderFactory;
+import ru.mail.authorizationsdk.di.modules.PlatformModule_ProvidesDeviceInfoFactory;
+import ru.mail.authorizationsdk.di.modules.PlatformModule_ProvidesGoogleAccountProviderFactory;
+import ru.mail.authorizationsdk.di.modules.PlatformModule_ProvidesRegDeviceInfoFactory;
+import ru.mail.authorizationsdk.di.modules.PlatformModule_ProvidesUserAgentFactory;
+import ru.mail.authorizationsdk.di.modules.VKIDModule;
+import ru.mail.authorizationsdk.di.modules.VKIDModule_ProvideSilentAuthInfoProviderFactory;
+import ru.mail.authorizationsdk.di.modules.VKIDModule_ProvideVkSdkSilentProviderFactory;
+import ru.mail.authorizationsdk.di.modules.VkAutologinModule;
+import ru.mail.authorizationsdk.di.modules.VkAutologinModule_ProvideEsiaTokenExchangerFactory;
+import ru.mail.authorizationsdk.di.modules.VkAutologinModule_ProvideExternalAutologinTokenExchangerUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.VkAutologinModule_ProvideRestoreVkTokenExchangerFactory;
+import ru.mail.authorizationsdk.di.modules.VkAutologinModule_ProvideVkIdTokenExchangerFactory;
+import ru.mail.authorizationsdk.di.modules.VkAutologinModule_ProvidesEsiaVkUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.VkAutologinModule_ProvidesRestoreVkUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.VkAutologinModule_ProvidesVkAutologinUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.VkAutologinModule_ProvidesVkIdAuthUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.feature.CloudModule;
+import ru.mail.authorizationsdk.di.modules.feature.CloudModule_ProvideAuthPhoneFlowDataHolderFactory;
+import ru.mail.authorizationsdk.di.modules.feature.CloudModule_ProvideCookieApiFactory;
+import ru.mail.authorizationsdk.di.modules.feature.CloudModule_ProvideCookieRetrofitFactory;
+import ru.mail.authorizationsdk.di.modules.feature.CloudModule_ProvideExchangeTokenApiFactory;
+import ru.mail.authorizationsdk.di.modules.feature.CloudModule_ProvideExchangeTokenRetrofitFactory;
+import ru.mail.authorizationsdk.di.modules.feature.CloudModule_ProvidePhoneApiFactory;
+import ru.mail.authorizationsdk.di.modules.feature.CloudModule_ProvidePhoneRetrofitFactory;
+import ru.mail.authorizationsdk.di.modules.feature.CloudModule_ProvidesCheckPhoneRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.CustomServerModule;
+import ru.mail.authorizationsdk.di.modules.feature.CustomServerModule_ProvideImapCustomServerMailApiFactory;
+import ru.mail.authorizationsdk.di.modules.feature.CustomServerModule_ProvideImapCustomServerUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.feature.CustomServerModule_ProvidePikachuCaptchaVmDelegateFactory;
+import ru.mail.authorizationsdk.di.modules.feature.CustomServerModule_ProvideServerParamsErrorsVmDelegateFactory;
+import ru.mail.authorizationsdk.di.modules.feature.EnterPhoneModule;
+import ru.mail.authorizationsdk.di.modules.feature.EnterPhoneModule_ProvidePhoneAuthInteractorFactory;
+import ru.mail.authorizationsdk.di.modules.feature.EnterPhoneModule_ProvidePhoneHelperFactory;
+import ru.mail.authorizationsdk.di.modules.feature.EnterPhoneModule_ProvidePhoneUtilFactory;
+import ru.mail.authorizationsdk.di.modules.feature.EsiaAuthModule;
+import ru.mail.authorizationsdk.di.modules.feature.EsiaAuthModule_ProvideEsiaAuthApiFactory;
+import ru.mail.authorizationsdk.di.modules.feature.EsiaAuthModule_ProvideEsiaAuthRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.EsiaAuthModule_ProvideEsiaExchangeApiFactory;
+import ru.mail.authorizationsdk.di.modules.feature.EsiaAuthModule_ProvideExchangeEsiaAccountMapperFactory;
+import ru.mail.authorizationsdk.di.modules.feature.EsiaAuthModule_ProvideExchangeEsiaAccountUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.feature.EsiaAuthModule_ProvideStartEsiaAuthResponseMapperFactory;
+import ru.mail.authorizationsdk.di.modules.feature.EsiaAuthModule_ProvideStartEsiaAuthUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.feature.ForceVKIDModule;
+import ru.mail.authorizationsdk.di.modules.feature.ForceVKIDModule_ProvideForceVKIDApiFactory;
+import ru.mail.authorizationsdk.di.modules.feature.ForceVKIDModule_ProvideForceVKIDInteractorFactory;
+import ru.mail.authorizationsdk.di.modules.feature.ForceVKIDModule_ProvideForceVKIDOkHttpClientFactory;
+import ru.mail.authorizationsdk.di.modules.feature.ForceVKIDModule_ProvideForceVKIDRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.ForceVKIDModule_ProvideForceVKIDRetrofitFactory;
+import ru.mail.authorizationsdk.di.modules.feature.ForceVKIDModule_ProvideForceVkIdVkLoginInteractorFactoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.ForceVKIDModule_ProvidesFastLoginBtnDelegateFactory;
+import ru.mail.authorizationsdk.di.modules.feature.GoogleModule;
+import ru.mail.authorizationsdk.di.modules.feature.GoogleModule_ProvideGoogleApiFactory;
+import ru.mail.authorizationsdk.di.modules.feature.GoogleModule_ProvideGoogleNativeTokenExchangeFactory;
+import ru.mail.authorizationsdk.di.modules.feature.GoogleModule_ProvideGoogleOauth2ParamsRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.GoogleModule_ProvideGoogleRetrofitFactory;
+import ru.mail.authorizationsdk.di.modules.feature.GoogleModule_ProvidesCloudGoogleCodeRemoteSourceFactory;
+import ru.mail.authorizationsdk.di.modules.feature.GoogleModule_ProvidesCloudGoogleGetCodeRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.GoogleModule_ProvidesGoogleAccMailAuthRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.GoogleModule_ProvidesGoogleAuthUrlRemoteSourceFactory;
+import ru.mail.authorizationsdk.di.modules.feature.GoogleModule_ProvidesGoogleCloudMailAuthRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.GoogleModule_ProvidesGoogleInteractorFactoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.GoogleModule_ProvidesGoogleMapperFactory;
+import ru.mail.authorizationsdk.di.modules.feature.GoogleModule_ProvidesGoogleRemoteSourceFactory;
+import ru.mail.authorizationsdk.di.modules.feature.GoogleModule_ProvidesGoogleRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.ImapLocalConfigDependModule;
+import ru.mail.authorizationsdk.di.modules.feature.ImapLocalConfigDependModule_ProvideImapSettingsProcessorAuthSdkFactory;
+import ru.mail.authorizationsdk.di.modules.feature.ImapLocalConfigDependModule_ProvideImapSettingsRepositoryAuthSdkFactory;
+import ru.mail.authorizationsdk.di.modules.feature.ImapLocalConfigDependModule_ProvideLocalImapInteractorFactory;
+import ru.mail.authorizationsdk.di.modules.feature.ImapLocalConfigDependModule_ProvideProviderInfoUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.feature.ImapLocalConfigDependModule_ProvideProviderParserAuthSdkFactory;
+import ru.mail.authorizationsdk.di.modules.feature.ImapLocalModule;
+import ru.mail.authorizationsdk.di.modules.feature.ImapLocalModule_ProvideCheckCredentialsRepositoryImplFactory;
+import ru.mail.authorizationsdk.di.modules.feature.ImapLocalModule_ProvideImapLoginRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.ImapLocalModule_ProvideImapOAuthStateRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.ImapLocalModule_ProvideImapOAuthStateUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.feature.ImapLocalModule_ProvideProviderInfoTypeResolverAuthSdkFactory;
+import ru.mail.authorizationsdk.di.modules.feature.ImapLocalModule_ProvideTempDirectoryPathFactory;
+import ru.mail.authorizationsdk.di.modules.feature.LoginModule;
+import ru.mail.authorizationsdk.di.modules.feature.LoginModule_ProvideAuthRequirementsRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.LoginModule_ProvideAutologinUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.feature.LoginModule_ProvideEnteredEmailValidatorFactory;
+import ru.mail.authorizationsdk.di.modules.feature.LoginModule_ProvideFinishAutologinDelegateFactory;
+import ru.mail.authorizationsdk.di.modules.feature.LoginModule_ProvideGetPushAuthInfoUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.feature.LoginModule_ProvideLoginRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.LoginModule_ProvideLongClickOnLogoDelegateFactory;
+import ru.mail.authorizationsdk.di.modules.feature.LoginModule_ProvideProcessAutologinUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.feature.LoginModule_ProvidePushAuthInfoApiFactory;
+import ru.mail.authorizationsdk.di.modules.feature.LoginModule_ProvidePushAuthInfoOkHttpClientFactory;
+import ru.mail.authorizationsdk.di.modules.feature.LoginModule_ProvidePushAuthInfoRemoteSourceFactory;
+import ru.mail.authorizationsdk.di.modules.feature.LoginModule_ProvidePushAuthInfoRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.LoginModule_ProvidePushAuthInfoRetrofitFactory;
+import ru.mail.authorizationsdk.di.modules.feature.LoginModule_ProvideRegEventProviderFactory;
+import ru.mail.authorizationsdk.di.modules.feature.LoginModule_ProvideRestoreVkDelegateFactory;
+import ru.mail.authorizationsdk.di.modules.feature.LoginModule_ProvideServicesUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.feature.LoginModule_ProvideSocialAuthInteractorFactory;
+import ru.mail.authorizationsdk.di.modules.feature.LoginModule_ProvideWebViewHelperFactory;
+import ru.mail.authorizationsdk.di.modules.feature.LoginModule_ProvidesCheckPhoneUseCaseFactoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.LoginModule_ProvidesLibverifyHelperFactory;
+import ru.mail.authorizationsdk.di.modules.feature.LoginModule_ProvidesSuggestionsAccountsRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.OKModule;
+import ru.mail.authorizationsdk.di.modules.feature.OKModule_ProvideExternalAccMailApiFactory;
+import ru.mail.authorizationsdk.di.modules.feature.OKModule_ProvideOAuthApiFactory;
+import ru.mail.authorizationsdk.di.modules.feature.OKModule_ProvideOAuthMailRetrofitFactory;
+import ru.mail.authorizationsdk.di.modules.feature.OKModule_ProvideOKAuthInteractorFactory;
+import ru.mail.authorizationsdk.di.modules.feature.OKModule_ProvideOKAuthMapperFactory;
+import ru.mail.authorizationsdk.di.modules.feature.OKModule_ProvideOKAuthRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.OKModule_ProvideOKAuthSdkFactory;
+import ru.mail.authorizationsdk.di.modules.feature.OKModule_ProvideOKOAuthDelegateFactory;
+import ru.mail.authorizationsdk.di.modules.feature.OKModule_ProvideOKRetrofitFactory;
+import ru.mail.authorizationsdk.di.modules.feature.OKModule_ProvidesOKAuthRemoteSourceFactory;
+import ru.mail.authorizationsdk.di.modules.feature.OutlookModule;
+import ru.mail.authorizationsdk.di.modules.feature.OutlookModule_ProvideAuthUrlResponseMapperFactory;
+import ru.mail.authorizationsdk.di.modules.feature.OutlookModule_ProvideOutlookOauthParamsRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.OutlookModule_ProvidesOutlookAccMailAuthRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.OutlookModule_ProvidesOutlookAuthUrlRemoteSourceFactory;
+import ru.mail.authorizationsdk.di.modules.feature.OutlookModule_ProvidesOutlookInteractorFactoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.OutlookModule_ProvidesOutlookMapperFactory;
+import ru.mail.authorizationsdk.di.modules.feature.PikachuCaptchaModule;
+import ru.mail.authorizationsdk.di.modules.feature.PikachuCaptchaModule_ProvideMailOkHttpClientFactory;
+import ru.mail.authorizationsdk.di.modules.feature.PikachuCaptchaModule_ProvidePikachuCaptchaApiFactory;
+import ru.mail.authorizationsdk.di.modules.feature.PikachuCaptchaModule_ProvidePikachuCaptchaRetrofitFactory;
+import ru.mail.authorizationsdk.di.modules.feature.PikachuCaptchaModule_ProvidePikachuUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.feature.RegistrationModule;
+import ru.mail.authorizationsdk.di.modules.feature.RegistrationModule_ProvideAfterRegAuthApiFactory;
+import ru.mail.authorizationsdk.di.modules.feature.RegistrationModule_ProvideAfterRegAuthRetrofitFactory;
+import ru.mail.authorizationsdk.di.modules.feature.RegistrationModule_ProvideGetSignupDataUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.feature.RegistrationModule_ProvideSignupApiFactory;
+import ru.mail.authorizationsdk.di.modules.feature.RegistrationModule_ProvideSignupDataRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.RegistrationModule_ProvideSignupErrorMapperFactory;
+import ru.mail.authorizationsdk.di.modules.feature.RegistrationModule_ProvideSignupHttpClientFactory;
+import ru.mail.authorizationsdk.di.modules.feature.RegistrationModule_ProvideSignupParamsMapperFactory;
+import ru.mail.authorizationsdk.di.modules.feature.RegistrationModule_ProvideSignupPrepareApiFactory;
+import ru.mail.authorizationsdk.di.modules.feature.RegistrationModule_ProvideSignupPrepareResultMapperFactory;
+import ru.mail.authorizationsdk.di.modules.feature.RegistrationModule_ProvideSignupRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.RegistrationModule_ProvideSignupResultMapperFactory;
+import ru.mail.authorizationsdk.di.modules.feature.RegistrationModule_ProvideSignupRetrofitFactory;
+import ru.mail.authorizationsdk.di.modules.feature.RegistrationModule_ProvideSignupUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.feature.RegistrationModule_ProvideSocialSignupHttpClientFactory;
+import ru.mail.authorizationsdk.di.modules.feature.RegistrationModule_ProvideSocialSignupRetrofitFactory;
+import ru.mail.authorizationsdk.di.modules.feature.RegistrationModule_ProvideUserExistsUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.feature.SSOModule;
+import ru.mail.authorizationsdk.di.modules.feature.SSOModule_ProvideWebClientFactory;
+import ru.mail.authorizationsdk.di.modules.feature.SecondFactorModule;
+import ru.mail.authorizationsdk.di.modules.feature.SecondFactorModule_ProvideAccountTypeFactory;
+import ru.mail.authorizationsdk.di.modules.feature.SecondFactorModule_ProvideWebClientFactory;
+import ru.mail.authorizationsdk.di.modules.feature.SessionRestoreModule;
+import ru.mail.authorizationsdk.di.modules.feature.SessionRestoreModule_ProvideSessionRestoreDelegateFactory;
+import ru.mail.authorizationsdk.di.modules.feature.SessionRestoreModule_ProvidesNotificationHelperFactory;
+import ru.mail.authorizationsdk.di.modules.feature.SessionRestoreModule_ProvidesRestoreSessionPrefsFactory;
+import ru.mail.authorizationsdk.di.modules.feature.SessionRestoreModule_ProvidesRestoreSessionStoreFactory;
+import ru.mail.authorizationsdk.di.modules.feature.SessionRestoreModule_ProvidesSessionRestoreHelperFactory;
+import ru.mail.authorizationsdk.di.modules.feature.SessionRestoreModule_ProvidesSessionRestoreSchedulerFactory;
+import ru.mail.authorizationsdk.di.modules.feature.SessionRestoreModule_ProvidesWorkSchedulerFactory;
+import ru.mail.authorizationsdk.di.modules.feature.VkIdAuthModule;
+import ru.mail.authorizationsdk.di.modules.feature.VkIdAuthModule_ProvideBindNewMailUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.feature.VkIdAuthModule_ProvideExchangeVkIdAccountMapperFactory;
+import ru.mail.authorizationsdk.di.modules.feature.VkIdAuthModule_ProvideFinishVKMailAuthUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.feature.VkIdAuthModule_ProvideGrayVkidApiFactory;
+import ru.mail.authorizationsdk.di.modules.feature.VkIdAuthModule_ProvideGrayVkidPasswordAuthMapperFactory;
+import ru.mail.authorizationsdk.di.modules.feature.VkIdAuthModule_ProvideGrayVkidPasswordAuthUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.feature.VkIdAuthModule_ProvideGrayVkidPasswordRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.VkIdAuthModule_ProvideMailAuthFactory;
+import ru.mail.authorizationsdk.di.modules.feature.VkIdAuthModule_ProvideVKMailAuthTokenExchangerUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.feature.VkIdAuthModule_ProvideVkIdAuthApiFactory;
+import ru.mail.authorizationsdk.di.modules.feature.VkIdAuthModule_ProvideVkIdAuthRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.VkIdAuthModule_ProvideVkIdGetStateAgTokenApiFactory;
+import ru.mail.authorizationsdk.di.modules.feature.VkIdAuthModule_ProvideVkIdGetStateAgTokenRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.VkIdAuthModule_ProvideVkIdStartLoginOkHttpClientFactory;
+import ru.mail.authorizationsdk.di.modules.feature.VkIdAuthModule_ProvideVkIdStartLoginRetrofitFactory;
+import ru.mail.authorizationsdk.di.modules.feature.VkIdAuthModule_ProvideVkIdStateAgTokenUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.feature.VkIdAuthModule_ProvideVkIdVkIdStateAgTokenRemoteSourceFactory;
+import ru.mail.authorizationsdk.di.modules.feature.VkIdAuthModule_ProvideVkIdWhiteAndOneTapFlowOkHttpClientFactory;
+import ru.mail.authorizationsdk.di.modules.feature.VkIdAuthModule_ProvideVkIdWhiteOneTapRetrofitFactory;
+import ru.mail.authorizationsdk.di.modules.feature.VkIdAuthModule_ProvideWhiteVkIdAuthRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.VkIdAuthModule_ProvideWhiteVkIdAuthUseCaseFactory;
+import ru.mail.authorizationsdk.di.modules.feature.VkIdAuthModule_ProvideWhiteVkIdPasswordAuthMapperFactory;
+import ru.mail.authorizationsdk.di.modules.feature.VkIdAuthModule_ProvideWhiteVkidApiFactory;
+import ru.mail.authorizationsdk.di.modules.feature.YahooModule;
+import ru.mail.authorizationsdk.di.modules.feature.YahooModule_ProvideInteractorFactoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.YahooModule_ProvideYahooAccMailAuthRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.YahooModule_ProvideYahooApiFactory;
+import ru.mail.authorizationsdk.di.modules.feature.YahooModule_ProvideYahooRetrofitFactory;
+import ru.mail.authorizationsdk.di.modules.feature.YahooModule_ProvidesYahooOauthParamsRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.YandexModule;
+import ru.mail.authorizationsdk.di.modules.feature.YandexModule_ProvideYandexApiFactory;
+import ru.mail.authorizationsdk.di.modules.feature.YandexModule_ProvideYandexAuthUrlUseCaseFactoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.YandexModule_ProvideYandexRetrofitFactory;
+import ru.mail.authorizationsdk.di.modules.feature.YandexModule_ProvidesYandexAccMailAuthRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.YandexModule_ProvidesYandexAuthUrlRemoteSourceFactory;
+import ru.mail.authorizationsdk.di.modules.feature.YandexModule_ProvidesYandexInteractorFactoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.YandexModule_ProvidesYandexMapperFactory;
+import ru.mail.authorizationsdk.di.modules.feature.YandexModule_ProvidesYandexOauthParamsRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.feature.YandexModule_ProvidesYandexRemoteSourceFactory;
+import ru.mail.authorizationsdk.di.modules.feature.YandexModule_ProvidesYandexRepositoryFactory;
+import ru.mail.authorizationsdk.di.modules.model.ExternalPlatformData;
+import ru.mail.authorizationsdk.domain.mail.DomainUtils;
+import ru.mail.authorizationsdk.domain.usecase.imageload.AvatarLoadUseCase;
+import ru.mail.authorizationsdk.domain.usecase.imageload.VkAvatarLoadUseCase;
+import ru.mail.authorizationsdk.domain.usecase.pikachu.PikachuUseCase;
+import ru.mail.authorizationsdk.domain.usecase.suggestions.DomainSuggestionsUseCase;
+import ru.mail.authorizationsdk.domain.usecase.suggestions.DomainSuggestionsUseCase_Factory;
+import ru.mail.authorizationsdk.domain.usecase.suggestions.EmailSuggestionsUseCase;
+import ru.mail.authorizationsdk.domain.usecase.suggestions.EmailSuggestionsUseCase_Factory;
+import ru.mail.authorizationsdk.external.analytics.AuthorizationSdkAnalyticsImpl;
+import ru.mail.authorizationsdk.external.cloud.CloudWriteToSupportHelper;
+import ru.mail.authorizationsdk.external.config.AuthorizationSdkConfig;
+import ru.mail.authorizationsdk.external.config.BrowserConfig;
+import ru.mail.authorizationsdk.external.config.ForceVkIdSecret;
+import ru.mail.authorizationsdk.external.config.ImapConfig;
+import ru.mail.authorizationsdk.external.config.MrimConfig;
+import ru.mail.authorizationsdk.external.config.PushAuthInfoConfig;
+import ru.mail.authorizationsdk.external.config.RegConfig;
+import ru.mail.authorizationsdk.external.config.VkBindInLoginConfig;
+import ru.mail.authorizationsdk.external.config.YandexHelpConfiguration;
+import ru.mail.authorizationsdk.external.config.common.CommonConfig;
+import ru.mail.authorizationsdk.external.config.common.OidcIssuerConfig;
+import ru.mail.authorizationsdk.external.config.flavor.FlavorConfig;
+import ru.mail.authorizationsdk.external.config.login.LoginConfig;
+import ru.mail.authorizationsdk.external.device.DeviceInfo;
+import ru.mail.authorizationsdk.external.secret.Secrets;
+import ru.mail.authorizationsdk.external.service.ActiveAccountModeProvider;
+import ru.mail.authorizationsdk.external.service.SocialLoginInfoHolderProvider;
+import ru.mail.authorizationsdk.external.urls.AuthorizationSdkUrlsResolver;
+import ru.mail.authorizationsdk.feature.authactivity.AuthActivity;
+import ru.mail.authorizationsdk.feature.authactivity.AuthActivity_MembersInjector;
+import ru.mail.authorizationsdk.feature.authactivity.AuthViewModel;
+import ru.mail.authorizationsdk.feature.authactivity.AuthViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.authactivity.C1604AuthViewModel_Factory;
+import ru.mail.authorizationsdk.feature.authactivity.data.external.ExternalAuthAllowanceApi;
+import ru.mail.authorizationsdk.feature.authactivity.data.request.RequestMapper;
+import ru.mail.authorizationsdk.feature.authactivity.domain.authdelegate.AuthDelegate;
+import ru.mail.authorizationsdk.feature.authactivity.domain.external.ExternalAuthAllowanceRepository;
+import ru.mail.authorizationsdk.feature.authactivity.domain.external.ExternalAuthInteractor;
+import ru.mail.authorizationsdk.feature.authactivity.domain.interactor.AuthInteractor;
+import ru.mail.authorizationsdk.feature.authactivity.vk.VkIdAuthUseCase;
+import ru.mail.authorizationsdk.feature.beforerecovery.presentation.BeforeRecoveryVKIDViewModel;
+import ru.mail.authorizationsdk.feature.beforerecovery.presentation.BeforeRecoveryVKIDViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.beforerecovery.presentation.C1617BeforeRecoveryVKIDViewModel_Factory;
+import ru.mail.authorizationsdk.feature.bindemail.data.datasource.EsiaExchangeApi;
+import ru.mail.authorizationsdk.feature.bindemail.data.datasource.StartEsiaAuthApi;
+import ru.mail.authorizationsdk.feature.bindemail.data.mapper.ExchangeEsiaAccountMapper;
+import ru.mail.authorizationsdk.feature.bindemail.data.mapper.StartEsiaAuthResponseMapper;
+import ru.mail.authorizationsdk.feature.bindemail.domain.repository.EsiaAuthRepository;
+import ru.mail.authorizationsdk.feature.bindemail.domain.usecase.ExchangeEsiaAccountUseCase;
+import ru.mail.authorizationsdk.feature.bindemail.domain.usecase.StartEsiaAuthUseCase;
+import ru.mail.authorizationsdk.feature.bindemail.presentation.BindEmailViewModel;
+import ru.mail.authorizationsdk.feature.bindemail.presentation.BindEmailViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.bindemail.presentation.C1622BindEmailViewModel_Factory;
+import ru.mail.authorizationsdk.feature.captcha.C1625WebCaptchaComposeViewModel_Factory;
+import ru.mail.authorizationsdk.feature.captcha.WebCaptchaComposeViewModel;
+import ru.mail.authorizationsdk.feature.captcha.WebCaptchaComposeViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.captcha.config.LudwigConfig;
+import ru.mail.authorizationsdk.feature.changepassword.presentation.C1627ChangePasswordViewModel_Factory;
+import ru.mail.authorizationsdk.feature.changepassword.presentation.ChangePasswordViewModel;
+import ru.mail.authorizationsdk.feature.changepassword.presentation.ChangePasswordViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.common.data.ServicesRepository;
+import ru.mail.authorizationsdk.feature.common.domain.ServicesUseCase;
+import ru.mail.authorizationsdk.feature.common.webview.CommonWebViewClient;
+import ru.mail.authorizationsdk.feature.core.data.accountmanager.AccountLoginChecker;
+import ru.mail.authorizationsdk.feature.core.data.accountmanager.AccountManagerDelegate;
+import ru.mail.authorizationsdk.feature.core.data.mappers.AuthUrlResponseMapper;
+import ru.mail.authorizationsdk.feature.core.domain.accountmanager.AccountManagerRepository;
+import ru.mail.authorizationsdk.feature.core.domain.accountmanager.AccountManagerUseCase;
+import ru.mail.authorizationsdk.feature.core.domain.commondelegates.LoadingDelegate;
+import ru.mail.authorizationsdk.feature.core.domain.commondelegates.NetworkErrorDelegate;
+import ru.mail.authorizationsdk.feature.core.domain.commondelegates.errorhandler.ErrorDelegateHost;
+import ru.mail.authorizationsdk.feature.core.domain.commondelegates.errorhandler.ErrorDelegateSubscriber;
+import ru.mail.authorizationsdk.feature.core.domain.commondelegates.errorhandler.ErrorMediator;
+import ru.mail.authorizationsdk.feature.core.domain.vkid.VkSdkSilentProvider;
+import ru.mail.authorizationsdk.feature.core.presentation.theme.DarkThemeResolver;
+import ru.mail.authorizationsdk.feature.customserver.data.CustomServerMailApi;
+import ru.mail.authorizationsdk.feature.customserver.domain.CustomServerUseCase;
+import ru.mail.authorizationsdk.feature.customserver.presentation.C1632CustomServerViewModel_Factory;
+import ru.mail.authorizationsdk.feature.customserver.presentation.CustomServerViewModel;
+import ru.mail.authorizationsdk.feature.customserver.presentation.CustomServerViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.customserver.presentation.delegates.PikachuCaptchaVmDelegate;
+import ru.mail.authorizationsdk.feature.customserver.presentation.delegates.error.ServerParamsErrorsVmDelegate;
+import ru.mail.authorizationsdk.feature.enterphone.data.PhoneHelper;
+import ru.mail.authorizationsdk.feature.enterphone.domain.PhoneAuthInteractor;
+import ru.mail.authorizationsdk.feature.enterphone.presentation.C1636EnterPhoneViewModel_Factory;
+import ru.mail.authorizationsdk.feature.enterphone.presentation.EnterPhoneViewModel;
+import ru.mail.authorizationsdk.feature.enterphone.presentation.EnterPhoneViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.external.accesstokenrefresh.data.AccessTokenRefreshApi;
+import ru.mail.authorizationsdk.feature.external.accesstokenrefresh.data.UpdateAccessTokenRemoteSource;
+import ru.mail.authorizationsdk.feature.external.accesstokenrefresh.domain.UpdateAccessTokenRepository;
+import ru.mail.authorizationsdk.feature.external.accesstokenrefresh.domain.UpdateAccessTokenUseCase;
+import ru.mail.authorizationsdk.feature.external.mailauthbyagtoken.domain.MailAuthByAgTokenUseCase;
+import ru.mail.authorizationsdk.feature.externalmigration.presentation.C1638ExternalAccMigrationViewModel_Factory;
+import ru.mail.authorizationsdk.feature.externalmigration.presentation.ExternalAccMigrationViewModel;
+import ru.mail.authorizationsdk.feature.externalmigration.presentation.ExternalAccMigrationViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.forcevkid.data.ForceVKIDApi;
+import ru.mail.authorizationsdk.feature.forcevkid.domain.ForceVKIDInteractor;
+import ru.mail.authorizationsdk.feature.forcevkid.domain.ForceVKIDRepository;
+import ru.mail.authorizationsdk.feature.forcevkid.vk.domain.ForceVkIdIVkLoginInteractorFactory;
+import ru.mail.authorizationsdk.feature.google.common.data.GoogleAccMailAuthRepository;
+import ru.mail.authorizationsdk.feature.google.common.data.GoogleAuthUrlRemoteSource;
+import ru.mail.authorizationsdk.feature.google.common.data.GoogleRemoteSource;
+import ru.mail.authorizationsdk.feature.google.common.data.GoogleRepository;
+import ru.mail.authorizationsdk.feature.google.common.data.cloud.CloudGoogleGetCodeRemoteSource;
+import ru.mail.authorizationsdk.feature.google.common.data.cloud.CloudGoogleGetCodeRepository;
+import ru.mail.authorizationsdk.feature.google.common.data.cloud.CloudGoogleMailAuthRepository;
+import ru.mail.authorizationsdk.feature.google.common.data.cloud.CloudGoogleNativeTokenExchange;
+import ru.mail.authorizationsdk.feature.google.common.data.googleapi.GoogleApi;
+import ru.mail.authorizationsdk.feature.google.common.data.mappers.GoogleMapper;
+import ru.mail.authorizationsdk.feature.google.common.data.oauthparams.GoogleOauthParamsRepositoryFactory;
+import ru.mail.authorizationsdk.feature.google.common.domain.GoogleAuthUrlInteractorFactory;
+import ru.mail.authorizationsdk.feature.google.nativelib.presentation.GoogleAssistedFactory;
+import ru.mail.authorizationsdk.feature.google.nativelib.presentation.GoogleAssistedFactory_Impl;
+import ru.mail.authorizationsdk.feature.google.nativelib.presentation.GoogleViewModel_Factory;
+import ru.mail.authorizationsdk.feature.google.web.presentation.GoogleWebAuthAssistedFactory;
+import ru.mail.authorizationsdk.feature.google.web.presentation.GoogleWebAuthAssistedFactory_Impl;
+import ru.mail.authorizationsdk.feature.google.web.presentation.GoogleWebAuthViewModel_Factory;
+import ru.mail.authorizationsdk.feature.imaplocal.data.ProviderInfoTypeResolverAuthSdk;
+import ru.mail.authorizationsdk.feature.imaplocal.data.ProviderParserAuthSdk;
+import ru.mail.authorizationsdk.feature.imaplocal.data.checkcredentials.CheckCredentialsRepositoryImpl;
+import ru.mail.authorizationsdk.feature.imaplocal.data.db.RoomAuthSdkDB;
+import ru.mail.authorizationsdk.feature.imaplocal.data.oauthstate.ImapOAuthStateRepository;
+import ru.mail.authorizationsdk.feature.imaplocal.domain.ImapSettingsProcessorAuthSdk;
+import ru.mail.authorizationsdk.feature.imaplocal.domain.ImapSettingsRepositoryAuthSdk;
+import ru.mail.authorizationsdk.feature.imaplocal.domain.login.ImapLoginRepository;
+import ru.mail.authorizationsdk.feature.imaplocal.domain.login.interactor.LocalImapInteractor;
+import ru.mail.authorizationsdk.feature.imaplocal.domain.oauthstate.ImapOAuthStateUseCase;
+import ru.mail.authorizationsdk.feature.imaplocal.domain.providerInfo.ProviderInfoUseCase;
+import ru.mail.authorizationsdk.feature.login.data.autologin.store.AutologinDataStoreRepository;
+import ru.mail.authorizationsdk.feature.login.data.phone.CheckPhoneRepository;
+import ru.mail.authorizationsdk.feature.login.data.phone.api.CookieApi;
+import ru.mail.authorizationsdk.feature.login.data.phone.api.ExchangeTokenApi;
+import ru.mail.authorizationsdk.feature.login.data.phone.api.PhoneApi;
+import ru.mail.authorizationsdk.feature.login.data.pushauth.PushAuthInfoApi;
+import ru.mail.authorizationsdk.feature.login.data.pushauth.PushAuthInfoRepository;
+import ru.mail.authorizationsdk.feature.login.data.pushauth.PushAuthRemoteSource;
+import ru.mail.authorizationsdk.feature.login.data.vkauth.store.VKMailAuthDataStoreRepository;
+import ru.mail.authorizationsdk.feature.login.data.vkidstart.VkIdGetStateAgTokenApi;
+import ru.mail.authorizationsdk.feature.login.data.vkidstart.VkIdStateAgTokenRemoteSource;
+import ru.mail.authorizationsdk.feature.login.domain.VkAvatarLoaderUseCase;
+import ru.mail.authorizationsdk.feature.login.domain.autologin.StartAutologinUseCase;
+import ru.mail.authorizationsdk.feature.login.domain.autologin.finish.FinishAutologinConsumerUseCase;
+import ru.mail.authorizationsdk.feature.login.domain.autologin.finish.FinishAutologinUseCaseImpl;
+import ru.mail.authorizationsdk.feature.login.domain.autologin.process.ProcessAutologinUseCase;
+import ru.mail.authorizationsdk.feature.login.domain.phone.CheckPhoneUseCaseFactory;
+import ru.mail.authorizationsdk.feature.login.domain.phone.LibverifyHelper;
+import ru.mail.authorizationsdk.feature.login.domain.pushauth.GetPushAuthInfoUseCase;
+import ru.mail.authorizationsdk.feature.login.domain.pushauth.requirement.AuthRequirementsRepository;
+import ru.mail.authorizationsdk.feature.login.domain.vkid.FinishVkIdConsumerUseCase;
+import ru.mail.authorizationsdk.feature.login.domain.vkid.FinishVkIdUseCaseImpl;
+import ru.mail.authorizationsdk.feature.login.domain.vkid.store.VkIdFullComposeDataStoreRepository;
+import ru.mail.authorizationsdk.feature.login.domain.vkidstart.VkIdGetStateAgTokenRepository;
+import ru.mail.authorizationsdk.feature.login.domain.vkidstart.VkIdStateAgTokenInteractor;
+import ru.mail.authorizationsdk.feature.login.presentation.common.LongClickLogoDelegate;
+import ru.mail.authorizationsdk.feature.login.presentation.common.delegate.autologin.FinishAutologinDelegate;
+import ru.mail.authorizationsdk.feature.login.presentation.common.validator.EnteredEmailValidator;
+import ru.mail.authorizationsdk.feature.login.presentation.flavor.cloud.AuthPhoneFlowDataHolder;
+import ru.mail.authorizationsdk.feature.login.presentation.flavor.cloud.C1683CloudLoginViewModel_Factory;
+import ru.mail.authorizationsdk.feature.login.presentation.flavor.cloud.CloudLoginViewModel;
+import ru.mail.authorizationsdk.feature.login.presentation.flavor.cloud.CloudLoginViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.login.presentation.flavor.cloud.createcloud.C1685CreateCloudViewModel_Factory;
+import ru.mail.authorizationsdk.feature.login.presentation.flavor.cloud.createcloud.CreateCloudViewModel;
+import ru.mail.authorizationsdk.feature.login.presentation.flavor.cloud.createcloud.CreateCloudViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.login.presentation.flavor.cloudvk.C1705CloudLoginVKViewModel_Factory;
+import ru.mail.authorizationsdk.feature.login.presentation.flavor.cloudvk.CloudLoginVKViewModel;
+import ru.mail.authorizationsdk.feature.login.presentation.flavor.cloudvk.CloudLoginVKViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.login.presentation.flavor.mail.C1717LoginViewModel_Factory;
+import ru.mail.authorizationsdk.feature.login.presentation.flavor.mail.LoginViewModel;
+import ru.mail.authorizationsdk.feature.login.presentation.flavor.mail.LoginViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.login.presentation.flavor.vkmail.C1736LoginVKViewModel_Factory;
+import ru.mail.authorizationsdk.feature.login.presentation.flavor.vkmail.LoginVKViewModel;
+import ru.mail.authorizationsdk.feature.login.presentation.flavor.vkmail.LoginVKViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.login.presentation.flavor.vkmail.screen.delegate.FastLoginBtnDelegateFactory;
+import ru.mail.authorizationsdk.feature.loginbindflow.presentation.C1740LoginBindFlowViewModel_Factory;
+import ru.mail.authorizationsdk.feature.loginbindflow.presentation.LoginBindFlowViewModel;
+import ru.mail.authorizationsdk.feature.loginbindflow.presentation.LoginBindFlowViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.mrim.C1742MrimDialogViewModel_Factory;
+import ru.mail.authorizationsdk.feature.mrim.MrimDialogViewModel;
+import ru.mail.authorizationsdk.feature.mrim.MrimDialogViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.oidcdiscovery.data.OidcDiscoveryApi;
+import ru.mail.authorizationsdk.feature.oidcdiscovery.data.OidcDiscoveryLocalSource;
+import ru.mail.authorizationsdk.feature.oidcdiscovery.data.OidcDiscoveryRemoteSource;
+import ru.mail.authorizationsdk.feature.oidcdiscovery.domain.OidcDiscoverRemoteUseCase;
+import ru.mail.authorizationsdk.feature.oidcdiscovery.domain.OidcDiscoveryLocalRepository;
+import ru.mail.authorizationsdk.feature.oidcdiscovery.domain.OidcDiscoveryLocalUseCase;
+import ru.mail.authorizationsdk.feature.oidcdiscovery.domain.OidcDiscoveryRemoteRepository;
+import ru.mail.authorizationsdk.feature.ok.data.OKAuthMapper;
+import ru.mail.authorizationsdk.feature.ok.data.OKAuthRemoteSource;
+import ru.mail.authorizationsdk.feature.ok.data.OKAuthRepository;
+import ru.mail.authorizationsdk.feature.ok.domain.OKAuthInteractor;
+import ru.mail.authorizationsdk.feature.ok.presentation.C1744OKLoginViewModel_Factory;
+import ru.mail.authorizationsdk.feature.ok.presentation.OKAuthDelegate;
+import ru.mail.authorizationsdk.feature.ok.presentation.OKLoginViewModel;
+import ru.mail.authorizationsdk.feature.ok.presentation.OKLoginViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.onetimecode.C1746OneTimeCodeViewModel_Factory;
+import ru.mail.authorizationsdk.feature.onetimecode.OneTimeCodeViewModel;
+import ru.mail.authorizationsdk.feature.onetimecode.OneTimeCodeViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.outlook.data.OutlookAccMailAuthRepository;
+import ru.mail.authorizationsdk.feature.outlook.data.OutlookAuthUrlRemoteSource;
+import ru.mail.authorizationsdk.feature.outlook.data.mappers.OutlookAuthUrlResponseMapper;
+import ru.mail.authorizationsdk.feature.outlook.data.mappers.OutlookMapper;
+import ru.mail.authorizationsdk.feature.outlook.data.oauthparams.OutlookOauthParamsRepository;
+import ru.mail.authorizationsdk.feature.outlook.domain.OutlookInteractorFactory;
+import ru.mail.authorizationsdk.feature.outlook.presentation.OutlookAssistedFactory;
+import ru.mail.authorizationsdk.feature.outlook.presentation.OutlookAssistedFactory_Impl;
+import ru.mail.authorizationsdk.feature.outlook.presentation.OutlookViewModel_Factory;
+import ru.mail.authorizationsdk.feature.password.presentation.C1749PasswordViewModel_Factory;
+import ru.mail.authorizationsdk.feature.password.presentation.PasswordViewModel;
+import ru.mail.authorizationsdk.feature.password.presentation.PasswordViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.phone.accountlist.presentation.AccountListViewModel;
+import ru.mail.authorizationsdk.feature.phone.accountlist.presentation.AccountListViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.phone.accountlist.presentation.C1752AccountListViewModel_Factory;
+import ru.mail.authorizationsdk.feature.phone.codereceivetype.presentation.C1753CodeReceivedTypeBottomSheetViewModel_Factory;
+import ru.mail.authorizationsdk.feature.phone.codereceivetype.presentation.CodeReceivedTypeBottomSheetViewModel;
+import ru.mail.authorizationsdk.feature.phone.codereceivetype.presentation.CodeReceivedTypeBottomSheetViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.phone.entercode.domain.repository.SmsVerificationRepository;
+import ru.mail.authorizationsdk.feature.phone.entercode.domain.usecase.ResendCodeUseCase;
+import ru.mail.authorizationsdk.feature.phone.entercode.domain.usecase.VerifyPhoneCodeUseCase;
+import ru.mail.authorizationsdk.feature.phone.entercode.presentation.C1763EnterPhoneCodeViewModel_Factory;
+import ru.mail.authorizationsdk.feature.phone.entercode.presentation.EnterPhoneCodeViewModel;
+import ru.mail.authorizationsdk.feature.phone.entercode.presentation.EnterPhoneCodeViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.phone.entercode.presentation.di.EnterPhoneCodeModule;
+import ru.mail.authorizationsdk.feature.phone.entercode.presentation.di.EnterPhoneCodeModule_ProvideResendCodeUseCaseFactory;
+import ru.mail.authorizationsdk.feature.phone.entercode.presentation.di.EnterPhoneCodeModule_ProvideSmsVerificationRepositoryFactory;
+import ru.mail.authorizationsdk.feature.phone.entercode.presentation.di.EnterPhoneCodeModule_ProvideVerifyPhoneCodeUseCaseFactory;
+import ru.mail.authorizationsdk.feature.phone.enteremailcode.domain.usecase.ResendEmailCodeUseCase;
+import ru.mail.authorizationsdk.feature.phone.enteremailcode.domain.usecase.SwitchToSmsUseCase;
+import ru.mail.authorizationsdk.feature.phone.enteremailcode.domain.usecase.VerifyEmailCodeUseCase;
+import ru.mail.authorizationsdk.feature.phone.enteremailcode.presentation.C1768EnterEmailCodeViewModel_Factory;
+import ru.mail.authorizationsdk.feature.phone.enteremailcode.presentation.EnterEmailCodeViewModel;
+import ru.mail.authorizationsdk.feature.phone.enteremailcode.presentation.EnterEmailCodeViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.phone.enteremailcode.presentation.di.EnterEmailCodeModule;
+import ru.mail.authorizationsdk.feature.phone.enteremailcode.presentation.di.EnterEmailCodeModule_ProvideResendEmailCodeUseCaseFactory;
+import ru.mail.authorizationsdk.feature.phone.enteremailcode.presentation.di.EnterEmailCodeModule_ProvideSwitchToSmsUseCaseFactory;
+import ru.mail.authorizationsdk.feature.phone.enteremailcode.presentation.di.EnterEmailCodeModule_ProvideVerifyEmailCodeUseCaseFactory;
+import ru.mail.authorizationsdk.feature.phone.enteremailcodeafterlistacc.presentation.C1772EnterEmailCodeAfterListAccViewModel_Factory;
+import ru.mail.authorizationsdk.feature.phone.enteremailcodeafterlistacc.presentation.EnterEmailCodeAfterListAccViewModel;
+import ru.mail.authorizationsdk.feature.phone.enteremailcodeafterlistacc.presentation.EnterEmailCodeAfterListAccViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.phone.notreceivedcode.presentation.C1773NotReceivedCodeBottomSheetViewModel_Factory;
+import ru.mail.authorizationsdk.feature.phone.notreceivedcode.presentation.NotReceivedCodeBottomSheetViewModel;
+import ru.mail.authorizationsdk.feature.phone.notreceivedcode.presentation.NotReceivedCodeBottomSheetViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.registration.data.ChildRegHelper;
+import ru.mail.authorizationsdk.feature.registration.data.api.SignupApi;
+import ru.mail.authorizationsdk.feature.registration.data.api.SignupPrepareApi;
+import ru.mail.authorizationsdk.feature.registration.data.api.UrlAuthApi;
+import ru.mail.authorizationsdk.feature.registration.data.mappers.SignupErrorMapper;
+import ru.mail.authorizationsdk.feature.registration.data.mappers.SignupParamsMapper;
+import ru.mail.authorizationsdk.feature.registration.data.mappers.SignupPrepareResultMapper;
+import ru.mail.authorizationsdk.feature.registration.data.mappers.SignupResponseParser;
+import ru.mail.authorizationsdk.feature.registration.domain.signup.SignupRepository;
+import ru.mail.authorizationsdk.feature.registration.domain.signup.SignupUseCase;
+import ru.mail.authorizationsdk.feature.registration.domain.signup.UserExistsUseCase;
+import ru.mail.authorizationsdk.feature.registration.domain.signupdata.GetSignupDataUseCase;
+import ru.mail.authorizationsdk.feature.registration.domain.signupdata.SignupDataRepository;
+import ru.mail.authorizationsdk.feature.registration.presentation.C1779RegistrationMainViewModel_Factory;
+import ru.mail.authorizationsdk.feature.registration.presentation.RegistrationMainViewModel;
+import ru.mail.authorizationsdk.feature.registration.presentation.RegistrationMainViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.registration.presentation.screen.C1786RegistrationViewModel_Factory;
+import ru.mail.authorizationsdk.feature.registration.presentation.screen.RegistrationViewModel;
+import ru.mail.authorizationsdk.feature.registration.presentation.screen.RegistrationViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.registration.presentation.screen.parentselection.C1787ParentSelectionViewModel_Factory;
+import ru.mail.authorizationsdk.feature.registration.presentation.screen.parentselection.ParentSelectionViewModel;
+import ru.mail.authorizationsdk.feature.registration.presentation.screen.parentselection.ParentSelectionViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.restorepassword.data.RestorePasswordRepository;
+import ru.mail.authorizationsdk.feature.restorepassword.data.RestorePasswordRepository_Factory;
+import ru.mail.authorizationsdk.feature.restorepassword.domain.RestorePasswordInteractor;
+import ru.mail.authorizationsdk.feature.restorepassword.domain.RestorePasswordInteractor_Factory;
+import ru.mail.authorizationsdk.feature.restorepassword.presentation.C1789RestorePasswordViewModel_Factory;
+import ru.mail.authorizationsdk.feature.restorepassword.presentation.RestorePasswordViewModel;
+import ru.mail.authorizationsdk.feature.restorepassword.presentation.RestorePasswordViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.restorevkpassword.data.store.RestoreVkDataStoreRepository;
+import ru.mail.authorizationsdk.feature.restorevkpassword.domain.RestoreVkUseCase;
+import ru.mail.authorizationsdk.feature.restorevkpassword.presentation.C1792RestoreVkViewModel_Factory;
+import ru.mail.authorizationsdk.feature.restorevkpassword.presentation.RestoreVkViewModel;
+import ru.mail.authorizationsdk.feature.restorevkpassword.presentation.RestoreVkViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.restorevkpassword.presentation.helper.FinishRestoreConsumerUseCase;
+import ru.mail.authorizationsdk.feature.restorevkpassword.presentation.helper.FinishRestoreUseCaseImpl;
+import ru.mail.authorizationsdk.feature.restorevkpassword.presentation.helper.RestoreVkDelegate;
+import ru.mail.authorizationsdk.feature.secondfactor.config.SecondStepConfig;
+import ru.mail.authorizationsdk.feature.secondfactor.data.SecondStepRepository;
+import ru.mail.authorizationsdk.feature.secondfactor.data.SecondStepRepository_Factory;
+import ru.mail.authorizationsdk.feature.secondfactor.domain.SecondStepUseCase;
+import ru.mail.authorizationsdk.feature.secondfactor.external.TsaCookieStore;
+import ru.mail.authorizationsdk.feature.secondfactor.presentation.C1795SecondStepViewModel_Factory;
+import ru.mail.authorizationsdk.feature.secondfactor.presentation.SecondStepViewModel;
+import ru.mail.authorizationsdk.feature.secondfactor.presentation.SecondStepViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.secondfactor.presentation.iscriticalurl.CriticalAuthRequests;
+import ru.mail.authorizationsdk.feature.secondfactor.presentation.iscriticalurl.CriticalAuthRequests_Factory;
+import ru.mail.authorizationsdk.feature.socialauth.choicescreen.domain.VkAutologinUseCase;
+import ru.mail.authorizationsdk.feature.socialauth.choicescreen.presentation.C1801ChoiceAccountViewModel_Factory;
+import ru.mail.authorizationsdk.feature.socialauth.choicescreen.presentation.ChoiceAccountViewModel;
+import ru.mail.authorizationsdk.feature.socialauth.choicescreen.presentation.ChoiceAccountViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.socialauth.config.SocialAuthConfig;
+import ru.mail.authorizationsdk.feature.socialauth.data.SocialAuthRepository;
+import ru.mail.authorizationsdk.feature.socialauth.domain.RegEventProvider;
+import ru.mail.authorizationsdk.feature.socialauth.domain.SocialAuthInteractor;
+import ru.mail.authorizationsdk.feature.socialauth.esiascreen.data.EsiaVkDataStoreRepository;
+import ru.mail.authorizationsdk.feature.socialauth.esiascreen.data.EsiaVkTokenExchanger;
+import ru.mail.authorizationsdk.feature.socialauth.esiascreen.domain.EsiaVkUseCase;
+import ru.mail.authorizationsdk.feature.socialauth.esiascreen.presentation.C1805EsiaViewModel_Factory;
+import ru.mail.authorizationsdk.feature.socialauth.esiascreen.presentation.EsiaViewModel;
+import ru.mail.authorizationsdk.feature.socialauth.esiascreen.presentation.EsiaViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.socialauth.presentation.C1818SocialAuthViewModel_Factory;
+import ru.mail.authorizationsdk.feature.socialauth.presentation.SocialAuthViewModel;
+import ru.mail.authorizationsdk.feature.socialauth.presentation.SocialAuthViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.sso.presentation.C1820SSOViewModel_Factory;
+import ru.mail.authorizationsdk.feature.sso.presentation.SSOViewModel;
+import ru.mail.authorizationsdk.feature.sso.presentation.SSOViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.unblockuser.presentation.C1821UnblockUserViewModel_Factory;
+import ru.mail.authorizationsdk.feature.unblockuser.presentation.UnblockUserViewModel;
+import ru.mail.authorizationsdk.feature.unblockuser.presentation.UnblockUserViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.utilfeature.sessionrestore.ReturnWorker;
+import ru.mail.authorizationsdk.feature.utilfeature.sessionrestore.ReturnWorker_MembersInjector;
+import ru.mail.authorizationsdk.feature.utilfeature.sessionrestore.SessionRestoreDelegate;
+import ru.mail.authorizationsdk.feature.utilfeature.sessionrestore.SessionRestoreHelper;
+import ru.mail.authorizationsdk.feature.utilfeature.sessionrestore.SharedPrefsReturnParamsStore;
+import ru.mail.authorizationsdk.feature.utilfeature.sessionrestore.model.SessionRestoreConfig;
+import ru.mail.authorizationsdk.feature.utilfeature.sessionrestore.notification.NotificationHelper;
+import ru.mail.authorizationsdk.feature.utilfeature.sessionrestore.notification.RestoreSessionNotificationProvider;
+import ru.mail.authorizationsdk.feature.utilfeature.sessionrestore.scheduler.SessionRestoreScheduler;
+import ru.mail.authorizationsdk.feature.vkbindavailable.presentation.C1823VkBindInLoginViewModel_Factory;
+import ru.mail.authorizationsdk.feature.vkbindavailable.presentation.VkBindInLoginViewModel;
+import ru.mail.authorizationsdk.feature.vkbindavailable.presentation.VkBindInLoginViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.vkid.data.datasource.GrayVKIDApi;
+import ru.mail.authorizationsdk.feature.vkid.data.datasource.VkidAuthApi;
+import ru.mail.authorizationsdk.feature.vkid.data.datasource.WhiteVKIDApi;
+import ru.mail.authorizationsdk.feature.vkid.data.mapper.ExchangeVkidAccountMapper;
+import ru.mail.authorizationsdk.feature.vkid.data.mapper.GrayVkidPasswordAuthMapper;
+import ru.mail.authorizationsdk.feature.vkid.data.mapper.WhiteVkIdAuthMapper;
+import ru.mail.authorizationsdk.feature.vkid.domain.repository.GrayVkidPasswordRepository;
+import ru.mail.authorizationsdk.feature.vkid.domain.repository.VkIdAuthRepository;
+import ru.mail.authorizationsdk.feature.vkid.domain.repository.WhiteVkIdAuthRepository;
+import ru.mail.authorizationsdk.feature.vkid.domain.usecase.BindNewMailUseCase;
+import ru.mail.authorizationsdk.feature.vkid.domain.usecase.FinishVKMailAuthUseCase;
+import ru.mail.authorizationsdk.feature.vkid.domain.usecase.GrayVkidPasswordAuthUseCase;
+import ru.mail.authorizationsdk.feature.vkid.domain.usecase.WhiteVkIdAuthUseCase;
+import ru.mail.authorizationsdk.feature.vkid.screens.vkfragmentsupport.C1828VkIdFragmentSupportViewModel_Factory;
+import ru.mail.authorizationsdk.feature.vkid.screens.vkfragmentsupport.VkIdFragmentSupportViewModel;
+import ru.mail.authorizationsdk.feature.vkid.screens.vkfragmentsupport.VkIdFragmentSupportViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.vkid.screens.wrongvkidaccount.C1829WrongVkidAccountViewModel_Factory;
+import ru.mail.authorizationsdk.feature.vkid.screens.wrongvkidaccount.WrongVkidAccountViewModel;
+import ru.mail.authorizationsdk.feature.vkid.screens.wrongvkidaccount.WrongVkidAccountViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.vkpassword.presentation.C1831VkPasswordViewModel_Factory;
+import ru.mail.authorizationsdk.feature.vkpassword.presentation.VkPasswordViewModel;
+import ru.mail.authorizationsdk.feature.vkpassword.presentation.VkPasswordViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.yahoo.data.YahooAccMailAuthRepository;
+import ru.mail.authorizationsdk.feature.yahoo.data.YahooApi;
+import ru.mail.authorizationsdk.feature.yahoo.data.YahooRepository;
+import ru.mail.authorizationsdk.feature.yahoo.data.YahooRepository_Factory;
+import ru.mail.authorizationsdk.feature.yahoo.data.oauthparams.YahooOauthParamsRepository;
+import ru.mail.authorizationsdk.feature.yahoo.domain.YahooInteractorFactory;
+import ru.mail.authorizationsdk.feature.yahoo.presentation.C1836YahooViewModel_Factory;
+import ru.mail.authorizationsdk.feature.yahoo.presentation.YahooViewModel;
+import ru.mail.authorizationsdk.feature.yahoo.presentation.YahooViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.feature.yandex.data.YandexAccMailAuthRepository;
+import ru.mail.authorizationsdk.feature.yandex.data.YandexAuthUrlRemoteSource;
+import ru.mail.authorizationsdk.feature.yandex.data.YandexRemoteSource;
+import ru.mail.authorizationsdk.feature.yandex.data.mappers.YandexMapper;
+import ru.mail.authorizationsdk.feature.yandex.data.oauthparams.YandexOauthParamsRepository;
+import ru.mail.authorizationsdk.feature.yandex.data.yandexapi.YandexApi;
+import ru.mail.authorizationsdk.feature.yandex.data.yandexapi.YandexRepository;
+import ru.mail.authorizationsdk.feature.yandex.domain.YandexAuthUrlUseCaseFactory;
+import ru.mail.authorizationsdk.feature.yandex.domain.YandexInteractorFactory;
+import ru.mail.authorizationsdk.feature.yandex.presentation.YandexAssistedFactory;
+import ru.mail.authorizationsdk.feature.yandex.presentation.YandexAssistedFactory_Impl;
+import ru.mail.authorizationsdk.feature.yandex.presentation.YandexViewModel_Factory;
+import ru.mail.authorizationsdk.feature.yandexhelp.C1837YandexHelpViewModel_Factory;
+import ru.mail.authorizationsdk.feature.yandexhelp.YandexHelpViewModel;
+import ru.mail.authorizationsdk.feature.yandexhelp.YandexHelpViewModel_Factory_Impl;
+import ru.mail.authorizationsdk.utils.webview.WebViewHelper;
+import ru.mail.credentialsexchanger.autologin.AutoLoginSnackShowDelegateHolder;
+import ru.mail.march.internal.work.WorkScheduler;
+import ru.mail.network.utils.client.interceptor.platform.PlatformParamsInterceptor;
+import ru.mail.network.utils.client.platform.PlatformParams;
+import ru.mail.network.utils.device.DeviceInfoProvider;
+import ru.mail.network.utils.device.RegDeviceInfoProvider;
+import ru.mail.network.utils.device.deviceid.AdvertisingIdProvider;
+import ru.mail.network.utils.device.deviceid.DeviceIdProvider;
+import ru.mail.network.utils.device.deviceid.accountprovider.GoogleAccountProvider;
+import ru.mail.network.utils.utils.NetworkUtils;
+import ru.mail.social_auth.domain.autologin.ExternalTokenExchangerUseCase;
+import ru.mail.social_auth.domain.autologin.FinishAutologinControllerUseCase;
+import ru.mail.social_auth.domain.autologin.FinishRestoreControllerUseCase;
+import ru.mail.social_auth.domain.vk.FinishVkIdControllerUseCase;
+import ru.mail.util.log.InternalLogger;
+import ru.mail.util.log.LogFilter;
+import ru.mail.util.log.Logger;
+import ru.ok.android.sdk.Odnoklassniki;
+import statusnavbars.StatusNavBarHelper;
+
+/* JADX INFO: compiled from: ProGuard */
+/* JADX INFO: loaded from: classes15.dex */
+@DaggerGenerated
+public final class DaggerAuthorizeCommonSdkComponent {
+
+    /* JADX INFO: compiled from: ProGuard */
+    private static final class AuthorizeCommonSdkComponentImpl implements AuthorizeCommonSdkComponent {
+        private final AccountLoginChecker addAccountLoginChecker;
+        Provider<AccountLoginChecker> addAccountLoginCheckerProvider;
+        private final AccountManager addAccountManager;
+        Provider<AccountManager> addAccountManagerProvider;
+        Provider<ActiveAccountModeProvider> addActiveAccountModeProvider;
+        Provider<AdvertisingIdProvider> addAdvertisingIdProvider;
+        private final AuthorizationSdkAnalyticsImpl addAnalytics;
+        Provider<AuthorizationSdkAnalyticsImpl> addAnalyticsProvider;
+        Provider<ru.mail.authorizationsdk.external.analytics.common.AppReporter> addAppReporterProvider;
+        private final String addAuthCsrfHeader;
+        Provider<String> addAuthCsrfHeaderProvider;
+        private final AutologinDataStoreRepository addAutologinDataStoreRepository;
+        Provider<AutologinDataStoreRepository> addAutologinDataStoreRepositoryProvider;
+        Provider<ChildRegHelper> addChildRegHelperProvider;
+        private final OkHttpClient addClientAppOkHttpClient;
+        Provider<OkHttpClient> addClientAppOkHttpClientProvider;
+        private final String addClientId;
+        Provider<String> addClientIdProvider;
+        Provider<CloudWriteToSupportHelper> addCloudWriteToSupportHelperProvider;
+        Provider<List<String>> addConfigHiddenServicesProvider;
+        private final Context addContext;
+        Provider<Context> addContextProvider;
+        private final DarkThemeResolver addDarkThemeResolver;
+        Provider<DeviceInfo> addDeviceInfoProvider;
+        Provider<EsiaVkDataStoreRepository> addEsiaDataStoreRepositoryProvider;
+        Provider<ExternalPlatformData> addExternalPlatformDataProvider;
+        private final ForceVkIdSecret addForceVkIdSecret;
+        Provider<ForceVkIdSecret> addForceVkIdSecretProvider;
+        Provider<Secrets> addGoogleSecretsProvider;
+        private final Boolean addIsMiniMail;
+        Provider<Boolean> addIsMiniMailProvider;
+        private final Boolean addIsTest;
+        Provider<Boolean> addIsTestProvider;
+        private final Logger addLogger;
+        Provider<Logger> addLoggerProvider;
+        Provider<Function1<? super VkIdStateAgTokenInteractor, MailAuth>> addMailAuthProvider;
+        private final NetworkType addNetworkType;
+        Provider<Secrets> addOutlookSecretsProvider;
+        private final RestoreVkDataStoreRepository addRestoreDataStoreRepository;
+        Provider<RestoreVkDataStoreRepository> addRestoreDataStoreRepositoryProvider;
+        private final RestoreSessionNotificationProvider addRestoreSessionNotificationProvider;
+        Provider<SocialAuthRepository> addSocialAuthRepositoryProvider;
+        Provider<SocialLoginInfoHolderProvider> addSocialLoginInfoHolderProvider;
+        Provider<TsaCookieStore> addTsaCookieStoreProvider;
+        private final VKMailAuthDataStoreRepository addVKMailAuthDataStoreRepository;
+        Provider<VKMailAuthDataStoreRepository> addVKMailAuthDataStoreRepositoryProvider;
+        Provider<String> addVkAppIdProvider;
+        private final VkIdFullComposeDataStoreRepository addVkIdFullComposeDataStoreRepository;
+        Provider<VkIdFullComposeDataStoreRepository> addVkIdFullComposeDataStoreRepositoryProvider;
+        Provider<Secrets> addYahooSecretsProvider;
+        Provider<Secrets> addYandexSecretsProvider;
+        private final AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl = this;
+        private final AuthorizeModule authorizeModule;
+        Provider<CriticalAuthRequests> criticalAuthRequestsProvider;
+        private final ImapLocalModule imapLocalModule;
+        private final NetworkModule networkModule;
+        private final OidcLocalModule oidcLocalModule;
+        Provider<OkHttpClient> provideAccountHttpClientProvider;
+        Provider<AccountManagerDelegate> provideAccountManagerDelegateProvider;
+        Provider<AccountManagerRepository> provideAccountManagerRepositoryProvider;
+        Provider<AccountManagerUseCase> provideAccountManagerUseCaseProvider;
+        Provider<Retrofit> provideAccountRetrofitProvider;
+        Provider<String> provideAccountTypeProvider;
+        Provider<UrlAuthApi> provideAfterRegAuthApiProvider;
+        Provider<Retrofit> provideAfterRegAuthRetrofitProvider;
+        Provider<Retrofit> provideAuthMailRetrofitProvider;
+        Provider<AuthPhoneFlowDataHolder> provideAuthPhoneFlowDataHolderProvider;
+        Provider<AuthUrlResponseMapper> provideAuthUrlResponseMapperProvider;
+        Provider<OutlookAuthUrlResponseMapper> provideAuthUrlResponseMapperProvider2;
+        Provider<AvatarLoadUseCase> provideAvatarLoadUseCaseProvider;
+        Provider<Retrofit> provideBaseAuthRetrofitProvider;
+        Provider<ExternalAccMailApi> provideBaseMailApiProvider;
+        Provider<BaseOauthParams> provideBasePasswordOauthParamsProvider;
+        Provider<BindNewMailUseCase> provideBindNewMailUseCaseProvider;
+        Provider<CheckCredentialsRepositoryImpl> provideCheckCredentialsRepositoryImplProvider;
+        Provider<CloudGoogleApi> provideCloudGoogleApiProvider;
+        Provider<CommonAuthorizationMailApi> provideCommonAuthMailApiProvider;
+        Provider<CommonAuthorizationRepository> provideCommonAuthorizationRepositoryProvider;
+        Provider<CookieApi> provideCookieApiProvider;
+        Provider<Retrofit> provideCookieRetrofitProvider;
+        Provider<CoroutineDispatcher> provideDefaultDispatcherProvider;
+        Provider<String> provideDeviceIdProvider;
+        Provider<String> provideDeviceUdidProvider;
+        Provider<DomainUtils> provideDomainUtilsProvider;
+        Provider<ErrorDelegateHost> provideErrorDelegateHostProvider;
+        Provider<ErrorDelegateSubscriber> provideErrorDelegateSubscriberProvider;
+        Provider<ErrorMediator> provideErrorMediatorProvider;
+        Provider<StartEsiaAuthApi> provideEsiaAuthApiProvider;
+        Provider<EsiaAuthRepository> provideEsiaAuthRepositoryProvider;
+        Provider<EsiaExchangeApi> provideEsiaExchangeApiProvider;
+        Provider<EsiaVkTokenExchanger> provideEsiaTokenExchangerProvider;
+        Provider<ExchangeEsiaAccountMapper> provideExchangeEsiaAccountMapperProvider;
+        Provider<ExchangeEsiaAccountUseCase> provideExchangeEsiaAccountUseCaseProvider;
+        Provider<ExchangeTokenApi> provideExchangeTokenApiProvider;
+        Provider<Retrofit> provideExchangeTokenRetrofitProvider;
+        Provider<ExchangeVkidAccountMapper> provideExchangeVkIdAccountMapperProvider;
+        Provider<ExternalAccMailAuthorizationRepository> provideExternalAccMailAuthorizationRepositoryProvider;
+        Provider<OkHttpClient> provideExternalOkHttpClientProvider;
+        Provider<File> provideFilesDirProvider;
+        Provider<FinishVKMailAuthUseCase> provideFinishVKMailAuthUseCaseProvider;
+        Provider<GetSignupDataUseCase> provideGetSignupDataUseCaseProvider;
+        Provider<GrayVKIDApi> provideGrayVkidApiProvider;
+        Provider<GrayVkidPasswordAuthMapper> provideGrayVkidPasswordAuthMapperProvider;
+        Provider<GrayVkidPasswordAuthUseCase> provideGrayVkidPasswordAuthUseCaseProvider;
+        Provider<GrayVkidPasswordRepository> provideGrayVkidPasswordRepositoryProvider;
+        Provider<ImageLoadApi> provideImageLoadApiProvider;
+        Provider<OkHttpClient> provideImageLoadClientProvider;
+        Provider<Retrofit> provideImageLoadRetrofitProvider;
+        Provider<CustomServerMailApi> provideImapCustomServerMailApiProvider;
+        Provider<CustomServerUseCase> provideImapCustomServerUseCaseProvider;
+        Provider<ImapLoginRepository> provideImapLoginRepositoryProvider;
+        Provider<ImapOAuthStateRepository> provideImapOAuthStateRepositoryProvider;
+        Provider<ImapOAuthStateUseCase> provideImapOAuthStateUseCaseProvider;
+        Provider<YahooInteractorFactory> provideInteractorFactoryProvider;
+        Provider<InternalLogger> provideInternalLoggerProvider;
+        Provider<CoroutineDispatcher> provideIoDispatcherProvider;
+        Provider<Converter.Factory> provideJsonConvertFactoryProvider;
+        Provider<Json> provideJsonSerializerProvider;
+        Provider<LoadingDelegate> provideLoadingDelegateProvider;
+        Provider<MailAuth> provideMailAuthProvider;
+        Provider<AuthorizationSdkUrlsResolver> provideMailAuthorizationSdkUrlsResolverProvider;
+        Provider<OkHttpClient> provideMailOkHttpClientProvider;
+        Provider<OkHttpClient> provideMailOkHttpClientProvider2;
+        Provider<NetworkErrorDelegate> provideNetworkErrorDelegateProvider;
+        Provider<NetworkRepository> provideNetworkRepositoryProvider;
+        Provider<NetworkUtils> provideNetworkUtilsProvider;
+        Provider<OidcDiscoveryLocalRepository> provideOidcDiscoveryLocalRepositoryProvider;
+        Provider<OidcDiscoveryLocalSource> provideOidcDiscoveryLocalSourceProvider;
+        Provider<OidcDiscoveryLocalUseCase> provideOidcDiscoveryLocalUseCaseProvider;
+        Provider<OutlookOauthParamsRepository> provideOutlookOauthParamsRepositoryProvider;
+        Provider<PhoneApi> providePhoneApiProvider;
+        Provider<Retrofit> providePhoneRetrofitProvider;
+        Provider<PikachuCaptchaApi> providePikachuCaptchaApiProvider;
+        Provider<Retrofit> providePikachuCaptchaRetrofitProvider;
+        Provider<PikachuCaptchaVmDelegate> providePikachuCaptchaVmDelegateProvider;
+        Provider<PikachuUseCase> providePikachuUseCaseProvider;
+        Provider<PlatformParams> providePlatformParamsProvider;
+        Provider<ProviderInfoTypeResolverAuthSdk> provideProviderInfoTypeResolverAuthSdkProvider;
+        Provider<PlatformParams> provideRegPlatformParamsProvider;
+        Provider<SecondStepUseCase> provideSecondStepInteractorProvider;
+        Provider<ServerParamsErrorsVmDelegate> provideServerParamsErrorsVmDelegateProvider;
+        Provider<SharedPreferences> provideSharedPreferencesProvider;
+        Provider<SignupApi> provideSignupApiProvider;
+        Provider<SignupDataRepository> provideSignupDataRepositoryProvider;
+        Provider<SignupErrorMapper> provideSignupErrorMapperProvider;
+        Provider<OkHttpClient> provideSignupHttpClientProvider;
+        Provider<SignupParamsMapper> provideSignupParamsMapperProvider;
+        Provider<SignupPrepareApi> provideSignupPrepareApiProvider;
+        Provider<SignupPrepareResultMapper> provideSignupPrepareResultMapperProvider;
+        Provider<SignupRepository> provideSignupRepositoryProvider;
+        Provider<SignupResponseParser> provideSignupResultMapperProvider;
+        Provider<Retrofit> provideSignupRetrofitProvider;
+        Provider<SignupUseCase> provideSignupUseCaseProvider;
+        Provider<OkHttpClient> provideSocialSignupHttpClientProvider;
+        Provider<Retrofit> provideSocialSignupRetrofitProvider;
+        Provider<StartEsiaAuthResponseMapper> provideStartEsiaAuthResponseMapperProvider;
+        Provider<StartEsiaAuthUseCase> provideStartEsiaAuthUseCaseProvider;
+        Provider<StatusNavBarHelper> provideStatusNavBarHelperProvider;
+        Provider<Resources> provideStringResolverProvider;
+        Provider<OkHttpClient> provideUpdateTokensOkHttpClientProvider;
+        Provider<UserExistsUseCase> provideUserExistsUseCaseProvider;
+        Provider<CoroutineDispatcher> provideViewModelDispatcherProvider;
+        Provider<VkidAuthApi> provideVkIdAuthApiProvider;
+        Provider<VkIdAuthRepository> provideVkIdAuthRepositoryProvider;
+        Provider<VkIdGetStateAgTokenApi> provideVkIdGetStateAgTokenApiProvider;
+        Provider<VkIdGetStateAgTokenRepository> provideVkIdGetStateAgTokenRepositoryProvider;
+        Provider<OkHttpClient> provideVkIdStartLoginOkHttpClientProvider;
+        Provider<Retrofit> provideVkIdStartLoginRetrofitProvider;
+        Provider<VkIdStateAgTokenInteractor> provideVkIdStateAgTokenUseCaseProvider;
+        Provider<VkIdStateAgTokenRemoteSource> provideVkIdVkIdStateAgTokenRemoteSourceProvider;
+        Provider<OkHttpClient> provideVkIdWhiteAndOneTapFlowOkHttpClientProvider;
+        Provider<Retrofit> provideVkIdWhiteOneTapRetrofitProvider;
+        Provider<CommonWebViewClient> provideWebClientProvider;
+        Provider<CommonWebViewClient> provideWebClientProvider2;
+        Provider<WhiteVkIdAuthRepository> provideWhiteVkIdAuthRepositoryProvider;
+        Provider<WhiteVkIdAuthUseCase> provideWhiteVkIdAuthUseCaseProvider;
+        Provider<WhiteVkIdAuthMapper> provideWhiteVkIdPasswordAuthMapperProvider;
+        Provider<WhiteVKIDApi> provideWhiteVkidApiProvider;
+        Provider<XmlParser> provideXmlParserProvider;
+        Provider<YahooAccMailAuthRepository> provideYahooAccMailAuthRepositoryProvider;
+        Provider<YahooApi> provideYahooApiProvider;
+        Provider<Retrofit> provideYahooRetrofitProvider;
+        Provider<YandexApi> provideYandexApiProvider;
+        Provider<YandexAuthUrlUseCaseFactory> provideYandexAuthUrlUseCaseFactoryProvider;
+        Provider<Retrofit> provideYandexRetrofitProvider;
+        Provider<AuthDelegate> providesAuthDelegateProvider;
+        Provider<AutoLoginSnackShowDelegateHolder> providesAutoLoginSnackShowDelegateHolderProvider;
+        Provider<CheckPhoneRepository> providesCheckPhoneRepositoryProvider;
+        Provider<DeviceIdProvider> providesDeviceIdProvider;
+        Provider<DeviceInfoProvider> providesDeviceInfoProvider;
+        Provider<EsiaVkUseCase> providesEsiaVkUseCaseProvider;
+        Provider<FinishAutologinConsumerUseCase> providesFinishAutologinConsumerUseCaseProvider;
+        Provider<FinishAutologinControllerUseCase> providesFinishAutologinControllerUseCaseProvider;
+        Provider<FinishAutologinUseCaseImpl> providesFinishAutologinUseCaseImplProvider;
+        Provider<FinishRestoreConsumerUseCase> providesFinishRestoreConsumerUseCaseProvider;
+        Provider<FinishRestoreControllerUseCase> providesFinishRestoreControllerUseCaseProvider;
+        Provider<FinishRestoreUseCaseImpl> providesFinishRestoreUseCaseImplProvider;
+        Provider<FinishVkIdConsumerUseCase> providesFinishVkIdConsumerUseCaseProvider;
+        Provider<FinishVkIdControllerUseCase> providesFinishVkIdControllerUseCaseProvider;
+        Provider<FinishVkIdUseCaseImpl> providesFinishVkIdUseCaseImplProvider;
+        Provider<GoogleAccountProvider> providesGoogleAccountProvider;
+        Provider<LogFilter> providesLogFilterProvider;
+        Provider<HttpLoggingInterceptor> providesLogInterceptorProvider;
+        Provider<CoroutineDispatcher> providesMainImmediateDispatcherProvider;
+        Provider<OutlookAccMailAuthRepository> providesOutlookAccMailAuthRepositoryProvider;
+        Provider<OutlookAuthUrlRemoteSource> providesOutlookAuthUrlRemoteSourceProvider;
+        Provider<OutlookInteractorFactory> providesOutlookInteractorFactoryProvider;
+        Provider<OutlookMapper> providesOutlookMapperProvider;
+        Provider<PlatformParamsInterceptor> providesPlatformParamsInterceptorProvider;
+        Provider<RegDeviceInfoProvider> providesRegDeviceInfoProvider;
+        Provider<PlatformParamsInterceptor> providesRegPlatformParamsInterceptorProvider;
+        Provider<RestoreVkUseCase> providesRestoreVkUseCaseProvider;
+        Provider<Interceptor> providesRetryInterceptorProvider;
+        Provider<RoomAuthSdkDB> providesRoomDBProvider;
+        Provider<String> providesUserAgentProvider;
+        Provider<VkAutologinUseCase> providesVkAutologinUseCaseProvider;
+        Provider<VkAvatarLoaderUseCase> providesVkAvatarLoaderUseCaseProvider;
+        Provider<VkIdAuthUseCase> providesVkIdAuthUseCaseProvider;
+        Provider<YahooOauthParamsRepository> providesYahooOauthParamsRepositoryProvider;
+        Provider<YandexAccMailAuthRepository> providesYandexAccMailAuthRepositoryProvider;
+        Provider<YandexAuthUrlRemoteSource> providesYandexAuthUrlRemoteSourceProvider;
+        Provider<YandexInteractorFactory> providesYandexInteractorFactoryProvider;
+        Provider<YandexMapper> providesYandexMapperProvider;
+        Provider<YandexOauthParamsRepository> providesYandexOauthParamsRepositoryProvider;
+        Provider<YandexRemoteSource> providesYandexRemoteSourceProvider;
+        Provider<YandexRepository> providesYandexRepositoryProvider;
+        private final SecondFactorModule secondFactorModule;
+        Provider<SecondStepRepository> secondStepRepositoryProvider;
+        private final VkAutologinModule vkAutologinModule;
+        private final VkIdAuthModule vkIdAuthModule;
+        Provider<YahooRepository> yahooRepositoryProvider;
+
+        AuthorizeCommonSdkComponentImpl(AuthorizeModule authorizeModule, NetworkModule networkModule, CustomServerModule customServerModule, PikachuCaptchaModule pikachuCaptchaModule, SecondFactorModule secondFactorModule, PlatformModule platformModule, ImageLoadModule imageLoadModule, YahooModule yahooModule, SSOModule sSOModule, ImapLocalModule imapLocalModule, YandexModule yandexModule, OutlookModule outlookModule, RegistrationModule registrationModule, VkAutologinModule vkAutologinModule, VkIdAuthModule vkIdAuthModule, EsiaAuthModule esiaAuthModule, OidcLocalModule oidcLocalModule, CloudModule cloudModule, Context context, OkHttpClient okHttpClient, TsaCookieStore tsaCookieStore, ActiveAccountModeProvider activeAccountModeProvider, AuthorizationSdkAnalyticsImpl authorizationSdkAnalyticsImpl, Logger logger, AccountManager accountManager, DeviceInfo deviceInfo, AdvertisingIdProvider advertisingIdProvider, String str, ExternalPlatformData externalPlatformData, Secrets secrets, Secrets secrets2, Secrets secrets3, Secrets secrets4, ForceVkIdSecret forceVkIdSecret, List<String> list, Boolean bool, Boolean bool2, SocialAuthRepository socialAuthRepository, ChildRegHelper childRegHelper, ru.mail.authorizationsdk.external.analytics.common.AppReporter appReporter, NetworkType networkType, RestoreSessionNotificationProvider restoreSessionNotificationProvider, SocialLoginInfoHolderProvider socialLoginInfoHolderProvider, DarkThemeResolver darkThemeResolver, String str2, String str3, Function1<? super VkIdStateAgTokenInteractor, MailAuth> function1, AutologinDataStoreRepository autologinDataStoreRepository, VkIdFullComposeDataStoreRepository vkIdFullComposeDataStoreRepository, RestoreVkDataStoreRepository restoreVkDataStoreRepository, EsiaVkDataStoreRepository esiaVkDataStoreRepository, VKMailAuthDataStoreRepository vKMailAuthDataStoreRepository, AccountLoginChecker accountLoginChecker, CloudWriteToSupportHelper cloudWriteToSupportHelper) {
+            this.authorizeModule = authorizeModule;
+            this.networkModule = networkModule;
+            this.addContext = context;
+            this.addIsMiniMail = bool2;
+            this.addIsTest = bool;
+            this.oidcLocalModule = oidcLocalModule;
+            this.addLogger = logger;
+            this.addAnalytics = authorizationSdkAnalyticsImpl;
+            this.addClientId = str3;
+            this.vkAutologinModule = vkAutologinModule;
+            this.vkIdAuthModule = vkIdAuthModule;
+            this.addForceVkIdSecret = forceVkIdSecret;
+            this.addAuthCsrfHeader = str;
+            this.addAutologinDataStoreRepository = autologinDataStoreRepository;
+            this.addVkIdFullComposeDataStoreRepository = vkIdFullComposeDataStoreRepository;
+            this.addRestoreDataStoreRepository = restoreVkDataStoreRepository;
+            this.addVKMailAuthDataStoreRepository = vKMailAuthDataStoreRepository;
+            this.imapLocalModule = imapLocalModule;
+            this.addAccountManager = accountManager;
+            this.secondFactorModule = secondFactorModule;
+            this.addAccountLoginChecker = accountLoginChecker;
+            this.addNetworkType = networkType;
+            this.addDarkThemeResolver = darkThemeResolver;
+            this.addRestoreSessionNotificationProvider = restoreSessionNotificationProvider;
+            this.addClientAppOkHttpClient = okHttpClient;
+            initialize(authorizeModule, networkModule, customServerModule, pikachuCaptchaModule, secondFactorModule, platformModule, imageLoadModule, yahooModule, sSOModule, imapLocalModule, yandexModule, outlookModule, registrationModule, vkAutologinModule, vkIdAuthModule, esiaAuthModule, oidcLocalModule, cloudModule, context, okHttpClient, tsaCookieStore, activeAccountModeProvider, authorizationSdkAnalyticsImpl, logger, accountManager, deviceInfo, advertisingIdProvider, str, externalPlatformData, secrets, secrets2, secrets3, secrets4, forceVkIdSecret, list, bool, bool2, socialAuthRepository, childRegHelper, appReporter, networkType, restoreSessionNotificationProvider, socialLoginInfoHolderProvider, darkThemeResolver, str2, str3, function1, autologinDataStoreRepository, vkIdFullComposeDataStoreRepository, restoreVkDataStoreRepository, esiaVkDataStoreRepository, vKMailAuthDataStoreRepository, accountLoginChecker, cloudWriteToSupportHelper);
+            initialize2(authorizeModule, networkModule, customServerModule, pikachuCaptchaModule, secondFactorModule, platformModule, imageLoadModule, yahooModule, sSOModule, imapLocalModule, yandexModule, outlookModule, registrationModule, vkAutologinModule, vkIdAuthModule, esiaAuthModule, oidcLocalModule, cloudModule, context, okHttpClient, tsaCookieStore, activeAccountModeProvider, authorizationSdkAnalyticsImpl, logger, accountManager, deviceInfo, advertisingIdProvider, str, externalPlatformData, secrets, secrets2, secrets3, secrets4, forceVkIdSecret, list, bool, bool2, socialAuthRepository, childRegHelper, appReporter, networkType, restoreSessionNotificationProvider, socialLoginInfoHolderProvider, darkThemeResolver, str2, str3, function1, autologinDataStoreRepository, vkIdFullComposeDataStoreRepository, restoreVkDataStoreRepository, esiaVkDataStoreRepository, vKMailAuthDataStoreRepository, accountLoginChecker, cloudWriteToSupportHelper);
+            initialize3(authorizeModule, networkModule, customServerModule, pikachuCaptchaModule, secondFactorModule, platformModule, imageLoadModule, yahooModule, sSOModule, imapLocalModule, yandexModule, outlookModule, registrationModule, vkAutologinModule, vkIdAuthModule, esiaAuthModule, oidcLocalModule, cloudModule, context, okHttpClient, tsaCookieStore, activeAccountModeProvider, authorizationSdkAnalyticsImpl, logger, accountManager, deviceInfo, advertisingIdProvider, str, externalPlatformData, secrets, secrets2, secrets3, secrets4, forceVkIdSecret, list, bool, bool2, socialAuthRepository, childRegHelper, appReporter, networkType, restoreSessionNotificationProvider, socialLoginInfoHolderProvider, darkThemeResolver, str2, str3, function1, autologinDataStoreRepository, vkIdFullComposeDataStoreRepository, restoreVkDataStoreRepository, esiaVkDataStoreRepository, vKMailAuthDataStoreRepository, accountLoginChecker, cloudWriteToSupportHelper);
+            initialize4(authorizeModule, networkModule, customServerModule, pikachuCaptchaModule, secondFactorModule, platformModule, imageLoadModule, yahooModule, sSOModule, imapLocalModule, yandexModule, outlookModule, registrationModule, vkAutologinModule, vkIdAuthModule, esiaAuthModule, oidcLocalModule, cloudModule, context, okHttpClient, tsaCookieStore, activeAccountModeProvider, authorizationSdkAnalyticsImpl, logger, accountManager, deviceInfo, advertisingIdProvider, str, externalPlatformData, secrets, secrets2, secrets3, secrets4, forceVkIdSecret, list, bool, bool2, socialAuthRepository, childRegHelper, appReporter, networkType, restoreSessionNotificationProvider, socialLoginInfoHolderProvider, darkThemeResolver, str2, str3, function1, autologinDataStoreRepository, vkIdFullComposeDataStoreRepository, restoreVkDataStoreRepository, esiaVkDataStoreRepository, vKMailAuthDataStoreRepository, accountLoginChecker, cloudWriteToSupportHelper);
+            initialize5(authorizeModule, networkModule, customServerModule, pikachuCaptchaModule, secondFactorModule, platformModule, imageLoadModule, yahooModule, sSOModule, imapLocalModule, yandexModule, outlookModule, registrationModule, vkAutologinModule, vkIdAuthModule, esiaAuthModule, oidcLocalModule, cloudModule, context, okHttpClient, tsaCookieStore, activeAccountModeProvider, authorizationSdkAnalyticsImpl, logger, accountManager, deviceInfo, advertisingIdProvider, str, externalPlatformData, secrets, secrets2, secrets3, secrets4, forceVkIdSecret, list, bool, bool2, socialAuthRepository, childRegHelper, appReporter, networkType, restoreSessionNotificationProvider, socialLoginInfoHolderProvider, darkThemeResolver, str2, str3, function1, autologinDataStoreRepository, vkIdFullComposeDataStoreRepository, restoreVkDataStoreRepository, esiaVkDataStoreRepository, vKMailAuthDataStoreRepository, accountLoginChecker, cloudWriteToSupportHelper);
+            initialize6(authorizeModule, networkModule, customServerModule, pikachuCaptchaModule, secondFactorModule, platformModule, imageLoadModule, yahooModule, sSOModule, imapLocalModule, yandexModule, outlookModule, registrationModule, vkAutologinModule, vkIdAuthModule, esiaAuthModule, oidcLocalModule, cloudModule, context, okHttpClient, tsaCookieStore, activeAccountModeProvider, authorizationSdkAnalyticsImpl, logger, accountManager, deviceInfo, advertisingIdProvider, str, externalPlatformData, secrets, secrets2, secrets3, secrets4, forceVkIdSecret, list, bool, bool2, socialAuthRepository, childRegHelper, appReporter, networkType, restoreSessionNotificationProvider, socialLoginInfoHolderProvider, darkThemeResolver, str2, str3, function1, autologinDataStoreRepository, vkIdFullComposeDataStoreRepository, restoreVkDataStoreRepository, esiaVkDataStoreRepository, vKMailAuthDataStoreRepository, accountLoginChecker, cloudWriteToSupportHelper);
+            initialize7(authorizeModule, networkModule, customServerModule, pikachuCaptchaModule, secondFactorModule, platformModule, imageLoadModule, yahooModule, sSOModule, imapLocalModule, yandexModule, outlookModule, registrationModule, vkAutologinModule, vkIdAuthModule, esiaAuthModule, oidcLocalModule, cloudModule, context, okHttpClient, tsaCookieStore, activeAccountModeProvider, authorizationSdkAnalyticsImpl, logger, accountManager, deviceInfo, advertisingIdProvider, str, externalPlatformData, secrets, secrets2, secrets3, secrets4, forceVkIdSecret, list, bool, bool2, socialAuthRepository, childRegHelper, appReporter, networkType, restoreSessionNotificationProvider, socialLoginInfoHolderProvider, darkThemeResolver, str2, str3, function1, autologinDataStoreRepository, vkIdFullComposeDataStoreRepository, restoreVkDataStoreRepository, esiaVkDataStoreRepository, vKMailAuthDataStoreRepository, accountLoginChecker, cloudWriteToSupportHelper);
+            initialize8(authorizeModule, networkModule, customServerModule, pikachuCaptchaModule, secondFactorModule, platformModule, imageLoadModule, yahooModule, sSOModule, imapLocalModule, yandexModule, outlookModule, registrationModule, vkAutologinModule, vkIdAuthModule, esiaAuthModule, oidcLocalModule, cloudModule, context, okHttpClient, tsaCookieStore, activeAccountModeProvider, authorizationSdkAnalyticsImpl, logger, accountManager, deviceInfo, advertisingIdProvider, str, externalPlatformData, secrets, secrets2, secrets3, secrets4, forceVkIdSecret, list, bool, bool2, socialAuthRepository, childRegHelper, appReporter, networkType, restoreSessionNotificationProvider, socialLoginInfoHolderProvider, darkThemeResolver, str2, str3, function1, autologinDataStoreRepository, vkIdFullComposeDataStoreRepository, restoreVkDataStoreRepository, esiaVkDataStoreRepository, vKMailAuthDataStoreRepository, accountLoginChecker, cloudWriteToSupportHelper);
+            initialize9(authorizeModule, networkModule, customServerModule, pikachuCaptchaModule, secondFactorModule, platformModule, imageLoadModule, yahooModule, sSOModule, imapLocalModule, yandexModule, outlookModule, registrationModule, vkAutologinModule, vkIdAuthModule, esiaAuthModule, oidcLocalModule, cloudModule, context, okHttpClient, tsaCookieStore, activeAccountModeProvider, authorizationSdkAnalyticsImpl, logger, accountManager, deviceInfo, advertisingIdProvider, str, externalPlatformData, secrets, secrets2, secrets3, secrets4, forceVkIdSecret, list, bool, bool2, socialAuthRepository, childRegHelper, appReporter, networkType, restoreSessionNotificationProvider, socialLoginInfoHolderProvider, darkThemeResolver, str2, str3, function1, autologinDataStoreRepository, vkIdFullComposeDataStoreRepository, restoreVkDataStoreRepository, esiaVkDataStoreRepository, vKMailAuthDataStoreRepository, accountLoginChecker, cloudWriteToSupportHelper);
+        }
+
+        private void initialize(AuthorizeModule authorizeModule, NetworkModule networkModule, CustomServerModule customServerModule, PikachuCaptchaModule pikachuCaptchaModule, SecondFactorModule secondFactorModule, PlatformModule platformModule, ImageLoadModule imageLoadModule, YahooModule yahooModule, SSOModule sSOModule, ImapLocalModule imapLocalModule, YandexModule yandexModule, OutlookModule outlookModule, RegistrationModule registrationModule, VkAutologinModule vkAutologinModule, VkIdAuthModule vkIdAuthModule, EsiaAuthModule esiaAuthModule, OidcLocalModule oidcLocalModule, CloudModule cloudModule, Context context, OkHttpClient okHttpClient, TsaCookieStore tsaCookieStore, ActiveAccountModeProvider activeAccountModeProvider, AuthorizationSdkAnalyticsImpl authorizationSdkAnalyticsImpl, Logger logger, AccountManager accountManager, DeviceInfo deviceInfo, AdvertisingIdProvider advertisingIdProvider, String str, ExternalPlatformData externalPlatformData, Secrets secrets, Secrets secrets2, Secrets secrets3, Secrets secrets4, ForceVkIdSecret forceVkIdSecret, List<String> list, Boolean bool, Boolean bool2, SocialAuthRepository socialAuthRepository, ChildRegHelper childRegHelper, ru.mail.authorizationsdk.external.analytics.common.AppReporter appReporter, NetworkType networkType, RestoreSessionNotificationProvider restoreSessionNotificationProvider, SocialLoginInfoHolderProvider socialLoginInfoHolderProvider, DarkThemeResolver darkThemeResolver, String str2, String str3, Function1<? super VkIdStateAgTokenInteractor, MailAuth> function1, AutologinDataStoreRepository autologinDataStoreRepository, VkIdFullComposeDataStoreRepository vkIdFullComposeDataStoreRepository, RestoreVkDataStoreRepository restoreVkDataStoreRepository, EsiaVkDataStoreRepository esiaVkDataStoreRepository, VKMailAuthDataStoreRepository vKMailAuthDataStoreRepository, AccountLoginChecker accountLoginChecker, CloudWriteToSupportHelper cloudWriteToSupportHelper) {
+            this.provideJsonConvertFactoryProvider = DoubleCheck.provider((Provider) NetworkModule_ProvideJsonConvertFactoryFactory.create(networkModule));
+            this.addLoggerProvider = InstanceFactory.create(logger);
+            NetworkModule_ProvidesLogFilterFactory networkModule_ProvidesLogFilterFactoryCreate = NetworkModule_ProvidesLogFilterFactory.create(networkModule);
+            this.providesLogFilterProvider = networkModule_ProvidesLogFilterFactoryCreate;
+            this.provideInternalLoggerProvider = AuthorizeModule_ProvideInternalLoggerFactory.create(authorizeModule, this.addLoggerProvider, networkModule_ProvidesLogFilterFactoryCreate);
+            this.addClientAppOkHttpClientProvider = InstanceFactory.create(okHttpClient);
+            this.providesLogInterceptorProvider = NetworkModule_ProvidesLogInterceptorFactory.create(networkModule, this.provideInternalLoggerProvider);
+            this.addContextProvider = InstanceFactory.create(context);
+            Factory factoryCreate = InstanceFactory.create(accountManager);
+            this.addAccountManagerProvider = factoryCreate;
+            PlatformModule_ProvidesGoogleAccountProviderFactory platformModule_ProvidesGoogleAccountProviderFactoryCreate = PlatformModule_ProvidesGoogleAccountProviderFactory.create(platformModule, this.addLoggerProvider, factoryCreate);
+            this.providesGoogleAccountProvider = platformModule_ProvidesGoogleAccountProviderFactoryCreate;
+            this.providesDeviceIdProvider = DoubleCheck.provider((Provider) PlatformModule_ProvidesDeviceIdProviderFactory.create(platformModule, this.addLoggerProvider, this.addContextProvider, platformModule_ProvidesGoogleAccountProviderFactoryCreate));
+            Factory factoryCreate2 = InstanceFactory.create(deviceInfo);
+            this.addDeviceInfoProvider = factoryCreate2;
+            this.providesDeviceInfoProvider = PlatformModule_ProvidesDeviceInfoFactory.create(platformModule, this.addContextProvider, factoryCreate2);
+            this.addAdvertisingIdProvider = InstanceFactory.create(advertisingIdProvider);
+            Factory factoryCreate3 = InstanceFactory.create(externalPlatformData);
+            this.addExternalPlatformDataProvider = factoryCreate3;
+            this.providePlatformParamsProvider = PlatformModule_ProvidePlatformParamsFactory.create(platformModule, this.providesDeviceIdProvider, this.providesDeviceInfoProvider, this.addAdvertisingIdProvider, factoryCreate3);
+            this.addAuthCsrfHeaderProvider = InstanceFactory.create(str);
+            PlatformModule_ProvidesUserAgentFactory platformModule_ProvidesUserAgentFactoryCreate = PlatformModule_ProvidesUserAgentFactory.create(platformModule, this.addContextProvider, this.provideInternalLoggerProvider);
+            this.providesUserAgentProvider = platformModule_ProvidesUserAgentFactoryCreate;
+            this.providesPlatformParamsInterceptorProvider = NetworkModule_ProvidesPlatformParamsInterceptorFactory.create(networkModule, this.addContextProvider, this.providePlatformParamsProvider, this.addAuthCsrfHeaderProvider, platformModule_ProvidesUserAgentFactoryCreate);
+            Factory factoryCreate4 = InstanceFactory.create(authorizationSdkAnalyticsImpl);
+            this.addAnalyticsProvider = factoryCreate4;
+            NetworkModule_ProvidesRetryInterceptorFactory networkModule_ProvidesRetryInterceptorFactoryCreate = NetworkModule_ProvidesRetryInterceptorFactory.create(networkModule, this.provideInternalLoggerProvider, factoryCreate4);
+            this.providesRetryInterceptorProvider = networkModule_ProvidesRetryInterceptorFactoryCreate;
+            this.provideUpdateTokensOkHttpClientProvider = DoubleCheck.provider((Provider) AuthorizeModule_ProvideUpdateTokensOkHttpClientFactory.create(authorizeModule, this.provideInternalLoggerProvider, this.addClientAppOkHttpClientProvider, this.providesLogInterceptorProvider, this.providesPlatformParamsInterceptorProvider, networkModule_ProvidesRetryInterceptorFactoryCreate));
+            this.provideMailOkHttpClientProvider = DoubleCheck.provider((Provider) NetworkModule_ProvideMailOkHttpClientFactory.create(networkModule, this.provideInternalLoggerProvider, this.addClientAppOkHttpClientProvider, this.providesLogInterceptorProvider, this.providesRetryInterceptorProvider, this.providesPlatformParamsInterceptorProvider));
+            Factory factoryCreate5 = InstanceFactory.create(autologinDataStoreRepository);
+            this.addAutologinDataStoreRepositoryProvider = factoryCreate5;
+            this.providesFinishAutologinUseCaseImplProvider = DoubleCheck.provider((Provider) AuthorizeModule_ProvidesFinishAutologinUseCaseImplFactory.create(authorizeModule, this.provideInternalLoggerProvider, factoryCreate5));
+            this.addRestoreDataStoreRepositoryProvider = InstanceFactory.create(restoreVkDataStoreRepository);
+        }
+
+        private void initialize2(AuthorizeModule authorizeModule, NetworkModule networkModule, CustomServerModule customServerModule, PikachuCaptchaModule pikachuCaptchaModule, SecondFactorModule secondFactorModule, PlatformModule platformModule, ImageLoadModule imageLoadModule, YahooModule yahooModule, SSOModule sSOModule, ImapLocalModule imapLocalModule, YandexModule yandexModule, OutlookModule outlookModule, RegistrationModule registrationModule, VkAutologinModule vkAutologinModule, VkIdAuthModule vkIdAuthModule, EsiaAuthModule esiaAuthModule, OidcLocalModule oidcLocalModule, CloudModule cloudModule, Context context, OkHttpClient okHttpClient, TsaCookieStore tsaCookieStore, ActiveAccountModeProvider activeAccountModeProvider, AuthorizationSdkAnalyticsImpl authorizationSdkAnalyticsImpl, Logger logger, AccountManager accountManager, DeviceInfo deviceInfo, AdvertisingIdProvider advertisingIdProvider, String str, ExternalPlatformData externalPlatformData, Secrets secrets, Secrets secrets2, Secrets secrets3, Secrets secrets4, ForceVkIdSecret forceVkIdSecret, List<String> list, Boolean bool, Boolean bool2, SocialAuthRepository socialAuthRepository, ChildRegHelper childRegHelper, ru.mail.authorizationsdk.external.analytics.common.AppReporter appReporter, NetworkType networkType, RestoreSessionNotificationProvider restoreSessionNotificationProvider, SocialLoginInfoHolderProvider socialLoginInfoHolderProvider, DarkThemeResolver darkThemeResolver, String str2, String str3, Function1<? super VkIdStateAgTokenInteractor, MailAuth> function1, AutologinDataStoreRepository autologinDataStoreRepository, VkIdFullComposeDataStoreRepository vkIdFullComposeDataStoreRepository, RestoreVkDataStoreRepository restoreVkDataStoreRepository, EsiaVkDataStoreRepository esiaVkDataStoreRepository, VKMailAuthDataStoreRepository vKMailAuthDataStoreRepository, AccountLoginChecker accountLoginChecker, CloudWriteToSupportHelper cloudWriteToSupportHelper) {
+            this.providesFinishRestoreUseCaseImplProvider = DoubleCheck.provider((Provider) AuthorizeModule_ProvidesFinishRestoreUseCaseImplFactory.create(authorizeModule, this.provideInternalLoggerProvider, this.addRestoreDataStoreRepositoryProvider));
+            Factory factoryCreate = InstanceFactory.create(vkIdFullComposeDataStoreRepository);
+            this.addVkIdFullComposeDataStoreRepositoryProvider = factoryCreate;
+            Provider<FinishVkIdUseCaseImpl> provider = DoubleCheck.provider((Provider) AuthorizeModule_ProvidesFinishVkIdUseCaseImplFactory.create(authorizeModule, this.provideInternalLoggerProvider, factoryCreate));
+            this.providesFinishVkIdUseCaseImplProvider = provider;
+            this.providesFinishVkIdControllerUseCaseProvider = DoubleCheck.provider((Provider) AuthorizeModule_ProvidesFinishVkIdControllerUseCaseFactory.create(authorizeModule, provider));
+            this.provideAccountHttpClientProvider = DoubleCheck.provider((Provider) NetworkModule_ProvideAccountHttpClientFactory.create(networkModule, this.provideInternalLoggerProvider, this.addClientAppOkHttpClientProvider, this.providesLogInterceptorProvider, this.providesPlatformParamsInterceptorProvider, this.providesRetryInterceptorProvider));
+            this.provideStringResolverProvider = AuthorizeModule_ProvideStringResolverFactory.create(authorizeModule, this.addContextProvider);
+            this.addIsMiniMailProvider = InstanceFactory.create(bool2);
+            this.addIsTestProvider = InstanceFactory.create(bool);
+            AuthorizeModule_ProvideSharedPreferencesFactory authorizeModule_ProvideSharedPreferencesFactoryCreate = AuthorizeModule_ProvideSharedPreferencesFactory.create(authorizeModule, this.addContextProvider);
+            this.provideSharedPreferencesProvider = authorizeModule_ProvideSharedPreferencesFactoryCreate;
+            OidcLocalModule_ProvideOidcDiscoveryLocalSourceFactory oidcLocalModule_ProvideOidcDiscoveryLocalSourceFactoryCreate = OidcLocalModule_ProvideOidcDiscoveryLocalSourceFactory.create(oidcLocalModule, authorizeModule_ProvideSharedPreferencesFactoryCreate, this.provideStringResolverProvider);
+            this.provideOidcDiscoveryLocalSourceProvider = oidcLocalModule_ProvideOidcDiscoveryLocalSourceFactoryCreate;
+            OidcLocalModule_ProvideOidcDiscoveryLocalRepositoryFactory oidcLocalModule_ProvideOidcDiscoveryLocalRepositoryFactoryCreate = OidcLocalModule_ProvideOidcDiscoveryLocalRepositoryFactory.create(oidcLocalModule, oidcLocalModule_ProvideOidcDiscoveryLocalSourceFactoryCreate);
+            this.provideOidcDiscoveryLocalRepositoryProvider = oidcLocalModule_ProvideOidcDiscoveryLocalRepositoryFactoryCreate;
+            OidcLocalModule_ProvideOidcDiscoveryLocalUseCaseFactory oidcLocalModule_ProvideOidcDiscoveryLocalUseCaseFactoryCreate = OidcLocalModule_ProvideOidcDiscoveryLocalUseCaseFactory.create(oidcLocalModule, oidcLocalModule_ProvideOidcDiscoveryLocalRepositoryFactoryCreate);
+            this.provideOidcDiscoveryLocalUseCaseProvider = oidcLocalModule_ProvideOidcDiscoveryLocalUseCaseFactoryCreate;
+            NetworkModule_ProvideMailAuthorizationSdkUrlsResolverFactory networkModule_ProvideMailAuthorizationSdkUrlsResolverFactoryCreate = NetworkModule_ProvideMailAuthorizationSdkUrlsResolverFactory.create(networkModule, this.provideStringResolverProvider, this.addIsMiniMailProvider, this.addIsTestProvider, oidcLocalModule_ProvideOidcDiscoveryLocalUseCaseFactoryCreate);
+            this.provideMailAuthorizationSdkUrlsResolverProvider = networkModule_ProvideMailAuthorizationSdkUrlsResolverFactoryCreate;
+            this.provideAccountRetrofitProvider = DoubleCheck.provider((Provider) NetworkModule_ProvideAccountRetrofitFactory.create(networkModule, this.provideJsonConvertFactoryProvider, this.provideAccountHttpClientProvider, networkModule_ProvideMailAuthorizationSdkUrlsResolverFactoryCreate));
+            this.provideViewModelDispatcherProvider = AuthorizeModule_ProvideViewModelDispatcherFactory.create(authorizeModule);
+            this.provideIoDispatcherProvider = AuthorizeModule_ProvideIoDispatcherFactory.create(authorizeModule);
+            this.provideVkIdAuthApiProvider = VkIdAuthModule_ProvideVkIdAuthApiFactory.create(vkIdAuthModule, this.provideAccountRetrofitProvider);
+            this.provideExchangeVkIdAccountMapperProvider = VkIdAuthModule_ProvideExchangeVkIdAccountMapperFactory.create(vkIdAuthModule);
+            Factory factoryCreate2 = InstanceFactory.create(forceVkIdSecret);
+            this.addForceVkIdSecretProvider = factoryCreate2;
+            VkIdAuthModule_ProvideVkIdAuthRepositoryFactory vkIdAuthModule_ProvideVkIdAuthRepositoryFactoryCreate = VkIdAuthModule_ProvideVkIdAuthRepositoryFactory.create(vkIdAuthModule, this.provideVkIdAuthApiProvider, this.provideExchangeVkIdAccountMapperProvider, factoryCreate2, this.addAuthCsrfHeaderProvider);
+            this.provideVkIdAuthRepositoryProvider = vkIdAuthModule_ProvideVkIdAuthRepositoryFactoryCreate;
+            this.provideBindNewMailUseCaseProvider = VkIdAuthModule_ProvideBindNewMailUseCaseFactory.create(vkIdAuthModule, vkIdAuthModule_ProvideVkIdAuthRepositoryFactoryCreate);
+            this.providesFinishVkIdConsumerUseCaseProvider = AuthorizeModule_ProvidesFinishVkIdConsumerUseCaseFactory.create(authorizeModule, this.providesFinishVkIdUseCaseImplProvider);
+            this.provideAccountTypeProvider = SecondFactorModule_ProvideAccountTypeFactory.create(secondFactorModule);
+            Factory factoryCreate3 = InstanceFactory.create(accountLoginChecker);
+            this.addAccountLoginCheckerProvider = factoryCreate3;
+            this.provideAccountManagerDelegateProvider = AuthorizeModule_ProvideAccountManagerDelegateFactory.create(authorizeModule, this.addContextProvider, this.addAccountManagerProvider, this.provideAccountTypeProvider, factoryCreate3);
+        }
+
+        private void initialize3(AuthorizeModule authorizeModule, NetworkModule networkModule, CustomServerModule customServerModule, PikachuCaptchaModule pikachuCaptchaModule, SecondFactorModule secondFactorModule, PlatformModule platformModule, ImageLoadModule imageLoadModule, YahooModule yahooModule, SSOModule sSOModule, ImapLocalModule imapLocalModule, YandexModule yandexModule, OutlookModule outlookModule, RegistrationModule registrationModule, VkAutologinModule vkAutologinModule, VkIdAuthModule vkIdAuthModule, EsiaAuthModule esiaAuthModule, OidcLocalModule oidcLocalModule, CloudModule cloudModule, Context context, OkHttpClient okHttpClient, TsaCookieStore tsaCookieStore, ActiveAccountModeProvider activeAccountModeProvider, AuthorizationSdkAnalyticsImpl authorizationSdkAnalyticsImpl, Logger logger, AccountManager accountManager, DeviceInfo deviceInfo, AdvertisingIdProvider advertisingIdProvider, String str, ExternalPlatformData externalPlatformData, Secrets secrets, Secrets secrets2, Secrets secrets3, Secrets secrets4, ForceVkIdSecret forceVkIdSecret, List<String> list, Boolean bool, Boolean bool2, SocialAuthRepository socialAuthRepository, ChildRegHelper childRegHelper, ru.mail.authorizationsdk.external.analytics.common.AppReporter appReporter, NetworkType networkType, RestoreSessionNotificationProvider restoreSessionNotificationProvider, SocialLoginInfoHolderProvider socialLoginInfoHolderProvider, DarkThemeResolver darkThemeResolver, String str2, String str3, Function1<? super VkIdStateAgTokenInteractor, MailAuth> function1, AutologinDataStoreRepository autologinDataStoreRepository, VkIdFullComposeDataStoreRepository vkIdFullComposeDataStoreRepository, RestoreVkDataStoreRepository restoreVkDataStoreRepository, EsiaVkDataStoreRepository esiaVkDataStoreRepository, VKMailAuthDataStoreRepository vKMailAuthDataStoreRepository, AccountLoginChecker accountLoginChecker, CloudWriteToSupportHelper cloudWriteToSupportHelper) {
+            this.provideAccountManagerRepositoryProvider = AuthorizeModule_ProvideAccountManagerRepositoryFactory.create(authorizeModule, this.provideAccountManagerDelegateProvider);
+            this.addAppReporterProvider = InstanceFactory.createNullable(appReporter);
+            this.provideDefaultDispatcherProvider = AuthorizeModule_ProvideDefaultDispatcherFactory.create(authorizeModule);
+            this.provideProviderInfoTypeResolverAuthSdkProvider = ImapLocalModule_ProvideProviderInfoTypeResolverAuthSdkFactory.create(imapLocalModule);
+            this.provideJsonSerializerProvider = NetworkModule_ProvideJsonSerializerFactory.create(networkModule);
+            this.providesRoomDBProvider = AuthorizeModule_ProvidesRoomDBFactory.create(authorizeModule, this.addContextProvider);
+            ImapLocalModule_ProvideImapOAuthStateRepositoryFactory imapLocalModule_ProvideImapOAuthStateRepositoryFactoryCreate = ImapLocalModule_ProvideImapOAuthStateRepositoryFactory.create(imapLocalModule, this.provideStringResolverProvider);
+            this.provideImapOAuthStateRepositoryProvider = imapLocalModule_ProvideImapOAuthStateRepositoryFactoryCreate;
+            this.provideImapOAuthStateUseCaseProvider = ImapLocalModule_ProvideImapOAuthStateUseCaseFactory.create(imapLocalModule, imapLocalModule_ProvideImapOAuthStateRepositoryFactoryCreate);
+            this.provideCheckCredentialsRepositoryImplProvider = ImapLocalModule_ProvideCheckCredentialsRepositoryImplFactory.create(imapLocalModule, this.provideInternalLoggerProvider);
+            this.provideImapLoginRepositoryProvider = ImapLocalModule_ProvideImapLoginRepositoryFactory.create(imapLocalModule, this.provideInternalLoggerProvider, this.provideStringResolverProvider);
+            Factory factoryCreateNullable = InstanceFactory.createNullable(tsaCookieStore);
+            this.addTsaCookieStoreProvider = factoryCreateNullable;
+            SecondStepRepository_Factory secondStepRepository_FactoryCreate = SecondStepRepository_Factory.create(this.addContextProvider, factoryCreateNullable);
+            this.secondStepRepositoryProvider = secondStepRepository_FactoryCreate;
+            this.provideSecondStepInteractorProvider = AuthorizeModule_ProvideSecondStepInteractorFactory.create(authorizeModule, secondStepRepository_FactoryCreate);
+            NetworkModule_ProvideBaseAuthRetrofitFactory networkModule_ProvideBaseAuthRetrofitFactoryCreate = NetworkModule_ProvideBaseAuthRetrofitFactory.create(networkModule, this.provideJsonConvertFactoryProvider, this.provideMailOkHttpClientProvider, this.provideMailAuthorizationSdkUrlsResolverProvider, this.provideInternalLoggerProvider);
+            this.provideBaseAuthRetrofitProvider = networkModule_ProvideBaseAuthRetrofitFactoryCreate;
+            this.provideCommonAuthMailApiProvider = NetworkModule_ProvideCommonAuthMailApiFactory.create(networkModule, networkModule_ProvideBaseAuthRetrofitFactoryCreate);
+            this.provideBasePasswordOauthParamsProvider = NetworkModule_ProvideBasePasswordOauthParamsFactory.create(networkModule);
+            this.providesAuthDelegateProvider = NetworkModule_ProvidesAuthDelegateFactory.create(networkModule, this.addAnalyticsProvider, this.provideStringResolverProvider, this.provideInternalLoggerProvider);
+            Factory factoryCreateNullable2 = InstanceFactory.createNullable(str3);
+            this.addClientIdProvider = factoryCreateNullable2;
+            this.provideCommonAuthorizationRepositoryProvider = NetworkModule_ProvideCommonAuthorizationRepositoryFactory.create(networkModule, this.provideIoDispatcherProvider, this.provideCommonAuthMailApiProvider, this.provideBasePasswordOauthParamsProvider, this.providesAuthDelegateProvider, this.provideMailAuthorizationSdkUrlsResolverProvider, factoryCreateNullable2);
+            NetworkModule_ProvideBaseMailApiFactory networkModule_ProvideBaseMailApiFactoryCreate = NetworkModule_ProvideBaseMailApiFactory.create(networkModule, this.provideBaseAuthRetrofitProvider);
+            this.provideBaseMailApiProvider = networkModule_ProvideBaseMailApiFactoryCreate;
+            this.provideExternalAccMailAuthorizationRepositoryProvider = NetworkModule_ProvideExternalAccMailAuthorizationRepositoryFactory.create(networkModule, this.provideIoDispatcherProvider, networkModule_ProvideBaseMailApiFactoryCreate, this.providesAuthDelegateProvider, this.addClientIdProvider);
+            NetworkModule_ProvideAuthMailRetrofitFactory networkModule_ProvideAuthMailRetrofitFactoryCreate = NetworkModule_ProvideAuthMailRetrofitFactory.create(networkModule, this.provideJsonConvertFactoryProvider, this.provideMailOkHttpClientProvider, this.provideMailAuthorizationSdkUrlsResolverProvider, this.provideInternalLoggerProvider);
+            this.provideAuthMailRetrofitProvider = networkModule_ProvideAuthMailRetrofitFactoryCreate;
+            this.provideCloudGoogleApiProvider = NetworkModule_ProvideCloudGoogleApiFactory.create(networkModule, networkModule_ProvideAuthMailRetrofitFactoryCreate);
+            this.addGoogleSecretsProvider = InstanceFactory.create(secrets4);
+            this.provideExternalOkHttpClientProvider = DoubleCheck.provider((Provider) NetworkModule_ProvideExternalOkHttpClientFactory.create(networkModule, this.provideInternalLoggerProvider, this.addClientAppOkHttpClientProvider, this.providesLogInterceptorProvider, this.providesRetryInterceptorProvider));
+        }
+
+        private void initialize4(AuthorizeModule authorizeModule, NetworkModule networkModule, CustomServerModule customServerModule, PikachuCaptchaModule pikachuCaptchaModule, SecondFactorModule secondFactorModule, PlatformModule platformModule, ImageLoadModule imageLoadModule, YahooModule yahooModule, SSOModule sSOModule, ImapLocalModule imapLocalModule, YandexModule yandexModule, OutlookModule outlookModule, RegistrationModule registrationModule, VkAutologinModule vkAutologinModule, VkIdAuthModule vkIdAuthModule, EsiaAuthModule esiaAuthModule, OidcLocalModule oidcLocalModule, CloudModule cloudModule, Context context, OkHttpClient okHttpClient, TsaCookieStore tsaCookieStore, ActiveAccountModeProvider activeAccountModeProvider, AuthorizationSdkAnalyticsImpl authorizationSdkAnalyticsImpl, Logger logger, AccountManager accountManager, DeviceInfo deviceInfo, AdvertisingIdProvider advertisingIdProvider, String str, ExternalPlatformData externalPlatformData, Secrets secrets, Secrets secrets2, Secrets secrets3, Secrets secrets4, ForceVkIdSecret forceVkIdSecret, List<String> list, Boolean bool, Boolean bool2, SocialAuthRepository socialAuthRepository, ChildRegHelper childRegHelper, ru.mail.authorizationsdk.external.analytics.common.AppReporter appReporter, NetworkType networkType, RestoreSessionNotificationProvider restoreSessionNotificationProvider, SocialLoginInfoHolderProvider socialLoginInfoHolderProvider, DarkThemeResolver darkThemeResolver, String str2, String str3, Function1<? super VkIdStateAgTokenInteractor, MailAuth> function1, AutologinDataStoreRepository autologinDataStoreRepository, VkIdFullComposeDataStoreRepository vkIdFullComposeDataStoreRepository, RestoreVkDataStoreRepository restoreVkDataStoreRepository, EsiaVkDataStoreRepository esiaVkDataStoreRepository, VKMailAuthDataStoreRepository vKMailAuthDataStoreRepository, AccountLoginChecker accountLoginChecker, CloudWriteToSupportHelper cloudWriteToSupportHelper) {
+            Provider<ErrorMediator> provider = DoubleCheck.provider((Provider) AuthorizeModule_ProvideErrorMediatorFactory.create(authorizeModule, this.provideInternalLoggerProvider));
+            this.provideErrorMediatorProvider = provider;
+            this.provideErrorDelegateHostProvider = AuthorizeModule_ProvideErrorDelegateHostFactory.create(authorizeModule, provider);
+            this.addSocialLoginInfoHolderProvider = InstanceFactory.create(socialLoginInfoHolderProvider);
+            this.providesAutoLoginSnackShowDelegateHolderProvider = AuthorizeModule_ProvidesAutoLoginSnackShowDelegateHolderFactory.create(authorizeModule);
+            Provider<OkHttpClient> provider2 = DoubleCheck.provider((Provider) VkIdAuthModule_ProvideVkIdStartLoginOkHttpClientFactory.create(vkIdAuthModule, this.provideInternalLoggerProvider, this.addClientAppOkHttpClientProvider, this.providesLogInterceptorProvider, this.providesRetryInterceptorProvider));
+            this.provideVkIdStartLoginOkHttpClientProvider = provider2;
+            VkIdAuthModule_ProvideVkIdStartLoginRetrofitFactory vkIdAuthModule_ProvideVkIdStartLoginRetrofitFactoryCreate = VkIdAuthModule_ProvideVkIdStartLoginRetrofitFactory.create(vkIdAuthModule, this.provideJsonConvertFactoryProvider, provider2, this.provideMailAuthorizationSdkUrlsResolverProvider);
+            this.provideVkIdStartLoginRetrofitProvider = vkIdAuthModule_ProvideVkIdStartLoginRetrofitFactoryCreate;
+            VkIdAuthModule_ProvideVkIdGetStateAgTokenApiFactory vkIdAuthModule_ProvideVkIdGetStateAgTokenApiFactoryCreate = VkIdAuthModule_ProvideVkIdGetStateAgTokenApiFactory.create(vkIdAuthModule, vkIdAuthModule_ProvideVkIdStartLoginRetrofitFactoryCreate);
+            this.provideVkIdGetStateAgTokenApiProvider = vkIdAuthModule_ProvideVkIdGetStateAgTokenApiFactoryCreate;
+            VkIdAuthModule_ProvideVkIdVkIdStateAgTokenRemoteSourceFactory vkIdAuthModule_ProvideVkIdVkIdStateAgTokenRemoteSourceFactoryCreate = VkIdAuthModule_ProvideVkIdVkIdStateAgTokenRemoteSourceFactory.create(vkIdAuthModule, vkIdAuthModule_ProvideVkIdGetStateAgTokenApiFactoryCreate);
+            this.provideVkIdVkIdStateAgTokenRemoteSourceProvider = vkIdAuthModule_ProvideVkIdVkIdStateAgTokenRemoteSourceFactoryCreate;
+            VkIdAuthModule_ProvideVkIdGetStateAgTokenRepositoryFactory vkIdAuthModule_ProvideVkIdGetStateAgTokenRepositoryFactoryCreate = VkIdAuthModule_ProvideVkIdGetStateAgTokenRepositoryFactory.create(vkIdAuthModule, this.provideInternalLoggerProvider, vkIdAuthModule_ProvideVkIdVkIdStateAgTokenRemoteSourceFactoryCreate);
+            this.provideVkIdGetStateAgTokenRepositoryProvider = vkIdAuthModule_ProvideVkIdGetStateAgTokenRepositoryFactoryCreate;
+            this.provideVkIdStateAgTokenUseCaseProvider = DoubleCheck.provider((Provider) VkIdAuthModule_ProvideVkIdStateAgTokenUseCaseFactory.create(vkIdAuthModule, vkIdAuthModule_ProvideVkIdGetStateAgTokenRepositoryFactoryCreate));
+            Factory factoryCreate = InstanceFactory.create(function1);
+            this.addMailAuthProvider = factoryCreate;
+            this.provideMailAuthProvider = DoubleCheck.provider((Provider) VkIdAuthModule_ProvideMailAuthFactory.create(vkIdAuthModule, this.provideVkIdStateAgTokenUseCaseProvider, factoryCreate));
+            this.provideAuthPhoneFlowDataHolderProvider = DoubleCheck.provider((Provider) CloudModule_ProvideAuthPhoneFlowDataHolderFactory.create(cloudModule));
+            this.providesMainImmediateDispatcherProvider = AuthorizeModule_ProvidesMainImmediateDispatcherFactory.create(authorizeModule);
+            this.provideStatusNavBarHelperProvider = AuthorizeModule_ProvideStatusNavBarHelperFactory.create(authorizeModule);
+            this.addSocialAuthRepositoryProvider = InstanceFactory.create(socialAuthRepository);
+            this.providesFinishAutologinControllerUseCaseProvider = AuthorizeModule_ProvidesFinishAutologinControllerUseCaseFactory.create(authorizeModule, this.providesFinishAutologinUseCaseImplProvider);
+            this.providesFinishRestoreControllerUseCaseProvider = AuthorizeModule_ProvidesFinishRestoreControllerUseCaseFactory.create(authorizeModule, this.providesFinishRestoreUseCaseImplProvider);
+            Provider<OkHttpClient> provider3 = DoubleCheck.provider((Provider) RegistrationModule_ProvideSocialSignupHttpClientFactory.create(registrationModule, this.provideInternalLoggerProvider, this.addClientAppOkHttpClientProvider, this.providesLogInterceptorProvider, this.providesPlatformParamsInterceptorProvider, this.providesRetryInterceptorProvider));
+            this.provideSocialSignupHttpClientProvider = provider3;
+            RegistrationModule_ProvideSocialSignupRetrofitFactory registrationModule_ProvideSocialSignupRetrofitFactoryCreate = RegistrationModule_ProvideSocialSignupRetrofitFactory.create(registrationModule, this.provideJsonConvertFactoryProvider, provider3, this.provideMailAuthorizationSdkUrlsResolverProvider);
+            this.provideSocialSignupRetrofitProvider = registrationModule_ProvideSocialSignupRetrofitFactoryCreate;
+            this.provideSignupPrepareApiProvider = RegistrationModule_ProvideSignupPrepareApiFactory.create(registrationModule, registrationModule_ProvideSocialSignupRetrofitFactoryCreate);
+            RegistrationModule_ProvideSignupPrepareResultMapperFactory registrationModule_ProvideSignupPrepareResultMapperFactoryCreate = RegistrationModule_ProvideSignupPrepareResultMapperFactory.create(registrationModule);
+            this.provideSignupPrepareResultMapperProvider = registrationModule_ProvideSignupPrepareResultMapperFactoryCreate;
+            RegistrationModule_ProvideSignupDataRepositoryFactory registrationModule_ProvideSignupDataRepositoryFactoryCreate = RegistrationModule_ProvideSignupDataRepositoryFactory.create(registrationModule, this.provideSignupPrepareApiProvider, registrationModule_ProvideSignupPrepareResultMapperFactoryCreate, this.provideInternalLoggerProvider);
+            this.provideSignupDataRepositoryProvider = registrationModule_ProvideSignupDataRepositoryFactoryCreate;
+            this.provideGetSignupDataUseCaseProvider = RegistrationModule_ProvideGetSignupDataUseCaseFactory.create(registrationModule, registrationModule_ProvideSignupDataRepositoryFactoryCreate);
+            this.providesVkAvatarLoaderUseCaseProvider = AuthorizeModule_ProvidesVkAvatarLoaderUseCaseFactory.create(authorizeModule, this.addContextProvider);
+        }
+
+        private void initialize5(AuthorizeModule authorizeModule, NetworkModule networkModule, CustomServerModule customServerModule, PikachuCaptchaModule pikachuCaptchaModule, SecondFactorModule secondFactorModule, PlatformModule platformModule, ImageLoadModule imageLoadModule, YahooModule yahooModule, SSOModule sSOModule, ImapLocalModule imapLocalModule, YandexModule yandexModule, OutlookModule outlookModule, RegistrationModule registrationModule, VkAutologinModule vkAutologinModule, VkIdAuthModule vkIdAuthModule, EsiaAuthModule esiaAuthModule, OidcLocalModule oidcLocalModule, CloudModule cloudModule, Context context, OkHttpClient okHttpClient, TsaCookieStore tsaCookieStore, ActiveAccountModeProvider activeAccountModeProvider, AuthorizationSdkAnalyticsImpl authorizationSdkAnalyticsImpl, Logger logger, AccountManager accountManager, DeviceInfo deviceInfo, AdvertisingIdProvider advertisingIdProvider, String str, ExternalPlatformData externalPlatformData, Secrets secrets, Secrets secrets2, Secrets secrets3, Secrets secrets4, ForceVkIdSecret forceVkIdSecret, List<String> list, Boolean bool, Boolean bool2, SocialAuthRepository socialAuthRepository, ChildRegHelper childRegHelper, ru.mail.authorizationsdk.external.analytics.common.AppReporter appReporter, NetworkType networkType, RestoreSessionNotificationProvider restoreSessionNotificationProvider, SocialLoginInfoHolderProvider socialLoginInfoHolderProvider, DarkThemeResolver darkThemeResolver, String str2, String str3, Function1<? super VkIdStateAgTokenInteractor, MailAuth> function1, AutologinDataStoreRepository autologinDataStoreRepository, VkIdFullComposeDataStoreRepository vkIdFullComposeDataStoreRepository, RestoreVkDataStoreRepository restoreVkDataStoreRepository, EsiaVkDataStoreRepository esiaVkDataStoreRepository, VKMailAuthDataStoreRepository vKMailAuthDataStoreRepository, AccountLoginChecker accountLoginChecker, CloudWriteToSupportHelper cloudWriteToSupportHelper) {
+            CloudModule_ProvidePhoneRetrofitFactory cloudModule_ProvidePhoneRetrofitFactoryCreate = CloudModule_ProvidePhoneRetrofitFactory.create(cloudModule, this.provideMailAuthorizationSdkUrlsResolverProvider, this.provideJsonConvertFactoryProvider, this.provideExternalOkHttpClientProvider, this.provideInternalLoggerProvider);
+            this.providePhoneRetrofitProvider = cloudModule_ProvidePhoneRetrofitFactoryCreate;
+            this.providePhoneApiProvider = CloudModule_ProvidePhoneApiFactory.create(cloudModule, cloudModule_ProvidePhoneRetrofitFactoryCreate);
+            CloudModule_ProvideExchangeTokenRetrofitFactory cloudModule_ProvideExchangeTokenRetrofitFactoryCreate = CloudModule_ProvideExchangeTokenRetrofitFactory.create(cloudModule, this.provideMailAuthorizationSdkUrlsResolverProvider, this.provideJsonConvertFactoryProvider, this.provideExternalOkHttpClientProvider);
+            this.provideExchangeTokenRetrofitProvider = cloudModule_ProvideExchangeTokenRetrofitFactoryCreate;
+            this.provideExchangeTokenApiProvider = CloudModule_ProvideExchangeTokenApiFactory.create(cloudModule, cloudModule_ProvideExchangeTokenRetrofitFactoryCreate);
+            CloudModule_ProvideCookieRetrofitFactory cloudModule_ProvideCookieRetrofitFactoryCreate = CloudModule_ProvideCookieRetrofitFactory.create(cloudModule, this.provideMailAuthorizationSdkUrlsResolverProvider, this.provideJsonConvertFactoryProvider, this.provideExternalOkHttpClientProvider, this.provideInternalLoggerProvider);
+            this.provideCookieRetrofitProvider = cloudModule_ProvideCookieRetrofitFactoryCreate;
+            CloudModule_ProvideCookieApiFactory cloudModule_ProvideCookieApiFactoryCreate = CloudModule_ProvideCookieApiFactory.create(cloudModule, cloudModule_ProvideCookieRetrofitFactoryCreate);
+            this.provideCookieApiProvider = cloudModule_ProvideCookieApiFactoryCreate;
+            this.providesCheckPhoneRepositoryProvider = CloudModule_ProvidesCheckPhoneRepositoryFactory.create(cloudModule, this.providePhoneApiProvider, this.provideExchangeTokenApiProvider, cloudModule_ProvideCookieApiFactoryCreate);
+            this.provideDomainUtilsProvider = AuthorizeModule_ProvideDomainUtilsFactory.create(authorizeModule);
+            AuthorizeModule_ProvideNetworkUtilsFactory authorizeModule_ProvideNetworkUtilsFactoryCreate = AuthorizeModule_ProvideNetworkUtilsFactory.create(authorizeModule);
+            this.provideNetworkUtilsProvider = authorizeModule_ProvideNetworkUtilsFactoryCreate;
+            this.provideNetworkRepositoryProvider = AuthorizeModule_ProvideNetworkRepositoryFactory.create(authorizeModule, authorizeModule_ProvideNetworkUtilsFactoryCreate);
+            Provider<OkHttpClient> provider = DoubleCheck.provider((Provider) VkIdAuthModule_ProvideVkIdWhiteAndOneTapFlowOkHttpClientFactory.create(vkIdAuthModule, this.provideInternalLoggerProvider, this.addClientAppOkHttpClientProvider, this.providesLogInterceptorProvider, this.providesRetryInterceptorProvider));
+            this.provideVkIdWhiteAndOneTapFlowOkHttpClientProvider = provider;
+            VkIdAuthModule_ProvideVkIdWhiteOneTapRetrofitFactory vkIdAuthModule_ProvideVkIdWhiteOneTapRetrofitFactoryCreate = VkIdAuthModule_ProvideVkIdWhiteOneTapRetrofitFactory.create(vkIdAuthModule, this.provideJsonConvertFactoryProvider, provider, this.provideMailAuthorizationSdkUrlsResolverProvider);
+            this.provideVkIdWhiteOneTapRetrofitProvider = vkIdAuthModule_ProvideVkIdWhiteOneTapRetrofitFactoryCreate;
+            this.provideWhiteVkidApiProvider = VkIdAuthModule_ProvideWhiteVkidApiFactory.create(vkIdAuthModule, vkIdAuthModule_ProvideVkIdWhiteOneTapRetrofitFactoryCreate);
+            VkIdAuthModule_ProvideWhiteVkIdPasswordAuthMapperFactory vkIdAuthModule_ProvideWhiteVkIdPasswordAuthMapperFactoryCreate = VkIdAuthModule_ProvideWhiteVkIdPasswordAuthMapperFactory.create(vkIdAuthModule, this.provideInternalLoggerProvider);
+            this.provideWhiteVkIdPasswordAuthMapperProvider = vkIdAuthModule_ProvideWhiteVkIdPasswordAuthMapperFactoryCreate;
+            VkIdAuthModule_ProvideWhiteVkIdAuthRepositoryFactory vkIdAuthModule_ProvideWhiteVkIdAuthRepositoryFactoryCreate = VkIdAuthModule_ProvideWhiteVkIdAuthRepositoryFactory.create(vkIdAuthModule, this.provideWhiteVkidApiProvider, vkIdAuthModule_ProvideWhiteVkIdPasswordAuthMapperFactoryCreate, this.addForceVkIdSecretProvider, this.addAuthCsrfHeaderProvider);
+            this.provideWhiteVkIdAuthRepositoryProvider = vkIdAuthModule_ProvideWhiteVkIdAuthRepositoryFactoryCreate;
+            this.provideWhiteVkIdAuthUseCaseProvider = VkIdAuthModule_ProvideWhiteVkIdAuthUseCaseFactory.create(vkIdAuthModule, vkIdAuthModule_ProvideWhiteVkIdAuthRepositoryFactoryCreate);
+            this.provideEsiaAuthApiProvider = DoubleCheck.provider((Provider) EsiaAuthModule_ProvideEsiaAuthApiFactory.create(esiaAuthModule, this.provideAuthMailRetrofitProvider));
+            this.provideEsiaExchangeApiProvider = DoubleCheck.provider((Provider) EsiaAuthModule_ProvideEsiaExchangeApiFactory.create(esiaAuthModule, this.provideAccountRetrofitProvider));
+            this.provideStartEsiaAuthResponseMapperProvider = EsiaAuthModule_ProvideStartEsiaAuthResponseMapperFactory.create(esiaAuthModule);
+            EsiaAuthModule_ProvideExchangeEsiaAccountMapperFactory esiaAuthModule_ProvideExchangeEsiaAccountMapperFactoryCreate = EsiaAuthModule_ProvideExchangeEsiaAccountMapperFactory.create(esiaAuthModule);
+            this.provideExchangeEsiaAccountMapperProvider = esiaAuthModule_ProvideExchangeEsiaAccountMapperFactoryCreate;
+            EsiaAuthModule_ProvideEsiaAuthRepositoryFactory esiaAuthModule_ProvideEsiaAuthRepositoryFactoryCreate = EsiaAuthModule_ProvideEsiaAuthRepositoryFactory.create(esiaAuthModule, this.provideEsiaAuthApiProvider, this.provideEsiaExchangeApiProvider, this.provideStartEsiaAuthResponseMapperProvider, esiaAuthModule_ProvideExchangeEsiaAccountMapperFactoryCreate, this.addAuthCsrfHeaderProvider);
+            this.provideEsiaAuthRepositoryProvider = esiaAuthModule_ProvideEsiaAuthRepositoryFactoryCreate;
+            this.provideStartEsiaAuthUseCaseProvider = EsiaAuthModule_ProvideStartEsiaAuthUseCaseFactory.create(esiaAuthModule, esiaAuthModule_ProvideEsiaAuthRepositoryFactoryCreate);
+            this.provideXmlParserProvider = AuthorizeModule_ProvideXmlParserFactory.create(authorizeModule, this.provideStringResolverProvider);
+            this.provideErrorDelegateSubscriberProvider = AuthorizeModule_ProvideErrorDelegateSubscriberFactory.create(authorizeModule, this.provideErrorMediatorProvider);
+            this.addVKMailAuthDataStoreRepositoryProvider = InstanceFactory.create(vKMailAuthDataStoreRepository);
+        }
+
+        private void initialize6(AuthorizeModule authorizeModule, NetworkModule networkModule, CustomServerModule customServerModule, PikachuCaptchaModule pikachuCaptchaModule, SecondFactorModule secondFactorModule, PlatformModule platformModule, ImageLoadModule imageLoadModule, YahooModule yahooModule, SSOModule sSOModule, ImapLocalModule imapLocalModule, YandexModule yandexModule, OutlookModule outlookModule, RegistrationModule registrationModule, VkAutologinModule vkAutologinModule, VkIdAuthModule vkIdAuthModule, EsiaAuthModule esiaAuthModule, OidcLocalModule oidcLocalModule, CloudModule cloudModule, Context context, OkHttpClient okHttpClient, TsaCookieStore tsaCookieStore, ActiveAccountModeProvider activeAccountModeProvider, AuthorizationSdkAnalyticsImpl authorizationSdkAnalyticsImpl, Logger logger, AccountManager accountManager, DeviceInfo deviceInfo, AdvertisingIdProvider advertisingIdProvider, String str, ExternalPlatformData externalPlatformData, Secrets secrets, Secrets secrets2, Secrets secrets3, Secrets secrets4, ForceVkIdSecret forceVkIdSecret, List<String> list, Boolean bool, Boolean bool2, SocialAuthRepository socialAuthRepository, ChildRegHelper childRegHelper, ru.mail.authorizationsdk.external.analytics.common.AppReporter appReporter, NetworkType networkType, RestoreSessionNotificationProvider restoreSessionNotificationProvider, SocialLoginInfoHolderProvider socialLoginInfoHolderProvider, DarkThemeResolver darkThemeResolver, String str2, String str3, Function1<? super VkIdStateAgTokenInteractor, MailAuth> function1, AutologinDataStoreRepository autologinDataStoreRepository, VkIdFullComposeDataStoreRepository vkIdFullComposeDataStoreRepository, RestoreVkDataStoreRepository restoreVkDataStoreRepository, EsiaVkDataStoreRepository esiaVkDataStoreRepository, VKMailAuthDataStoreRepository vKMailAuthDataStoreRepository, AccountLoginChecker accountLoginChecker, CloudWriteToSupportHelper cloudWriteToSupportHelper) {
+            this.provideFinishVKMailAuthUseCaseProvider = VkIdAuthModule_ProvideFinishVKMailAuthUseCaseFactory.create(vkIdAuthModule, this.provideInternalLoggerProvider, this.addVKMailAuthDataStoreRepositoryProvider);
+            this.provideGrayVkidApiProvider = VkIdAuthModule_ProvideGrayVkidApiFactory.create(vkIdAuthModule, this.provideVkIdStartLoginRetrofitProvider);
+            VkIdAuthModule_ProvideGrayVkidPasswordAuthMapperFactory vkIdAuthModule_ProvideGrayVkidPasswordAuthMapperFactoryCreate = VkIdAuthModule_ProvideGrayVkidPasswordAuthMapperFactory.create(vkIdAuthModule, this.provideInternalLoggerProvider);
+            this.provideGrayVkidPasswordAuthMapperProvider = vkIdAuthModule_ProvideGrayVkidPasswordAuthMapperFactoryCreate;
+            VkIdAuthModule_ProvideGrayVkidPasswordRepositoryFactory vkIdAuthModule_ProvideGrayVkidPasswordRepositoryFactoryCreate = VkIdAuthModule_ProvideGrayVkidPasswordRepositoryFactory.create(vkIdAuthModule, this.provideGrayVkidApiProvider, vkIdAuthModule_ProvideGrayVkidPasswordAuthMapperFactoryCreate, this.addForceVkIdSecretProvider, this.addAuthCsrfHeaderProvider);
+            this.provideGrayVkidPasswordRepositoryProvider = vkIdAuthModule_ProvideGrayVkidPasswordRepositoryFactoryCreate;
+            this.provideGrayVkidPasswordAuthUseCaseProvider = VkIdAuthModule_ProvideGrayVkidPasswordAuthUseCaseFactory.create(vkIdAuthModule, vkIdAuthModule_ProvideGrayVkidPasswordRepositoryFactoryCreate);
+            this.providesFinishAutologinConsumerUseCaseProvider = AuthorizeModule_ProvidesFinishAutologinConsumerUseCaseFactory.create(authorizeModule, this.providesFinishAutologinUseCaseImplProvider);
+            this.addConfigHiddenServicesProvider = InstanceFactory.create(list);
+            this.addVkAppIdProvider = InstanceFactory.createNullable(str2);
+            this.provideAccountManagerUseCaseProvider = AuthorizeModule_ProvideAccountManagerUseCaseFactory.create(authorizeModule, this.provideAccountManagerRepositoryProvider);
+            this.providesVkAutologinUseCaseProvider = VkAutologinModule_ProvidesVkAutologinUseCaseFactory.create(vkAutologinModule, this.addAutologinDataStoreRepositoryProvider);
+            this.providesRestoreVkUseCaseProvider = VkAutologinModule_ProvidesRestoreVkUseCaseFactory.create(vkAutologinModule, this.addRestoreDataStoreRepositoryProvider);
+            Factory factoryCreate = InstanceFactory.create(esiaVkDataStoreRepository);
+            this.addEsiaDataStoreRepositoryProvider = factoryCreate;
+            this.providesEsiaVkUseCaseProvider = VkAutologinModule_ProvidesEsiaVkUseCaseFactory.create(vkAutologinModule, factoryCreate);
+            this.providesVkIdAuthUseCaseProvider = VkAutologinModule_ProvidesVkIdAuthUseCaseFactory.create(vkAutologinModule, this.addVkIdFullComposeDataStoreRepositoryProvider);
+            ImageLoadModule_ProvideImageLoadClientFactory imageLoadModule_ProvideImageLoadClientFactoryCreate = ImageLoadModule_ProvideImageLoadClientFactory.create(imageLoadModule, this.provideInternalLoggerProvider, this.addClientAppOkHttpClientProvider, this.providesLogInterceptorProvider);
+            this.provideImageLoadClientProvider = imageLoadModule_ProvideImageLoadClientFactoryCreate;
+            ImageLoadModule_ProvideImageLoadRetrofitFactory imageLoadModule_ProvideImageLoadRetrofitFactoryCreate = ImageLoadModule_ProvideImageLoadRetrofitFactory.create(imageLoadModule, imageLoadModule_ProvideImageLoadClientFactoryCreate, this.provideMailAuthorizationSdkUrlsResolverProvider);
+            this.provideImageLoadRetrofitProvider = imageLoadModule_ProvideImageLoadRetrofitFactoryCreate;
+            ImageLoadModule_ProvideImageLoadApiFactory imageLoadModule_ProvideImageLoadApiFactoryCreate = ImageLoadModule_ProvideImageLoadApiFactory.create(imageLoadModule, imageLoadModule_ProvideImageLoadRetrofitFactoryCreate);
+            this.provideImageLoadApiProvider = imageLoadModule_ProvideImageLoadApiFactoryCreate;
+            this.provideAvatarLoadUseCaseProvider = ImageLoadModule_ProvideAvatarLoadUseCaseFactory.create(imageLoadModule, imageLoadModule_ProvideImageLoadApiFactoryCreate, this.providesUserAgentProvider, this.provideStringResolverProvider, this.provideInternalLoggerProvider);
+            this.addCloudWriteToSupportHelperProvider = InstanceFactory.createNullable(cloudWriteToSupportHelper);
+            this.provideDeviceIdProvider = AuthorizeModule_ProvideDeviceIdFactory.create(authorizeModule, this.addDeviceInfoProvider);
+            this.provideDeviceUdidProvider = AuthorizeModule_ProvideDeviceUdidFactory.create(authorizeModule, this.addDeviceInfoProvider);
+            this.providesFinishRestoreConsumerUseCaseProvider = AuthorizeModule_ProvidesFinishRestoreConsumerUseCaseFactory.create(authorizeModule, this.providesFinishRestoreUseCaseImplProvider);
+            CriticalAuthRequests_Factory criticalAuthRequests_FactoryCreate = CriticalAuthRequests_Factory.create(this.provideMailAuthorizationSdkUrlsResolverProvider);
+            this.criticalAuthRequestsProvider = criticalAuthRequests_FactoryCreate;
+            this.provideWebClientProvider = SSOModule_ProvideWebClientFactory.create(sSOModule, this.provideInternalLoggerProvider, criticalAuthRequests_FactoryCreate, this.addVkAppIdProvider);
+            this.provideNetworkErrorDelegateProvider = AuthorizeModule_ProvideNetworkErrorDelegateFactory.create(authorizeModule);
+        }
+
+        private void initialize7(AuthorizeModule authorizeModule, NetworkModule networkModule, CustomServerModule customServerModule, PikachuCaptchaModule pikachuCaptchaModule, SecondFactorModule secondFactorModule, PlatformModule platformModule, ImageLoadModule imageLoadModule, YahooModule yahooModule, SSOModule sSOModule, ImapLocalModule imapLocalModule, YandexModule yandexModule, OutlookModule outlookModule, RegistrationModule registrationModule, VkAutologinModule vkAutologinModule, VkIdAuthModule vkIdAuthModule, EsiaAuthModule esiaAuthModule, OidcLocalModule oidcLocalModule, CloudModule cloudModule, Context context, OkHttpClient okHttpClient, TsaCookieStore tsaCookieStore, ActiveAccountModeProvider activeAccountModeProvider, AuthorizationSdkAnalyticsImpl authorizationSdkAnalyticsImpl, Logger logger, AccountManager accountManager, DeviceInfo deviceInfo, AdvertisingIdProvider advertisingIdProvider, String str, ExternalPlatformData externalPlatformData, Secrets secrets, Secrets secrets2, Secrets secrets3, Secrets secrets4, ForceVkIdSecret forceVkIdSecret, List<String> list, Boolean bool, Boolean bool2, SocialAuthRepository socialAuthRepository, ChildRegHelper childRegHelper, ru.mail.authorizationsdk.external.analytics.common.AppReporter appReporter, NetworkType networkType, RestoreSessionNotificationProvider restoreSessionNotificationProvider, SocialLoginInfoHolderProvider socialLoginInfoHolderProvider, DarkThemeResolver darkThemeResolver, String str2, String str3, Function1<? super VkIdStateAgTokenInteractor, MailAuth> function1, AutologinDataStoreRepository autologinDataStoreRepository, VkIdFullComposeDataStoreRepository vkIdFullComposeDataStoreRepository, RestoreVkDataStoreRepository restoreVkDataStoreRepository, EsiaVkDataStoreRepository esiaVkDataStoreRepository, VKMailAuthDataStoreRepository vKMailAuthDataStoreRepository, AccountLoginChecker accountLoginChecker, CloudWriteToSupportHelper cloudWriteToSupportHelper) {
+            this.provideFilesDirProvider = NetworkModule_ProvideFilesDirFactory.create(networkModule, this.addContextProvider);
+            this.provideWebClientProvider2 = SecondFactorModule_ProvideWebClientFactory.create(secondFactorModule, this.provideInternalLoggerProvider, this.criticalAuthRequestsProvider, this.addVkAppIdProvider);
+            EsiaAuthModule_ProvideExchangeEsiaAccountUseCaseFactory esiaAuthModule_ProvideExchangeEsiaAccountUseCaseFactoryCreate = EsiaAuthModule_ProvideExchangeEsiaAccountUseCaseFactory.create(esiaAuthModule, this.provideEsiaAuthRepositoryProvider);
+            this.provideExchangeEsiaAccountUseCaseProvider = esiaAuthModule_ProvideExchangeEsiaAccountUseCaseFactoryCreate;
+            this.provideEsiaTokenExchangerProvider = VkAutologinModule_ProvideEsiaTokenExchangerFactory.create(vkAutologinModule, esiaAuthModule_ProvideExchangeEsiaAccountUseCaseFactoryCreate, this.addEsiaDataStoreRepositoryProvider);
+            this.addYahooSecretsProvider = InstanceFactory.create(secrets);
+            this.provideYahooAccMailAuthRepositoryProvider = YahooModule_ProvideYahooAccMailAuthRepositoryFactory.create(yahooModule, this.provideMailAuthorizationSdkUrlsResolverProvider, this.provideBaseMailApiProvider);
+            this.providesYahooOauthParamsRepositoryProvider = YahooModule_ProvidesYahooOauthParamsRepositoryFactory.create(yahooModule, this.addYahooSecretsProvider, this.provideMailAuthorizationSdkUrlsResolverProvider);
+            YahooModule_ProvideYahooRetrofitFactory yahooModule_ProvideYahooRetrofitFactoryCreate = YahooModule_ProvideYahooRetrofitFactory.create(yahooModule, this.provideJsonConvertFactoryProvider, this.provideExternalOkHttpClientProvider, this.provideMailAuthorizationSdkUrlsResolverProvider);
+            this.provideYahooRetrofitProvider = yahooModule_ProvideYahooRetrofitFactoryCreate;
+            YahooModule_ProvideYahooApiFactory yahooModule_ProvideYahooApiFactoryCreate = YahooModule_ProvideYahooApiFactory.create(yahooModule, yahooModule_ProvideYahooRetrofitFactoryCreate);
+            this.provideYahooApiProvider = yahooModule_ProvideYahooApiFactoryCreate;
+            YahooRepository_Factory yahooRepository_FactoryCreate = YahooRepository_Factory.create(yahooModule_ProvideYahooApiFactoryCreate);
+            this.yahooRepositoryProvider = yahooRepository_FactoryCreate;
+            this.provideInteractorFactoryProvider = YahooModule_ProvideInteractorFactoryFactory.create(yahooModule, this.addYahooSecretsProvider, this.provideFilesDirProvider, this.provideYahooAccMailAuthRepositoryProvider, this.providesYahooOauthParamsRepositoryProvider, yahooRepository_FactoryCreate);
+            this.provideYandexAuthUrlUseCaseFactoryProvider = YandexModule_ProvideYandexAuthUrlUseCaseFactoryFactory.create(yandexModule, this.providesDeviceInfoProvider);
+            Factory factoryCreate = InstanceFactory.create(secrets2);
+            this.addYandexSecretsProvider = factoryCreate;
+            this.providesYandexOauthParamsRepositoryProvider = YandexModule_ProvidesYandexOauthParamsRepositoryFactory.create(yandexModule, factoryCreate, this.provideMailAuthorizationSdkUrlsResolverProvider);
+            NetworkModule_ProvideAuthUrlResponseMapperFactory networkModule_ProvideAuthUrlResponseMapperFactoryCreate = NetworkModule_ProvideAuthUrlResponseMapperFactory.create(networkModule);
+            this.provideAuthUrlResponseMapperProvider = networkModule_ProvideAuthUrlResponseMapperFactoryCreate;
+            this.providesYandexAuthUrlRemoteSourceProvider = YandexModule_ProvidesYandexAuthUrlRemoteSourceFactory.create(yandexModule, this.provideBaseMailApiProvider, networkModule_ProvideAuthUrlResponseMapperFactoryCreate);
+            YandexModule_ProvidesYandexMapperFactory yandexModule_ProvidesYandexMapperFactoryCreate = YandexModule_ProvidesYandexMapperFactory.create(yandexModule, this.addYandexSecretsProvider);
+            this.providesYandexMapperProvider = yandexModule_ProvidesYandexMapperFactoryCreate;
+            this.providesYandexAccMailAuthRepositoryProvider = YandexModule_ProvidesYandexAccMailAuthRepositoryFactory.create(yandexModule, this.providesYandexAuthUrlRemoteSourceProvider, yandexModule_ProvidesYandexMapperFactoryCreate);
+            YandexModule_ProvideYandexRetrofitFactory yandexModule_ProvideYandexRetrofitFactoryCreate = YandexModule_ProvideYandexRetrofitFactory.create(yandexModule, this.provideJsonConvertFactoryProvider, this.provideExternalOkHttpClientProvider, this.provideInternalLoggerProvider, this.provideMailAuthorizationSdkUrlsResolverProvider);
+            this.provideYandexRetrofitProvider = yandexModule_ProvideYandexRetrofitFactoryCreate;
+            YandexModule_ProvideYandexApiFactory yandexModule_ProvideYandexApiFactoryCreate = YandexModule_ProvideYandexApiFactory.create(yandexModule, yandexModule_ProvideYandexRetrofitFactoryCreate);
+            this.provideYandexApiProvider = yandexModule_ProvideYandexApiFactoryCreate;
+            YandexModule_ProvidesYandexRemoteSourceFactory yandexModule_ProvidesYandexRemoteSourceFactoryCreate = YandexModule_ProvidesYandexRemoteSourceFactory.create(yandexModule, yandexModule_ProvideYandexApiFactoryCreate);
+            this.providesYandexRemoteSourceProvider = yandexModule_ProvidesYandexRemoteSourceFactoryCreate;
+            YandexModule_ProvidesYandexRepositoryFactory yandexModule_ProvidesYandexRepositoryFactoryCreate = YandexModule_ProvidesYandexRepositoryFactory.create(yandexModule, yandexModule_ProvidesYandexRemoteSourceFactoryCreate, this.providesYandexMapperProvider);
+            this.providesYandexRepositoryProvider = yandexModule_ProvidesYandexRepositoryFactoryCreate;
+            this.providesYandexInteractorFactoryProvider = YandexModule_ProvidesYandexInteractorFactoryFactory.create(yandexModule, this.provideFilesDirProvider, this.providesYandexOauthParamsRepositoryProvider, this.providesYandexAccMailAuthRepositoryProvider, yandexModule_ProvidesYandexRepositoryFactoryCreate);
+            Factory factoryCreate2 = InstanceFactory.create(secrets3);
+            this.addOutlookSecretsProvider = factoryCreate2;
+            this.provideOutlookOauthParamsRepositoryProvider = OutlookModule_ProvideOutlookOauthParamsRepositoryFactory.create(outlookModule, factoryCreate2, this.provideMailAuthorizationSdkUrlsResolverProvider);
+        }
+
+        private void initialize8(AuthorizeModule authorizeModule, NetworkModule networkModule, CustomServerModule customServerModule, PikachuCaptchaModule pikachuCaptchaModule, SecondFactorModule secondFactorModule, PlatformModule platformModule, ImageLoadModule imageLoadModule, YahooModule yahooModule, SSOModule sSOModule, ImapLocalModule imapLocalModule, YandexModule yandexModule, OutlookModule outlookModule, RegistrationModule registrationModule, VkAutologinModule vkAutologinModule, VkIdAuthModule vkIdAuthModule, EsiaAuthModule esiaAuthModule, OidcLocalModule oidcLocalModule, CloudModule cloudModule, Context context, OkHttpClient okHttpClient, TsaCookieStore tsaCookieStore, ActiveAccountModeProvider activeAccountModeProvider, AuthorizationSdkAnalyticsImpl authorizationSdkAnalyticsImpl, Logger logger, AccountManager accountManager, DeviceInfo deviceInfo, AdvertisingIdProvider advertisingIdProvider, String str, ExternalPlatformData externalPlatformData, Secrets secrets, Secrets secrets2, Secrets secrets3, Secrets secrets4, ForceVkIdSecret forceVkIdSecret, List<String> list, Boolean bool, Boolean bool2, SocialAuthRepository socialAuthRepository, ChildRegHelper childRegHelper, ru.mail.authorizationsdk.external.analytics.common.AppReporter appReporter, NetworkType networkType, RestoreSessionNotificationProvider restoreSessionNotificationProvider, SocialLoginInfoHolderProvider socialLoginInfoHolderProvider, DarkThemeResolver darkThemeResolver, String str2, String str3, Function1<? super VkIdStateAgTokenInteractor, MailAuth> function1, AutologinDataStoreRepository autologinDataStoreRepository, VkIdFullComposeDataStoreRepository vkIdFullComposeDataStoreRepository, RestoreVkDataStoreRepository restoreVkDataStoreRepository, EsiaVkDataStoreRepository esiaVkDataStoreRepository, VKMailAuthDataStoreRepository vKMailAuthDataStoreRepository, AccountLoginChecker accountLoginChecker, CloudWriteToSupportHelper cloudWriteToSupportHelper) {
+            OutlookModule_ProvideAuthUrlResponseMapperFactory outlookModule_ProvideAuthUrlResponseMapperFactoryCreate = OutlookModule_ProvideAuthUrlResponseMapperFactory.create(outlookModule);
+            this.provideAuthUrlResponseMapperProvider2 = outlookModule_ProvideAuthUrlResponseMapperFactoryCreate;
+            this.providesOutlookAuthUrlRemoteSourceProvider = OutlookModule_ProvidesOutlookAuthUrlRemoteSourceFactory.create(outlookModule, this.provideMailAuthorizationSdkUrlsResolverProvider, this.provideBaseMailApiProvider, outlookModule_ProvideAuthUrlResponseMapperFactoryCreate);
+            OutlookModule_ProvidesOutlookMapperFactory outlookModule_ProvidesOutlookMapperFactoryCreate = OutlookModule_ProvidesOutlookMapperFactory.create(outlookModule, this.addOutlookSecretsProvider, this.provideMailAuthorizationSdkUrlsResolverProvider);
+            this.providesOutlookMapperProvider = outlookModule_ProvidesOutlookMapperFactoryCreate;
+            OutlookModule_ProvidesOutlookAccMailAuthRepositoryFactory outlookModule_ProvidesOutlookAccMailAuthRepositoryFactoryCreate = OutlookModule_ProvidesOutlookAccMailAuthRepositoryFactory.create(outlookModule, this.providesOutlookAuthUrlRemoteSourceProvider, outlookModule_ProvidesOutlookMapperFactoryCreate);
+            this.providesOutlookAccMailAuthRepositoryProvider = outlookModule_ProvidesOutlookAccMailAuthRepositoryFactoryCreate;
+            this.providesOutlookInteractorFactoryProvider = OutlookModule_ProvidesOutlookInteractorFactoryFactory.create(outlookModule, this.provideFilesDirProvider, this.provideOutlookOauthParamsRepositoryProvider, outlookModule_ProvidesOutlookAccMailAuthRepositoryFactoryCreate);
+            this.provideImapCustomServerMailApiProvider = CustomServerModule_ProvideImapCustomServerMailApiFactory.create(customServerModule, this.provideBaseAuthRetrofitProvider);
+            Factory factoryCreate = InstanceFactory.create(activeAccountModeProvider);
+            this.addActiveAccountModeProvider = factoryCreate;
+            this.provideImapCustomServerUseCaseProvider = CustomServerModule_ProvideImapCustomServerUseCaseFactory.create(customServerModule, this.provideImapCustomServerMailApiProvider, factoryCreate, this.provideStringResolverProvider);
+            this.provideServerParamsErrorsVmDelegateProvider = CustomServerModule_ProvideServerParamsErrorsVmDelegateFactory.create(customServerModule);
+            Provider<OkHttpClient> provider = DoubleCheck.provider((Provider) PikachuCaptchaModule_ProvideMailOkHttpClientFactory.create(pikachuCaptchaModule, this.provideInternalLoggerProvider, this.addClientAppOkHttpClientProvider, this.providesLogInterceptorProvider, this.providesPlatformParamsInterceptorProvider));
+            this.provideMailOkHttpClientProvider2 = provider;
+            PikachuCaptchaModule_ProvidePikachuCaptchaRetrofitFactory pikachuCaptchaModule_ProvidePikachuCaptchaRetrofitFactoryCreate = PikachuCaptchaModule_ProvidePikachuCaptchaRetrofitFactory.create(pikachuCaptchaModule, provider, this.provideMailAuthorizationSdkUrlsResolverProvider);
+            this.providePikachuCaptchaRetrofitProvider = pikachuCaptchaModule_ProvidePikachuCaptchaRetrofitFactoryCreate;
+            PikachuCaptchaModule_ProvidePikachuCaptchaApiFactory pikachuCaptchaModule_ProvidePikachuCaptchaApiFactoryCreate = PikachuCaptchaModule_ProvidePikachuCaptchaApiFactory.create(pikachuCaptchaModule, pikachuCaptchaModule_ProvidePikachuCaptchaRetrofitFactoryCreate);
+            this.providePikachuCaptchaApiProvider = pikachuCaptchaModule_ProvidePikachuCaptchaApiFactoryCreate;
+            PikachuCaptchaModule_ProvidePikachuUseCaseFactory pikachuCaptchaModule_ProvidePikachuUseCaseFactoryCreate = PikachuCaptchaModule_ProvidePikachuUseCaseFactory.create(pikachuCaptchaModule, this.provideStringResolverProvider, pikachuCaptchaModule_ProvidePikachuCaptchaApiFactoryCreate);
+            this.providePikachuUseCaseProvider = pikachuCaptchaModule_ProvidePikachuUseCaseFactoryCreate;
+            this.providePikachuCaptchaVmDelegateProvider = CustomServerModule_ProvidePikachuCaptchaVmDelegateFactory.create(customServerModule, this.provideIoDispatcherProvider, pikachuCaptchaModule_ProvidePikachuUseCaseFactoryCreate);
+            this.provideLoadingDelegateProvider = AuthorizeModule_ProvideLoadingDelegateFactory.create(authorizeModule);
+            PlatformModule_ProvidesRegDeviceInfoFactory platformModule_ProvidesRegDeviceInfoFactoryCreate = PlatformModule_ProvidesRegDeviceInfoFactory.create(platformModule, this.addContextProvider, this.addDeviceInfoProvider);
+            this.providesRegDeviceInfoProvider = platformModule_ProvidesRegDeviceInfoFactoryCreate;
+            PlatformModule_ProvideRegPlatformParamsFactory platformModule_ProvideRegPlatformParamsFactoryCreate = PlatformModule_ProvideRegPlatformParamsFactory.create(platformModule, this.providesDeviceIdProvider, platformModule_ProvidesRegDeviceInfoFactoryCreate, this.addAdvertisingIdProvider, this.addExternalPlatformDataProvider);
+            this.provideRegPlatformParamsProvider = platformModule_ProvideRegPlatformParamsFactoryCreate;
+            NetworkModule_ProvidesRegPlatformParamsInterceptorFactory networkModule_ProvidesRegPlatformParamsInterceptorFactoryCreate = NetworkModule_ProvidesRegPlatformParamsInterceptorFactory.create(networkModule, this.addContextProvider, platformModule_ProvideRegPlatformParamsFactoryCreate, this.addAuthCsrfHeaderProvider, this.providesUserAgentProvider);
+            this.providesRegPlatformParamsInterceptorProvider = networkModule_ProvidesRegPlatformParamsInterceptorFactoryCreate;
+            Provider<OkHttpClient> provider2 = DoubleCheck.provider((Provider) RegistrationModule_ProvideSignupHttpClientFactory.create(registrationModule, this.provideInternalLoggerProvider, this.addClientAppOkHttpClientProvider, this.providesLogInterceptorProvider, networkModule_ProvidesRegPlatformParamsInterceptorFactoryCreate, this.providesRetryInterceptorProvider));
+            this.provideSignupHttpClientProvider = provider2;
+            RegistrationModule_ProvideSignupRetrofitFactory registrationModule_ProvideSignupRetrofitFactoryCreate = RegistrationModule_ProvideSignupRetrofitFactory.create(registrationModule, provider2, this.provideMailAuthorizationSdkUrlsResolverProvider);
+            this.provideSignupRetrofitProvider = registrationModule_ProvideSignupRetrofitFactoryCreate;
+            this.provideSignupApiProvider = RegistrationModule_ProvideSignupApiFactory.create(registrationModule, registrationModule_ProvideSignupRetrofitFactoryCreate);
+            RegistrationModule_ProvideAfterRegAuthRetrofitFactory registrationModule_ProvideAfterRegAuthRetrofitFactoryCreate = RegistrationModule_ProvideAfterRegAuthRetrofitFactory.create(registrationModule, this.provideJsonConvertFactoryProvider, this.provideSignupHttpClientProvider, this.provideMailAuthorizationSdkUrlsResolverProvider, this.provideInternalLoggerProvider);
+            this.provideAfterRegAuthRetrofitProvider = registrationModule_ProvideAfterRegAuthRetrofitFactoryCreate;
+            this.provideAfterRegAuthApiProvider = RegistrationModule_ProvideAfterRegAuthApiFactory.create(registrationModule, registrationModule_ProvideAfterRegAuthRetrofitFactoryCreate);
+            RegistrationModule_ProvideSignupErrorMapperFactory registrationModule_ProvideSignupErrorMapperFactoryCreate = RegistrationModule_ProvideSignupErrorMapperFactory.create(registrationModule);
+            this.provideSignupErrorMapperProvider = registrationModule_ProvideSignupErrorMapperFactoryCreate;
+            this.provideSignupResultMapperProvider = RegistrationModule_ProvideSignupResultMapperFactory.create(registrationModule, registrationModule_ProvideSignupErrorMapperFactoryCreate, this.provideInternalLoggerProvider);
+        }
+
+        private void initialize9(AuthorizeModule authorizeModule, NetworkModule networkModule, CustomServerModule customServerModule, PikachuCaptchaModule pikachuCaptchaModule, SecondFactorModule secondFactorModule, PlatformModule platformModule, ImageLoadModule imageLoadModule, YahooModule yahooModule, SSOModule sSOModule, ImapLocalModule imapLocalModule, YandexModule yandexModule, OutlookModule outlookModule, RegistrationModule registrationModule, VkAutologinModule vkAutologinModule, VkIdAuthModule vkIdAuthModule, EsiaAuthModule esiaAuthModule, OidcLocalModule oidcLocalModule, CloudModule cloudModule, Context context, OkHttpClient okHttpClient, TsaCookieStore tsaCookieStore, ActiveAccountModeProvider activeAccountModeProvider, AuthorizationSdkAnalyticsImpl authorizationSdkAnalyticsImpl, Logger logger, AccountManager accountManager, DeviceInfo deviceInfo, AdvertisingIdProvider advertisingIdProvider, String str, ExternalPlatformData externalPlatformData, Secrets secrets, Secrets secrets2, Secrets secrets3, Secrets secrets4, ForceVkIdSecret forceVkIdSecret, List<String> list, Boolean bool, Boolean bool2, SocialAuthRepository socialAuthRepository, ChildRegHelper childRegHelper, ru.mail.authorizationsdk.external.analytics.common.AppReporter appReporter, NetworkType networkType, RestoreSessionNotificationProvider restoreSessionNotificationProvider, SocialLoginInfoHolderProvider socialLoginInfoHolderProvider, DarkThemeResolver darkThemeResolver, String str2, String str3, Function1<? super VkIdStateAgTokenInteractor, MailAuth> function1, AutologinDataStoreRepository autologinDataStoreRepository, VkIdFullComposeDataStoreRepository vkIdFullComposeDataStoreRepository, RestoreVkDataStoreRepository restoreVkDataStoreRepository, EsiaVkDataStoreRepository esiaVkDataStoreRepository, VKMailAuthDataStoreRepository vKMailAuthDataStoreRepository, AccountLoginChecker accountLoginChecker, CloudWriteToSupportHelper cloudWriteToSupportHelper) {
+            RegistrationModule_ProvideSignupParamsMapperFactory registrationModule_ProvideSignupParamsMapperFactoryCreate = RegistrationModule_ProvideSignupParamsMapperFactory.create(registrationModule, this.provideInternalLoggerProvider);
+            this.provideSignupParamsMapperProvider = registrationModule_ProvideSignupParamsMapperFactoryCreate;
+            RegistrationModule_ProvideSignupRepositoryFactory registrationModule_ProvideSignupRepositoryFactoryCreate = RegistrationModule_ProvideSignupRepositoryFactory.create(registrationModule, this.provideSignupApiProvider, this.provideAfterRegAuthApiProvider, this.provideSignupResultMapperProvider, registrationModule_ProvideSignupParamsMapperFactoryCreate, this.provideInternalLoggerProvider);
+            this.provideSignupRepositoryProvider = registrationModule_ProvideSignupRepositoryFactoryCreate;
+            this.provideSignupUseCaseProvider = RegistrationModule_ProvideSignupUseCaseFactory.create(registrationModule, registrationModule_ProvideSignupRepositoryFactoryCreate);
+            this.provideUserExistsUseCaseProvider = RegistrationModule_ProvideUserExistsUseCaseFactory.create(registrationModule, this.provideSignupRepositoryProvider);
+            this.addChildRegHelperProvider = InstanceFactory.create(childRegHelper);
+        }
+
+        AccessTokenRefreshApi accessTokenRefreshApi() {
+            return AuthorizeModule_ProvideAccessTokenRefreshApiFactory.provideAccessTokenRefreshApi(this.authorizeModule, updateTokensRetrofitRetrofit());
+        }
+
+        AccountManagerDelegate accountManagerDelegate() {
+            return AuthorizeModule_ProvideAccountManagerDelegateFactory.provideAccountManagerDelegate(this.authorizeModule, this.addContext, this.addAccountManager, SecondFactorModule_ProvideAccountTypeFactory.provideAccountType(this.secondFactorModule), this.addAccountLoginChecker);
+        }
+
+        AuthDelegate authDelegate() {
+            return NetworkModule_ProvidesAuthDelegateFactory.providesAuthDelegate(this.networkModule, this.addAnalytics, resources(), internalLogger());
+        }
+
+        SharedPreferences authorizationSdkPrefsSharedPreferences() {
+            return AuthorizeModule_ProvideSharedPreferencesFactory.provideSharedPreferences(this.authorizeModule, this.addContext);
+        }
+
+        AuthorizationSdkUrlsResolver authorizationSdkUrlsResolver() {
+            return NetworkModule_ProvideMailAuthorizationSdkUrlsResolverFactory.provideMailAuthorizationSdkUrlsResolver(this.networkModule, resources(), this.addIsMiniMail.booleanValue(), this.addIsTest.booleanValue(), oidcDiscoveryLocalUseCase());
+        }
+
+        Retrofit baseAuthRetrofitRetrofit() {
+            return NetworkModule_ProvideBaseAuthRetrofitFactory.provideBaseAuthRetrofit(this.networkModule, this.provideJsonConvertFactoryProvider.get(), this.provideMailOkHttpClientProvider.get(), authorizationSdkUrlsResolver(), internalLogger());
+        }
+
+        CommonAuthorizationMailApi commonAuthorizationMailApi() {
+            return NetworkModule_ProvideCommonAuthMailApiFactory.provideCommonAuthMailApi(this.networkModule, baseAuthRetrofitRetrofit());
+        }
+
+        CommonAuthorizationRepository commonAuthorizationRepository() {
+            return NetworkModule_ProvideCommonAuthorizationRepositoryFactory.provideCommonAuthorizationRepository(this.networkModule, AuthorizeModule_ProvideIoDispatcherFactory.provideIoDispatcher(this.authorizeModule), commonAuthorizationMailApi(), NetworkModule_ProvideBasePasswordOauthParamsFactory.provideBasePasswordOauthParams(this.networkModule), authDelegate(), authorizationSdkUrlsResolver(), this.addClientId);
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent
+        public AuthorizeSdkComponent.Factory componentFactory() {
+            return new AuthorizeSdkComponentFactory(this.authorizeCommonSdkComponentImpl);
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent
+        public ExternalTokenExchangerUseCase getExternalAutologinTokenExchangerUseCase() {
+            return VkAutologinModule_ProvideExternalAutologinTokenExchangerUseCaseFactory.provideExternalAutologinTokenExchangerUseCase(this.vkAutologinModule, vkIdAuthRepository(), this.addAutologinDataStoreRepository);
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent
+        public ExternalTokenExchangerUseCase getExternalRestoreTokenExchangerUseCase() {
+            return VkAutologinModule_ProvideRestoreVkTokenExchangerFactory.provideRestoreVkTokenExchanger(this.vkAutologinModule, vkIdAuthRepository(), this.addRestoreDataStoreRepository);
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent
+        public ExternalTokenExchangerUseCase getExternalVkIdTokenExchangerUseCase() {
+            return VkAutologinModule_ProvideVkIdTokenExchangerFactory.provideVkIdTokenExchanger(this.vkAutologinModule, vkIdAuthRepository(), this.addVkIdFullComposeDataStoreRepository);
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent
+        public FinishAutologinControllerUseCase getFinishAutologinControllerUseCase() {
+            return AuthorizeModule_ProvidesFinishAutologinControllerUseCaseFactory.providesFinishAutologinControllerUseCase(this.authorizeModule, this.providesFinishAutologinUseCaseImplProvider.get());
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent
+        public FinishRestoreControllerUseCase getFinishRestoreControllerUseCase() {
+            return AuthorizeModule_ProvidesFinishRestoreControllerUseCaseFactory.providesFinishRestoreControllerUseCase(this.authorizeModule, this.providesFinishRestoreUseCaseImplProvider.get());
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent
+        public FinishVkIdControllerUseCase getFinishVkIdControllerUseCase() {
+            return this.providesFinishVkIdControllerUseCaseProvider.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent
+        public MailAuthByAgTokenUseCase getMailAuthByAgTokenUseCase() {
+            return AuthorizeModule_ProvideMailAuthByAgTokenUseCaseFactory.provideMailAuthByAgTokenUseCase(this.authorizeModule, commonAuthorizationRepository());
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent
+        public UpdateAccessTokenUseCase getUpdateAccessTokenUseCase() {
+            return AuthorizeModule_ProvideUpdateAccessTokenUseCaseFactory.provideUpdateAccessTokenUseCase(this.authorizeModule, updateAccessTokenRepository());
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent
+        public ExternalTokenExchangerUseCase getVKMailAuthExternalTokenExchangerUseCase() {
+            return VkIdAuthModule_ProvideVKMailAuthTokenExchangerUseCaseFactory.provideVKMailAuthTokenExchangerUseCase(this.vkIdAuthModule, vkIdAuthRepository(), this.addVKMailAuthDataStoreRepository);
+        }
+
+        InternalLogger internalLogger() {
+            return AuthorizeModule_ProvideInternalLoggerFactory.provideInternalLogger(this.authorizeModule, this.addLogger, NetworkModule_ProvidesLogFilterFactory.providesLogFilter(this.networkModule));
+        }
+
+        OidcDiscoveryLocalRepository oidcDiscoveryLocalRepository() {
+            return OidcLocalModule_ProvideOidcDiscoveryLocalRepositoryFactory.provideOidcDiscoveryLocalRepository(this.oidcLocalModule, oidcDiscoveryLocalSource());
+        }
+
+        OidcDiscoveryLocalSource oidcDiscoveryLocalSource() {
+            return OidcLocalModule_ProvideOidcDiscoveryLocalSourceFactory.provideOidcDiscoveryLocalSource(this.oidcLocalModule, authorizationSdkPrefsSharedPreferences(), resources());
+        }
+
+        OidcDiscoveryLocalUseCase oidcDiscoveryLocalUseCase() {
+            return OidcLocalModule_ProvideOidcDiscoveryLocalUseCaseFactory.provideOidcDiscoveryLocalUseCase(this.oidcLocalModule, oidcDiscoveryLocalRepository());
+        }
+
+        Resources resources() {
+            return AuthorizeModule_ProvideStringResolverFactory.provideStringResolver(this.authorizeModule, this.addContext);
+        }
+
+        UpdateAccessTokenRemoteSource updateAccessTokenRemoteSource() {
+            return AuthorizeModule_ProvideUpdateAccessTokenRemoteSourceFactory.provideUpdateAccessTokenRemoteSource(this.authorizeModule, accessTokenRefreshApi());
+        }
+
+        UpdateAccessTokenRepository updateAccessTokenRepository() {
+            return AuthorizeModule_ProvideUpdateAccessTokenRepositoryFactory.provideUpdateAccessTokenRepository(this.authorizeModule, updateAccessTokenRemoteSource());
+        }
+
+        Retrofit updateTokensRetrofitRetrofit() {
+            return AuthorizeModule_ProvideUpdateTokensRetrofitFactory.provideUpdateTokensRetrofit(this.authorizeModule, this.provideJsonConvertFactoryProvider.get(), this.provideUpdateTokensOkHttpClientProvider.get(), authorizationSdkUrlsResolver());
+        }
+
+        VkIdAuthRepository vkIdAuthRepository() {
+            return VkIdAuthModule_ProvideVkIdAuthRepositoryFactory.provideVkIdAuthRepository(this.vkIdAuthModule, vkidAuthApi(), VkIdAuthModule_ProvideExchangeVkIdAccountMapperFactory.provideExchangeVkIdAccountMapper(this.vkIdAuthModule), this.addForceVkIdSecret, this.addAuthCsrfHeader);
+        }
+
+        VkidAuthApi vkidAuthApi() {
+            return VkIdAuthModule_ProvideVkIdAuthApiFactory.provideVkIdAuthApi(this.vkIdAuthModule, this.provideAccountRetrofitProvider.get());
+        }
+    }
+
+    /* JADX INFO: compiled from: ProGuard */
+    private static final class AuthorizeSdkComponentFactory implements AuthorizeSdkComponent.Factory {
+        private final AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl;
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent.Factory
+        public AuthorizeSdkComponent create(AuthorizationSdkConfig authorizationSdkConfig) {
+            Preconditions.checkNotNull(authorizationSdkConfig);
+            return new AuthorizeSdkComponentImpl(this.authorizeCommonSdkComponentImpl, new AuthorizeConfigModule(), new SessionRestoreModule(), new LoginModule(), new ExternalMigrationModule(), new ForceVKIDModule(), new VKIDModule(), new ImapLocalConfigDependModule(), new NetworkConfigDependModule(), new OidcRemoteModule(), new ImageLoadConfigDependModule(), new EnterPhoneModule(), new EnterPhoneCodeModule(), new EnterEmailCodeModule(), new OKModule(), new GoogleModule(), authorizationSdkConfig);
+        }
+
+        private AuthorizeSdkComponentFactory(AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl) {
+            this.authorizeCommonSdkComponentImpl = authorizeCommonSdkComponentImpl;
+        }
+    }
+
+    /* JADX INFO: compiled from: ProGuard */
+    private static final class AuthorizeSdkComponentImpl implements AuthorizeSdkComponent {
+        C1752AccountListViewModel_Factory accountListViewModelProvider;
+        C1604AuthViewModel_Factory authViewModelProvider;
+        private final AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl;
+        private final AuthorizeConfigModule authorizeConfigModule;
+        private final AuthorizeSdkComponentImpl authorizeSdkComponentImpl = this;
+        C1617BeforeRecoveryVKIDViewModel_Factory beforeRecoveryVKIDViewModelProvider;
+        C1622BindEmailViewModel_Factory bindEmailViewModelProvider;
+        C1627ChangePasswordViewModel_Factory changePasswordViewModelProvider;
+        C1801ChoiceAccountViewModel_Factory choiceAccountViewModelProvider;
+        C1705CloudLoginVKViewModel_Factory cloudLoginVKViewModelProvider;
+        C1683CloudLoginViewModel_Factory cloudLoginViewModelProvider;
+        C1753CodeReceivedTypeBottomSheetViewModel_Factory codeReceivedTypeBottomSheetViewModelProvider;
+        private final AuthorizationSdkConfig config;
+        Provider<AuthorizationSdkConfig> configProvider;
+        C1685CreateCloudViewModel_Factory createCloudViewModelProvider;
+        C1632CustomServerViewModel_Factory customServerViewModelProvider;
+        Provider<DomainSuggestionsUseCase> domainSuggestionsUseCaseProvider;
+        Provider<EmailSuggestionsUseCase> emailSuggestionsUseCaseProvider;
+        C1772EnterEmailCodeAfterListAccViewModel_Factory enterEmailCodeAfterListAccViewModelProvider;
+        C1768EnterEmailCodeViewModel_Factory enterEmailCodeViewModelProvider;
+        C1763EnterPhoneCodeViewModel_Factory enterPhoneCodeViewModelProvider;
+        C1636EnterPhoneViewModel_Factory enterPhoneViewModelProvider;
+        C1805EsiaViewModel_Factory esiaViewModelProvider;
+        C1638ExternalAccMigrationViewModel_Factory externalAccMigrationViewModelProvider;
+        Provider<AuthViewModel.Factory> factoryProvider;
+        Provider<PasswordViewModel.Factory> factoryProvider10;
+        Provider<EnterPhoneViewModel.Factory> factoryProvider11;
+        Provider<EnterPhoneCodeViewModel.Factory> factoryProvider12;
+        Provider<EnterEmailCodeViewModel.Factory> factoryProvider13;
+        Provider<AccountListViewModel.Factory> factoryProvider14;
+        Provider<EnterEmailCodeAfterListAccViewModel.Factory> factoryProvider15;
+        Provider<NotReceivedCodeBottomSheetViewModel.Factory> factoryProvider16;
+        Provider<CodeReceivedTypeBottomSheetViewModel.Factory> factoryProvider17;
+        Provider<LoginBindFlowViewModel.Factory> factoryProvider18;
+        Provider<RestorePasswordViewModel.Factory> factoryProvider19;
+        Provider<SocialAuthViewModel.Factory> factoryProvider2;
+        Provider<RestoreVkViewModel.Factory> factoryProvider20;
+        Provider<WebCaptchaComposeViewModel.Factory> factoryProvider21;
+        Provider<OneTimeCodeViewModel.Factory> factoryProvider22;
+        Provider<SSOViewModel.Factory> factoryProvider23;
+        Provider<VkPasswordViewModel.Factory> factoryProvider24;
+        Provider<SecondStepViewModel.Factory> factoryProvider25;
+        Provider<EsiaViewModel.Factory> factoryProvider26;
+        Provider<BindEmailViewModel.Factory> factoryProvider27;
+        Provider<ExternalAccMigrationViewModel.Factory> factoryProvider28;
+        Provider<YahooViewModel.Factory> factoryProvider29;
+        Provider<VkIdFragmentSupportViewModel.Factory> factoryProvider3;
+        Provider<MrimDialogViewModel.Factory> factoryProvider30;
+        Provider<WrongVkidAccountViewModel.Factory> factoryProvider31;
+        Provider<YandexHelpViewModel.Factory> factoryProvider32;
+        Provider<OKLoginViewModel.Factory> factoryProvider33;
+        Provider<CustomServerViewModel.Factory> factoryProvider34;
+        Provider<BeforeRecoveryVKIDViewModel.Factory> factoryProvider35;
+        Provider<UnblockUserViewModel.Factory> factoryProvider36;
+        Provider<ChangePasswordViewModel.Factory> factoryProvider37;
+        Provider<RegistrationMainViewModel.Factory> factoryProvider38;
+        Provider<RegistrationViewModel.Factory> factoryProvider39;
+        Provider<CloudLoginVKViewModel.Factory> factoryProvider4;
+        Provider<ParentSelectionViewModel.Factory> factoryProvider40;
+        Provider<VkBindInLoginViewModel.Factory> factoryProvider41;
+        Provider<LoginVKViewModel.Factory> factoryProvider5;
+        Provider<LoginViewModel.Factory> factoryProvider6;
+        Provider<ChoiceAccountViewModel.Factory> factoryProvider7;
+        Provider<CloudLoginViewModel.Factory> factoryProvider8;
+        Provider<CreateCloudViewModel.Factory> factoryProvider9;
+        Provider<GoogleAssistedFactory> googleAssistedFactoryProvider;
+        GoogleViewModel_Factory googleViewModelProvider;
+        Provider<GoogleWebAuthAssistedFactory> googleWebAuthAssistedFactoryProvider;
+        GoogleWebAuthViewModel_Factory googleWebAuthViewModelProvider;
+        C1740LoginBindFlowViewModel_Factory loginBindFlowViewModelProvider;
+        C1736LoginVKViewModel_Factory loginVKViewModelProvider;
+        C1717LoginViewModel_Factory loginViewModelProvider;
+        C1742MrimDialogViewModel_Factory mrimDialogViewModelProvider;
+        C1773NotReceivedCodeBottomSheetViewModel_Factory notReceivedCodeBottomSheetViewModelProvider;
+        C1744OKLoginViewModel_Factory oKLoginViewModelProvider;
+        private final OidcRemoteModule oidcRemoteModule;
+        C1746OneTimeCodeViewModel_Factory oneTimeCodeViewModelProvider;
+        Provider<OutlookAssistedFactory> outlookAssistedFactoryProvider;
+        OutlookViewModel_Factory outlookViewModelProvider;
+        C1787ParentSelectionViewModel_Factory parentSelectionViewModelProvider;
+        C1749PasswordViewModel_Factory passwordViewModelProvider;
+        Provider<AuthRequirementsRepository> provideAuthRequirementsRepositoryProvider;
+        Provider<StartAutologinUseCase> provideAutologinUseCaseProvider;
+        Provider<BrowserConfig> provideBrowserConfigProvider;
+        Provider<EnteredEmailValidator> provideEnteredEmailValidatorProvider;
+        Provider<ExternalAccMailApi> provideExternalAccMailApiProvider;
+        Provider<ExternalAuthAllowanceApi> provideExternalAuthAllowanceApiProvider;
+        Provider<ExternalAuthAllowanceRepository> provideExternalAuthAllowanceRepositoryProvider;
+        Provider<ExternalAuthInteractor> provideExternalAuthInteractorProvider;
+        Provider<Retrofit> provideExternalMigrationRetrofitProvider;
+        Provider<FinishAutologinDelegate> provideFinishAutologinDelegateProvider;
+        Provider<FlavorConfig> provideFlavorConfigProvider;
+        Provider<ForceVKIDApi> provideForceVKIDApiProvider;
+        Provider<ForceVKIDInteractor> provideForceVKIDInteractorProvider;
+        Provider<OkHttpClient> provideForceVKIDOkHttpClientProvider;
+        Provider<ForceVKIDRepository> provideForceVKIDRepositoryProvider;
+        Provider<Retrofit> provideForceVKIDRetrofitProvider;
+        Provider<ForceVkIdIVkLoginInteractorFactory> provideForceVkIdVkLoginInteractorFactoryProvider;
+        Provider<GetPushAuthInfoUseCase> provideGetPushAuthInfoUseCaseProvider;
+        Provider<GoogleApi> provideGoogleApiProvider;
+        Provider<CloudGoogleNativeTokenExchange> provideGoogleNativeTokenExchangeProvider;
+        Provider<GoogleOauthParamsRepositoryFactory> provideGoogleOauth2ParamsRepositoryProvider;
+        Provider<Retrofit> provideGoogleRetrofitProvider;
+        Provider<ImapSettingsProcessorAuthSdk> provideImapSettingsProcessorAuthSdkProvider;
+        Provider<ImapSettingsRepositoryAuthSdk> provideImapSettingsRepositoryAuthSdkProvider;
+        Provider<LocalImapInteractor> provideLocalImapInteractorProvider;
+        Provider<ServicesRepository> provideLoginRepositoryProvider;
+        Provider<LongClickLogoDelegate> provideLongClickOnLogoDelegateProvider;
+        Provider<OauthTokenApi> provideOAuthApiProvider;
+        Provider<Retrofit> provideOAuthMailRetrofitProvider;
+        Provider<OKAuthInteractor> provideOKAuthInteractorProvider;
+        Provider<OKAuthMapper> provideOKAuthMapperProvider;
+        Provider<OKAuthRepository> provideOKAuthRepositoryProvider;
+        Provider<Odnoklassniki> provideOKAuthSdkProvider;
+        Provider<OKAuthDelegate> provideOKOAuthDelegateProvider;
+        Provider<Retrofit> provideOKRetrofitProvider;
+        Provider<PhoneAuthInteractor> providePhoneAuthInteractorProvider;
+        Provider<PhoneHelper> providePhoneHelperProvider;
+        Provider<PhoneNumberUtil> providePhoneUtilProvider;
+        Provider<ProcessAutologinUseCase> provideProcessAutologinUseCaseProvider;
+        Provider<ProviderInfoUseCase> provideProviderInfoUseCaseProvider;
+        Provider<ProviderParserAuthSdk> provideProviderParserAuthSdkProvider;
+        Provider<PushAuthInfoApi> providePushAuthInfoApiProvider;
+        Provider<PushAuthInfoConfig> providePushAuthInfoConfigProvider;
+        Provider<OkHttpClient> providePushAuthInfoOkHttpClientProvider;
+        Provider<PushAuthRemoteSource> providePushAuthInfoRemoteSourceProvider;
+        Provider<PushAuthInfoRepository> providePushAuthInfoRepositoryProvider;
+        Provider<Retrofit> providePushAuthInfoRetrofitProvider;
+        Provider<RegEventProvider> provideRegEventProvider;
+        Provider<ResendCodeUseCase> provideResendCodeUseCaseProvider;
+        Provider<ResendEmailCodeUseCase> provideResendEmailCodeUseCaseProvider;
+        Provider<RestoreVkDelegate> provideRestoreVkDelegateProvider;
+        Provider<ServicesUseCase> provideServicesUseCaseProvider;
+        Provider<SilentAuthInfoProvider> provideSilentAuthInfoProvider;
+        Provider<SmsVerificationRepository> provideSmsVerificationRepositoryProvider;
+        Provider<SocialAuthInteractor> provideSocialAuthInteractorProvider;
+        Provider<SwitchToSmsUseCase> provideSwitchToSmsUseCaseProvider;
+        Provider<String> provideTempDirectoryPathProvider;
+        Provider<VerifyEmailCodeUseCase> provideVerifyEmailCodeUseCaseProvider;
+        Provider<VerifyPhoneCodeUseCase> provideVerifyPhoneCodeUseCaseProvider;
+        Provider<VkAvatarLoadUseCase> provideVkAvatarLoadUseCaseProvider;
+        Provider<VkBindInLoginConfig> provideVkBindInLoginConfigProvider;
+        Provider<VkSdkSilentProvider> provideVkSdkSilentProvider;
+        Provider<WebViewHelper> provideWebViewHelperProvider;
+        Provider<AuthInteractor> providesAuthInteractorProvider;
+        Provider<CheckPhoneUseCaseFactory> providesCheckPhoneUseCaseFactoryProvider;
+        Provider<CloudGoogleGetCodeRemoteSource> providesCloudGoogleCodeRemoteSourceProvider;
+        Provider<CloudGoogleGetCodeRepository> providesCloudGoogleGetCodeRepositoryProvider;
+        Provider<CommonConfig> providesCommonConfigProvider;
+        Provider<FastLoginBtnDelegateFactory> providesFastLoginBtnDelegateProvider;
+        Provider<GoogleAccMailAuthRepository> providesGoogleAccMailAuthRepositoryProvider;
+        Provider<GoogleAuthUrlRemoteSource> providesGoogleAuthUrlRemoteSourceProvider;
+        Provider<CloudGoogleMailAuthRepository> providesGoogleCloudMailAuthRepositoryProvider;
+        Provider<GoogleAuthUrlInteractorFactory> providesGoogleInteractorFactoryProvider;
+        Provider<GoogleMapper> providesGoogleMapperProvider;
+        Provider<GoogleRemoteSource> providesGoogleRemoteSourceProvider;
+        Provider<GoogleRepository> providesGoogleRepositoryProvider;
+        Provider<ImapConfig> providesImapConfigProvider;
+        Provider<LibverifyHelper> providesLibverifyHelperProvider;
+        Provider<LoginConfig> providesLoginConfigProvider;
+        Provider<LudwigConfig> providesLudwigConfigProvider;
+        Provider<MrimConfig> providesMrimConfigProvider;
+        Provider<OKAuthRemoteSource> providesOKAuthRemoteSourceProvider;
+        Provider<RegConfig> providesRegConfigProvider;
+        Provider<RequestMapper> providesRequestMapperProvider;
+        Provider<SecondStepConfig> providesSecondStepConfigProvider;
+        Provider<SocialAuthConfig> providesSocialAuthConfigProvider;
+        Provider<SuggestionsAccountsRepository> providesSuggestionsAccountsRepositoryProvider;
+        Provider<YandexHelpConfiguration> providesYandexHelpConfigProvider;
+        C1779RegistrationMainViewModel_Factory registrationMainViewModelProvider;
+        C1786RegistrationViewModel_Factory registrationViewModelProvider;
+        Provider<RestorePasswordInteractor> restorePasswordInteractorProvider;
+        Provider<RestorePasswordRepository> restorePasswordRepositoryProvider;
+        C1789RestorePasswordViewModel_Factory restorePasswordViewModelProvider;
+        C1792RestoreVkViewModel_Factory restoreVkViewModelProvider;
+        C1820SSOViewModel_Factory sSOViewModelProvider;
+        C1795SecondStepViewModel_Factory secondStepViewModelProvider;
+        private final SessionRestoreModule sessionRestoreModule;
+        C1818SocialAuthViewModel_Factory socialAuthViewModelProvider;
+        C1821UnblockUserViewModel_Factory unblockUserViewModelProvider;
+        C1823VkBindInLoginViewModel_Factory vkBindInLoginViewModelProvider;
+        C1828VkIdFragmentSupportViewModel_Factory vkIdFragmentSupportViewModelProvider;
+        C1831VkPasswordViewModel_Factory vkPasswordViewModelProvider;
+        C1625WebCaptchaComposeViewModel_Factory webCaptchaComposeViewModelProvider;
+        C1829WrongVkidAccountViewModel_Factory wrongVkidAccountViewModelProvider;
+        C1836YahooViewModel_Factory yahooViewModelProvider;
+        Provider<YandexAssistedFactory> yandexAssistedFactoryProvider;
+        C1837YandexHelpViewModel_Factory yandexHelpViewModelProvider;
+        YandexViewModel_Factory yandexViewModelProvider;
+
+        AuthorizeSdkComponentImpl(AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl, AuthorizeConfigModule authorizeConfigModule, SessionRestoreModule sessionRestoreModule, LoginModule loginModule, ExternalMigrationModule externalMigrationModule, ForceVKIDModule forceVKIDModule, VKIDModule vKIDModule, ImapLocalConfigDependModule imapLocalConfigDependModule, NetworkConfigDependModule networkConfigDependModule, OidcRemoteModule oidcRemoteModule, ImageLoadConfigDependModule imageLoadConfigDependModule, EnterPhoneModule enterPhoneModule, EnterPhoneCodeModule enterPhoneCodeModule, EnterEmailCodeModule enterEmailCodeModule, OKModule oKModule, GoogleModule googleModule, AuthorizationSdkConfig authorizationSdkConfig) {
+            this.authorizeCommonSdkComponentImpl = authorizeCommonSdkComponentImpl;
+            this.sessionRestoreModule = sessionRestoreModule;
+            this.authorizeConfigModule = authorizeConfigModule;
+            this.config = authorizationSdkConfig;
+            this.oidcRemoteModule = oidcRemoteModule;
+            initialize(authorizeConfigModule, sessionRestoreModule, loginModule, externalMigrationModule, forceVKIDModule, vKIDModule, imapLocalConfigDependModule, networkConfigDependModule, oidcRemoteModule, imageLoadConfigDependModule, enterPhoneModule, enterPhoneCodeModule, enterEmailCodeModule, oKModule, googleModule, authorizationSdkConfig);
+            initialize2(authorizeConfigModule, sessionRestoreModule, loginModule, externalMigrationModule, forceVKIDModule, vKIDModule, imapLocalConfigDependModule, networkConfigDependModule, oidcRemoteModule, imageLoadConfigDependModule, enterPhoneModule, enterPhoneCodeModule, enterEmailCodeModule, oKModule, googleModule, authorizationSdkConfig);
+            initialize3(authorizeConfigModule, sessionRestoreModule, loginModule, externalMigrationModule, forceVKIDModule, vKIDModule, imapLocalConfigDependModule, networkConfigDependModule, oidcRemoteModule, imageLoadConfigDependModule, enterPhoneModule, enterPhoneCodeModule, enterEmailCodeModule, oKModule, googleModule, authorizationSdkConfig);
+            initialize4(authorizeConfigModule, sessionRestoreModule, loginModule, externalMigrationModule, forceVKIDModule, vKIDModule, imapLocalConfigDependModule, networkConfigDependModule, oidcRemoteModule, imageLoadConfigDependModule, enterPhoneModule, enterPhoneCodeModule, enterEmailCodeModule, oKModule, googleModule, authorizationSdkConfig);
+            initialize5(authorizeConfigModule, sessionRestoreModule, loginModule, externalMigrationModule, forceVKIDModule, vKIDModule, imapLocalConfigDependModule, networkConfigDependModule, oidcRemoteModule, imageLoadConfigDependModule, enterPhoneModule, enterPhoneCodeModule, enterEmailCodeModule, oKModule, googleModule, authorizationSdkConfig);
+            initialize6(authorizeConfigModule, sessionRestoreModule, loginModule, externalMigrationModule, forceVKIDModule, vKIDModule, imapLocalConfigDependModule, networkConfigDependModule, oidcRemoteModule, imageLoadConfigDependModule, enterPhoneModule, enterPhoneCodeModule, enterEmailCodeModule, oKModule, googleModule, authorizationSdkConfig);
+            initialize7(authorizeConfigModule, sessionRestoreModule, loginModule, externalMigrationModule, forceVKIDModule, vKIDModule, imapLocalConfigDependModule, networkConfigDependModule, oidcRemoteModule, imageLoadConfigDependModule, enterPhoneModule, enterPhoneCodeModule, enterEmailCodeModule, oKModule, googleModule, authorizationSdkConfig);
+            initialize8(authorizeConfigModule, sessionRestoreModule, loginModule, externalMigrationModule, forceVKIDModule, vKIDModule, imapLocalConfigDependModule, networkConfigDependModule, oidcRemoteModule, imageLoadConfigDependModule, enterPhoneModule, enterPhoneCodeModule, enterEmailCodeModule, oKModule, googleModule, authorizationSdkConfig);
+        }
+
+        private void initialize(AuthorizeConfigModule authorizeConfigModule, SessionRestoreModule sessionRestoreModule, LoginModule loginModule, ExternalMigrationModule externalMigrationModule, ForceVKIDModule forceVKIDModule, VKIDModule vKIDModule, ImapLocalConfigDependModule imapLocalConfigDependModule, NetworkConfigDependModule networkConfigDependModule, OidcRemoteModule oidcRemoteModule, ImageLoadConfigDependModule imageLoadConfigDependModule, EnterPhoneModule enterPhoneModule, EnterPhoneCodeModule enterPhoneCodeModule, EnterEmailCodeModule enterEmailCodeModule, OKModule oKModule, GoogleModule googleModule, AuthorizationSdkConfig authorizationSdkConfig) {
+            Factory factoryCreate = InstanceFactory.create(authorizationSdkConfig);
+            this.configProvider = factoryCreate;
+            AuthorizeConfigModule_ProvidesImapConfigFactory authorizeConfigModule_ProvidesImapConfigFactoryCreate = AuthorizeConfigModule_ProvidesImapConfigFactory.create(authorizeConfigModule, factoryCreate);
+            this.providesImapConfigProvider = authorizeConfigModule_ProvidesImapConfigFactoryCreate;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl = this.authorizeCommonSdkComponentImpl;
+            this.provideProviderParserAuthSdkProvider = DoubleCheck.provider((Provider) ImapLocalConfigDependModule_ProvideProviderParserAuthSdkFactory.create(imapLocalConfigDependModule, authorizeCommonSdkComponentImpl.provideProviderInfoTypeResolverAuthSdkProvider, authorizeCommonSdkComponentImpl.provideInternalLoggerProvider, authorizeConfigModule_ProvidesImapConfigFactoryCreate, authorizeCommonSdkComponentImpl.provideJsonSerializerProvider));
+            Provider<String> provider = SingleCheck.provider((Provider) ImapLocalModule_ProvideTempDirectoryPathFactory.create(this.authorizeCommonSdkComponentImpl.imapLocalModule, this.authorizeCommonSdkComponentImpl.addContextProvider));
+            this.provideTempDirectoryPathProvider = provider;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl2 = this.authorizeCommonSdkComponentImpl;
+            ImapLocalConfigDependModule_ProvideImapSettingsRepositoryAuthSdkFactory imapLocalConfigDependModule_ProvideImapSettingsRepositoryAuthSdkFactoryCreate = ImapLocalConfigDependModule_ProvideImapSettingsRepositoryAuthSdkFactory.create(imapLocalConfigDependModule, authorizeCommonSdkComponentImpl2.providesRoomDBProvider, authorizeCommonSdkComponentImpl2.provideProviderInfoTypeResolverAuthSdkProvider, authorizeCommonSdkComponentImpl2.addContextProvider, this.provideProviderParserAuthSdkProvider, provider, authorizeCommonSdkComponentImpl2.provideSharedPreferencesProvider, authorizeCommonSdkComponentImpl2.provideInternalLoggerProvider);
+            this.provideImapSettingsRepositoryAuthSdkProvider = imapLocalConfigDependModule_ProvideImapSettingsRepositoryAuthSdkFactoryCreate;
+            Provider<ProviderParserAuthSdk> provider2 = this.provideProviderParserAuthSdkProvider;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl3 = this.authorizeCommonSdkComponentImpl;
+            this.provideImapSettingsProcessorAuthSdkProvider = DoubleCheck.provider((Provider) ImapLocalConfigDependModule_ProvideImapSettingsProcessorAuthSdkFactory.create(imapLocalConfigDependModule, provider2, imapLocalConfigDependModule_ProvideImapSettingsRepositoryAuthSdkFactoryCreate, authorizeCommonSdkComponentImpl3.provideInternalLoggerProvider, authorizeCommonSdkComponentImpl3.addAnalyticsProvider));
+            ImapLocalConfigDependModule_ProvideProviderInfoUseCaseFactory imapLocalConfigDependModule_ProvideProviderInfoUseCaseFactoryCreate = ImapLocalConfigDependModule_ProvideProviderInfoUseCaseFactory.create(imapLocalConfigDependModule, this.provideProviderParserAuthSdkProvider, this.provideImapSettingsRepositoryAuthSdkProvider, this.authorizeCommonSdkComponentImpl.provideInternalLoggerProvider);
+            this.provideProviderInfoUseCaseProvider = imapLocalConfigDependModule_ProvideProviderInfoUseCaseFactoryCreate;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl4 = this.authorizeCommonSdkComponentImpl;
+            Provider<CoroutineDispatcher> provider3 = authorizeCommonSdkComponentImpl4.provideDefaultDispatcherProvider;
+            Provider<ProviderParserAuthSdk> provider4 = this.provideProviderParserAuthSdkProvider;
+            Provider<ImapSettingsProcessorAuthSdk> provider5 = this.provideImapSettingsProcessorAuthSdkProvider;
+            Provider<ImapOAuthStateUseCase> provider6 = authorizeCommonSdkComponentImpl4.provideImapOAuthStateUseCaseProvider;
+            Provider<CheckCredentialsRepositoryImpl> provider7 = authorizeCommonSdkComponentImpl4.provideCheckCredentialsRepositoryImplProvider;
+            Provider<ImapLoginRepository> provider8 = authorizeCommonSdkComponentImpl4.provideImapLoginRepositoryProvider;
+            Provider<AuthorizationSdkAnalyticsImpl> provider9 = authorizeCommonSdkComponentImpl4.addAnalyticsProvider;
+            this.provideLocalImapInteractorProvider = DoubleCheck.provider((Provider) ImapLocalConfigDependModule_ProvideLocalImapInteractorFactory.create(imapLocalConfigDependModule, provider3, provider4, provider5, provider6, imapLocalConfigDependModule_ProvideProviderInfoUseCaseFactoryCreate, provider7, provider8, provider9, provider9, authorizeCommonSdkComponentImpl4.provideInternalLoggerProvider));
+            this.providesCloudGoogleCodeRemoteSourceProvider = GoogleModule_ProvidesCloudGoogleCodeRemoteSourceFactory.create(googleModule, this.authorizeCommonSdkComponentImpl.provideCloudGoogleApiProvider);
+            GoogleModule_ProvidesGoogleMapperFactory googleModule_ProvidesGoogleMapperFactoryCreate = GoogleModule_ProvidesGoogleMapperFactory.create(googleModule, this.authorizeCommonSdkComponentImpl.addGoogleSecretsProvider);
+            this.providesGoogleMapperProvider = googleModule_ProvidesGoogleMapperFactoryCreate;
+            this.providesCloudGoogleGetCodeRepositoryProvider = GoogleModule_ProvidesCloudGoogleGetCodeRepositoryFactory.create(googleModule, this.providesCloudGoogleCodeRemoteSourceProvider, googleModule_ProvidesGoogleMapperFactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl5 = this.authorizeCommonSdkComponentImpl;
+            OKModule_ProvideOAuthMailRetrofitFactory oKModule_ProvideOAuthMailRetrofitFactoryCreate = OKModule_ProvideOAuthMailRetrofitFactory.create(oKModule, authorizeCommonSdkComponentImpl5.provideJsonConvertFactoryProvider, authorizeCommonSdkComponentImpl5.provideExternalOkHttpClientProvider, authorizeCommonSdkComponentImpl5.provideMailAuthorizationSdkUrlsResolverProvider, authorizeCommonSdkComponentImpl5.provideInternalLoggerProvider);
+            this.provideOAuthMailRetrofitProvider = oKModule_ProvideOAuthMailRetrofitFactoryCreate;
+            this.provideOAuthApiProvider = OKModule_ProvideOAuthApiFactory.create(oKModule, oKModule_ProvideOAuthMailRetrofitFactoryCreate);
+            AuthorizeConfigModule_ProvideFlavorConfigFactory authorizeConfigModule_ProvideFlavorConfigFactoryCreate = AuthorizeConfigModule_ProvideFlavorConfigFactory.create(authorizeConfigModule, this.configProvider);
+            this.provideFlavorConfigProvider = authorizeConfigModule_ProvideFlavorConfigFactoryCreate;
+            GoogleModule_ProvidesGoogleCloudMailAuthRepositoryFactory googleModule_ProvidesGoogleCloudMailAuthRepositoryFactoryCreate = GoogleModule_ProvidesGoogleCloudMailAuthRepositoryFactory.create(googleModule, this.providesCloudGoogleGetCodeRepositoryProvider, this.provideOAuthApiProvider, authorizeConfigModule_ProvideFlavorConfigFactoryCreate);
+            this.providesGoogleCloudMailAuthRepositoryProvider = googleModule_ProvidesGoogleCloudMailAuthRepositoryFactoryCreate;
+            Provider<LocalImapInteractor> provider10 = this.provideLocalImapInteractorProvider;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl6 = this.authorizeCommonSdkComponentImpl;
+            this.providesAuthInteractorProvider = NetworkConfigDependModule_ProvidesAuthInteractorFactory.create(networkConfigDependModule, provider10, authorizeCommonSdkComponentImpl6.provideSecondStepInteractorProvider, authorizeCommonSdkComponentImpl6.provideCommonAuthorizationRepositoryProvider, authorizeCommonSdkComponentImpl6.provideExternalAccMailAuthorizationRepositoryProvider, googleModule_ProvidesGoogleCloudMailAuthRepositoryFactoryCreate, authorizeCommonSdkComponentImpl6.provideInternalLoggerProvider, this.providesImapConfigProvider);
+            this.providesRequestMapperProvider = NetworkConfigDependModule_ProvidesRequestMapperFactory.create(networkConfigDependModule, this.providesImapConfigProvider, this.authorizeCommonSdkComponentImpl.addAnalyticsProvider);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl7 = this.authorizeCommonSdkComponentImpl;
+            ExternalMigrationModule_ProvideExternalMigrationRetrofitFactory externalMigrationModule_ProvideExternalMigrationRetrofitFactoryCreate = ExternalMigrationModule_ProvideExternalMigrationRetrofitFactory.create(externalMigrationModule, authorizeCommonSdkComponentImpl7.provideJsonConvertFactoryProvider, authorizeCommonSdkComponentImpl7.provideMailOkHttpClientProvider, authorizeCommonSdkComponentImpl7.provideInternalLoggerProvider, authorizeCommonSdkComponentImpl7.provideMailAuthorizationSdkUrlsResolverProvider);
+            this.provideExternalMigrationRetrofitProvider = externalMigrationModule_ProvideExternalMigrationRetrofitFactoryCreate;
+            ExternalMigrationModule_ProvideExternalAuthAllowanceApiFactory externalMigrationModule_ProvideExternalAuthAllowanceApiFactoryCreate = ExternalMigrationModule_ProvideExternalAuthAllowanceApiFactory.create(externalMigrationModule, externalMigrationModule_ProvideExternalMigrationRetrofitFactoryCreate);
+            this.provideExternalAuthAllowanceApiProvider = externalMigrationModule_ProvideExternalAuthAllowanceApiFactoryCreate;
+            ExternalMigrationModule_ProvideExternalAuthAllowanceRepositoryFactory externalMigrationModule_ProvideExternalAuthAllowanceRepositoryFactoryCreate = ExternalMigrationModule_ProvideExternalAuthAllowanceRepositoryFactory.create(externalMigrationModule, externalMigrationModule_ProvideExternalAuthAllowanceApiFactoryCreate);
+            this.provideExternalAuthAllowanceRepositoryProvider = externalMigrationModule_ProvideExternalAuthAllowanceRepositoryFactoryCreate;
+            this.provideExternalAuthInteractorProvider = ExternalMigrationModule_ProvideExternalAuthInteractorFactory.create(externalMigrationModule, externalMigrationModule_ProvideExternalAuthAllowanceRepositoryFactoryCreate, this.configProvider);
+            Provider<RegEventProvider> provider11 = DoubleCheck.provider((Provider) LoginModule_ProvideRegEventProviderFactory.create(loginModule, this.authorizeCommonSdkComponentImpl.provideInternalLoggerProvider));
+            this.provideRegEventProvider = provider11;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl8 = this.authorizeCommonSdkComponentImpl;
+            Provider<CoroutineDispatcher> provider12 = authorizeCommonSdkComponentImpl8.provideViewModelDispatcherProvider;
+            Provider<CoroutineDispatcher> provider13 = authorizeCommonSdkComponentImpl8.provideIoDispatcherProvider;
+            Provider<InternalLogger> provider14 = authorizeCommonSdkComponentImpl8.provideInternalLoggerProvider;
+            Provider<BindNewMailUseCase> provider15 = authorizeCommonSdkComponentImpl8.provideBindNewMailUseCaseProvider;
+            Provider<FinishVkIdConsumerUseCase> provider16 = authorizeCommonSdkComponentImpl8.providesFinishVkIdConsumerUseCaseProvider;
+            Provider<AccountManagerRepository> provider17 = authorizeCommonSdkComponentImpl8.provideAccountManagerRepositoryProvider;
+            Provider<AuthorizationSdkAnalyticsImpl> provider18 = authorizeCommonSdkComponentImpl8.addAnalyticsProvider;
+            C1604AuthViewModel_Factory c1604AuthViewModel_FactoryCreate = C1604AuthViewModel_Factory.create(provider12, provider13, provider14, provider15, provider16, provider17, provider18, authorizeCommonSdkComponentImpl8.addAppReporterProvider, this.configProvider, provider18, provider18, provider18, provider18, this.providesAuthInteractorProvider, this.providesRequestMapperProvider, authorizeCommonSdkComponentImpl8.provideStringResolverProvider, authorizeCommonSdkComponentImpl8.provideErrorDelegateHostProvider, authorizeCommonSdkComponentImpl8.addSocialLoginInfoHolderProvider, this.provideExternalAuthInteractorProvider, authorizeCommonSdkComponentImpl8.providesAutoLoginSnackShowDelegateHolderProvider, provider11, authorizeCommonSdkComponentImpl8.provideMailAuthProvider, authorizeCommonSdkComponentImpl8.provideAuthPhoneFlowDataHolderProvider);
+            this.authViewModelProvider = c1604AuthViewModel_FactoryCreate;
+            this.factoryProvider = AuthViewModel_Factory_Impl.createFactoryProvider(c1604AuthViewModel_FactoryCreate);
+            this.providesSocialAuthConfigProvider = AuthorizeConfigModule_ProvidesSocialAuthConfigFactory.create(authorizeConfigModule, this.configProvider);
+        }
+
+        private void initialize2(AuthorizeConfigModule authorizeConfigModule, SessionRestoreModule sessionRestoreModule, LoginModule loginModule, ExternalMigrationModule externalMigrationModule, ForceVKIDModule forceVKIDModule, VKIDModule vKIDModule, ImapLocalConfigDependModule imapLocalConfigDependModule, NetworkConfigDependModule networkConfigDependModule, OidcRemoteModule oidcRemoteModule, ImageLoadConfigDependModule imageLoadConfigDependModule, EnterPhoneModule enterPhoneModule, EnterPhoneCodeModule enterPhoneCodeModule, EnterEmailCodeModule enterEmailCodeModule, OKModule oKModule, GoogleModule googleModule, AuthorizationSdkConfig authorizationSdkConfig) {
+            AuthorizeConfigModule_ProvidesCommonConfigFactory authorizeConfigModule_ProvidesCommonConfigFactoryCreate = AuthorizeConfigModule_ProvidesCommonConfigFactory.create(authorizeConfigModule, this.configProvider);
+            this.providesCommonConfigProvider = authorizeConfigModule_ProvidesCommonConfigFactoryCreate;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl = this.authorizeCommonSdkComponentImpl;
+            this.provideSocialAuthInteractorProvider = LoginModule_ProvideSocialAuthInteractorFactory.create(loginModule, authorizeCommonSdkComponentImpl.addContextProvider, authorizeCommonSdkComponentImpl.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl.provideIoDispatcherProvider, authorizeCommonSdkComponentImpl.addSocialAuthRepositoryProvider, this.providesSocialAuthConfigProvider, authorizeConfigModule_ProvidesCommonConfigFactoryCreate, authorizeCommonSdkComponentImpl.providesFinishAutologinControllerUseCaseProvider, authorizeCommonSdkComponentImpl.providesFinishRestoreControllerUseCaseProvider, authorizeCommonSdkComponentImpl.providesFinishVkIdControllerUseCaseProvider);
+            AuthorizeConfigModule_ProvidesRegConfigFactory authorizeConfigModule_ProvidesRegConfigFactoryCreate = AuthorizeConfigModule_ProvidesRegConfigFactory.create(authorizeConfigModule, this.configProvider);
+            this.providesRegConfigProvider = authorizeConfigModule_ProvidesRegConfigFactoryCreate;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl2 = this.authorizeCommonSdkComponentImpl;
+            C1818SocialAuthViewModel_Factory c1818SocialAuthViewModel_FactoryCreate = C1818SocialAuthViewModel_Factory.create(authorizeCommonSdkComponentImpl2.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl2.providesMainImmediateDispatcherProvider, authorizeCommonSdkComponentImpl2.addLoggerProvider, authorizeCommonSdkComponentImpl2.provideStatusNavBarHelperProvider, this.provideSocialAuthInteractorProvider, authorizeCommonSdkComponentImpl2.addAnalyticsProvider, authorizeCommonSdkComponentImpl2.provideGetSignupDataUseCaseProvider, authorizeConfigModule_ProvidesRegConfigFactoryCreate, this.providesSocialAuthConfigProvider, this.configProvider);
+            this.socialAuthViewModelProvider = c1818SocialAuthViewModel_FactoryCreate;
+            this.factoryProvider2 = SocialAuthViewModel_Factory_Impl.createFactoryProvider(c1818SocialAuthViewModel_FactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl3 = this.authorizeCommonSdkComponentImpl;
+            Provider<InternalLogger> provider = authorizeCommonSdkComponentImpl3.provideInternalLoggerProvider;
+            Provider<StatusNavBarHelper> provider2 = authorizeCommonSdkComponentImpl3.provideStatusNavBarHelperProvider;
+            Provider<AuthorizationSdkAnalyticsImpl> provider3 = authorizeCommonSdkComponentImpl3.addAnalyticsProvider;
+            C1828VkIdFragmentSupportViewModel_Factory c1828VkIdFragmentSupportViewModel_FactoryCreate = C1828VkIdFragmentSupportViewModel_Factory.create(provider, provider2, provider3, authorizeCommonSdkComponentImpl3.provideViewModelDispatcherProvider, provider3);
+            this.vkIdFragmentSupportViewModelProvider = c1828VkIdFragmentSupportViewModel_FactoryCreate;
+            this.factoryProvider3 = VkIdFragmentSupportViewModel_Factory_Impl.createFactoryProvider(c1828VkIdFragmentSupportViewModel_FactoryCreate);
+            Provider<Odnoklassniki> provider4 = DoubleCheck.provider((Provider) OKModule_ProvideOKAuthSdkFactory.create(oKModule, this.authorizeCommonSdkComponentImpl.addContextProvider, this.provideFlavorConfigProvider));
+            this.provideOKAuthSdkProvider = provider4;
+            this.provideOKOAuthDelegateProvider = DoubleCheck.provider((Provider) OKModule_ProvideOKOAuthDelegateFactory.create(oKModule, provider4, this.authorizeCommonSdkComponentImpl.addLoggerProvider, this.provideFlavorConfigProvider));
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl4 = this.authorizeCommonSdkComponentImpl;
+            Provider<OkHttpClient> provider5 = DoubleCheck.provider((Provider) ForceVKIDModule_ProvideForceVKIDOkHttpClientFactory.create(forceVKIDModule, authorizeCommonSdkComponentImpl4.provideInternalLoggerProvider, authorizeCommonSdkComponentImpl4.addClientAppOkHttpClientProvider, authorizeCommonSdkComponentImpl4.providesLogInterceptorProvider, authorizeCommonSdkComponentImpl4.providesRetryInterceptorProvider));
+            this.provideForceVKIDOkHttpClientProvider = provider5;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl5 = this.authorizeCommonSdkComponentImpl;
+            ForceVKIDModule_ProvideForceVKIDRetrofitFactory forceVKIDModule_ProvideForceVKIDRetrofitFactoryCreate = ForceVKIDModule_ProvideForceVKIDRetrofitFactory.create(forceVKIDModule, authorizeCommonSdkComponentImpl5.provideJsonConvertFactoryProvider, provider5, authorizeCommonSdkComponentImpl5.provideMailAuthorizationSdkUrlsResolverProvider, authorizeCommonSdkComponentImpl5.provideInternalLoggerProvider);
+            this.provideForceVKIDRetrofitProvider = forceVKIDModule_ProvideForceVKIDRetrofitFactoryCreate;
+            ForceVKIDModule_ProvideForceVKIDApiFactory forceVKIDModule_ProvideForceVKIDApiFactoryCreate = ForceVKIDModule_ProvideForceVKIDApiFactory.create(forceVKIDModule, forceVKIDModule_ProvideForceVKIDRetrofitFactoryCreate);
+            this.provideForceVKIDApiProvider = forceVKIDModule_ProvideForceVKIDApiFactoryCreate;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl6 = this.authorizeCommonSdkComponentImpl;
+            ForceVKIDModule_ProvideForceVKIDRepositoryFactory forceVKIDModule_ProvideForceVKIDRepositoryFactoryCreate = ForceVKIDModule_ProvideForceVKIDRepositoryFactory.create(forceVKIDModule, forceVKIDModule_ProvideForceVKIDApiFactoryCreate, authorizeCommonSdkComponentImpl6.addForceVkIdSecretProvider, authorizeCommonSdkComponentImpl6.addAuthCsrfHeaderProvider, authorizeCommonSdkComponentImpl6.provideInternalLoggerProvider);
+            this.provideForceVKIDRepositoryProvider = forceVKIDModule_ProvideForceVKIDRepositoryFactoryCreate;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl7 = this.authorizeCommonSdkComponentImpl;
+            ForceVKIDModule_ProvideForceVkIdVkLoginInteractorFactoryFactory forceVKIDModule_ProvideForceVkIdVkLoginInteractorFactoryFactoryCreate = ForceVKIDModule_ProvideForceVkIdVkLoginInteractorFactoryFactory.create(forceVKIDModule, forceVKIDModule_ProvideForceVKIDRepositoryFactoryCreate, authorizeCommonSdkComponentImpl7.addForceVkIdSecretProvider, authorizeCommonSdkComponentImpl7.provideInternalLoggerProvider, authorizeCommonSdkComponentImpl7.addAnalyticsProvider, authorizeCommonSdkComponentImpl7.provideIoDispatcherProvider);
+            this.provideForceVkIdVkLoginInteractorFactoryProvider = forceVKIDModule_ProvideForceVkIdVkLoginInteractorFactoryFactoryCreate;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl8 = this.authorizeCommonSdkComponentImpl;
+            this.providesFastLoginBtnDelegateProvider = ForceVKIDModule_ProvidesFastLoginBtnDelegateFactory.create(forceVKIDModule, forceVKIDModule_ProvideForceVkIdVkLoginInteractorFactoryFactoryCreate, authorizeCommonSdkComponentImpl8.providesVkAvatarLoaderUseCaseProvider, authorizeCommonSdkComponentImpl8.addAnalyticsProvider, authorizeCommonSdkComponentImpl8.provideIoDispatcherProvider, authorizeCommonSdkComponentImpl8.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl8.provideInternalLoggerProvider);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl9 = this.authorizeCommonSdkComponentImpl;
+            LoginModule_ProvidesLibverifyHelperFactory loginModule_ProvidesLibverifyHelperFactoryCreate = LoginModule_ProvidesLibverifyHelperFactory.create(loginModule, authorizeCommonSdkComponentImpl9.addContextProvider, authorizeCommonSdkComponentImpl9.provideInternalLoggerProvider, authorizeCommonSdkComponentImpl9.provideStringResolverProvider, this.configProvider);
+            this.providesLibverifyHelperProvider = loginModule_ProvidesLibverifyHelperFactoryCreate;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl10 = this.authorizeCommonSdkComponentImpl;
+            this.providesCheckPhoneUseCaseFactoryProvider = LoginModule_ProvidesCheckPhoneUseCaseFactoryFactory.create(loginModule, authorizeCommonSdkComponentImpl10.providesCheckPhoneRepositoryProvider, loginModule_ProvidesLibverifyHelperFactoryCreate, this.configProvider, authorizeCommonSdkComponentImpl10.provideInternalLoggerProvider);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl11 = this.authorizeCommonSdkComponentImpl;
+            Provider<OkHttpClient> provider6 = DoubleCheck.provider((Provider) LoginModule_ProvidePushAuthInfoOkHttpClientFactory.create(loginModule, authorizeCommonSdkComponentImpl11.provideInternalLoggerProvider, authorizeCommonSdkComponentImpl11.addClientAppOkHttpClientProvider, authorizeCommonSdkComponentImpl11.providesLogInterceptorProvider, authorizeCommonSdkComponentImpl11.providesRetryInterceptorProvider));
+            this.providePushAuthInfoOkHttpClientProvider = provider6;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl12 = this.authorizeCommonSdkComponentImpl;
+            LoginModule_ProvidePushAuthInfoRetrofitFactory loginModule_ProvidePushAuthInfoRetrofitFactoryCreate = LoginModule_ProvidePushAuthInfoRetrofitFactory.create(loginModule, authorizeCommonSdkComponentImpl12.provideJsonConvertFactoryProvider, provider6, authorizeCommonSdkComponentImpl12.provideMailAuthorizationSdkUrlsResolverProvider);
+            this.providePushAuthInfoRetrofitProvider = loginModule_ProvidePushAuthInfoRetrofitFactoryCreate;
+            LoginModule_ProvidePushAuthInfoApiFactory loginModule_ProvidePushAuthInfoApiFactoryCreate = LoginModule_ProvidePushAuthInfoApiFactory.create(loginModule, loginModule_ProvidePushAuthInfoRetrofitFactoryCreate);
+            this.providePushAuthInfoApiProvider = loginModule_ProvidePushAuthInfoApiFactoryCreate;
+            LoginModule_ProvidePushAuthInfoRemoteSourceFactory loginModule_ProvidePushAuthInfoRemoteSourceFactoryCreate = LoginModule_ProvidePushAuthInfoRemoteSourceFactory.create(loginModule, loginModule_ProvidePushAuthInfoApiFactoryCreate, this.authorizeCommonSdkComponentImpl.addAuthCsrfHeaderProvider);
+            this.providePushAuthInfoRemoteSourceProvider = loginModule_ProvidePushAuthInfoRemoteSourceFactoryCreate;
+            this.providePushAuthInfoRepositoryProvider = LoginModule_ProvidePushAuthInfoRepositoryFactory.create(loginModule, loginModule_ProvidePushAuthInfoRemoteSourceFactoryCreate);
+            this.provideAuthRequirementsRepositoryProvider = LoginModule_ProvideAuthRequirementsRepositoryFactory.create(loginModule, this.configProvider, this.authorizeCommonSdkComponentImpl.addSocialLoginInfoHolderProvider);
+            AuthorizeConfigModule_ProvidePushAuthInfoConfigFactory authorizeConfigModule_ProvidePushAuthInfoConfigFactoryCreate = AuthorizeConfigModule_ProvidePushAuthInfoConfigFactory.create(authorizeConfigModule, this.configProvider);
+            this.providePushAuthInfoConfigProvider = authorizeConfigModule_ProvidePushAuthInfoConfigFactoryCreate;
+            Provider<PushAuthInfoRepository> provider7 = this.providePushAuthInfoRepositoryProvider;
+            Provider<AuthRequirementsRepository> provider8 = this.provideAuthRequirementsRepositoryProvider;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl13 = this.authorizeCommonSdkComponentImpl;
+            this.provideGetPushAuthInfoUseCaseProvider = LoginModule_ProvideGetPushAuthInfoUseCaseFactory.create(loginModule, provider7, provider8, authorizeCommonSdkComponentImpl13.provideDomainUtilsProvider, authorizeCommonSdkComponentImpl13.provideNetworkRepositoryProvider, authorizeConfigModule_ProvidePushAuthInfoConfigFactoryCreate);
+        }
+
+        private void initialize3(AuthorizeConfigModule authorizeConfigModule, SessionRestoreModule sessionRestoreModule, LoginModule loginModule, ExternalMigrationModule externalMigrationModule, ForceVKIDModule forceVKIDModule, VKIDModule vKIDModule, ImapLocalConfigDependModule imapLocalConfigDependModule, NetworkConfigDependModule networkConfigDependModule, OidcRemoteModule oidcRemoteModule, ImageLoadConfigDependModule imageLoadConfigDependModule, EnterPhoneModule enterPhoneModule, EnterPhoneCodeModule enterPhoneCodeModule, EnterEmailCodeModule enterEmailCodeModule, OKModule oKModule, GoogleModule googleModule, AuthorizationSdkConfig authorizationSdkConfig) {
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl = this.authorizeCommonSdkComponentImpl;
+            Provider<SuggestionsAccountsRepository> provider = DoubleCheck.provider((Provider) LoginModule_ProvidesSuggestionsAccountsRepositoryFactory.create(loginModule, authorizeCommonSdkComponentImpl.addAccountManagerProvider, authorizeCommonSdkComponentImpl.provideInternalLoggerProvider, authorizeCommonSdkComponentImpl.provideStringResolverProvider, this.configProvider, authorizeCommonSdkComponentImpl.provideSharedPreferencesProvider, authorizeCommonSdkComponentImpl.provideXmlParserProvider, authorizeCommonSdkComponentImpl.addContextProvider));
+            this.providesSuggestionsAccountsRepositoryProvider = provider;
+            this.emailSuggestionsUseCaseProvider = EmailSuggestionsUseCase_Factory.create(provider);
+            this.domainSuggestionsUseCaseProvider = DomainSuggestionsUseCase_Factory.create(this.providesSuggestionsAccountsRepositoryProvider);
+            this.provideLongClickOnLogoDelegateProvider = LoginModule_ProvideLongClickOnLogoDelegateFactory.create(loginModule, this.authorizeCommonSdkComponentImpl.provideInternalLoggerProvider);
+            this.provideEnteredEmailValidatorProvider = LoginModule_ProvideEnteredEmailValidatorFactory.create(loginModule);
+            this.provideAutologinUseCaseProvider = DoubleCheck.provider((Provider) LoginModule_ProvideAutologinUseCaseFactory.create(loginModule, this.authorizeCommonSdkComponentImpl.addSocialAuthRepositoryProvider, this.configProvider));
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl2 = this.authorizeCommonSdkComponentImpl;
+            this.provideProcessAutologinUseCaseProvider = DoubleCheck.provider((Provider) LoginModule_ProvideProcessAutologinUseCaseFactory.create(loginModule, authorizeCommonSdkComponentImpl2.provideInternalLoggerProvider, authorizeCommonSdkComponentImpl2.addAnalyticsProvider));
+            this.provideFinishAutologinDelegateProvider = DoubleCheck.provider((Provider) LoginModule_ProvideFinishAutologinDelegateFactory.create(loginModule, this.configProvider, this.authorizeCommonSdkComponentImpl.provideInternalLoggerProvider));
+            this.providePhoneHelperProvider = EnterPhoneModule_ProvidePhoneHelperFactory.create(enterPhoneModule);
+            EnterPhoneModule_ProvidePhoneUtilFactory enterPhoneModule_ProvidePhoneUtilFactoryCreate = EnterPhoneModule_ProvidePhoneUtilFactory.create(enterPhoneModule);
+            this.providePhoneUtilProvider = enterPhoneModule_ProvidePhoneUtilFactoryCreate;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl3 = this.authorizeCommonSdkComponentImpl;
+            Provider<Boolean> provider2 = authorizeCommonSdkComponentImpl3.addIsTestProvider;
+            Provider<InternalLogger> provider3 = authorizeCommonSdkComponentImpl3.provideInternalLoggerProvider;
+            Provider<FastLoginBtnDelegateFactory> provider4 = this.providesFastLoginBtnDelegateProvider;
+            Provider<CheckPhoneUseCaseFactory> provider5 = this.providesCheckPhoneUseCaseFactoryProvider;
+            Provider<StatusNavBarHelper> provider6 = authorizeCommonSdkComponentImpl3.provideStatusNavBarHelperProvider;
+            Provider<AuthorizationSdkConfig> provider7 = this.configProvider;
+            Provider<CoroutineDispatcher> provider8 = authorizeCommonSdkComponentImpl3.provideViewModelDispatcherProvider;
+            Provider<CoroutineDispatcher> provider9 = authorizeCommonSdkComponentImpl3.provideIoDispatcherProvider;
+            Provider<AuthorizationSdkAnalyticsImpl> provider10 = authorizeCommonSdkComponentImpl3.addAnalyticsProvider;
+            C1705CloudLoginVKViewModel_Factory c1705CloudLoginVKViewModel_FactoryCreate = C1705CloudLoginVKViewModel_Factory.create(provider2, provider3, provider4, provider5, provider6, provider7, provider8, provider9, provider10, this.provideGetPushAuthInfoUseCaseProvider, authorizeCommonSdkComponentImpl3.provideWhiteVkIdAuthUseCaseProvider, authorizeCommonSdkComponentImpl3.provideVkIdStateAgTokenUseCaseProvider, provider10, provider10, provider10, authorizeCommonSdkComponentImpl3.provideStartEsiaAuthUseCaseProvider, this.emailSuggestionsUseCaseProvider, this.domainSuggestionsUseCaseProvider, authorizeCommonSdkComponentImpl3.provideStringResolverProvider, authorizeCommonSdkComponentImpl3.provideErrorDelegateSubscriberProvider, this.provideLongClickOnLogoDelegateProvider, this.provideEnteredEmailValidatorProvider, authorizeCommonSdkComponentImpl3.provideAccountManagerDelegateProvider, authorizeCommonSdkComponentImpl3.provideMailAuthProvider, authorizeCommonSdkComponentImpl3.provideFinishVKMailAuthUseCaseProvider, authorizeCommonSdkComponentImpl3.provideGrayVkidPasswordAuthUseCaseProvider, this.provideAutologinUseCaseProvider, this.provideProcessAutologinUseCaseProvider, authorizeCommonSdkComponentImpl3.providesFinishAutologinConsumerUseCaseProvider, this.provideFinishAutologinDelegateProvider, authorizeCommonSdkComponentImpl3.addSocialLoginInfoHolderProvider, this.providePhoneHelperProvider, enterPhoneModule_ProvidePhoneUtilFactoryCreate, authorizeCommonSdkComponentImpl3.provideAuthPhoneFlowDataHolderProvider);
+            this.cloudLoginVKViewModelProvider = c1705CloudLoginVKViewModel_FactoryCreate;
+            this.factoryProvider4 = CloudLoginVKViewModel_Factory_Impl.createFactoryProvider(c1705CloudLoginVKViewModel_FactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl4 = this.authorizeCommonSdkComponentImpl;
+            Provider<Boolean> provider11 = authorizeCommonSdkComponentImpl4.addIsTestProvider;
+            Provider<InternalLogger> provider12 = authorizeCommonSdkComponentImpl4.provideInternalLoggerProvider;
+            Provider<FastLoginBtnDelegateFactory> provider13 = this.providesFastLoginBtnDelegateProvider;
+            Provider<StatusNavBarHelper> provider14 = authorizeCommonSdkComponentImpl4.provideStatusNavBarHelperProvider;
+            Provider<AuthorizationSdkConfig> provider15 = this.configProvider;
+            Provider<CoroutineDispatcher> provider16 = authorizeCommonSdkComponentImpl4.provideViewModelDispatcherProvider;
+            Provider<CoroutineDispatcher> provider17 = authorizeCommonSdkComponentImpl4.provideIoDispatcherProvider;
+            Provider<AuthorizationSdkAnalyticsImpl> provider18 = authorizeCommonSdkComponentImpl4.addAnalyticsProvider;
+            C1736LoginVKViewModel_Factory c1736LoginVKViewModel_FactoryCreate = C1736LoginVKViewModel_Factory.create(provider11, provider12, provider13, provider14, provider15, provider16, provider17, provider18, this.provideGetPushAuthInfoUseCaseProvider, authorizeCommonSdkComponentImpl4.provideWhiteVkIdAuthUseCaseProvider, authorizeCommonSdkComponentImpl4.provideVkIdStateAgTokenUseCaseProvider, provider18, provider18, provider18, authorizeCommonSdkComponentImpl4.provideStartEsiaAuthUseCaseProvider, this.emailSuggestionsUseCaseProvider, this.domainSuggestionsUseCaseProvider, authorizeCommonSdkComponentImpl4.provideStringResolverProvider, authorizeCommonSdkComponentImpl4.provideErrorDelegateSubscriberProvider, this.provideLongClickOnLogoDelegateProvider, this.provideEnteredEmailValidatorProvider, authorizeCommonSdkComponentImpl4.provideAccountManagerDelegateProvider, authorizeCommonSdkComponentImpl4.provideMailAuthProvider, authorizeCommonSdkComponentImpl4.provideFinishVKMailAuthUseCaseProvider, authorizeCommonSdkComponentImpl4.provideGrayVkidPasswordAuthUseCaseProvider, this.provideAutologinUseCaseProvider, this.provideProcessAutologinUseCaseProvider, authorizeCommonSdkComponentImpl4.providesFinishAutologinConsumerUseCaseProvider, this.provideFinishAutologinDelegateProvider, authorizeCommonSdkComponentImpl4.addSocialLoginInfoHolderProvider);
+            this.loginVKViewModelProvider = c1736LoginVKViewModel_FactoryCreate;
+            this.factoryProvider5 = LoginVKViewModel_Factory_Impl.createFactoryProvider(c1736LoginVKViewModel_FactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl5 = this.authorizeCommonSdkComponentImpl;
+            this.provideLoginRepositoryProvider = LoginModule_ProvideLoginRepositoryFactory.create(loginModule, authorizeCommonSdkComponentImpl5.addConfigHiddenServicesProvider, authorizeCommonSdkComponentImpl5.provideXmlParserProvider);
+            AuthorizeConfigModule_ProvidesLoginConfigFactory authorizeConfigModule_ProvidesLoginConfigFactoryCreate = AuthorizeConfigModule_ProvidesLoginConfigFactory.create(authorizeConfigModule, this.configProvider);
+            this.providesLoginConfigProvider = authorizeConfigModule_ProvidesLoginConfigFactoryCreate;
+            this.provideServicesUseCaseProvider = LoginModule_ProvideServicesUseCaseFactory.create(loginModule, this.authorizeCommonSdkComponentImpl.provideStringResolverProvider, this.provideLoginRepositoryProvider, authorizeConfigModule_ProvidesLoginConfigFactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl6 = this.authorizeCommonSdkComponentImpl;
+            VKIDModule_ProvideSilentAuthInfoProviderFactory vKIDModule_ProvideSilentAuthInfoProviderFactoryCreate = VKIDModule_ProvideSilentAuthInfoProviderFactory.create(vKIDModule, authorizeCommonSdkComponentImpl6.addContextProvider, authorizeCommonSdkComponentImpl6.addVkAppIdProvider);
+            this.provideSilentAuthInfoProvider = vKIDModule_ProvideSilentAuthInfoProviderFactoryCreate;
+            VKIDModule_ProvideVkSdkSilentProviderFactory vKIDModule_ProvideVkSdkSilentProviderFactoryCreate = VKIDModule_ProvideVkSdkSilentProviderFactory.create(vKIDModule, vKIDModule_ProvideSilentAuthInfoProviderFactoryCreate, this.authorizeCommonSdkComponentImpl.addForceVkIdSecretProvider);
+            this.provideVkSdkSilentProvider = vKIDModule_ProvideVkSdkSilentProviderFactoryCreate;
+            Provider<AuthorizationSdkConfig> provider19 = this.configProvider;
+            Provider<ForceVKIDRepository> provider20 = this.provideForceVKIDRepositoryProvider;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl7 = this.authorizeCommonSdkComponentImpl;
+            ForceVKIDModule_ProvideForceVKIDInteractorFactory forceVKIDModule_ProvideForceVKIDInteractorFactoryCreate = ForceVKIDModule_ProvideForceVKIDInteractorFactory.create(forceVKIDModule, provider19, provider20, vKIDModule_ProvideVkSdkSilentProviderFactoryCreate, authorizeCommonSdkComponentImpl7.provideInternalLoggerProvider, authorizeCommonSdkComponentImpl7.addAnalyticsProvider, authorizeCommonSdkComponentImpl7.provideIoDispatcherProvider);
+            this.provideForceVKIDInteractorProvider = forceVKIDModule_ProvideForceVKIDInteractorFactoryCreate;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl8 = this.authorizeCommonSdkComponentImpl;
+            Provider<Boolean> provider21 = authorizeCommonSdkComponentImpl8.addIsTestProvider;
+            Provider<InternalLogger> provider22 = authorizeCommonSdkComponentImpl8.provideInternalLoggerProvider;
+            Provider<StatusNavBarHelper> provider23 = authorizeCommonSdkComponentImpl8.provideStatusNavBarHelperProvider;
+            Provider<AuthorizationSdkConfig> provider24 = this.configProvider;
+            Provider<CoroutineDispatcher> provider25 = authorizeCommonSdkComponentImpl8.provideViewModelDispatcherProvider;
+            Provider<GetPushAuthInfoUseCase> provider26 = this.provideGetPushAuthInfoUseCaseProvider;
+            Provider<AuthorizationSdkAnalyticsImpl> provider27 = authorizeCommonSdkComponentImpl8.addAnalyticsProvider;
+            C1717LoginViewModel_Factory c1717LoginViewModel_FactoryCreate = C1717LoginViewModel_Factory.create(provider21, provider22, provider23, provider24, provider25, provider26, provider27, provider27, provider27, provider27, this.provideServicesUseCaseProvider, this.emailSuggestionsUseCaseProvider, this.domainSuggestionsUseCaseProvider, authorizeCommonSdkComponentImpl8.provideStartEsiaAuthUseCaseProvider, authorizeCommonSdkComponentImpl8.provideStringResolverProvider, authorizeCommonSdkComponentImpl8.provideErrorDelegateSubscriberProvider, this.provideLongClickOnLogoDelegateProvider, this.provideEnteredEmailValidatorProvider, forceVKIDModule_ProvideForceVKIDInteractorFactoryCreate, authorizeCommonSdkComponentImpl8.provideAccountManagerDelegateProvider, this.provideAutologinUseCaseProvider, this.provideProcessAutologinUseCaseProvider, authorizeCommonSdkComponentImpl8.providesFinishAutologinConsumerUseCaseProvider, this.provideFinishAutologinDelegateProvider, authorizeCommonSdkComponentImpl8.addSocialLoginInfoHolderProvider);
+            this.loginViewModelProvider = c1717LoginViewModel_FactoryCreate;
+            this.factoryProvider6 = LoginViewModel_Factory_Impl.createFactoryProvider(c1717LoginViewModel_FactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl9 = this.authorizeCommonSdkComponentImpl;
+            C1801ChoiceAccountViewModel_Factory c1801ChoiceAccountViewModel_FactoryCreate = C1801ChoiceAccountViewModel_Factory.create(authorizeCommonSdkComponentImpl9.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl9.addLoggerProvider, authorizeCommonSdkComponentImpl9.provideAccountManagerUseCaseProvider, authorizeCommonSdkComponentImpl9.provideStringResolverProvider, authorizeCommonSdkComponentImpl9.addAnalyticsProvider, authorizeCommonSdkComponentImpl9.providesVkAutologinUseCaseProvider, authorizeCommonSdkComponentImpl9.providesRestoreVkUseCaseProvider, authorizeCommonSdkComponentImpl9.providesEsiaVkUseCaseProvider, authorizeCommonSdkComponentImpl9.providesVkIdAuthUseCaseProvider, authorizeCommonSdkComponentImpl9.provideErrorDelegateSubscriberProvider, authorizeCommonSdkComponentImpl9.provideBindNewMailUseCaseProvider, authorizeCommonSdkComponentImpl9.provideStatusNavBarHelperProvider, authorizeCommonSdkComponentImpl9.addIsTestProvider);
+            this.choiceAccountViewModelProvider = c1801ChoiceAccountViewModel_FactoryCreate;
+            this.factoryProvider7 = ChoiceAccountViewModel_Factory_Impl.createFactoryProvider(c1801ChoiceAccountViewModel_FactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl10 = this.authorizeCommonSdkComponentImpl;
+            Provider<Boolean> provider28 = authorizeCommonSdkComponentImpl10.addIsTestProvider;
+            Provider<InternalLogger> provider29 = authorizeCommonSdkComponentImpl10.provideInternalLoggerProvider;
+            Provider<FlavorConfig> provider30 = this.provideFlavorConfigProvider;
+            Provider<CheckPhoneUseCaseFactory> provider31 = this.providesCheckPhoneUseCaseFactoryProvider;
+            Provider<ImapConfig> provider32 = this.providesImapConfigProvider;
+            Provider<StatusNavBarHelper> provider33 = authorizeCommonSdkComponentImpl10.provideStatusNavBarHelperProvider;
+            Provider<AuthorizationSdkConfig> provider34 = this.configProvider;
+            Provider<CoroutineDispatcher> provider35 = authorizeCommonSdkComponentImpl10.provideViewModelDispatcherProvider;
+            Provider<CoroutineDispatcher> provider36 = authorizeCommonSdkComponentImpl10.provideIoDispatcherProvider;
+            Provider<GetPushAuthInfoUseCase> provider37 = this.provideGetPushAuthInfoUseCaseProvider;
+            Provider<AuthorizationSdkAnalyticsImpl> provider38 = authorizeCommonSdkComponentImpl10.addAnalyticsProvider;
+            this.cloudLoginViewModelProvider = C1683CloudLoginViewModel_Factory.create(provider28, provider29, provider30, provider31, provider32, provider33, provider34, provider35, provider36, provider37, provider38, provider38, provider38, provider38, this.emailSuggestionsUseCaseProvider, this.domainSuggestionsUseCaseProvider, authorizeCommonSdkComponentImpl10.provideStartEsiaAuthUseCaseProvider, authorizeCommonSdkComponentImpl10.provideStringResolverProvider, authorizeCommonSdkComponentImpl10.provideErrorDelegateSubscriberProvider, this.provideLongClickOnLogoDelegateProvider, this.provideEnteredEmailValidatorProvider, this.provideForceVKIDInteractorProvider, authorizeCommonSdkComponentImpl10.provideAccountManagerDelegateProvider, this.provideAutologinUseCaseProvider, this.provideProcessAutologinUseCaseProvider, authorizeCommonSdkComponentImpl10.providesFinishAutologinConsumerUseCaseProvider, this.provideFinishAutologinDelegateProvider, this.providePhoneHelperProvider, this.providePhoneUtilProvider, authorizeCommonSdkComponentImpl10.provideAuthPhoneFlowDataHolderProvider, authorizeCommonSdkComponentImpl10.addSocialLoginInfoHolderProvider);
+        }
+
+        private void initialize4(AuthorizeConfigModule authorizeConfigModule, SessionRestoreModule sessionRestoreModule, LoginModule loginModule, ExternalMigrationModule externalMigrationModule, ForceVKIDModule forceVKIDModule, VKIDModule vKIDModule, ImapLocalConfigDependModule imapLocalConfigDependModule, NetworkConfigDependModule networkConfigDependModule, OidcRemoteModule oidcRemoteModule, ImageLoadConfigDependModule imageLoadConfigDependModule, EnterPhoneModule enterPhoneModule, EnterPhoneCodeModule enterPhoneCodeModule, EnterEmailCodeModule enterEmailCodeModule, OKModule oKModule, GoogleModule googleModule, AuthorizationSdkConfig authorizationSdkConfig) {
+            this.factoryProvider8 = CloudLoginViewModel_Factory_Impl.createFactoryProvider(this.cloudLoginViewModelProvider);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl = this.authorizeCommonSdkComponentImpl;
+            C1685CreateCloudViewModel_Factory c1685CreateCloudViewModel_FactoryCreate = C1685CreateCloudViewModel_Factory.create(authorizeCommonSdkComponentImpl.provideAuthPhoneFlowDataHolderProvider, this.providesCheckPhoneUseCaseFactoryProvider, authorizeCommonSdkComponentImpl.addAnalyticsProvider, authorizeCommonSdkComponentImpl.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl.provideIoDispatcherProvider, authorizeCommonSdkComponentImpl.provideInternalLoggerProvider);
+            this.createCloudViewModelProvider = c1685CreateCloudViewModel_FactoryCreate;
+            this.factoryProvider9 = CreateCloudViewModel_Factory_Impl.createFactoryProvider(c1685CreateCloudViewModel_FactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl2 = this.authorizeCommonSdkComponentImpl;
+            Provider<CoroutineDispatcher> provider = authorizeCommonSdkComponentImpl2.provideViewModelDispatcherProvider;
+            Provider<CoroutineDispatcher> provider2 = authorizeCommonSdkComponentImpl2.provideIoDispatcherProvider;
+            Provider<Boolean> provider3 = authorizeCommonSdkComponentImpl2.addIsTestProvider;
+            Provider<AuthorizationSdkAnalyticsImpl> provider4 = authorizeCommonSdkComponentImpl2.addAnalyticsProvider;
+            C1749PasswordViewModel_Factory c1749PasswordViewModel_FactoryCreate = C1749PasswordViewModel_Factory.create(provider, provider2, provider3, provider4, provider4, authorizeCommonSdkComponentImpl2.provideAvatarLoadUseCaseProvider, authorizeCommonSdkComponentImpl2.provideStringResolverProvider, authorizeCommonSdkComponentImpl2.provideStatusNavBarHelperProvider, authorizeCommonSdkComponentImpl2.provideInternalLoggerProvider, authorizeCommonSdkComponentImpl2.provideErrorDelegateSubscriberProvider, this.provideFlavorConfigProvider);
+            this.passwordViewModelProvider = c1749PasswordViewModel_FactoryCreate;
+            this.factoryProvider10 = PasswordViewModel_Factory_Impl.createFactoryProvider(c1749PasswordViewModel_FactoryCreate);
+            EnterPhoneModule_ProvidePhoneAuthInteractorFactory enterPhoneModule_ProvidePhoneAuthInteractorFactoryCreate = EnterPhoneModule_ProvidePhoneAuthInteractorFactory.create(enterPhoneModule);
+            this.providePhoneAuthInteractorProvider = enterPhoneModule_ProvidePhoneAuthInteractorFactoryCreate;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl3 = this.authorizeCommonSdkComponentImpl;
+            C1636EnterPhoneViewModel_Factory c1636EnterPhoneViewModel_FactoryCreate = C1636EnterPhoneViewModel_Factory.create(authorizeCommonSdkComponentImpl3.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl3.addIsTestProvider, authorizeCommonSdkComponentImpl3.addAnalyticsProvider, this.providePhoneHelperProvider, authorizeCommonSdkComponentImpl3.provideStringResolverProvider, enterPhoneModule_ProvidePhoneAuthInteractorFactoryCreate, authorizeCommonSdkComponentImpl3.provideStatusNavBarHelperProvider, authorizeCommonSdkComponentImpl3.provideInternalLoggerProvider);
+            this.enterPhoneViewModelProvider = c1636EnterPhoneViewModel_FactoryCreate;
+            this.factoryProvider11 = EnterPhoneViewModel_Factory_Impl.createFactoryProvider(c1636EnterPhoneViewModel_FactoryCreate);
+            EnterPhoneCodeModule_ProvideSmsVerificationRepositoryFactory enterPhoneCodeModule_ProvideSmsVerificationRepositoryFactoryCreate = EnterPhoneCodeModule_ProvideSmsVerificationRepositoryFactory.create(enterPhoneCodeModule, this.authorizeCommonSdkComponentImpl.providesCheckPhoneRepositoryProvider, this.providesLibverifyHelperProvider, this.configProvider);
+            this.provideSmsVerificationRepositoryProvider = enterPhoneCodeModule_ProvideSmsVerificationRepositoryFactoryCreate;
+            this.provideVerifyPhoneCodeUseCaseProvider = EnterPhoneCodeModule_ProvideVerifyPhoneCodeUseCaseFactory.create(enterPhoneCodeModule, enterPhoneCodeModule_ProvideSmsVerificationRepositoryFactoryCreate);
+            EnterPhoneCodeModule_ProvideResendCodeUseCaseFactory enterPhoneCodeModule_ProvideResendCodeUseCaseFactoryCreate = EnterPhoneCodeModule_ProvideResendCodeUseCaseFactory.create(enterPhoneCodeModule, this.provideSmsVerificationRepositoryProvider);
+            this.provideResendCodeUseCaseProvider = enterPhoneCodeModule_ProvideResendCodeUseCaseFactoryCreate;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl4 = this.authorizeCommonSdkComponentImpl;
+            C1763EnterPhoneCodeViewModel_Factory c1763EnterPhoneCodeViewModel_FactoryCreate = C1763EnterPhoneCodeViewModel_Factory.create(authorizeCommonSdkComponentImpl4.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl4.provideIoDispatcherProvider, this.provideVerifyPhoneCodeUseCaseProvider, enterPhoneCodeModule_ProvideResendCodeUseCaseFactoryCreate, authorizeCommonSdkComponentImpl4.provideAuthPhoneFlowDataHolderProvider, authorizeCommonSdkComponentImpl4.addAnalyticsProvider, authorizeCommonSdkComponentImpl4.provideStatusNavBarHelperProvider, authorizeCommonSdkComponentImpl4.provideInternalLoggerProvider);
+            this.enterPhoneCodeViewModelProvider = c1763EnterPhoneCodeViewModel_FactoryCreate;
+            this.factoryProvider12 = EnterPhoneCodeViewModel_Factory_Impl.createFactoryProvider(c1763EnterPhoneCodeViewModel_FactoryCreate);
+            this.provideVerifyEmailCodeUseCaseProvider = EnterEmailCodeModule_ProvideVerifyEmailCodeUseCaseFactory.create(enterEmailCodeModule, this.authorizeCommonSdkComponentImpl.providesCheckPhoneRepositoryProvider);
+            this.provideResendEmailCodeUseCaseProvider = EnterEmailCodeModule_ProvideResendEmailCodeUseCaseFactory.create(enterEmailCodeModule, this.authorizeCommonSdkComponentImpl.providesCheckPhoneRepositoryProvider);
+            EnterEmailCodeModule_ProvideSwitchToSmsUseCaseFactory enterEmailCodeModule_ProvideSwitchToSmsUseCaseFactoryCreate = EnterEmailCodeModule_ProvideSwitchToSmsUseCaseFactory.create(enterEmailCodeModule, this.providesLibverifyHelperProvider);
+            this.provideSwitchToSmsUseCaseProvider = enterEmailCodeModule_ProvideSwitchToSmsUseCaseFactoryCreate;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl5 = this.authorizeCommonSdkComponentImpl;
+            C1768EnterEmailCodeViewModel_Factory c1768EnterEmailCodeViewModel_FactoryCreate = C1768EnterEmailCodeViewModel_Factory.create(authorizeCommonSdkComponentImpl5.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl5.provideIoDispatcherProvider, this.provideVerifyEmailCodeUseCaseProvider, this.provideResendEmailCodeUseCaseProvider, enterEmailCodeModule_ProvideSwitchToSmsUseCaseFactoryCreate, authorizeCommonSdkComponentImpl5.provideAuthPhoneFlowDataHolderProvider, authorizeCommonSdkComponentImpl5.addAnalyticsProvider, authorizeCommonSdkComponentImpl5.provideStatusNavBarHelperProvider, authorizeCommonSdkComponentImpl5.provideInternalLoggerProvider);
+            this.enterEmailCodeViewModelProvider = c1768EnterEmailCodeViewModel_FactoryCreate;
+            this.factoryProvider13 = EnterEmailCodeViewModel_Factory_Impl.createFactoryProvider(c1768EnterEmailCodeViewModel_FactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl6 = this.authorizeCommonSdkComponentImpl;
+            C1752AccountListViewModel_Factory c1752AccountListViewModel_FactoryCreate = C1752AccountListViewModel_Factory.create(authorizeCommonSdkComponentImpl6.provideAuthPhoneFlowDataHolderProvider, this.providesCheckPhoneUseCaseFactoryProvider, authorizeCommonSdkComponentImpl6.addAnalyticsProvider, authorizeCommonSdkComponentImpl6.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl6.provideIoDispatcherProvider, authorizeCommonSdkComponentImpl6.provideInternalLoggerProvider);
+            this.accountListViewModelProvider = c1752AccountListViewModel_FactoryCreate;
+            this.factoryProvider14 = AccountListViewModel_Factory_Impl.createFactoryProvider(c1752AccountListViewModel_FactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl7 = this.authorizeCommonSdkComponentImpl;
+            C1772EnterEmailCodeAfterListAccViewModel_Factory c1772EnterEmailCodeAfterListAccViewModel_FactoryCreate = C1772EnterEmailCodeAfterListAccViewModel_Factory.create(authorizeCommonSdkComponentImpl7.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl7.provideIoDispatcherProvider, this.provideVerifyEmailCodeUseCaseProvider, this.provideResendEmailCodeUseCaseProvider, authorizeCommonSdkComponentImpl7.provideAuthPhoneFlowDataHolderProvider, authorizeCommonSdkComponentImpl7.addAnalyticsProvider, authorizeCommonSdkComponentImpl7.provideStatusNavBarHelperProvider, authorizeCommonSdkComponentImpl7.provideInternalLoggerProvider);
+            this.enterEmailCodeAfterListAccViewModelProvider = c1772EnterEmailCodeAfterListAccViewModel_FactoryCreate;
+            this.factoryProvider15 = EnterEmailCodeAfterListAccViewModel_Factory_Impl.createFactoryProvider(c1772EnterEmailCodeAfterListAccViewModel_FactoryCreate);
+            C1773NotReceivedCodeBottomSheetViewModel_Factory c1773NotReceivedCodeBottomSheetViewModel_FactoryCreate = C1773NotReceivedCodeBottomSheetViewModel_Factory.create(this.authorizeCommonSdkComponentImpl.addCloudWriteToSupportHelperProvider);
+            this.notReceivedCodeBottomSheetViewModelProvider = c1773NotReceivedCodeBottomSheetViewModel_FactoryCreate;
+            this.factoryProvider16 = NotReceivedCodeBottomSheetViewModel_Factory_Impl.createFactoryProvider(c1773NotReceivedCodeBottomSheetViewModel_FactoryCreate);
+            this.codeReceivedTypeBottomSheetViewModelProvider = C1753CodeReceivedTypeBottomSheetViewModel_Factory.create(this.authorizeCommonSdkComponentImpl.provideStringResolverProvider, this.provideFlavorConfigProvider);
+        }
+
+        private void initialize5(AuthorizeConfigModule authorizeConfigModule, SessionRestoreModule sessionRestoreModule, LoginModule loginModule, ExternalMigrationModule externalMigrationModule, ForceVKIDModule forceVKIDModule, VKIDModule vKIDModule, ImapLocalConfigDependModule imapLocalConfigDependModule, NetworkConfigDependModule networkConfigDependModule, OidcRemoteModule oidcRemoteModule, ImageLoadConfigDependModule imageLoadConfigDependModule, EnterPhoneModule enterPhoneModule, EnterPhoneCodeModule enterPhoneCodeModule, EnterEmailCodeModule enterEmailCodeModule, OKModule oKModule, GoogleModule googleModule, AuthorizationSdkConfig authorizationSdkConfig) {
+            this.factoryProvider17 = CodeReceivedTypeBottomSheetViewModel_Factory_Impl.createFactoryProvider(this.codeReceivedTypeBottomSheetViewModelProvider);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl = this.authorizeCommonSdkComponentImpl;
+            Provider<CoroutineDispatcher> provider = authorizeCommonSdkComponentImpl.provideViewModelDispatcherProvider;
+            Provider<Boolean> provider2 = authorizeCommonSdkComponentImpl.addIsTestProvider;
+            Provider<StatusNavBarHelper> provider3 = authorizeCommonSdkComponentImpl.provideStatusNavBarHelperProvider;
+            Provider<GetPushAuthInfoUseCase> provider4 = this.provideGetPushAuthInfoUseCaseProvider;
+            Provider<AuthorizationSdkAnalyticsImpl> provider5 = authorizeCommonSdkComponentImpl.addAnalyticsProvider;
+            C1740LoginBindFlowViewModel_Factory c1740LoginBindFlowViewModel_FactoryCreate = C1740LoginBindFlowViewModel_Factory.create(provider, provider2, provider3, provider4, provider5, provider5, authorizeCommonSdkComponentImpl.provideDomainUtilsProvider, authorizeCommonSdkComponentImpl.provideInternalLoggerProvider, this.provideServicesUseCaseProvider, this.emailSuggestionsUseCaseProvider, this.domainSuggestionsUseCaseProvider, authorizeCommonSdkComponentImpl.provideStringResolverProvider, authorizeCommonSdkComponentImpl.provideErrorDelegateSubscriberProvider, this.provideLongClickOnLogoDelegateProvider, this.provideEnteredEmailValidatorProvider);
+            this.loginBindFlowViewModelProvider = c1740LoginBindFlowViewModel_FactoryCreate;
+            this.factoryProvider18 = LoginBindFlowViewModel_Factory_Impl.createFactoryProvider(c1740LoginBindFlowViewModel_FactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl2 = this.authorizeCommonSdkComponentImpl;
+            RestorePasswordRepository_Factory restorePasswordRepository_FactoryCreate = RestorePasswordRepository_Factory.create(authorizeCommonSdkComponentImpl2.provideDeviceIdProvider, authorizeCommonSdkComponentImpl2.provideDeviceUdidProvider, authorizeCommonSdkComponentImpl2.provideMailAuthorizationSdkUrlsResolverProvider);
+            this.restorePasswordRepositoryProvider = restorePasswordRepository_FactoryCreate;
+            RestorePasswordInteractor_Factory restorePasswordInteractor_FactoryCreate = RestorePasswordInteractor_Factory.create(restorePasswordRepository_FactoryCreate);
+            this.restorePasswordInteractorProvider = restorePasswordInteractor_FactoryCreate;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl3 = this.authorizeCommonSdkComponentImpl;
+            C1789RestorePasswordViewModel_Factory c1789RestorePasswordViewModel_FactoryCreate = C1789RestorePasswordViewModel_Factory.create(authorizeCommonSdkComponentImpl3.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl3.provideSecondStepInteractorProvider, authorizeCommonSdkComponentImpl3.addIsTestProvider, restorePasswordInteractor_FactoryCreate, authorizeCommonSdkComponentImpl3.provideStringResolverProvider, authorizeCommonSdkComponentImpl3.addAnalyticsProvider, authorizeCommonSdkComponentImpl3.provideInternalLoggerProvider, authorizeCommonSdkComponentImpl3.provideStatusNavBarHelperProvider);
+            this.restorePasswordViewModelProvider = c1789RestorePasswordViewModel_FactoryCreate;
+            this.factoryProvider19 = RestorePasswordViewModel_Factory_Impl.createFactoryProvider(c1789RestorePasswordViewModel_FactoryCreate);
+            LoginModule_ProvideRestoreVkDelegateFactory loginModule_ProvideRestoreVkDelegateFactoryCreate = LoginModule_ProvideRestoreVkDelegateFactory.create(loginModule, this.configProvider, this.authorizeCommonSdkComponentImpl.provideInternalLoggerProvider);
+            this.provideRestoreVkDelegateProvider = loginModule_ProvideRestoreVkDelegateFactoryCreate;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl4 = this.authorizeCommonSdkComponentImpl;
+            Provider<CoroutineDispatcher> provider6 = authorizeCommonSdkComponentImpl4.provideViewModelDispatcherProvider;
+            Provider<CoroutineDispatcher> provider7 = authorizeCommonSdkComponentImpl4.provideIoDispatcherProvider;
+            Provider<AuthorizationSdkAnalyticsImpl> provider8 = authorizeCommonSdkComponentImpl4.addAnalyticsProvider;
+            C1792RestoreVkViewModel_Factory c1792RestoreVkViewModel_FactoryCreate = C1792RestoreVkViewModel_Factory.create(provider6, provider7, provider8, provider8, loginModule_ProvideRestoreVkDelegateFactoryCreate, authorizeCommonSdkComponentImpl4.providesFinishRestoreConsumerUseCaseProvider, this.providesSocialAuthConfigProvider, authorizeCommonSdkComponentImpl4.provideInternalLoggerProvider);
+            this.restoreVkViewModelProvider = c1792RestoreVkViewModel_FactoryCreate;
+            this.factoryProvider20 = RestoreVkViewModel_Factory_Impl.createFactoryProvider(c1792RestoreVkViewModel_FactoryCreate);
+            AuthorizeConfigModule_ProvidesLudwigConfigFactory authorizeConfigModule_ProvidesLudwigConfigFactoryCreate = AuthorizeConfigModule_ProvidesLudwigConfigFactory.create(authorizeConfigModule, this.configProvider);
+            this.providesLudwigConfigProvider = authorizeConfigModule_ProvidesLudwigConfigFactoryCreate;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl5 = this.authorizeCommonSdkComponentImpl;
+            C1625WebCaptchaComposeViewModel_Factory c1625WebCaptchaComposeViewModel_FactoryCreate = C1625WebCaptchaComposeViewModel_Factory.create(authorizeCommonSdkComponentImpl5.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl5.addLoggerProvider, authorizeConfigModule_ProvidesLudwigConfigFactoryCreate, authorizeCommonSdkComponentImpl5.provideStatusNavBarHelperProvider, authorizeCommonSdkComponentImpl5.addAnalyticsProvider, authorizeCommonSdkComponentImpl5.provideMailAuthorizationSdkUrlsResolverProvider);
+            this.webCaptchaComposeViewModelProvider = c1625WebCaptchaComposeViewModel_FactoryCreate;
+            this.factoryProvider21 = WebCaptchaComposeViewModel_Factory_Impl.createFactoryProvider(c1625WebCaptchaComposeViewModel_FactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl6 = this.authorizeCommonSdkComponentImpl;
+            C1746OneTimeCodeViewModel_Factory c1746OneTimeCodeViewModel_FactoryCreate = C1746OneTimeCodeViewModel_Factory.create(authorizeCommonSdkComponentImpl6.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl6.addLoggerProvider, authorizeCommonSdkComponentImpl6.provideStatusNavBarHelperProvider, authorizeCommonSdkComponentImpl6.provideStringResolverProvider, authorizeCommonSdkComponentImpl6.addAnalyticsProvider, authorizeCommonSdkComponentImpl6.provideMailAuthorizationSdkUrlsResolverProvider);
+            this.oneTimeCodeViewModelProvider = c1746OneTimeCodeViewModel_FactoryCreate;
+            this.factoryProvider22 = OneTimeCodeViewModel_Factory_Impl.createFactoryProvider(c1746OneTimeCodeViewModel_FactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl7 = this.authorizeCommonSdkComponentImpl;
+            C1820SSOViewModel_Factory c1820SSOViewModel_FactoryCreate = C1820SSOViewModel_Factory.create(authorizeCommonSdkComponentImpl7.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl7.addLoggerProvider, authorizeCommonSdkComponentImpl7.addAnalyticsProvider, authorizeCommonSdkComponentImpl7.provideStatusNavBarHelperProvider, authorizeCommonSdkComponentImpl7.provideStringResolverProvider, authorizeCommonSdkComponentImpl7.provideWebClientProvider);
+            this.sSOViewModelProvider = c1820SSOViewModel_FactoryCreate;
+            this.factoryProvider23 = SSOViewModel_Factory_Impl.createFactoryProvider(c1820SSOViewModel_FactoryCreate);
+            LoginModule_ProvideWebViewHelperFactory loginModule_ProvideWebViewHelperFactoryCreate = LoginModule_ProvideWebViewHelperFactory.create(loginModule);
+            this.provideWebViewHelperProvider = loginModule_ProvideWebViewHelperFactoryCreate;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl8 = this.authorizeCommonSdkComponentImpl;
+            C1831VkPasswordViewModel_Factory c1831VkPasswordViewModel_FactoryCreate = C1831VkPasswordViewModel_Factory.create(authorizeCommonSdkComponentImpl8.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl8.provideInternalLoggerProvider, authorizeCommonSdkComponentImpl8.addLoggerProvider, authorizeCommonSdkComponentImpl8.addAnalyticsProvider, authorizeCommonSdkComponentImpl8.provideStatusNavBarHelperProvider, authorizeCommonSdkComponentImpl8.provideStringResolverProvider, authorizeCommonSdkComponentImpl8.provideDeviceUdidProvider, loginModule_ProvideWebViewHelperFactoryCreate, authorizeCommonSdkComponentImpl8.provideMailAuthorizationSdkUrlsResolverProvider);
+            this.vkPasswordViewModelProvider = c1831VkPasswordViewModel_FactoryCreate;
+            this.factoryProvider24 = VkPasswordViewModel_Factory_Impl.createFactoryProvider(c1831VkPasswordViewModel_FactoryCreate);
+            GoogleModule_ProvidesGoogleAuthUrlRemoteSourceFactory googleModule_ProvidesGoogleAuthUrlRemoteSourceFactoryCreate = GoogleModule_ProvidesGoogleAuthUrlRemoteSourceFactory.create(googleModule, this.authorizeCommonSdkComponentImpl.provideBaseMailApiProvider);
+            this.providesGoogleAuthUrlRemoteSourceProvider = googleModule_ProvidesGoogleAuthUrlRemoteSourceFactoryCreate;
+            this.providesGoogleAccMailAuthRepositoryProvider = GoogleModule_ProvidesGoogleAccMailAuthRepositoryFactory.create(googleModule, googleModule_ProvidesGoogleAuthUrlRemoteSourceFactoryCreate, this.providesGoogleMapperProvider);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl9 = this.authorizeCommonSdkComponentImpl;
+            this.provideGoogleOauth2ParamsRepositoryProvider = GoogleModule_ProvideGoogleOauth2ParamsRepositoryFactory.create(googleModule, authorizeCommonSdkComponentImpl9.addGoogleSecretsProvider, authorizeCommonSdkComponentImpl9.provideMailAuthorizationSdkUrlsResolverProvider, authorizeCommonSdkComponentImpl9.providesGoogleAccountProvider, this.provideFlavorConfigProvider);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl10 = this.authorizeCommonSdkComponentImpl;
+            GoogleModule_ProvideGoogleRetrofitFactory googleModule_ProvideGoogleRetrofitFactoryCreate = GoogleModule_ProvideGoogleRetrofitFactory.create(googleModule, authorizeCommonSdkComponentImpl10.provideMailAuthorizationSdkUrlsResolverProvider, authorizeCommonSdkComponentImpl10.provideJsonConvertFactoryProvider, authorizeCommonSdkComponentImpl10.provideExternalOkHttpClientProvider, authorizeCommonSdkComponentImpl10.provideInternalLoggerProvider);
+            this.provideGoogleRetrofitProvider = googleModule_ProvideGoogleRetrofitFactoryCreate;
+            this.provideGoogleApiProvider = GoogleModule_ProvideGoogleApiFactory.create(googleModule, googleModule_ProvideGoogleRetrofitFactoryCreate);
+        }
+
+        private void initialize6(AuthorizeConfigModule authorizeConfigModule, SessionRestoreModule sessionRestoreModule, LoginModule loginModule, ExternalMigrationModule externalMigrationModule, ForceVKIDModule forceVKIDModule, VKIDModule vKIDModule, ImapLocalConfigDependModule imapLocalConfigDependModule, NetworkConfigDependModule networkConfigDependModule, OidcRemoteModule oidcRemoteModule, ImageLoadConfigDependModule imageLoadConfigDependModule, EnterPhoneModule enterPhoneModule, EnterPhoneCodeModule enterPhoneCodeModule, EnterEmailCodeModule enterEmailCodeModule, OKModule oKModule, GoogleModule googleModule, AuthorizationSdkConfig authorizationSdkConfig) {
+            GoogleModule_ProvidesGoogleRemoteSourceFactory googleModule_ProvidesGoogleRemoteSourceFactoryCreate = GoogleModule_ProvidesGoogleRemoteSourceFactory.create(googleModule, this.provideGoogleApiProvider);
+            this.providesGoogleRemoteSourceProvider = googleModule_ProvidesGoogleRemoteSourceFactoryCreate;
+            this.providesGoogleRepositoryProvider = GoogleModule_ProvidesGoogleRepositoryFactory.create(googleModule, googleModule_ProvidesGoogleRemoteSourceFactoryCreate, this.providesGoogleMapperProvider);
+            GoogleModule_ProvideGoogleNativeTokenExchangeFactory googleModule_ProvideGoogleNativeTokenExchangeFactoryCreate = GoogleModule_ProvideGoogleNativeTokenExchangeFactory.create(googleModule, this.provideGoogleApiProvider);
+            this.provideGoogleNativeTokenExchangeProvider = googleModule_ProvideGoogleNativeTokenExchangeFactoryCreate;
+            GoogleModule_ProvidesGoogleInteractorFactoryFactory googleModule_ProvidesGoogleInteractorFactoryFactoryCreate = GoogleModule_ProvidesGoogleInteractorFactoryFactory.create(googleModule, this.authorizeCommonSdkComponentImpl.provideFilesDirProvider, this.providesGoogleAccMailAuthRepositoryProvider, this.provideGoogleOauth2ParamsRepositoryProvider, this.providesGoogleRepositoryProvider, this.provideFlavorConfigProvider, googleModule_ProvideGoogleNativeTokenExchangeFactoryCreate);
+            this.providesGoogleInteractorFactoryProvider = googleModule_ProvidesGoogleInteractorFactoryFactoryCreate;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl = this.authorizeCommonSdkComponentImpl;
+            Provider<Context> provider = authorizeCommonSdkComponentImpl.addContextProvider;
+            Provider<NetworkErrorDelegate> provider2 = authorizeCommonSdkComponentImpl.provideNetworkErrorDelegateProvider;
+            Provider<InternalLogger> provider3 = authorizeCommonSdkComponentImpl.provideInternalLoggerProvider;
+            Provider<CommonConfig> provider4 = this.providesCommonConfigProvider;
+            Provider<AuthorizationSdkAnalyticsImpl> provider5 = authorizeCommonSdkComponentImpl.addAnalyticsProvider;
+            GoogleViewModel_Factory googleViewModel_FactoryCreate = GoogleViewModel_Factory.create(provider, provider2, googleModule_ProvidesGoogleInteractorFactoryFactoryCreate, provider3, provider4, provider5, provider5, provider5, authorizeCommonSdkComponentImpl.provideStringResolverProvider, authorizeCommonSdkComponentImpl.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl.provideIoDispatcherProvider);
+            this.googleViewModelProvider = googleViewModel_FactoryCreate;
+            this.googleAssistedFactoryProvider = GoogleAssistedFactory_Impl.createFactoryProvider(googleViewModel_FactoryCreate);
+            AuthorizeConfigModule_ProvideBrowserConfigFactory authorizeConfigModule_ProvideBrowserConfigFactoryCreate = AuthorizeConfigModule_ProvideBrowserConfigFactory.create(authorizeConfigModule, this.configProvider);
+            this.provideBrowserConfigProvider = authorizeConfigModule_ProvideBrowserConfigFactoryCreate;
+            Provider<GoogleAuthUrlInteractorFactory> provider6 = this.providesGoogleInteractorFactoryProvider;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl2 = this.authorizeCommonSdkComponentImpl;
+            Provider<Logger> provider7 = authorizeCommonSdkComponentImpl2.addLoggerProvider;
+            Provider<Resources> provider8 = authorizeCommonSdkComponentImpl2.provideStringResolverProvider;
+            Provider<AuthorizationSdkAnalyticsImpl> provider9 = authorizeCommonSdkComponentImpl2.addAnalyticsProvider;
+            GoogleWebAuthViewModel_Factory googleWebAuthViewModel_FactoryCreate = GoogleWebAuthViewModel_Factory.create(provider6, provider7, authorizeConfigModule_ProvideBrowserConfigFactoryCreate, provider8, provider9, provider9, provider9, authorizeCommonSdkComponentImpl2.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl2.provideIoDispatcherProvider);
+            this.googleWebAuthViewModelProvider = googleWebAuthViewModel_FactoryCreate;
+            this.googleWebAuthAssistedFactoryProvider = GoogleWebAuthAssistedFactory_Impl.createFactoryProvider(googleWebAuthViewModel_FactoryCreate);
+            AuthorizeConfigModule_ProvidesSecondStepConfigFactory authorizeConfigModule_ProvidesSecondStepConfigFactoryCreate = AuthorizeConfigModule_ProvidesSecondStepConfigFactory.create(authorizeConfigModule, this.configProvider);
+            this.providesSecondStepConfigProvider = authorizeConfigModule_ProvidesSecondStepConfigFactoryCreate;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl3 = this.authorizeCommonSdkComponentImpl;
+            C1795SecondStepViewModel_Factory c1795SecondStepViewModel_FactoryCreate = C1795SecondStepViewModel_Factory.create(authorizeCommonSdkComponentImpl3.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl3.addLoggerProvider, authorizeCommonSdkComponentImpl3.provideSecondStepInteractorProvider, authorizeCommonSdkComponentImpl3.addAnalyticsProvider, authorizeConfigModule_ProvidesSecondStepConfigFactoryCreate, authorizeCommonSdkComponentImpl3.provideStatusNavBarHelperProvider, authorizeCommonSdkComponentImpl3.provideStringResolverProvider, authorizeCommonSdkComponentImpl3.provideWebClientProvider2);
+            this.secondStepViewModelProvider = c1795SecondStepViewModel_FactoryCreate;
+            this.factoryProvider25 = SecondStepViewModel_Factory_Impl.createFactoryProvider(c1795SecondStepViewModel_FactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl4 = this.authorizeCommonSdkComponentImpl;
+            C1805EsiaViewModel_Factory c1805EsiaViewModel_FactoryCreate = C1805EsiaViewModel_Factory.create(authorizeCommonSdkComponentImpl4.provideInternalLoggerProvider, authorizeCommonSdkComponentImpl4.provideStatusNavBarHelperProvider, authorizeCommonSdkComponentImpl4.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl4.provideIoDispatcherProvider, authorizeCommonSdkComponentImpl4.provideEsiaTokenExchangerProvider, authorizeCommonSdkComponentImpl4.addAnalyticsProvider, authorizeCommonSdkComponentImpl4.provideStringResolverProvider);
+            this.esiaViewModelProvider = c1805EsiaViewModel_FactoryCreate;
+            this.factoryProvider26 = EsiaViewModel_Factory_Impl.createFactoryProvider(c1805EsiaViewModel_FactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl5 = this.authorizeCommonSdkComponentImpl;
+            C1622BindEmailViewModel_Factory c1622BindEmailViewModel_FactoryCreate = C1622BindEmailViewModel_Factory.create(authorizeCommonSdkComponentImpl5.provideInternalLoggerProvider, authorizeCommonSdkComponentImpl5.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl5.provideStatusNavBarHelperProvider, authorizeCommonSdkComponentImpl5.provideEsiaTokenExchangerProvider, authorizeCommonSdkComponentImpl5.provideBindNewMailUseCaseProvider, authorizeCommonSdkComponentImpl5.addAnalyticsProvider, authorizeCommonSdkComponentImpl5.provideStringResolverProvider);
+            this.bindEmailViewModelProvider = c1622BindEmailViewModel_FactoryCreate;
+            this.factoryProvider27 = BindEmailViewModel_Factory_Impl.createFactoryProvider(c1622BindEmailViewModel_FactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl6 = this.authorizeCommonSdkComponentImpl;
+            C1638ExternalAccMigrationViewModel_Factory c1638ExternalAccMigrationViewModel_FactoryCreate = C1638ExternalAccMigrationViewModel_Factory.create(authorizeCommonSdkComponentImpl6.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl6.addLoggerProvider, authorizeCommonSdkComponentImpl6.addAnalyticsProvider, authorizeCommonSdkComponentImpl6.provideStatusNavBarHelperProvider, authorizeCommonSdkComponentImpl6.provideStringResolverProvider);
+            this.externalAccMigrationViewModelProvider = c1638ExternalAccMigrationViewModel_FactoryCreate;
+            this.factoryProvider28 = ExternalAccMigrationViewModel_Factory_Impl.createFactoryProvider(c1638ExternalAccMigrationViewModel_FactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl7 = this.authorizeCommonSdkComponentImpl;
+            C1836YahooViewModel_Factory c1836YahooViewModel_FactoryCreate = C1836YahooViewModel_Factory.create(authorizeCommonSdkComponentImpl7.provideInteractorFactoryProvider, authorizeCommonSdkComponentImpl7.provideInternalLoggerProvider, authorizeCommonSdkComponentImpl7.provideStatusNavBarHelperProvider, authorizeCommonSdkComponentImpl7.addAnalyticsProvider, this.provideWebViewHelperProvider, authorizeCommonSdkComponentImpl7.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl7.provideStringResolverProvider);
+            this.yahooViewModelProvider = c1836YahooViewModel_FactoryCreate;
+            this.factoryProvider29 = YahooViewModel_Factory_Impl.createFactoryProvider(c1836YahooViewModel_FactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl8 = this.authorizeCommonSdkComponentImpl;
+            Provider<YandexAuthUrlUseCaseFactory> provider10 = authorizeCommonSdkComponentImpl8.provideYandexAuthUrlUseCaseFactoryProvider;
+            Provider<YandexInteractorFactory> provider11 = authorizeCommonSdkComponentImpl8.providesYandexInteractorFactoryProvider;
+            Provider<InternalLogger> provider12 = authorizeCommonSdkComponentImpl8.provideInternalLoggerProvider;
+            Provider<WebViewHelper> provider13 = this.provideWebViewHelperProvider;
+            Provider<StatusNavBarHelper> provider14 = authorizeCommonSdkComponentImpl8.provideStatusNavBarHelperProvider;
+            Provider<AuthorizationSdkAnalyticsImpl> provider15 = authorizeCommonSdkComponentImpl8.addAnalyticsProvider;
+            YandexViewModel_Factory yandexViewModel_FactoryCreate = YandexViewModel_Factory.create(provider10, provider11, provider12, provider13, provider14, provider15, provider15, authorizeCommonSdkComponentImpl8.provideStringResolverProvider, authorizeCommonSdkComponentImpl8.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl8.provideIoDispatcherProvider);
+            this.yandexViewModelProvider = yandexViewModel_FactoryCreate;
+            this.yandexAssistedFactoryProvider = YandexAssistedFactory_Impl.createFactoryProvider(yandexViewModel_FactoryCreate);
+            AuthorizeConfigModule_ProvidesMrimConfigFactory authorizeConfigModule_ProvidesMrimConfigFactoryCreate = AuthorizeConfigModule_ProvidesMrimConfigFactory.create(authorizeConfigModule, this.configProvider);
+            this.providesMrimConfigProvider = authorizeConfigModule_ProvidesMrimConfigFactoryCreate;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl9 = this.authorizeCommonSdkComponentImpl;
+            C1742MrimDialogViewModel_Factory c1742MrimDialogViewModel_FactoryCreate = C1742MrimDialogViewModel_Factory.create(authorizeCommonSdkComponentImpl9.addAnalyticsProvider, authorizeCommonSdkComponentImpl9.provideViewModelDispatcherProvider, authorizeConfigModule_ProvidesMrimConfigFactoryCreate, authorizeCommonSdkComponentImpl9.provideInternalLoggerProvider, authorizeCommonSdkComponentImpl9.provideStringResolverProvider, authorizeCommonSdkComponentImpl9.addIsTestProvider);
+            this.mrimDialogViewModelProvider = c1742MrimDialogViewModel_FactoryCreate;
+            this.factoryProvider30 = MrimDialogViewModel_Factory_Impl.createFactoryProvider(c1742MrimDialogViewModel_FactoryCreate);
+        }
+
+        private void initialize7(AuthorizeConfigModule authorizeConfigModule, SessionRestoreModule sessionRestoreModule, LoginModule loginModule, ExternalMigrationModule externalMigrationModule, ForceVKIDModule forceVKIDModule, VKIDModule vKIDModule, ImapLocalConfigDependModule imapLocalConfigDependModule, NetworkConfigDependModule networkConfigDependModule, OidcRemoteModule oidcRemoteModule, ImageLoadConfigDependModule imageLoadConfigDependModule, EnterPhoneModule enterPhoneModule, EnterPhoneCodeModule enterPhoneCodeModule, EnterEmailCodeModule enterEmailCodeModule, OKModule oKModule, GoogleModule googleModule, AuthorizationSdkConfig authorizationSdkConfig) {
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl = this.authorizeCommonSdkComponentImpl;
+            C1829WrongVkidAccountViewModel_Factory c1829WrongVkidAccountViewModel_FactoryCreate = C1829WrongVkidAccountViewModel_Factory.create(authorizeCommonSdkComponentImpl.addAnalyticsProvider, authorizeCommonSdkComponentImpl.provideInternalLoggerProvider, authorizeCommonSdkComponentImpl.addIsTestProvider, authorizeCommonSdkComponentImpl.provideViewModelDispatcherProvider);
+            this.wrongVkidAccountViewModelProvider = c1829WrongVkidAccountViewModel_FactoryCreate;
+            this.factoryProvider31 = WrongVkidAccountViewModel_Factory_Impl.createFactoryProvider(c1829WrongVkidAccountViewModel_FactoryCreate);
+            AuthorizeConfigModule_ProvidesYandexHelpConfigFactory authorizeConfigModule_ProvidesYandexHelpConfigFactoryCreate = AuthorizeConfigModule_ProvidesYandexHelpConfigFactory.create(authorizeConfigModule, this.configProvider);
+            this.providesYandexHelpConfigProvider = authorizeConfigModule_ProvidesYandexHelpConfigFactoryCreate;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl2 = this.authorizeCommonSdkComponentImpl;
+            C1837YandexHelpViewModel_Factory c1837YandexHelpViewModel_FactoryCreate = C1837YandexHelpViewModel_Factory.create(authorizeCommonSdkComponentImpl2.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl2.provideStatusNavBarHelperProvider, authorizeCommonSdkComponentImpl2.addAnalyticsProvider, authorizeConfigModule_ProvidesYandexHelpConfigFactoryCreate, authorizeCommonSdkComponentImpl2.provideInternalLoggerProvider);
+            this.yandexHelpViewModelProvider = c1837YandexHelpViewModel_FactoryCreate;
+            this.factoryProvider32 = YandexHelpViewModel_Factory_Impl.createFactoryProvider(c1837YandexHelpViewModel_FactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl3 = this.authorizeCommonSdkComponentImpl;
+            OKModule_ProvideOKRetrofitFactory oKModule_ProvideOKRetrofitFactoryCreate = OKModule_ProvideOKRetrofitFactory.create(oKModule, authorizeCommonSdkComponentImpl3.provideJsonConvertFactoryProvider, authorizeCommonSdkComponentImpl3.provideMailOkHttpClientProvider, authorizeCommonSdkComponentImpl3.provideMailAuthorizationSdkUrlsResolverProvider, authorizeCommonSdkComponentImpl3.provideInternalLoggerProvider);
+            this.provideOKRetrofitProvider = oKModule_ProvideOKRetrofitFactoryCreate;
+            OKModule_ProvideExternalAccMailApiFactory oKModule_ProvideExternalAccMailApiFactoryCreate = OKModule_ProvideExternalAccMailApiFactory.create(oKModule, oKModule_ProvideOKRetrofitFactoryCreate);
+            this.provideExternalAccMailApiProvider = oKModule_ProvideExternalAccMailApiFactoryCreate;
+            this.providesOKAuthRemoteSourceProvider = OKModule_ProvidesOKAuthRemoteSourceFactory.create(oKModule, oKModule_ProvideExternalAccMailApiFactoryCreate, this.provideOAuthApiProvider);
+            OKModule_ProvideOKAuthMapperFactory oKModule_ProvideOKAuthMapperFactoryCreate = OKModule_ProvideOKAuthMapperFactory.create(oKModule);
+            this.provideOKAuthMapperProvider = oKModule_ProvideOKAuthMapperFactoryCreate;
+            OKModule_ProvideOKAuthRepositoryFactory oKModule_ProvideOKAuthRepositoryFactoryCreate = OKModule_ProvideOKAuthRepositoryFactory.create(oKModule, this.providesOKAuthRemoteSourceProvider, oKModule_ProvideOKAuthMapperFactoryCreate);
+            this.provideOKAuthRepositoryProvider = oKModule_ProvideOKAuthRepositoryFactoryCreate;
+            OKModule_ProvideOKAuthInteractorFactory oKModule_ProvideOKAuthInteractorFactoryCreate = OKModule_ProvideOKAuthInteractorFactory.create(oKModule, oKModule_ProvideOKAuthRepositoryFactoryCreate);
+            this.provideOKAuthInteractorProvider = oKModule_ProvideOKAuthInteractorFactoryCreate;
+            Provider<OKAuthDelegate> provider = this.provideOKOAuthDelegateProvider;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl4 = this.authorizeCommonSdkComponentImpl;
+            C1744OKLoginViewModel_Factory c1744OKLoginViewModel_FactoryCreate = C1744OKLoginViewModel_Factory.create(provider, oKModule_ProvideOKAuthInteractorFactoryCreate, authorizeCommonSdkComponentImpl4.provideIoDispatcherProvider, authorizeCommonSdkComponentImpl4.addLoggerProvider);
+            this.oKLoginViewModelProvider = c1744OKLoginViewModel_FactoryCreate;
+            this.factoryProvider33 = OKLoginViewModel_Factory_Impl.createFactoryProvider(c1744OKLoginViewModel_FactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl5 = this.authorizeCommonSdkComponentImpl;
+            Provider<OutlookInteractorFactory> provider2 = authorizeCommonSdkComponentImpl5.providesOutlookInteractorFactoryProvider;
+            Provider<InternalLogger> provider3 = authorizeCommonSdkComponentImpl5.provideInternalLoggerProvider;
+            Provider<WebViewHelper> provider4 = this.provideWebViewHelperProvider;
+            Provider<StatusNavBarHelper> provider5 = authorizeCommonSdkComponentImpl5.provideStatusNavBarHelperProvider;
+            Provider<AuthorizationSdkAnalyticsImpl> provider6 = authorizeCommonSdkComponentImpl5.addAnalyticsProvider;
+            OutlookViewModel_Factory outlookViewModel_FactoryCreate = OutlookViewModel_Factory.create(provider2, provider3, provider4, provider5, provider6, provider6, authorizeCommonSdkComponentImpl5.provideStringResolverProvider, authorizeCommonSdkComponentImpl5.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl5.provideIoDispatcherProvider);
+            this.outlookViewModelProvider = outlookViewModel_FactoryCreate;
+            this.outlookAssistedFactoryProvider = OutlookAssistedFactory_Impl.createFactoryProvider(outlookViewModel_FactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl6 = this.authorizeCommonSdkComponentImpl;
+            Provider<AuthorizationSdkAnalyticsImpl> provider7 = authorizeCommonSdkComponentImpl6.addAnalyticsProvider;
+            C1632CustomServerViewModel_Factory c1632CustomServerViewModel_FactoryCreate = C1632CustomServerViewModel_Factory.create(provider7, provider7, authorizeCommonSdkComponentImpl6.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl6.provideIoDispatcherProvider, authorizeCommonSdkComponentImpl6.addIsTestProvider, authorizeCommonSdkComponentImpl6.provideImapCustomServerUseCaseProvider, this.emailSuggestionsUseCaseProvider, this.domainSuggestionsUseCaseProvider, authorizeCommonSdkComponentImpl6.provideServerParamsErrorsVmDelegateProvider, authorizeCommonSdkComponentImpl6.providePikachuCaptchaVmDelegateProvider, authorizeCommonSdkComponentImpl6.provideStringResolverProvider, authorizeCommonSdkComponentImpl6.provideStatusNavBarHelperProvider, this.provideLocalImapInteractorProvider, authorizeCommonSdkComponentImpl6.provideInternalLoggerProvider);
+            this.customServerViewModelProvider = c1632CustomServerViewModel_FactoryCreate;
+            this.factoryProvider34 = CustomServerViewModel_Factory_Impl.createFactoryProvider(c1632CustomServerViewModel_FactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl7 = this.authorizeCommonSdkComponentImpl;
+            C1617BeforeRecoveryVKIDViewModel_Factory c1617BeforeRecoveryVKIDViewModel_FactoryCreate = C1617BeforeRecoveryVKIDViewModel_Factory.create(authorizeCommonSdkComponentImpl7.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl7.addLoggerProvider, authorizeCommonSdkComponentImpl7.addIsTestProvider, authorizeCommonSdkComponentImpl7.addAnalyticsProvider, authorizeCommonSdkComponentImpl7.provideStatusNavBarHelperProvider);
+            this.beforeRecoveryVKIDViewModelProvider = c1617BeforeRecoveryVKIDViewModel_FactoryCreate;
+            this.factoryProvider35 = BeforeRecoveryVKIDViewModel_Factory_Impl.createFactoryProvider(c1617BeforeRecoveryVKIDViewModel_FactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl8 = this.authorizeCommonSdkComponentImpl;
+            C1821UnblockUserViewModel_Factory c1821UnblockUserViewModel_FactoryCreate = C1821UnblockUserViewModel_Factory.create(authorizeCommonSdkComponentImpl8.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl8.provideInternalLoggerProvider, authorizeCommonSdkComponentImpl8.addLoggerProvider, authorizeCommonSdkComponentImpl8.provideLoadingDelegateProvider, authorizeCommonSdkComponentImpl8.addAnalyticsProvider);
+            this.unblockUserViewModelProvider = c1821UnblockUserViewModel_FactoryCreate;
+            this.factoryProvider36 = UnblockUserViewModel_Factory_Impl.createFactoryProvider(c1821UnblockUserViewModel_FactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl9 = this.authorizeCommonSdkComponentImpl;
+            C1627ChangePasswordViewModel_Factory c1627ChangePasswordViewModel_FactoryCreate = C1627ChangePasswordViewModel_Factory.create(authorizeCommonSdkComponentImpl9.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl9.addLoggerProvider, authorizeCommonSdkComponentImpl9.addAnalyticsProvider);
+            this.changePasswordViewModelProvider = c1627ChangePasswordViewModel_FactoryCreate;
+            this.factoryProvider37 = ChangePasswordViewModel_Factory_Impl.createFactoryProvider(c1627ChangePasswordViewModel_FactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl10 = this.authorizeCommonSdkComponentImpl;
+            C1779RegistrationMainViewModel_Factory c1779RegistrationMainViewModel_FactoryCreate = C1779RegistrationMainViewModel_Factory.create(authorizeCommonSdkComponentImpl10.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl10.provideInternalLoggerProvider, authorizeCommonSdkComponentImpl10.provideStatusNavBarHelperProvider, authorizeCommonSdkComponentImpl10.addAnalyticsProvider);
+            this.registrationMainViewModelProvider = c1779RegistrationMainViewModel_FactoryCreate;
+            this.factoryProvider38 = RegistrationMainViewModel_Factory_Impl.createFactoryProvider(c1779RegistrationMainViewModel_FactoryCreate);
+        }
+
+        private void initialize8(AuthorizeConfigModule authorizeConfigModule, SessionRestoreModule sessionRestoreModule, LoginModule loginModule, ExternalMigrationModule externalMigrationModule, ForceVKIDModule forceVKIDModule, VKIDModule vKIDModule, ImapLocalConfigDependModule imapLocalConfigDependModule, NetworkConfigDependModule networkConfigDependModule, OidcRemoteModule oidcRemoteModule, ImageLoadConfigDependModule imageLoadConfigDependModule, EnterPhoneModule enterPhoneModule, EnterPhoneCodeModule enterPhoneCodeModule, EnterEmailCodeModule enterEmailCodeModule, OKModule oKModule, GoogleModule googleModule, AuthorizationSdkConfig authorizationSdkConfig) {
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl = this.authorizeCommonSdkComponentImpl;
+            C1786RegistrationViewModel_Factory c1786RegistrationViewModel_FactoryCreate = C1786RegistrationViewModel_Factory.create(authorizeCommonSdkComponentImpl.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl.addIsTestProvider, authorizeCommonSdkComponentImpl.addAnalyticsProvider, authorizeCommonSdkComponentImpl.provideSignupUseCaseProvider, authorizeCommonSdkComponentImpl.provideGetSignupDataUseCaseProvider, authorizeCommonSdkComponentImpl.provideUserExistsUseCaseProvider, authorizeCommonSdkComponentImpl.provideStringResolverProvider, this.provideRegEventProvider, authorizeCommonSdkComponentImpl.addChildRegHelperProvider, this.providesRegConfigProvider, authorizeCommonSdkComponentImpl.addSocialLoginInfoHolderProvider, authorizeCommonSdkComponentImpl.provideInternalLoggerProvider);
+            this.registrationViewModelProvider = c1786RegistrationViewModel_FactoryCreate;
+            this.factoryProvider39 = RegistrationViewModel_Factory_Impl.createFactoryProvider(c1786RegistrationViewModel_FactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl2 = this.authorizeCommonSdkComponentImpl;
+            C1787ParentSelectionViewModel_Factory c1787ParentSelectionViewModel_FactoryCreate = C1787ParentSelectionViewModel_Factory.create(authorizeCommonSdkComponentImpl2.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl2.addIsTestProvider, authorizeCommonSdkComponentImpl2.addChildRegHelperProvider, authorizeCommonSdkComponentImpl2.provideInternalLoggerProvider);
+            this.parentSelectionViewModelProvider = c1787ParentSelectionViewModel_FactoryCreate;
+            this.factoryProvider40 = ParentSelectionViewModel_Factory_Impl.createFactoryProvider(c1787ParentSelectionViewModel_FactoryCreate);
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl3 = this.authorizeCommonSdkComponentImpl;
+            this.provideVkAvatarLoadUseCaseProvider = ImageLoadConfigDependModule_ProvideVkAvatarLoadUseCaseFactory.create(imageLoadConfigDependModule, authorizeCommonSdkComponentImpl3.provideInternalLoggerProvider, this.provideSilentAuthInfoProvider, authorizeCommonSdkComponentImpl3.provideMailAuthorizationSdkUrlsResolverProvider);
+            AuthorizeConfigModule_ProvideVkBindInLoginConfigFactory authorizeConfigModule_ProvideVkBindInLoginConfigFactoryCreate = AuthorizeConfigModule_ProvideVkBindInLoginConfigFactory.create(authorizeConfigModule, this.configProvider);
+            this.provideVkBindInLoginConfigProvider = authorizeConfigModule_ProvideVkBindInLoginConfigFactoryCreate;
+            AuthorizeCommonSdkComponentImpl authorizeCommonSdkComponentImpl4 = this.authorizeCommonSdkComponentImpl;
+            C1823VkBindInLoginViewModel_Factory c1823VkBindInLoginViewModel_FactoryCreate = C1823VkBindInLoginViewModel_Factory.create(authorizeCommonSdkComponentImpl4.provideViewModelDispatcherProvider, authorizeCommonSdkComponentImpl4.addLoggerProvider, authorizeCommonSdkComponentImpl4.addAnalyticsProvider, this.provideVkAvatarLoadUseCaseProvider, authorizeCommonSdkComponentImpl4.provideStatusNavBarHelperProvider, authorizeConfigModule_ProvideVkBindInLoginConfigFactoryCreate, authorizeCommonSdkComponentImpl4.addIsTestProvider);
+            this.vkBindInLoginViewModelProvider = c1823VkBindInLoginViewModel_FactoryCreate;
+            this.factoryProvider41 = VkBindInLoginViewModel_Factory_Impl.createFactoryProvider(c1823VkBindInLoginViewModel_FactoryCreate);
+        }
+
+        @CanIgnoreReturnValue
+        private AuthActivity injectAuthActivity(AuthActivity authActivity) {
+            AuthActivity_MembersInjector.injectBaseLogger(authActivity, this.authorizeCommonSdkComponentImpl.internalLogger());
+            AuthActivity_MembersInjector.injectAuthViewModelFactory(authActivity, this.factoryProvider.get());
+            AuthActivity_MembersInjector.injectSocialAuthFactory(authActivity, this.factoryProvider2.get());
+            AuthActivity_MembersInjector.injectVkIdFragmentSupportViewModelFactory(authActivity, this.factoryProvider3.get());
+            AuthActivity_MembersInjector.injectAnalytics(authActivity, this.authorizeCommonSdkComponentImpl.addAnalytics);
+            AuthActivity_MembersInjector.injectSessionRestoreDelegate(authActivity, sessionRestoreDelegate());
+            AuthActivity_MembersInjector.injectOkOAuthDelegate(authActivity, DoubleCheck.lazy((Provider) this.provideOKOAuthDelegateProvider));
+            AuthActivity_MembersInjector.injectDarkThemeResolver(authActivity, this.authorizeCommonSdkComponentImpl.addDarkThemeResolver);
+            return authActivity;
+        }
+
+        @CanIgnoreReturnValue
+        private ReturnWorker injectReturnWorker(ReturnWorker returnWorker) {
+            ReturnWorker_MembersInjector.injectSessionConfig(returnWorker, sessionRestoreConfig());
+            ReturnWorker_MembersInjector.injectReturnParamsStore(returnWorker, sharedPrefsReturnParamsStore());
+            ReturnWorker_MembersInjector.injectNotificationHelper(returnWorker, notificationHelper());
+            return returnWorker;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public AccountListViewModel.Factory getAccountListViewModelFactory() {
+            return this.factoryProvider14.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public AuthorizationSdkAnalyticsImpl getAnalytics() {
+            return this.authorizeCommonSdkComponentImpl.addAnalytics;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public AuthPhoneFlowDataHolder getAuthPhoneFlowDataHolder() {
+            return this.authorizeCommonSdkComponentImpl.provideAuthPhoneFlowDataHolderProvider.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public AuthViewModel.Factory getAuthViewModelFactory() {
+            return this.factoryProvider.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public InternalLogger getBaseLogger() {
+            return this.authorizeCommonSdkComponentImpl.internalLogger();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public BeforeRecoveryVKIDViewModel.Factory getBeforeRecoveryVKIDViewModelFactory() {
+            return this.factoryProvider35.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public BindEmailViewModel.Factory getBindEmailViewModelFactory() {
+            return this.factoryProvider27.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public ChangePasswordViewModel.Factory getChangePasswordViewModelFactory() {
+            return this.factoryProvider37.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public ChoiceAccountViewModel.Factory getChoiceAccViewModelFactory() {
+            return this.factoryProvider7.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public CloudLoginVKViewModel.Factory getCloudLoginVKViewModelFactory() {
+            return this.factoryProvider4.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public CloudLoginViewModel.Factory getCloudLoginViewModelFactory() {
+            return this.factoryProvider8.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public CodeReceivedTypeBottomSheetViewModel.Factory getCodeReceivedTypeBottomSheetViewModel() {
+            return this.factoryProvider17.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public CreateCloudViewModel.Factory getCreateCloudViewModelFactory() {
+            return this.factoryProvider9.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public CustomServerViewModel.Factory getCustomServerViewModelFactory() {
+            return this.factoryProvider34.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public EnterEmailCodeAfterListAccViewModel.Factory getEnterEmailCodeAfterListAccViewModelFactory() {
+            return this.factoryProvider15.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public EnterEmailCodeViewModel.Factory getEnterEmailCodeViewModelFactory() {
+            return this.factoryProvider13.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public EnterPhoneCodeViewModel.Factory getEnterPhoneCodeViewModelFactory() {
+            return this.factoryProvider12.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public EnterPhoneViewModel.Factory getEnterPhoneViewModelFactory() {
+            return this.factoryProvider11.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public EsiaViewModel.Factory getEsiaViewModelFactory() {
+            return this.factoryProvider26.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public ExternalAccMigrationViewModel.Factory getExternalAccMigrationFactory() {
+            return this.factoryProvider28.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public FlavorConfig getFlavorConfig() {
+            return AuthorizeConfigModule_ProvideFlavorConfigFactory.provideFlavorConfig(this.authorizeConfigModule, this.config);
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public GoogleAssistedFactory getGoogleNativeViewModelFactory() {
+            return this.googleAssistedFactoryProvider.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public GoogleWebAuthAssistedFactory getGoogleWebAuthViewModelFactory() {
+            return this.googleWebAuthAssistedFactoryProvider.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public Lazy<ImapSettingsProcessorAuthSdk> getImapSettingsProcessorAuthSdk() {
+            return DoubleCheck.lazy((Provider) this.provideImapSettingsProcessorAuthSdkProvider);
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public LoginBindFlowViewModel.Factory getLoginBindFlowViewModelFactory() {
+            return this.factoryProvider18.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public LoginVKViewModel.Factory getLoginVKViewModelFactory() {
+            return this.factoryProvider5.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public LoginViewModel.Factory getLoginViewModelFactory() {
+            return this.factoryProvider6.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public NotReceivedCodeBottomSheetViewModel.Factory getNotReceivedCodeBtmSheetViewModel() {
+            return this.factoryProvider16.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public OKLoginViewModel.Factory getOKLoginViewModelFactory() {
+            return this.factoryProvider33.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public OidcDiscoverRemoteUseCase getOidcDiscoveryUseCase() {
+            return OidcRemoteModule_ProvideOidcDiscoveryUseCaseFactory.provideOidcDiscoveryUseCase(this.oidcRemoteModule, oidcDiscoveryRemoteRepository(), this.authorizeCommonSdkComponentImpl.oidcDiscoveryLocalRepository(), oidcIssuerConfig(), this.authorizeCommonSdkComponentImpl.internalLogger());
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public OneTimeCodeViewModel.Factory getOneTimeCodeViewModelFactory() {
+            return this.factoryProvider22.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public OutlookAssistedFactory getOutlookViewModelFactory() {
+            return this.outlookAssistedFactoryProvider.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public ParentSelectionViewModel.Factory getParentSelectionViewModelFactory() {
+            return this.factoryProvider40.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public PasswordViewModel.Factory getPasswordViewModelFactory() {
+            return this.factoryProvider10.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public RegistrationMainViewModel.Factory getRegistrationMainViewModelFactory() {
+            return this.factoryProvider38.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public RegistrationViewModel.Factory getRegistrationViewModelFactory() {
+            return this.factoryProvider39.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public RestorePasswordViewModel.Factory getRestorePasswordViewModel() {
+            return this.factoryProvider19.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public RestoreVkViewModel.Factory getRestoreVkiDViewModel() {
+            return this.factoryProvider20.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public SSOViewModel.Factory getSSOViewModelFactory() {
+            return this.factoryProvider23.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public SecondStepViewModel.Factory getSecondFactorViewModelFactory() {
+            return this.factoryProvider25.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public SocialAuthViewModel.Factory getSocialAuthViewModelFactory() {
+            return this.factoryProvider2.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public UnblockUserViewModel.Factory getUnblockUserViewModelFactory() {
+            return this.factoryProvider36.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public MrimDialogViewModel.Factory getUserBlockedDialogViewModelFactory() {
+            return this.factoryProvider30.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public VkBindInLoginViewModel.Factory getVkBindInLoginViewModelFactory() {
+            return this.factoryProvider41.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public VkPasswordViewModel.Factory getVkPasswordViewModelFactory() {
+            return this.factoryProvider24.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public WebCaptchaComposeViewModel.Factory getWebCaptchaViewModelFactory() {
+            return this.factoryProvider21.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public WrongVkidAccountViewModel.Factory getWrongVkidAccountViewModelFactory() {
+            return this.factoryProvider31.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public YahooViewModel.Factory getYahooViewModelFactory() {
+            return this.factoryProvider29.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public YandexHelpViewModel.Factory getYandexHelpViewModelFactory() {
+            return this.factoryProvider32.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public YandexAssistedFactory getYandexViewModelFactory() {
+            return this.yandexAssistedFactoryProvider.get();
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public void inject(AuthActivity authActivity) {
+            injectAuthActivity(authActivity);
+        }
+
+        NotificationHelper notificationHelper() {
+            return SessionRestoreModule_ProvidesNotificationHelperFactory.providesNotificationHelper(this.sessionRestoreModule, this.authorizeCommonSdkComponentImpl.addAnalytics, sessionRestoreHelper(), this.authorizeCommonSdkComponentImpl.addRestoreSessionNotificationProvider);
+        }
+
+        OidcDiscoveryApi oidcDiscoveryApi() {
+            return OidcRemoteModule_ProvideOidcDiscoverApiFactory.provideOidcDiscoverApi(this.oidcRemoteModule, oidcDiscoveryRetrofitRetrofit());
+        }
+
+        OidcDiscoveryRemoteRepository oidcDiscoveryRemoteRepository() {
+            return OidcRemoteModule_ProvideOidcDiscoveryRemoteRepositoryFactory.provideOidcDiscoveryRemoteRepository(this.oidcRemoteModule, oidcDiscoveryRemoteSource());
+        }
+
+        OidcDiscoveryRemoteSource oidcDiscoveryRemoteSource() {
+            return OidcRemoteModule_ProvideOidcDiscoveryRemoteSourceFactory.provideOidcDiscoveryRemoteSource(this.oidcRemoteModule, oidcDiscoveryApi(), this.authorizeCommonSdkComponentImpl.internalLogger());
+        }
+
+        Retrofit oidcDiscoveryRetrofitRetrofit() {
+            return OidcRemoteModule_ProvideOidcDiscoveryRetrofitFactory.provideOidcDiscoveryRetrofit(this.oidcRemoteModule, this.authorizeCommonSdkComponentImpl.provideJsonConvertFactoryProvider.get(), this.authorizeCommonSdkComponentImpl.addClientAppOkHttpClient, oidcIssuerConfig());
+        }
+
+        OidcIssuerConfig oidcIssuerConfig() {
+            return AuthorizeConfigModule_ProvideOidcIssuerConfigFactory.provideOidcIssuerConfig(this.authorizeConfigModule, this.config);
+        }
+
+        SharedPreferences restoreSessionPreferencesSharedPreferences() {
+            return SessionRestoreModule_ProvidesRestoreSessionPrefsFactory.providesRestoreSessionPrefs(this.sessionRestoreModule, this.authorizeCommonSdkComponentImpl.addContext);
+        }
+
+        SessionRestoreConfig sessionRestoreConfig() {
+            return AuthorizeConfigModule_ProvidesSessionRestoreConfigFactory.providesSessionRestoreConfig(this.authorizeConfigModule, this.config);
+        }
+
+        SessionRestoreDelegate sessionRestoreDelegate() {
+            return SessionRestoreModule_ProvideSessionRestoreDelegateFactory.provideSessionRestoreDelegate(this.sessionRestoreModule, this.authorizeCommonSdkComponentImpl.accountManagerDelegate(), sessionRestoreHelper(), sessionRestoreScheduler(), this.authorizeCommonSdkComponentImpl.internalLogger());
+        }
+
+        SessionRestoreHelper sessionRestoreHelper() {
+            return SessionRestoreModule_ProvidesSessionRestoreHelperFactory.providesSessionRestoreHelper(this.sessionRestoreModule, sessionRestoreConfig(), restoreSessionPreferencesSharedPreferences(), this.authorizeCommonSdkComponentImpl.addAnalytics, sharedPrefsReturnParamsStore(), workScheduler(), this.authorizeCommonSdkComponentImpl.internalLogger());
+        }
+
+        SessionRestoreScheduler sessionRestoreScheduler() {
+            return SessionRestoreModule_ProvidesSessionRestoreSchedulerFactory.providesSessionRestoreScheduler(this.sessionRestoreModule, sessionRestoreHelper(), this.config);
+        }
+
+        SharedPrefsReturnParamsStore sharedPrefsReturnParamsStore() {
+            return SessionRestoreModule_ProvidesRestoreSessionStoreFactory.providesRestoreSessionStore(this.sessionRestoreModule, restoreSessionPreferencesSharedPreferences(), AuthorizeModule_ProvideSerializationUtilsFactory.provideSerializationUtils(this.authorizeCommonSdkComponentImpl.authorizeModule));
+        }
+
+        WorkScheduler workScheduler() {
+            return SessionRestoreModule_ProvidesWorkSchedulerFactory.providesWorkScheduler(this.sessionRestoreModule, this.authorizeCommonSdkComponentImpl.addContext, this.authorizeCommonSdkComponentImpl.addNetworkType);
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeSdkComponent
+        public void inject(ReturnWorker returnWorker) {
+            injectReturnWorker(returnWorker);
+        }
+    }
+
+    /* JADX INFO: compiled from: ProGuard */
+    private static final class Builder implements AuthorizeCommonSdkComponent.Builder {
+        private AccountLoginChecker addAccountLoginChecker;
+        private AccountManager addAccountManager;
+        private ActiveAccountModeProvider addActiveAccountModeProvider;
+        private AdvertisingIdProvider addAdvertisingIdProvider;
+        private AuthorizationSdkAnalyticsImpl addAnalytics;
+        private ru.mail.authorizationsdk.external.analytics.common.AppReporter addAppReporter;
+        private String addAuthCsrfHeader;
+        private AutologinDataStoreRepository addAutologinDataStoreRepository;
+        private ChildRegHelper addChildRegHelper;
+        private OkHttpClient addClientAppOkHttpClient;
+        private String addClientId;
+        private CloudWriteToSupportHelper addCloudWriteToSupportHelper;
+        private List<String> addConfigHiddenServices;
+        private Context addContext;
+        private DarkThemeResolver addDarkThemeResolver;
+        private DeviceInfo addDeviceInfo;
+        private EsiaVkDataStoreRepository addEsiaDataStoreRepository;
+        private ExternalPlatformData addExternalPlatformData;
+        private ForceVkIdSecret addForceVkIdSecret;
+        private Secrets addGoogleSecrets;
+        private Boolean addIsMiniMail;
+        private Boolean addIsTest;
+        private Logger addLogger;
+        private Function1<? super VkIdStateAgTokenInteractor, MailAuth> addMailAuth;
+        private NetworkType addNetworkType;
+        private Secrets addOutlookSecrets;
+        private RestoreVkDataStoreRepository addRestoreDataStoreRepository;
+        private RestoreSessionNotificationProvider addRestoreSessionNotificationProvider;
+        private SocialAuthRepository addSocialAuthRepository;
+        private SocialLoginInfoHolderProvider addSocialLoginInfoHolderProvider;
+        private TsaCookieStore addTsaCookieStore;
+        private VKMailAuthDataStoreRepository addVKMailAuthDataStoreRepository;
+        private String addVkAppId;
+        private VkIdFullComposeDataStoreRepository addVkIdFullComposeDataStoreRepository;
+        private Secrets addYahooSecrets;
+        private Secrets addYandexSecrets;
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public /* bridge */ /* synthetic */ AuthorizeCommonSdkComponent.Builder addConfigHiddenServices(List list) {
+            return addConfigHiddenServices((List<String>) list);
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public /* bridge */ /* synthetic */ AuthorizeCommonSdkComponent.Builder addMailAuth(Function1 function1) {
+            return addMailAuth((Function1<? super VkIdStateAgTokenInteractor, MailAuth>) function1);
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public AuthorizeCommonSdkComponent build() {
+            Preconditions.checkBuilderRequirement(this.addContext, Context.class);
+            Preconditions.checkBuilderRequirement(this.addClientAppOkHttpClient, OkHttpClient.class);
+            Preconditions.checkBuilderRequirement(this.addActiveAccountModeProvider, ActiveAccountModeProvider.class);
+            Preconditions.checkBuilderRequirement(this.addAnalytics, AuthorizationSdkAnalyticsImpl.class);
+            Preconditions.checkBuilderRequirement(this.addLogger, Logger.class);
+            Preconditions.checkBuilderRequirement(this.addAccountManager, AccountManager.class);
+            Preconditions.checkBuilderRequirement(this.addDeviceInfo, DeviceInfo.class);
+            Preconditions.checkBuilderRequirement(this.addAdvertisingIdProvider, AdvertisingIdProvider.class);
+            Preconditions.checkBuilderRequirement(this.addAuthCsrfHeader, String.class);
+            Preconditions.checkBuilderRequirement(this.addExternalPlatformData, ExternalPlatformData.class);
+            Preconditions.checkBuilderRequirement(this.addYahooSecrets, Secrets.class);
+            Preconditions.checkBuilderRequirement(this.addYandexSecrets, Secrets.class);
+            Preconditions.checkBuilderRequirement(this.addOutlookSecrets, Secrets.class);
+            Preconditions.checkBuilderRequirement(this.addGoogleSecrets, Secrets.class);
+            Preconditions.checkBuilderRequirement(this.addForceVkIdSecret, ForceVkIdSecret.class);
+            Preconditions.checkBuilderRequirement(this.addConfigHiddenServices, List.class);
+            Preconditions.checkBuilderRequirement(this.addIsTest, Boolean.class);
+            Preconditions.checkBuilderRequirement(this.addIsMiniMail, Boolean.class);
+            Preconditions.checkBuilderRequirement(this.addSocialAuthRepository, SocialAuthRepository.class);
+            Preconditions.checkBuilderRequirement(this.addChildRegHelper, ChildRegHelper.class);
+            Preconditions.checkBuilderRequirement(this.addSocialLoginInfoHolderProvider, SocialLoginInfoHolderProvider.class);
+            Preconditions.checkBuilderRequirement(this.addDarkThemeResolver, DarkThemeResolver.class);
+            Preconditions.checkBuilderRequirement(this.addMailAuth, Function1.class);
+            Preconditions.checkBuilderRequirement(this.addAutologinDataStoreRepository, AutologinDataStoreRepository.class);
+            Preconditions.checkBuilderRequirement(this.addVkIdFullComposeDataStoreRepository, VkIdFullComposeDataStoreRepository.class);
+            Preconditions.checkBuilderRequirement(this.addRestoreDataStoreRepository, RestoreVkDataStoreRepository.class);
+            Preconditions.checkBuilderRequirement(this.addEsiaDataStoreRepository, EsiaVkDataStoreRepository.class);
+            Preconditions.checkBuilderRequirement(this.addVKMailAuthDataStoreRepository, VKMailAuthDataStoreRepository.class);
+            Preconditions.checkBuilderRequirement(this.addAccountLoginChecker, AccountLoginChecker.class);
+            return new AuthorizeCommonSdkComponentImpl(new AuthorizeModule(), new NetworkModule(), new CustomServerModule(), new PikachuCaptchaModule(), new SecondFactorModule(), new PlatformModule(), new ImageLoadModule(), new YahooModule(), new SSOModule(), new ImapLocalModule(), new YandexModule(), new OutlookModule(), new RegistrationModule(), new VkAutologinModule(), new VkIdAuthModule(), new EsiaAuthModule(), new OidcLocalModule(), new CloudModule(), this.addContext, this.addClientAppOkHttpClient, this.addTsaCookieStore, this.addActiveAccountModeProvider, this.addAnalytics, this.addLogger, this.addAccountManager, this.addDeviceInfo, this.addAdvertisingIdProvider, this.addAuthCsrfHeader, this.addExternalPlatformData, this.addYahooSecrets, this.addYandexSecrets, this.addOutlookSecrets, this.addGoogleSecrets, this.addForceVkIdSecret, this.addConfigHiddenServices, this.addIsTest, this.addIsMiniMail, this.addSocialAuthRepository, this.addChildRegHelper, this.addAppReporter, this.addNetworkType, this.addRestoreSessionNotificationProvider, this.addSocialLoginInfoHolderProvider, this.addDarkThemeResolver, this.addVkAppId, this.addClientId, this.addMailAuth, this.addAutologinDataStoreRepository, this.addVkIdFullComposeDataStoreRepository, this.addRestoreDataStoreRepository, this.addEsiaDataStoreRepository, this.addVKMailAuthDataStoreRepository, this.addAccountLoginChecker, this.addCloudWriteToSupportHelper);
+        }
+
+        private Builder() {
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addAccountLoginChecker(AccountLoginChecker accountLoginChecker) {
+            this.addAccountLoginChecker = (AccountLoginChecker) Preconditions.checkNotNull(accountLoginChecker);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addAccountManager(AccountManager accountManager) {
+            this.addAccountManager = (AccountManager) Preconditions.checkNotNull(accountManager);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addActiveAccountModeProvider(ActiveAccountModeProvider activeAccountModeProvider) {
+            this.addActiveAccountModeProvider = (ActiveAccountModeProvider) Preconditions.checkNotNull(activeAccountModeProvider);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addAdvertisingIdProvider(AdvertisingIdProvider advertisingIdProvider) {
+            this.addAdvertisingIdProvider = (AdvertisingIdProvider) Preconditions.checkNotNull(advertisingIdProvider);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addAnalytics(AuthorizationSdkAnalyticsImpl authorizationSdkAnalyticsImpl) {
+            this.addAnalytics = (AuthorizationSdkAnalyticsImpl) Preconditions.checkNotNull(authorizationSdkAnalyticsImpl);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addAppReporter(ru.mail.authorizationsdk.external.analytics.common.AppReporter appReporter) {
+            this.addAppReporter = appReporter;
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addAuthCsrfHeader(String str) {
+            this.addAuthCsrfHeader = (String) Preconditions.checkNotNull(str);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addAutologinDataStoreRepository(AutologinDataStoreRepository autologinDataStoreRepository) {
+            this.addAutologinDataStoreRepository = (AutologinDataStoreRepository) Preconditions.checkNotNull(autologinDataStoreRepository);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addChildRegHelper(ChildRegHelper childRegHelper) {
+            this.addChildRegHelper = (ChildRegHelper) Preconditions.checkNotNull(childRegHelper);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addClientAppOkHttpClient(OkHttpClient okHttpClient) {
+            this.addClientAppOkHttpClient = (OkHttpClient) Preconditions.checkNotNull(okHttpClient);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addClientId(String str) {
+            this.addClientId = str;
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addCloudWriteToSupportHelper(CloudWriteToSupportHelper cloudWriteToSupportHelper) {
+            this.addCloudWriteToSupportHelper = cloudWriteToSupportHelper;
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addConfigHiddenServices(List<String> list) {
+            this.addConfigHiddenServices = (List) Preconditions.checkNotNull(list);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addContext(Context context) {
+            this.addContext = (Context) Preconditions.checkNotNull(context);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addDarkThemeResolver(DarkThemeResolver darkThemeResolver) {
+            this.addDarkThemeResolver = (DarkThemeResolver) Preconditions.checkNotNull(darkThemeResolver);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addDeviceInfo(DeviceInfo deviceInfo) {
+            this.addDeviceInfo = (DeviceInfo) Preconditions.checkNotNull(deviceInfo);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addEsiaDataStoreRepository(EsiaVkDataStoreRepository esiaVkDataStoreRepository) {
+            this.addEsiaDataStoreRepository = (EsiaVkDataStoreRepository) Preconditions.checkNotNull(esiaVkDataStoreRepository);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addExternalPlatformData(ExternalPlatformData externalPlatformData) {
+            this.addExternalPlatformData = (ExternalPlatformData) Preconditions.checkNotNull(externalPlatformData);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addForceVkIdSecret(ForceVkIdSecret forceVkIdSecret) {
+            this.addForceVkIdSecret = (ForceVkIdSecret) Preconditions.checkNotNull(forceVkIdSecret);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addGoogleSecrets(Secrets secrets) {
+            this.addGoogleSecrets = (Secrets) Preconditions.checkNotNull(secrets);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addIsMiniMail(boolean z10) {
+            this.addIsMiniMail = (Boolean) Preconditions.checkNotNull(Boolean.valueOf(z10));
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addIsTest(boolean z10) {
+            this.addIsTest = (Boolean) Preconditions.checkNotNull(Boolean.valueOf(z10));
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addLogger(Logger logger) {
+            this.addLogger = (Logger) Preconditions.checkNotNull(logger);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addMailAuth(Function1<? super VkIdStateAgTokenInteractor, MailAuth> function1) {
+            this.addMailAuth = (Function1) Preconditions.checkNotNull(function1);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addNetworkType(NetworkType networkType) {
+            this.addNetworkType = networkType;
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addOutlookSecrets(Secrets secrets) {
+            this.addOutlookSecrets = (Secrets) Preconditions.checkNotNull(secrets);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addRestoreDataStoreRepository(RestoreVkDataStoreRepository restoreVkDataStoreRepository) {
+            this.addRestoreDataStoreRepository = (RestoreVkDataStoreRepository) Preconditions.checkNotNull(restoreVkDataStoreRepository);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addRestoreSessionNotificationProvider(RestoreSessionNotificationProvider restoreSessionNotificationProvider) {
+            this.addRestoreSessionNotificationProvider = restoreSessionNotificationProvider;
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addSocialAuthRepository(SocialAuthRepository socialAuthRepository) {
+            this.addSocialAuthRepository = (SocialAuthRepository) Preconditions.checkNotNull(socialAuthRepository);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addSocialLoginInfoHolderProvider(SocialLoginInfoHolderProvider socialLoginInfoHolderProvider) {
+            this.addSocialLoginInfoHolderProvider = (SocialLoginInfoHolderProvider) Preconditions.checkNotNull(socialLoginInfoHolderProvider);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addTsaCookieStore(TsaCookieStore tsaCookieStore) {
+            this.addTsaCookieStore = tsaCookieStore;
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addVKMailAuthDataStoreRepository(VKMailAuthDataStoreRepository vKMailAuthDataStoreRepository) {
+            this.addVKMailAuthDataStoreRepository = (VKMailAuthDataStoreRepository) Preconditions.checkNotNull(vKMailAuthDataStoreRepository);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addVkAppId(String str) {
+            this.addVkAppId = str;
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addVkIdFullComposeDataStoreRepository(VkIdFullComposeDataStoreRepository vkIdFullComposeDataStoreRepository) {
+            this.addVkIdFullComposeDataStoreRepository = (VkIdFullComposeDataStoreRepository) Preconditions.checkNotNull(vkIdFullComposeDataStoreRepository);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addYahooSecrets(Secrets secrets) {
+            this.addYahooSecrets = (Secrets) Preconditions.checkNotNull(secrets);
+            return this;
+        }
+
+        @Override // ru.mail.authorizationsdk.di.AuthorizeCommonSdkComponent.Builder
+        public Builder addYandexSecrets(Secrets secrets) {
+            this.addYandexSecrets = (Secrets) Preconditions.checkNotNull(secrets);
+            return this;
+        }
+    }
+
+    private DaggerAuthorizeCommonSdkComponent() {
+    }
+
+    public static AuthorizeCommonSdkComponent.Builder builder() {
+        return new Builder();
+    }
+}
