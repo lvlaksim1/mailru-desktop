@@ -44,3 +44,11 @@ public sealed record MailRuAuthChallenge(
 public sealed record MailRuChallengeCompletion(
     string SessionId,
     string Answer);
+
+public sealed record MailRuAuthBrowserCookie(
+    string Name,
+    string Value,
+    string Domain,
+    string Path,
+    bool IsSecure,
+    bool IsHttpOnly);

@@ -51,9 +51,14 @@ public partial class MainWindow
             return null;
         }
 
+        var initialCookies = isRecaptcha
+            ? _mailRu.GetChallengeBrowserCookies(localSessionId!)
+            : Array.Empty<MailRuAuthBrowserCookie>();
+
         var verificationWindow = new MailRuVerificationWindow(
             url,
-            waitForRecaptchaToken: isRecaptcha)
+            waitForRecaptchaToken: isRecaptcha,
+            initialCookies: initialCookies)
         {
             Owner = this
         };

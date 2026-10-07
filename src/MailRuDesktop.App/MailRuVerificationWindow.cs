@@ -13,6 +13,7 @@ internal sealed class MailRuVerificationWindow : Window
     private readonly Uri _startUri;
     private readonly string _profilePath;
     private readonly bool _waitForRecaptchaToken;
+    private readonly IReadOnlyList<MailRuDesktop.Protocol.MailRuAuthBrowserCookie> _initialCookies;
     private readonly WebView2 _webView = new();
     private readonly TextBlock _statusText = new();
     private readonly Button _continueButton = new();
@@ -24,7 +25,8 @@ internal sealed class MailRuVerificationWindow : Window
 
     public MailRuVerificationWindow(
         string url,
-        bool waitForRecaptchaToken = false)
+        bool waitForRecaptchaToken = false,
+        IReadOnlyList<MailRuDesktop.Protocol.MailRuAuthBrowserCookie>? initialCookies = null)
     {
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) ||
             uri.Scheme != Uri.UriSchemeHttps)
@@ -36,6 +38,7 @@ internal sealed class MailRuVerificationWindow : Window
 
         _startUri = uri;
         _waitForRecaptchaToken = waitForRecaptchaToken;
+        _initialCookies = initialCookies ?? Array.Empty<MailRuDesktop.Protocol.MailRuAuthBrowserCookie>();
         _profilePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "MailRuDesktop",
@@ -160,6 +163,8 @@ internal sealed class MailRuVerificationWindow : Window
             _webView.CoreWebView2.Settings.IsPasswordAutosaveEnabled = false;
             _webView.CoreWebView2.Settings.IsGeneralAutofillEnabled = false;
 
+            SeedInitialCookies(_webView.CoreWebView2.CookieManager);
+
             _webView.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
             _webView.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
             _webView.CoreWebView2.NewWindowRequested += CoreWebView2_NewWindowRequested;
@@ -177,6 +182,47 @@ internal sealed class MailRuVerificationWindow : Window
                 "auth_verification_window",
                 ex.GetType().Name + ": " + ex.Message);
         }
+    }
+
+    private void SeedInitialCookies(CoreWebView2CookieManager cookieManager)
+    {
+        var applied = 0;
+        var rejected = 0;
+
+        foreach (var source in _initialCookies)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(source.Name) ||
+                    string.IsNullOrWhiteSpace(source.Domain))
+                {
+                    rejected++;
+                    continue;
+                }
+
+                var cookie = cookieManager.CreateCookie(
+                    source.Name,
+                    source.Value,
+                    source.Domain,
+                    string.IsNullOrWhiteSpace(source.Path) ? "/" : source.Path);
+
+                cookie.IsSecure = source.IsSecure;
+                cookie.IsHttpOnly = source.IsHttpOnly;
+                cookieManager.AddOrUpdateCookie(cookie);
+                applied++;
+            }
+            catch (Exception ex)
+            {
+                rejected++;
+                DiagnosticLog.Write(
+                    "auth_verification_cookie_seed",
+                    ex.GetType().Name + ": " + ex.Message);
+            }
+        }
+
+        DiagnosticLog.Write(
+            "auth_verification_cookie_seed",
+            $"available={_initialCookies.Count}; applied={applied}; rejected={rejected}");
     }
 
     private void CoreWebView2_NavigationStarting(
