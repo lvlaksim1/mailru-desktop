@@ -66,6 +66,7 @@ public partial class MainWindow
 
         var verificationWindow = new MailRuVerificationWindow(
             url,
+            login,
             officialSecondStep: isOfficialSecondStep,
             initialCookies: initialCookies)
         {

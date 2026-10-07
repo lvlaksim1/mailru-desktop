@@ -53,7 +53,7 @@ public partial class MainWindow
                 this,
                 "Удаление аккаунта",
                 $"Удалить аккаунт «{login}» из MailRu Desktop?\n\n" +
-                "Сохранённая локальная авторизация этого аккаунта будет удалена. " +
+                "Сохранённая локальная авторизация и изолированный профиль проверки этого аккаунта будут удалены. " +
                 "Сам почтовый ящик Mail.ru не удаляется.",
                 "Удалить",
                 "Отмена"))
@@ -68,6 +68,8 @@ public partial class MainWindow
 
         if (!_authStore.Remove(login))
             return;
+
+        await MailRuAuthProfileStore.DeleteProfileAsync(login);
 
         if (!wasActive)
         {
