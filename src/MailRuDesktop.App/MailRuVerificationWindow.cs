@@ -1,10 +1,9 @@
 using System.IO;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Threading;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
+using MailRuDesktop.Protocol;
 
 namespace MailRuDesktop.App;
 
@@ -12,21 +11,22 @@ internal sealed class MailRuVerificationWindow : Window
 {
     private readonly Uri _startUri;
     private readonly string _profilePath;
-    private readonly bool _waitForRecaptchaToken;
-    private readonly IReadOnlyList<MailRuDesktop.Protocol.MailRuAuthBrowserCookie> _initialCookies;
+    private readonly bool _officialSecondStep;
+    private readonly IReadOnlyList<MailRuAuthBrowserCookie> _initialCookies;
     private readonly WebView2 _webView = new();
     private readonly TextBlock _statusText = new();
     private readonly Button _continueButton = new();
-    private readonly DispatcherTimer _recaptchaProbeTimer;
-    private bool _probeInFlight;
+    private bool _terminalResultInProgress;
 
-    public string? RecaptchaResponse { get; private set; }
     public string? SessionCookieHeader { get; private set; }
+    public string? TsaCookie { get; private set; }
+    public IReadOnlyDictionary<string, string> AdditionalParams { get; private set; } =
+        new Dictionary<string, string>(StringComparer.Ordinal);
 
     public MailRuVerificationWindow(
         string url,
-        bool waitForRecaptchaToken = false,
-        IReadOnlyList<MailRuDesktop.Protocol.MailRuAuthBrowserCookie>? initialCookies = null)
+        bool officialSecondStep = false,
+        IReadOnlyList<MailRuAuthBrowserCookie>? initialCookies = null)
     {
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) ||
             uri.Scheme != Uri.UriSchemeHttps)
@@ -37,19 +37,13 @@ internal sealed class MailRuVerificationWindow : Window
         }
 
         _startUri = uri;
-        _waitForRecaptchaToken = waitForRecaptchaToken;
-        _initialCookies = initialCookies ?? Array.Empty<MailRuDesktop.Protocol.MailRuAuthBrowserCookie>();
+        _officialSecondStep = officialSecondStep;
+        _initialCookies = initialCookies ?? Array.Empty<MailRuAuthBrowserCookie>();
         _profilePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "MailRuDesktop",
             "AuthSessions",
             Guid.NewGuid().ToString("N"));
-
-        _recaptchaProbeTimer = new DispatcherTimer
-        {
-            Interval = TimeSpan.FromMilliseconds(750)
-        };
-        _recaptchaProbeTimer.Tick += RecaptchaProbeTimer_Tick;
 
         Title = "Проверка Mail.ru";
         Width = 940;
@@ -104,8 +98,9 @@ internal sealed class MailRuVerificationWindow : Window
         footer.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         footer.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-        _statusText.Text = _waitForRecaptchaToken
-            ? "Поставьте галочку reCAPTCHA. Когда Mail.ru выдаст результат проверки, кнопка «Продолжить» станет доступна."
+        _statusText.Text = _officialSecondStep
+            ? "Пройдите проверку на странице Mail.ru и нажмите штатную кнопку «Войти». " +
+              "После подтверждения окно закроется автоматически."
             : "Окно использует отдельное временное хранилище cookies и не связано с браузерами на компьютере.";
         _statusText.TextWrapping = TextWrapping.Wrap;
         _statusText.VerticalAlignment = VerticalAlignment.Center;
@@ -123,6 +118,9 @@ internal sealed class MailRuVerificationWindow : Window
         _continueButton.Content = "Продолжить";
         _continueButton.Padding = new Thickness(14, 7, 14, 7);
         _continueButton.IsEnabled = false;
+        _continueButton.Visibility = _officialSecondStep
+            ? Visibility.Collapsed
+            : Visibility.Visible;
         _continueButton.Click += ContinueButton_Click;
 
         var cancel = new Button
@@ -170,9 +168,6 @@ internal sealed class MailRuVerificationWindow : Window
             _webView.CoreWebView2.NewWindowRequested += CoreWebView2_NewWindowRequested;
 
             _webView.Source = _startUri;
-
-            if (_waitForRecaptchaToken)
-                _recaptchaProbeTimer.Start();
         }
         catch (Exception ex)
         {
@@ -229,8 +224,28 @@ internal sealed class MailRuVerificationWindow : Window
         object? sender,
         CoreWebView2NavigationStartingEventArgs e)
     {
-        if (!Uri.TryCreate(e.Uri, UriKind.Absolute, out var uri) ||
-            uri.Scheme != Uri.UriSchemeHttps)
+        if (!Uri.TryCreate(e.Uri, UriKind.Absolute, out var uri))
+        {
+            e.Cancel = true;
+            return;
+        }
+
+        if (_officialSecondStep && IsMobileAuthResult(uri))
+        {
+            e.Cancel = true;
+            _ = HandleMobileAuthResultAsync(uri);
+            return;
+        }
+
+        if (uri.Scheme.Equals("internal-api", StringComparison.OrdinalIgnoreCase))
+        {
+            e.Cancel = true;
+            _statusText.Text =
+                "Mail.ru переключил состояние проверки. Завершите доступные действия на странице либо отмените вход.";
+            return;
+        }
+
+        if (uri.Scheme != Uri.UriSchemeHttps)
         {
             e.Cancel = true;
             _statusText.Text =
@@ -238,16 +253,29 @@ internal sealed class MailRuVerificationWindow : Window
             return;
         }
 
-        if (!_waitForRecaptchaToken)
-            _statusText.Text = $"Проверка · {uri.Host}";
+        _statusText.Text = _officialSecondStep
+            ? "Завершите проверку на странице Mail.ru. Результат будет принят автоматически."
+            : $"Проверка · {uri.Host}";
     }
 
     private void CoreWebView2_NewWindowRequested(
         object? sender,
         CoreWebView2NewWindowRequestedEventArgs e)
     {
-        if (!Uri.TryCreate(e.Uri, UriKind.Absolute, out var uri) ||
-            uri.Scheme != Uri.UriSchemeHttps)
+        if (!Uri.TryCreate(e.Uri, UriKind.Absolute, out var uri))
+        {
+            e.Handled = true;
+            return;
+        }
+
+        if (_officialSecondStep && IsMobileAuthResult(uri))
+        {
+            e.Handled = true;
+            _ = HandleMobileAuthResultAsync(uri);
+            return;
+        }
+
+        if (uri.Scheme != Uri.UriSchemeHttps)
         {
             e.Handled = true;
             _statusText.Text = "Небезопасное новое окно заблокировано.";
@@ -269,110 +297,130 @@ internal sealed class MailRuVerificationWindow : Window
             return;
         }
 
-        if (_waitForRecaptchaToken)
+        if (_officialSecondStep)
         {
-            _continueButton.IsEnabled =
-                !string.IsNullOrWhiteSpace(RecaptchaResponse);
+            _statusText.Text =
+                "Пройдите проверку и нажмите штатную кнопку «Войти» на странице Mail.ru.";
             return;
         }
 
         _continueButton.IsEnabled = true;
-        var current = _webView.Source;
-        _statusText.Text = current is null
-            ? "Завершите штатную проверку и нажмите «Продолжить»."
-            : $"Проверка · {current.Host}. После успешного завершения нажмите «Продолжить».";
     }
 
-    private async void RecaptchaProbeTimer_Tick(
-        object? sender,
-        EventArgs e)
+    private async Task HandleMobileAuthResultAsync(Uri uri)
     {
-        if (_probeInFlight ||
-            _webView.CoreWebView2 is null ||
-            !string.IsNullOrWhiteSpace(RecaptchaResponse))
-        {
+        if (_terminalResultInProgress)
             return;
-        }
 
-        _probeInFlight = true;
+        _terminalResultInProgress = true;
+
         try
         {
-            const string script = """
-                (() => {
-                    let value = "";
-                    const nodes = document.querySelectorAll(
-                        'textarea[name="g-recaptcha-response"], input[name="g-recaptcha-response"]');
-                    for (const node of nodes) {
-                        const candidate = (node.value || "").trim();
-                        if (candidate) {
-                            value = candidate;
-                            break;
-                        }
-                    }
+            var path = uri.AbsolutePath;
+            if (path.Equals("/success", StringComparison.OrdinalIgnoreCase))
+            {
+                AdditionalParams = ReadQueryParams(uri);
+                TsaCookie = await ReadTsaCookieAsync();
 
-                    if (!value &&
-                        window.grecaptcha &&
-                        typeof window.grecaptcha.getResponse === "function") {
-                        try {
-                            value = (window.grecaptcha.getResponse() || "").trim();
-                        } catch (_) {
-                        }
-                    }
+                DiagnosticLog.Write(
+                    "auth_second_step_success",
+                    $"params={AdditionalParams.Count}; tsa={(string.IsNullOrWhiteSpace(TsaCookie) ? "absent" : "present")}");
 
-                    return value;
-                })();
-                """;
-
-            var raw = await _webView.CoreWebView2.ExecuteScriptAsync(script);
-            var token = JsonSerializer.Deserialize<string>(raw);
-
-            if (string.IsNullOrWhiteSpace(token) || token.Length < 20)
+                DialogResult = true;
                 return;
+            }
 
-            RecaptchaResponse = token;
-            _recaptchaProbeTimer.Stop();
-            _continueButton.IsEnabled = true;
-            _statusText.Text =
-                "reCAPTCHA подтверждена. Нажмите «Продолжить» — результат проверки будет передан в исходную попытку входа.";
+            if (path.Equals("/fail", StringComparison.OrdinalIgnoreCase))
+            {
+                _statusText.Text =
+                    "Mail.ru отклонил дополнительную проверку. Можно повторить действия на странице либо отменить вход.";
+                return;
+            }
+
+            if (path.Equals("/error", StringComparison.OrdinalIgnoreCase))
+            {
+                _statusText.Text =
+                    "Mail.ru сообщил об ошибке дополнительной проверки.";
+                return;
+            }
         }
         catch (Exception ex)
         {
+            _statusText.Text =
+                "Не удалось обработать результат дополнительной проверки.";
             DiagnosticLog.Write(
-                "auth_recaptcha_probe",
+                "auth_second_step_result",
                 ex.GetType().Name + ": " + ex.Message);
         }
         finally
         {
-            _probeInFlight = false;
+            _terminalResultInProgress = false;
         }
     }
+
+    private async Task<string?> ReadTsaCookieAsync()
+    {
+        if (_webView.CoreWebView2 is null)
+            return null;
+
+        var cookies = await _webView.CoreWebView2.CookieManager
+            .GetCookiesAsync(_startUri.ToString());
+
+        return cookies
+            .FirstOrDefault(cookie =>
+                cookie.Name.Equals("tsa", StringComparison.OrdinalIgnoreCase))
+            ?.Value;
+    }
+
+    private static IReadOnlyDictionary<string, string> ReadQueryParams(Uri uri)
+    {
+        var result = new Dictionary<string, string>(StringComparer.Ordinal);
+
+        var query = uri.Query.TrimStart('?');
+        if (query.Length == 0)
+            return result;
+
+        foreach (var item in query.Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var parts = item.Split('=', 2);
+            if (parts.Length == 0)
+                continue;
+
+            var name = DecodeQueryPart(parts[0]);
+            if (string.IsNullOrWhiteSpace(name))
+                continue;
+
+            var value = parts.Length == 2
+                ? DecodeQueryPart(parts[1])
+                : string.Empty;
+
+            result[name] = value;
+        }
+
+        return result;
+    }
+
+    private static string DecodeQueryPart(string value) =>
+        Uri.UnescapeDataString(value.Replace("+", " ", StringComparison.Ordinal));
+
+    private static bool IsMobileAuthResult(Uri uri) =>
+        uri.Host.Equals("mobile-auth", StringComparison.OrdinalIgnoreCase) &&
+        (uri.AbsolutePath.Equals("/success", StringComparison.OrdinalIgnoreCase) ||
+         uri.AbsolutePath.Equals("/fail", StringComparison.OrdinalIgnoreCase) ||
+         uri.AbsolutePath.Equals("/error", StringComparison.OrdinalIgnoreCase));
 
     private async void ContinueButton_Click(
         object sender,
         RoutedEventArgs e)
     {
-        if (_webView.CoreWebView2 is null)
+        if (_webView.CoreWebView2 is null || _officialSecondStep)
             return;
-
-        if (_waitForRecaptchaToken)
-        {
-            if (string.IsNullOrWhiteSpace(RecaptchaResponse))
-            {
-                _continueButton.IsEnabled = false;
-                _statusText.Text =
-                    "Результат reCAPTCHA ещё не получен. Завершите проверку на странице.";
-                return;
-            }
-
-            DialogResult = true;
-            return;
-        }
 
         _continueButton.IsEnabled = false;
         try
         {
             var cookies = await _webView.CoreWebView2.CookieManager
-                .GetCookiesAsync("https://aj-https.mail.ru/");
+                .GetCookiesAsync(_startUri.ToString());
 
             SessionCookieHeader = string.Join(
                 "; ",
@@ -395,9 +443,6 @@ internal sealed class MailRuVerificationWindow : Window
 
     private void VerificationWindow_Closed(object? sender, EventArgs e)
     {
-        _recaptchaProbeTimer.Stop();
-        _recaptchaProbeTimer.Tick -= RecaptchaProbeTimer_Tick;
-
         if (_webView.CoreWebView2 is not null)
         {
             _webView.CoreWebView2.NavigationStarting -= CoreWebView2_NavigationStarting;
