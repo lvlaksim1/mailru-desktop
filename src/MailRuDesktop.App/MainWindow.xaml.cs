@@ -68,6 +68,9 @@ public partial class MainWindow : Window
         Closed += (_, _) =>
         {
             ThemeManager.ThemeChanged -= ThemeManager_ThemeChanged;
+            if (MessageWebView.CoreWebView2 is not null && _mailImageProxyConfigured)
+                MessageWebView.CoreWebView2.WebResourceRequested -= MailImageProxy_WebResourceRequested;
+            _mailImageHttp.Dispose();
             _mailRu.Dispose();
         };
     }
@@ -97,6 +100,7 @@ public partial class MainWindow : Window
             MessageWebView.CoreWebView2.Settings.IsScriptEnabled = false;
             MessageWebView.CoreWebView2.Settings.AreDevToolsEnabled = false;
             MessageWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
+            ConfigureMailImageProxy();
             _readerReady = true;
 
             ShowReaderText("Выберите письмо.");
