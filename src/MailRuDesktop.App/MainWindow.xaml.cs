@@ -695,6 +695,20 @@ public partial class MainWindow : Window
 
     private void DisplaySummary(MailRuMessageSummary message)
     {
+        UpdateSelectedMessageHeader(message);
+
+        IncomingAttachmentsListBox.ItemsSource = null;
+        IncomingAttachmentsPanel.Visibility = Visibility.Collapsed;
+        DownloadAttachmentButton.Visibility = Visibility.Collapsed;
+        DownloadAllAttachmentsButton.Visibility = Visibility.Collapsed;
+        _currentFullMessage = null;
+        ShowReaderText(string.IsNullOrWhiteSpace(message.Snippet)
+            ? "Загрузка полного письма..."
+            : message.Snippet);
+    }
+
+    private void UpdateSelectedMessageHeader(MailRuMessageSummary message)
+    {
         SelectedSubjectText.Text = message.Subject;
         SelectedSenderText.Text = string.IsNullOrWhiteSpace(message.SenderEmail)
             ? message.SenderDisplay
@@ -712,15 +726,6 @@ public partial class MainWindow : Window
             (message.FolderId is null ? string.Empty : $" · папка: {message.FolderId}") +
             (string.IsNullOrWhiteSpace(message.SizeDisplay) ? string.Empty : $" · {message.SizeDisplay}") +
             (markers.Count == 0 ? string.Empty : $" · {string.Join(", ", markers)}");
-
-
-        IncomingAttachmentsListBox.ItemsSource = null;
-        IncomingAttachmentsPanel.Visibility = Visibility.Collapsed;
-        DownloadAttachmentButton.Visibility = Visibility.Collapsed;
-        _currentFullMessage = null;
-        ShowReaderText(string.IsNullOrWhiteSpace(message.Snippet)
-            ? "Загрузка полного письма..."
-            : message.Snippet);
     }
 
     private async Task LoadFullMessageAsync(MailRuMessageSummary message)
@@ -752,6 +757,8 @@ public partial class MainWindow : Window
                 full.Attachments.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
             DownloadAttachmentButton.Visibility =
                 full.Attachments.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            DownloadAllAttachmentsButton.Visibility =
+                full.Attachments.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
             ResponseTextBox.Text = full.RawJson;
 
             if (message.Unread)
@@ -1005,7 +1012,7 @@ public partial class MainWindow : Window
         }
 
         if (string.Equals(selectedId, updated.Id, StringComparison.Ordinal))
-            DisplaySummary(updated);
+            UpdateSelectedMessageHeader(updated);
     }
 
     private async void ServerSearchButton_Click(object sender, RoutedEventArgs e)
@@ -1379,6 +1386,7 @@ public partial class MainWindow : Window
         IncomingAttachmentsListBox.ItemsSource = null;
         IncomingAttachmentsPanel.Visibility = Visibility.Collapsed;
         DownloadAttachmentButton.Visibility = Visibility.Collapsed;
+        DownloadAllAttachmentsButton.Visibility = Visibility.Collapsed;
         ShowReaderText("Выберите письмо.");
     }
 
