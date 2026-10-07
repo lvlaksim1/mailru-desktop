@@ -298,28 +298,58 @@
                                                 Tag="{Binding}"
                                                 ToolTip="Прочитано / непрочитано"
                                                 Click="MessageUnreadButton_Click">
-                                            <TextBlock x:Name="UnreadGlyph"
-                                                       FontSize="14"
-                                                       Foreground="{DynamicResource AppMutedTextBrush}"
-                                                       Text="○"/>
+                                            <TextBlock x:Name="UnreadGlyph" FontSize="14">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="{DynamicResource AppMutedTextBrush}"/>
+                                                        <Setter Property="Text" Value="○"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Unread}" Value="True">
+                                                                <Setter Property="Text" Value="●"/>
+                                                                <Setter Property="Foreground" Value="{DynamicResource AppAccentBrush}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
                                         </Button>
                                         <Button Width="25" Height="25" Padding="0" Margin="0,0,0,2"
                                                 Tag="{Binding}"
                                                 ToolTip="Флажок"
                                                 Click="MessageFlagButton_Click">
-                                            <TextBlock x:Name="FlagGlyph"
-                                                       FontSize="17"
-                                                       Foreground="{DynamicResource AppMutedTextBrush}"
-                                                       Text="☆"/>
+                                            <TextBlock x:Name="FlagGlyph" FontSize="17">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="{DynamicResource AppMutedTextBrush}"/>
+                                                        <Setter Property="Text" Value="☆"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Flagged}" Value="True">
+                                                                <Setter Property="Text" Value="★"/>
+                                                                <Setter Property="Foreground" Value="{DynamicResource AppAccentBrush}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
                                         </Button>
                                         <Button Width="25" Height="25" Padding="0" Margin="0,0,0,2"
                                                 Tag="{Binding}"
                                                 ToolTip="Закрепить / открепить"
                                                 Click="MessagePinButton_Click">
-                                            <TextBlock x:Name="PinGlyph"
-                                                       FontSize="15"
-                                                       Foreground="{DynamicResource AppMutedTextBrush}"
-                                                       Text="◇"/>
+                                            <TextBlock x:Name="PinGlyph" FontSize="15">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="{DynamicResource AppMutedTextBrush}"/>
+                                                        <Setter Property="Text" Value="◇"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Pinned}" Value="True">
+                                                                <Setter Property="Text" Value="◆"/>
+                                                                <Setter Property="Foreground" Value="{DynamicResource AppAccentBrush}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
                                         </Button>
                                         <Button Width="25" Height="25" Padding="2"
                                                 Tag="{Binding}"
@@ -377,21 +407,6 @@
                                               StrokeThickness="1.5"
                                               Data="M5,8 L10.6,2.4 C12.1,0.9 14.6,3.4 13.1,4.9 L6.2,11.8 C4.5,13.5 1.8,10.8 3.5,9.1 L9.8,2.8"/>
                                     </Grid>
-
-                                    <Grid.Triggers>
-                                        <DataTrigger Binding="{Binding Unread}" Value="True">
-                                            <Setter TargetName="UnreadGlyph" Property="Text" Value="●"/>
-                                            <Setter TargetName="UnreadGlyph" Property="Foreground" Value="{DynamicResource AppAccentBrush}"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding Flagged}" Value="True">
-                                            <Setter TargetName="FlagGlyph" Property="Text" Value="★"/>
-                                            <Setter TargetName="FlagGlyph" Property="Foreground" Value="{DynamicResource AppAccentBrush}"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding Pinned}" Value="True">
-                                            <Setter TargetName="PinGlyph" Property="Text" Value="◆"/>
-                                            <Setter TargetName="PinGlyph" Property="Foreground" Value="{DynamicResource AppAccentBrush}"/>
-                                        </DataTrigger>
-                                    </Grid.Triggers>
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -643,12 +658,12 @@
                                             <Button DockPanel.Dock="Right"
                                                     Padding="6,2"
                                                     Margin="8,0,0,0"
-                                                    Tag="{Binding}"
+                                                    Tag="{Binding Path}"
                                                     Click="RemoveComposeAttachmentButton_Click"
                                                     Content="Удалить"/>
                                             <TextBlock VerticalAlignment="Center"
                                                        TextTrimming="CharacterEllipsis"
-                                                       Text="{Binding}"/>
+                                                       Text="{Binding Name}"/>
                                         </DockPanel>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
