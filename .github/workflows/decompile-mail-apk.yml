@@ -82,6 +82,10 @@ jobs:
             mkdir -p "$DEST/packages/ru/mail/auth"
             cp -a "$SRC/ru/mail/auth/request" "$DEST/packages/ru/mail/auth/"
           fi
+          if [ -d "$SRC/ru/mail/auth/webview" ]; then
+            mkdir -p "$DEST/packages/ru/mail/auth"
+            cp -a "$SRC/ru/mail/auth/webview" "$DEST/packages/ru/mail/auth/"
+          fi
           if [ -d "$SRC/ru/mail/mailbox/cmd" ]; then
             mkdir -p "$DEST/packages/ru/mail/mailbox"
             cp -a "$SRC/ru/mail/mailbox/cmd" "$DEST/packages/ru/mail/mailbox/"
@@ -105,7 +109,7 @@ jobs:
             cp -a "$SRC/ru/mail/customtags/impl/api" "$DEST/packages/ru/mail/customtags/impl/"
           fi
 
-          PAT='aj-https\.mail\.ru|alt-aj-https\.mail\.ru|mail_api_default_host|new_mail_api_default_host|auth_default_host|/cgi-bin/auth|messages/message|messages/marks|messages/move|messages/send|messages/schedule|messages/attaches/add|m/threads/status/smart|threads/status|messages/search|access_token|af\.attachmail\.ru'
+          PAT='aj-https\.mail\.ru|alt-aj-https\.mail\.ru|mail_api_default_host|new_mail_api_default_host|auth_default_host|/cgi-bin/auth|messages/message|messages/marks|messages/move|messages/send|messages/schedule|messages/attaches/add|m/threads/status/smart|threads/status|messages/search|access_token|af\.attachmail\.ru|MAIL_SECOND_STEP_REQUIRED|MailSecondStep|LudwigToken|mLudwig|\btsa\b|captcha|recaptcha'
           grep -RIlE "$PAT" "$SRC" > "$ROOT/findings/jadx-matched-files.txt" || true
 
           while IFS= read -r f; do
