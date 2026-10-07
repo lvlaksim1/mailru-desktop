@@ -133,6 +133,7 @@ public sealed partial class MailRuClient : IDisposable
         string Login,
         string Password,
         string CookieHeader,
+        IReadOnlyList<MailRuAuthBrowserCookie> BrowserCookies,
         DateTimeOffset CreatedAtUtc);
 
     public MailRuClient(MailRuClientOptions? options = null, HttpClient? httpClient = null)
@@ -232,6 +233,7 @@ public sealed partial class MailRuClient : IDisposable
         var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         var location = response.Headers.Location?.ToString() ?? string.Empty;
         var mergedSessionCookieHeader = MergeCookieHeader(sessionCookieHeader, response);
+        var responseBrowserCookies = ReadResponseCookies(response, uri);
 
         JsonDocument? document = null;
         try
@@ -285,7 +287,8 @@ public sealed partial class MailRuClient : IDisposable
                         ? RegisterPendingAuthSession(
                             login,
                             password,
-                            mergedSessionCookieHeader)
+                            mergedSessionCookieHeader,
+                            responseBrowserCookies)
                         : string.Empty;
 
                 challenge = BuildContinueChallenge(
@@ -311,7 +314,8 @@ public sealed partial class MailRuClient : IDisposable
                         SessionId = RegisterPendingAuthSession(
                             login,
                             password,
-                            mergedSessionCookieHeader)
+                            mergedSessionCookieHeader,
+                            responseBrowserCookies)
                     };
                 }
 
@@ -363,7 +367,8 @@ public sealed partial class MailRuClient : IDisposable
                             ? RegisterPendingAuthSession(
                                 login,
                                 password,
-                                mergedSessionCookieHeader)
+                                mergedSessionCookieHeader,
+                                responseBrowserCookies)
                             : string.Empty),
                     $"http={(int)response.StatusCode}; response=non-json");
             }
@@ -731,10 +736,29 @@ public sealed partial class MailRuClient : IDisposable
             payload);
     }
 
+    public IReadOnlyList<MailRuAuthBrowserCookie> GetChallengeBrowserCookies(
+        string sessionId)
+    {
+        if (string.IsNullOrWhiteSpace(sessionId) ||
+            !_pendingAuthSessions.TryGetValue(sessionId, out var session))
+        {
+            return Array.Empty<MailRuAuthBrowserCookie>();
+        }
+
+        if (DateTimeOffset.UtcNow - session.CreatedAtUtc > TimeSpan.FromMinutes(10))
+        {
+            _pendingAuthSessions.TryRemove(sessionId, out _);
+            return Array.Empty<MailRuAuthBrowserCookie>();
+        }
+
+        return session.BrowserCookies.ToArray();
+    }
+
     private string RegisterPendingAuthSession(
         string login,
         string password,
-        string cookieHeader)
+        string cookieHeader,
+        IReadOnlyList<MailRuAuthBrowserCookie> browserCookies)
     {
         var now = DateTimeOffset.UtcNow;
 
@@ -749,9 +773,89 @@ public sealed partial class MailRuClient : IDisposable
             login,
             password,
             cookieHeader,
+            browserCookies.ToArray(),
             now);
 
         return sessionId;
+    }
+
+    private static IReadOnlyList<MailRuAuthBrowserCookie> ReadResponseCookies(
+        HttpResponseMessage response,
+        Uri requestUri)
+    {
+        if (!response.Headers.TryGetValues("Set-Cookie", out var values))
+            return Array.Empty<MailRuAuthBrowserCookie>();
+
+        var result = new List<MailRuAuthBrowserCookie>();
+
+        foreach (var header in values)
+        {
+            if (string.IsNullOrWhiteSpace(header))
+                continue;
+
+            var parts = header.Split(';');
+            if (parts.Length == 0)
+                continue;
+
+            var first = parts[0].Trim();
+            var separator = first.IndexOf('=');
+            if (separator <= 0)
+                continue;
+
+            var name = first[..separator].Trim();
+            var value = first[(separator + 1)..].Trim();
+            if (name.Length == 0)
+                continue;
+
+            var domain = requestUri.Host;
+            var path = "/";
+            var secure = false;
+            var httpOnly = false;
+
+            for (var index = 1; index < parts.Length; index++)
+            {
+                var attribute = parts[index].Trim();
+                if (attribute.Equals("Secure", StringComparison.OrdinalIgnoreCase))
+                {
+                    secure = true;
+                    continue;
+                }
+
+                if (attribute.Equals("HttpOnly", StringComparison.OrdinalIgnoreCase))
+                {
+                    httpOnly = true;
+                    continue;
+                }
+
+                var attributeSeparator = attribute.IndexOf('=');
+                if (attributeSeparator <= 0)
+                    continue;
+
+                var attributeName = attribute[..attributeSeparator].Trim();
+                var attributeValue = attribute[(attributeSeparator + 1)..].Trim();
+
+                if (attributeName.Equals("Domain", StringComparison.OrdinalIgnoreCase) &&
+                    !string.IsNullOrWhiteSpace(attributeValue))
+                {
+                    domain = attributeValue;
+                }
+                else if (attributeName.Equals("Path", StringComparison.OrdinalIgnoreCase) &&
+                         !string.IsNullOrWhiteSpace(attributeValue))
+                {
+                    path = attributeValue;
+                }
+            }
+
+            result.Add(new MailRuAuthBrowserCookie(
+                name,
+                value,
+                domain,
+                path,
+                secure,
+                httpOnly));
+        }
+
+        return result;
     }
 
     private static string MergeCookieHeader(
