@@ -45,6 +45,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         RestoreUserInterfaceState();
+        InitializeUserContentSettings();
 
         ThemeManager.Apply(_settingsStore.LoadTheme());
         MessagesGrid.ItemsSource = _visibleMessages;
