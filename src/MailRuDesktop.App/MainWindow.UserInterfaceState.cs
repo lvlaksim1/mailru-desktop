@@ -1,9 +1,27 @@
+using System.ComponentModel;
 using System.Windows;
 
 namespace MailRuDesktop.App;
 
 public partial class MainWindow
 {
+    private System.Windows.WindowState _lastNonMinimizedWindowState =
+        System.Windows.WindowState.Normal;
+
+    protected override void OnStateChanged(EventArgs e)
+    {
+        if (WindowState != System.Windows.WindowState.Minimized)
+            _lastNonMinimizedWindowState = WindowState;
+
+        base.OnStateChanged(e);
+    }
+
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        SaveUserInterfaceState();
+        base.OnClosing(e);
+    }
+
     private void RestoreUserInterfaceState()
     {
         var state = _settingsStore.LoadUserInterfaceState();
@@ -41,7 +59,11 @@ public partial class MainWindow
     {
         try
         {
-            var bounds = WindowState == System.Windows.WindowState.Normal
+            var effectiveState = WindowState == System.Windows.WindowState.Minimized
+                ? _lastNonMinimizedWindowState
+                : WindowState;
+
+            var bounds = effectiveState == System.Windows.WindowState.Normal
                 ? new Rect(Left, Top, ActualWidth, ActualHeight)
                 : RestoreBounds;
 
@@ -53,7 +75,7 @@ public partial class MainWindow
                 WindowTop = IsFinite(bounds.Top) ? bounds.Top : null,
                 WindowWidth = IsFinite(bounds.Width) ? bounds.Width : null,
                 WindowHeight = IsFinite(bounds.Height) ? bounds.Height : null,
-                WindowMaximized = WindowState == System.Windows.WindowState.Maximized,
+                WindowMaximized = effectiveState == System.Windows.WindowState.Maximized,
 
                 NavigationPaneWidth = NavigationPaneColumn.Width.Value,
                 AccountPaneWidth = AccountPaneColumn.Width.Value,
@@ -128,8 +150,11 @@ public partial class MainWindow
         Top = top;
         WindowStartupLocation = WindowStartupLocation.Manual;
 
-        if (state.WindowMaximized)
-            WindowState = System.Windows.WindowState.Maximized;
+        _lastNonMinimizedWindowState = state.WindowMaximized
+            ? System.Windows.WindowState.Maximized
+            : System.Windows.WindowState.Normal;
+
+        WindowState = _lastNonMinimizedWindowState;
     }
 
     private static GridLength RestoreGridLength(
