@@ -130,9 +130,10 @@ public partial class MainWindow
         if (MailWorkspace.ColumnDefinitions.Count < 3)
             return;
 
-        MailWorkspace.ColumnDefinitions[0].Width = new GridLength(2, GridUnitType.Star);
+        // Widths are restored by MainWindow.UserInterfaceState. This compatibility
+        // layer must only enforce safe minimums and splitter behavior; assigning
+        // star widths here used to erase the user's saved divider position.
         MailWorkspace.ColumnDefinitions[0].MinWidth = 320;
-        MailWorkspace.ColumnDefinitions[2].Width = new GridLength(3, GridUnitType.Star);
         MailWorkspace.ColumnDefinitions[2].MinWidth = 360;
 
         foreach (var splitter in MailWorkspace.Children.OfType<GridSplitter>())
