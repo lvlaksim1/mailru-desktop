@@ -4,44 +4,63 @@
 status: completed
 
 ## I-002 — mailbox list/folder MVP
-status: active
+status: active — parser hardening in progress
 
-The released mailbox-list transport remains `/api/v1/m/threads/status/smart` with the mailbox OAuth token.
+The released mailbox-list transport remains `/api/v1/m/threads/status/smart` with the mailbox OAuth token. Parser behavior must remain tolerant across all observed server shapes, including the newly observed `threads[].representations[]` form.
 
 ## I-003 — complete access-token API coverage
 status: active — static discovery completed; staged product integration active
 
-APK 15.107.0.148045 is statically mapped: 100 commands are confirmed to use the same `ru.mail.oauth2.access`. v0.2.0 promoted the first high-value subset to live-validated product functionality.
+APK 15.107.0.148045 is statically mapped: 100 commands are confirmed to use the same `ru.mail.oauth2.access`. Product integration proceeds only after live or owner-runtime validation.
 
 ## I-004 — send/scheduled-send flow
 status: active
 
-Immediate send remains released. Server draft saving is released in v0.2.0. Exact delayed-send `send_date` semantics still require dedicated validation.
+Immediate send, reply with attachments and server draft saving are released. Exact delayed-send `send_date` semantics still require dedicated validation.
 
 ## I-005 — installer/update release channel
 status: completed
 
-Latest public release is v0.2.0 with both full and update installers.
+Latest public release is v0.3.3 with both full and update installers. The next intended release is v0.3.4 after the parser hotfix is merged and packaged.
 
 ## I-006 — full-message read and incoming attachments
 status: released
 
-## I-007 — mailbox OAuth authorization
-status: released; challenge policy fixed
+The preview pane is now the normal full-message workspace. It supports full body, selectable addresses and subject, reply, forward, move/archive/trash, attachments and reply attachments.
 
-Authorization obtains the mailbox OAuth `access_token`. CAPTCHA/reCAPTCHA/additional verification is reported and authorization stops. No challenge solver, web-cookie fallback, IMAP/SMTP or app-password fallback.
+## I-007 — mailbox OAuth authorization
+status: released; challenge policy fixed; refresh recovery released
+
+Authorization obtains the mailbox OAuth `access_token`. CAPTCHA/reCAPTCHA/additional verification is reported and authorization stops. No challenge solver, web-cookie fallback, IMAP/SMTP or app-password fallback. Stored `refresh_token` is used to recover an expired access token through `https://o2.mail.ru/token`.
 
 ## I-008 — incoming message actions
-status: active — first expansion released in v0.2.0
+status: active — core per-message actions released
 
-Released operations now include read/unread, move/archive/trash, permanent removal from Trash, flagged and pinned marks. Bulk/thread actions, spam/unspam, categories and related operations remain for subsequent stages.
+Released operations include read/unread, move/archive/trash, permanent removal from Trash, flagged and pinned marks. UI actions are attached to compact message rows. Pinned messages are grouped above ordinary chronological mail and return to chronological position when unpinned. Bulk/thread actions, spam/unspam, categories and related operations remain later work.
 
 ## I-009 — desktop UX/settings
-status: active
+status: active — modern UI released and being refined from owner feedback
 
-v0.2.0 exposes server search, server contacts, user-folder management, flags/pinning, permanent delete and server draft saving in the desktop UI.
+Current UI baseline v0.3.3:
+- dark theme by default;
+- left navigation/folders;
+- compact three-line message list;
+- resizable list/preview split;
+- full preview workspace;
+- right-side resizable textual account list;
+- account badge equals Inbox unread count;
+- yellow active flag star and red active pin;
+- date-range filter plus unified text search;
+- full-width compose and removable attachments.
 
 ## I-010 — high-value access-token expansion
-status: active — stage 1 completed, stage 2 pending
+status: active — temporarily secondary to v0.3.4 parser hotfix
 
-Stage 1 was released as v0.2.0. Stage 2 will focus on thread/bulk message operations, spam/unspam, subscription/category actions, attachment lifecycle, EML/metadata/read receipt, and search improvements. The new `go.mail.ru` search remains deferred until its HTTP 520 live failure is explained.
+After v0.3.4 stabilizes multi-account mailbox parsing, resume thread/bulk message operations, spam/unspam, subscription/category actions, attachment lifecycle, EML/metadata/read receipt, and search improvements. The new `go.mail.ru` search remains deferred until its HTTP 520 live failure is explained.
+
+## I-011 — multi-account correctness
+status: active — highest immediate priority
+
+Each authorized account must independently load folders, Inbox messages, preview content and unread counts. Switching accounts must not reuse another account's parsed mailbox state. The badge is specifically Inbox `messages_unread`.
+
+Current defect: v0.3.3 ignores the valid `threads[].representations[]` smart-thread shape observed on the Owner's second account. PR #34 on `fix/v0.3.4-representations-parser` implements the fix; CI is green and release is pending.
