@@ -38,7 +38,6 @@ public partial class MainWindow
         try
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            request.Headers.Referrer = new Uri("https://e.mail.ru/");
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("image/avif"));
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("image/webp"));
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("image/apng"));
