@@ -54,8 +54,8 @@ internal sealed class AccountRailItem : INotifyPropertyChanged
         }
     }
 
-    public string UnreadDisplay => Unread is > 99 ? "99+" : Unread?.ToString() ?? string.Empty;
-    public bool HasUnread => Unread is not null;
+    public string UnreadDisplay => Unread is > 99 ? "99+" : Unread is > 0 ? Unread.Value.ToString() : string.Empty;
+    public bool HasUnread => Unread is > 0;
     public string ToolTipText => string.IsNullOrWhiteSpace(Status) ? Login : $"{Login}\n{Status}";
 
     public event PropertyChangedEventHandler? PropertyChanged;
