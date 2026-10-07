@@ -4,9 +4,11 @@
 status: completed
 
 ## I-002 — mailbox list/folder MVP
-status: active — parser hardening in progress
+status: active — parser hotfix released; owner runtime validation remains
 
-The released mailbox-list transport remains `/api/v1/m/threads/status/smart` with the mailbox OAuth token. Parser behavior must remain tolerant across all observed server shapes, including the newly observed `threads[].representations[]` form.
+The released mailbox-list transport remains `/api/v1/m/threads/status/smart` with the mailbox OAuth token. Parser behavior must remain tolerant across all observed server shapes: `base_message`, `messages[]`, direct thread-like objects, and `threads[].representations[]`.
+
+v0.3.4 released support for the `representations[]` form observed on the Owner's second account. Build/CI validation is complete; the exact affected account still requires Owner runtime confirmation.
 
 ## I-003 — complete access-token API coverage
 status: active — static discovery completed; staged product integration active
@@ -21,12 +23,12 @@ Immediate send, reply with attachments and server draft saving are released. Exa
 ## I-005 — installer/update release channel
 status: completed
 
-Latest public release is v0.3.3 with both full and update installers. The next intended release is v0.3.4 after the parser hotfix is merged and packaged.
+Current public release is v0.3.5 with both full and update installers. Future updates continue through the in-place update installer.
 
 ## I-006 — full-message read and incoming attachments
 status: released
 
-The preview pane is now the normal full-message workspace. It supports full body, selectable addresses and subject, reply, forward, move/archive/trash, attachments and reply attachments.
+The preview pane is the normal full-message workspace. It supports full body, selectable addresses and subject, reply, forward, move/archive/trash, attachments and reply attachments.
 
 ## I-007 — mailbox OAuth authorization
 status: released; challenge policy fixed; refresh recovery released
@@ -36,31 +38,29 @@ Authorization obtains the mailbox OAuth `access_token`. CAPTCHA/reCAPTCHA/additi
 ## I-008 — incoming message actions
 status: active — core per-message actions released
 
-Released operations include read/unread, move/archive/trash, permanent removal from Trash, flagged and pinned marks. UI actions are attached to compact message rows. Pinned messages are grouped above ordinary chronological mail and return to chronological position when unpinned. Bulk/thread actions, spam/unspam, categories and related operations remain later work.
+Released operations include read/unread, move/archive/trash, permanent removal from Trash, flagged and pinned marks. Opening a message still marks it read automatically. v0.3.5 adds an explicit action that lets the currently selected message be marked unread again without immediately undoing that user action. Bulk/thread actions, spam/unspam, categories and related operations remain later work.
 
 ## I-009 — desktop UX/settings
-status: active — modern UI released and being refined from owner feedback
+status: active — v0.3.5 mail-list redesign released; owner visual validation pending
 
-Current UI baseline v0.3.3:
-- dark theme by default;
-- left navigation/folders;
-- compact three-line message list;
-- resizable list/preview split;
-- full preview workspace;
-- right-side resizable textual account list;
-- account badge equals Inbox unread count;
-- yellow active flag star and red active pin;
-- date-range filter plus unified text search;
-- full-width compose and removable attachments.
+Current v0.3.5 mail-list baseline:
+- messages are grouped under separate date headers;
+- each message row has seven columns: fixed-size read/unread dot, sender name or fallback email, flag, thread count, subject plus first text line, attachment indicator, and time;
+- unread rows use a filled dot and bold text in the subject/text column;
+- attachment column is blank without attachments and shows a paperclip otherwise;
+- theme resources remain authoritative for light/dark/system appearance;
+- the preview toolbar can mark the selected message unread after automatic read-on-open.
+
+The surrounding v0.3.x three-pane layout, right-side account list, preview workspace, filters and compose workflow remain the current UX baseline unless the Owner revises them.
 
 ## I-010 — high-value access-token expansion
-status: active — temporarily secondary to v0.3.4 parser hotfix
+status: active — secondary to owner validation of v0.3.5 UI and multi-account parser
 
-After v0.3.4 stabilizes multi-account mailbox parsing, resume thread/bulk message operations, spam/unspam, subscription/category actions, attachment lifecycle, EML/metadata/read receipt, and search improvements. The new `go.mail.ru` search remains deferred until its HTTP 520 live failure is explained.
+After the current UI/parser validation is stable, resume thread/bulk message operations, spam/unspam, subscription/category actions, attachment lifecycle, EML/metadata/read receipt, and search improvements. The new `go.mail.ru` search remains deferred until its HTTP 520 live failure is explained.
 
 ## I-011 — multi-account correctness
-status: active — highest immediate priority
+status: active — v0.3.4 fix released; owner validation pending
 
 Each authorized account must independently load folders, Inbox messages, preview content and unread counts. Switching accounts must not reuse another account's parsed mailbox state. The badge is specifically Inbox `messages_unread`.
 
-Current defect: v0.3.3 ignores the valid `threads[].representations[]` smart-thread shape observed on the Owner's second account. PR #34 on `fix/v0.3.4-representations-parser` implements the fix; CI is green and release is pending.
+The confirmed `threads[].representations[]` parser defect was fixed and released in v0.3.4. The remaining gate is Owner runtime validation on the second account that originally exposed this response shape.
