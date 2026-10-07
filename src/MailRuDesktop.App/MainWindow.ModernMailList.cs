@@ -487,17 +487,49 @@ public partial class MainWindow
     <DataTemplate x:Key="ModernMailRowTemplate">
         <Grid Height="42">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="26"/>
-                <ColumnDefinition Width="1.15*"/>
-                <ColumnDefinition Width="28"/>
-                <ColumnDefinition Width="32"/>
-                <ColumnDefinition Width="2.15*"/>
-                <ColumnDefinition Width="28"/>
                 <ColumnDefinition Width="58"/>
+                <ColumnDefinition Width="28"/>
+                <ColumnDefinition Width="26"/>
+                <ColumnDefinition Width="32"/>
+                <ColumnDefinition Width="28"/>
+                <ColumnDefinition Width="1.15*"/>
+                <ColumnDefinition Width="2.15*"/>
             </Grid.ColumnDefinitions>
 
+            <TextBlock Grid.Column="0"
+                       Margin="3,0,5,0"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Right"
+                       Foreground="{DynamicResource AppMutedTextBrush}"
+                       Text="{Binding DateUnix, Converter={StaticResource MailTimeConverter}}"/>
+
+            <Button x:Name="FlagActionButton"
+                    Grid.Column="1"
+                    Width="26"
+                    Height="40"
+                    Padding="0"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    ToolTip="Флажок">
+                <TextBlock FontSize="16">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Text" Value="☆"/>
+                            <Setter Property="Foreground"
+                                    Value="{DynamicResource AppMutedTextBrush}"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Flagged}" Value="True">
+                                    <Setter Property="Text" Value="★"/>
+                                    <Setter Property="Foreground" Value="#FFD54A"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Button>
+
             <Button x:Name="ModernUnreadActionButton"
-                    Grid.Column="0"
+                    Grid.Column="2"
                     Width="24"
                     Height="40"
                     Padding="0"
@@ -526,37 +558,6 @@ public partial class MainWindow
                 </Ellipse>
             </Button>
 
-            <TextBlock Grid.Column="1"
-                       Margin="5,0,8,0"
-                       VerticalAlignment="Center"
-                       TextTrimming="CharacterEllipsis"
-                       Text="{Binding SenderDisplay}"/>
-
-            <Button x:Name="FlagActionButton"
-                    Grid.Column="2"
-                    Width="26"
-                    Height="40"
-                    Padding="0"
-                    Background="Transparent"
-                    BorderThickness="0"
-                    ToolTip="Флажок">
-                <TextBlock FontSize="16">
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Text" Value="☆"/>
-                            <Setter Property="Foreground"
-                                    Value="{DynamicResource AppMutedTextBrush}"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Flagged}" Value="True">
-                                    <Setter Property="Text" Value="★"/>
-                                    <Setter Property="Foreground" Value="#FFD54A"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
-                </TextBlock>
-            </Button>
-
             <Border Grid.Column="3"
                     MinWidth="22"
                     Height="22"
@@ -573,7 +574,26 @@ public partial class MainWindow
                            Text="{Binding Id, Converter={StaticResource ThreadCountConverter}}"/>
             </Border>
 
-            <TextBlock Grid.Column="4"
+            <Path Grid.Column="4"
+                  Width="14"
+                  Height="14"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Center"
+                  Visibility="{Binding HasAttachment, Converter={StaticResource BoolToVisibility}}"
+                  Stretch="Uniform"
+                  Stroke="{DynamicResource AppMutedTextBrush}"
+                  StrokeThickness="1.5"
+                  StrokeStartLineCap="Round"
+                  StrokeEndLineCap="Round"
+                  Data="M21.44,11.05 L12.25,20.24 C9.91,22.58 6.11,22.58 3.76,20.24 C1.42,17.90 1.42,14.10 3.76,11.75 L12.95,2.56 C14.51,1 17.05,1 18.61,2.56 C20.17,4.12 20.17,6.66 18.61,8.22 L9.41,17.41 C8.63,18.19 7.37,18.19 6.59,17.41 C5.81,16.63 5.81,15.37 6.59,14.59 L15.08,6.10"/>
+
+            <TextBlock Grid.Column="5"
+                       Margin="5,0,8,0"
+                       VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis"
+                       Text="{Binding SenderDisplay}"/>
+
+            <TextBlock Grid.Column="6"
                        Margin="7,0,8,0"
                        VerticalAlignment="Center"
                        TextTrimming="CharacterEllipsis">
@@ -592,27 +612,8 @@ public partial class MainWindow
                 <Run Foreground="{DynamicResource AppMutedTextBrush}"
                      Text="{Binding Snippet, Converter={StaticResource FirstLineConverter}}"/>
             </TextBlock>
-
-            <Path Grid.Column="5"
-                  Width="14"
-                  Height="14"
-                  VerticalAlignment="Center"
-                  HorizontalAlignment="Center"
-                  Visibility="{Binding HasAttachment, Converter={StaticResource BoolToVisibility}}"
-                  Stretch="Uniform"
-                  Stroke="{DynamicResource AppMutedTextBrush}"
-                  StrokeThickness="1.5"
-                  StrokeStartLineCap="Round"
-                  StrokeEndLineCap="Round"
-                  Data="M21.44,11.05 L12.25,20.24 C9.91,22.58 6.11,22.58 3.76,20.24 C1.42,17.90 1.42,14.10 3.76,11.75 L12.95,2.56 C14.51,1 17.05,1 18.61,2.56 C20.17,4.12 20.17,6.66 18.61,8.22 L9.41,17.41 C8.63,18.19 7.37,18.19 6.59,17.41 C5.81,16.63 5.81,15.37 6.59,14.59 L15.08,6.10"/>
-
-            <TextBlock Grid.Column="6"
-                       Margin="5,0,3,0"
-                       VerticalAlignment="Center"
-                       HorizontalAlignment="Right"
-                       Foreground="{DynamicResource AppMutedTextBrush}"
-                       Text="{Binding DateUnix, Converter={StaticResource MailTimeConverter}}"/>
         </Grid>
+
     </DataTemplate>
 </ResourceDictionary>
 """;
