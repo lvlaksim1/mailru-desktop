@@ -367,7 +367,8 @@ public sealed partial class MailRuClient : IDisposable
                             ? RegisterPendingAuthSession(
                                 login,
                                 password,
-                                mergedSessionCookieHeader)
+                                mergedSessionCookieHeader,
+                                responseBrowserCookies)
                             : string.Empty),
                     $"http={(int)response.StatusCode}; response=non-json");
             }
