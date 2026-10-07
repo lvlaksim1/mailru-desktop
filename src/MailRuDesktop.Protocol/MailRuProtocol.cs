@@ -199,15 +199,52 @@ public sealed partial class MailRuClient : IDisposable
                 };
             }
 
+            var statusText = FindStringByNamesIgnoreCase(
+                document.RootElement,
+                "Status",
+                "status");
+            var continueValue = FindStringByNamesIgnoreCase(
+                document.RootElement,
+                "Continue",
+                "continue");
+
             var error =
                 TryFindString(document.RootElement, "error", out var parsedError) &&
                 !string.IsNullOrWhiteSpace(parsedError)
                     ? parsedError!
                     : "token_missing";
 
-            var state = ClassifyAuthState(document.RootElement, error);
-            var challenge = TryBuildAuthChallenge(document.RootElement, state, location);
-            var diagnostic = BuildJsonShapeDiagnostic(document.RootElement);
+            var state = ClassifyAuthStatusValue(statusText);
+            if (state == MailRuAuthState.Unknown)
+                state = ClassifyAuthState(document.RootElement, error);
+
+            MailRuAuthChallenge? challenge;
+            string diagnosticReason;
+
+            if (!string.IsNullOrWhiteSpace(continueValue))
+            {
+                if (state == MailRuAuthState.Unknown)
+                    state = MailRuAuthState.RecoveryRequired;
+
+                challenge = BuildContinueChallenge(
+                    state,
+                    continueValue,
+                    _options.BaseUri);
+                diagnosticReason = "aj_mobile_auth_continue_required";
+            }
+            else
+            {
+                challenge = TryBuildAuthChallenge(
+                    document.RootElement,
+                    state,
+                    location);
+                diagnosticReason = "aj_mobile_auth_returned_no_access_token";
+            }
+
+            var diagnostic = BuildNoTokenDiagnostic(
+                document.RootElement,
+                statusText,
+                continueValue);
 
             var normalizedError = state switch
             {
@@ -215,14 +252,14 @@ public sealed partial class MailRuClient : IDisposable
                 MailRuAuthState.Captcha => "captcha_required",
                 MailRuAuthState.TwoFactor => "two_factor_required",
                 MailRuAuthState.Blocked => "account_blocked",
-                MailRuAuthState.RecoveryRequired => "account_recovery_required",
+                MailRuAuthState.RecoveryRequired => "additional_verification_required",
                 _ => error
             };
 
             return MailRuAuthResult.Failed(
                 normalizedError,
                 state,
-                "aj_mobile_auth_returned_no_access_token",
+                diagnosticReason,
                 challenge,
                 diagnostic);
         }
@@ -636,6 +673,237 @@ public sealed partial class MailRuClient : IDisposable
 
     private static bool IsAllowedRuntimeHost(string host) =>
         MailRuEndpointCatalog.IsRuntimeHostAllowed(host);
+
+    private static MailRuAuthState ClassifyAuthStatusValue(string? status)
+    {
+        if (string.IsNullOrWhiteSpace(status))
+            return MailRuAuthState.Unknown;
+
+        if (status.Contains("recaptcha", StringComparison.OrdinalIgnoreCase))
+            return MailRuAuthState.ReCaptcha;
+
+        if (status.Contains("captcha", StringComparison.OrdinalIgnoreCase))
+            return MailRuAuthState.Captcha;
+
+        if (status.Contains("two", StringComparison.OrdinalIgnoreCase) &&
+            status.Contains("factor", StringComparison.OrdinalIgnoreCase) ||
+            status.Contains("2fa", StringComparison.OrdinalIgnoreCase) ||
+            status.Contains("otp", StringComparison.OrdinalIgnoreCase))
+        {
+            return MailRuAuthState.TwoFactor;
+        }
+
+        if (status.Contains("block", StringComparison.OrdinalIgnoreCase) ||
+            status.Contains("lock", StringComparison.OrdinalIgnoreCase) ||
+            status.Contains("suspend", StringComparison.OrdinalIgnoreCase))
+        {
+            return MailRuAuthState.Blocked;
+        }
+
+        if (status.Contains("verify", StringComparison.OrdinalIgnoreCase) ||
+            status.Contains("verification", StringComparison.OrdinalIgnoreCase) ||
+            status.Contains("confirm", StringComparison.OrdinalIgnoreCase) ||
+            status.Contains("continue", StringComparison.OrdinalIgnoreCase) ||
+            status.Contains("challenge", StringComparison.OrdinalIgnoreCase) ||
+            status.Contains("recovery", StringComparison.OrdinalIgnoreCase))
+        {
+            return MailRuAuthState.RecoveryRequired;
+        }
+
+        if (status.Contains("invalid", StringComparison.OrdinalIgnoreCase) ||
+            status.Contains("password", StringComparison.OrdinalIgnoreCase) ||
+            status.Contains("credential", StringComparison.OrdinalIgnoreCase))
+        {
+            return MailRuAuthState.InvalidCredentials;
+        }
+
+        return MailRuAuthState.Unknown;
+    }
+
+    private static MailRuAuthChallenge BuildContinueChallenge(
+        MailRuAuthState state,
+        string continueValue,
+        Uri baseUri)
+    {
+        var kind = state switch
+        {
+            MailRuAuthState.ReCaptcha => MailRuChallengeKind.ReCaptcha,
+            MailRuAuthState.Captcha => MailRuChallengeKind.Captcha,
+            MailRuAuthState.TwoFactor => MailRuChallengeKind.TwoFactor,
+            _ => MailRuChallengeKind.AdditionalVerification
+        };
+
+        return new MailRuAuthChallenge(
+            kind,
+            string.Empty,
+            NormalizeSafeMailRuContinueUrl(continueValue, baseUri),
+            null,
+            null,
+            "auth_continue_field_detected");
+    }
+
+    private static string? NormalizeSafeMailRuContinueUrl(
+        string? value,
+        Uri baseUri)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
+        value = value.Trim();
+
+        Uri? uri = null;
+        if (value.StartsWith("//", StringComparison.Ordinal))
+        {
+            Uri.TryCreate("https:" + value, UriKind.Absolute, out uri);
+        }
+        else if (Uri.TryCreate(value, UriKind.Absolute, out var absolute))
+        {
+            uri = absolute;
+        }
+        else if (Uri.TryCreate(baseUri, value, out var relative))
+        {
+            uri = relative;
+        }
+
+        if (uri is null ||
+            uri.Scheme != Uri.UriSchemeHttps ||
+            !IsMailRuHost(uri.Host))
+        {
+            return null;
+        }
+
+        return uri.ToString();
+    }
+
+    private static string BuildNoTokenDiagnostic(
+        JsonElement root,
+        string? status,
+        string? continueValue)
+    {
+        return BuildJsonShapeDiagnostic(root) +
+               $"; status-class={ClassifyStatusDiagnostic(status)}" +
+               $"; continue-kind={DescribeContinueValue(continueValue)}";
+    }
+
+    private static string ClassifyStatusDiagnostic(string? status)
+    {
+        if (string.IsNullOrWhiteSpace(status))
+            return "none";
+
+        if (status.All(char.IsDigit))
+            return "numeric";
+
+        if (status.Contains("captcha", StringComparison.OrdinalIgnoreCase))
+            return "captcha-like";
+
+        if (status.Contains("verify", StringComparison.OrdinalIgnoreCase) ||
+            status.Contains("confirm", StringComparison.OrdinalIgnoreCase) ||
+            status.Contains("continue", StringComparison.OrdinalIgnoreCase) ||
+            status.Contains("challenge", StringComparison.OrdinalIgnoreCase) ||
+            status.Contains("recovery", StringComparison.OrdinalIgnoreCase))
+        {
+            return "verification-like";
+        }
+
+        if (status.Contains("ok", StringComparison.OrdinalIgnoreCase) ||
+            status.Contains("success", StringComparison.OrdinalIgnoreCase))
+        {
+            return "success-like";
+        }
+
+        if (status.Contains("error", StringComparison.OrdinalIgnoreCase) ||
+            status.Contains("fail", StringComparison.OrdinalIgnoreCase) ||
+            status.Contains("invalid", StringComparison.OrdinalIgnoreCase))
+        {
+            return "error-like";
+        }
+
+        return "other-string";
+    }
+
+    private static string DescribeContinueValue(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "none";
+
+        value = value.Trim();
+
+        if (value.StartsWith("/", StringComparison.Ordinal) &&
+            !value.StartsWith("//", StringComparison.Ordinal))
+        {
+            return "relative-path";
+        }
+
+        if (value.StartsWith("//", StringComparison.Ordinal) &&
+            Uri.TryCreate("https:" + value, UriKind.Absolute, out var protocolRelative))
+        {
+            return IsMailRuHost(protocolRelative.Host)
+                ? $"protocol-relative-mailru:{protocolRelative.Host}"
+                : $"protocol-relative-external:{protocolRelative.Host}";
+        }
+
+        if (Uri.TryCreate(value, UriKind.Absolute, out var absolute))
+        {
+            return IsMailRuHost(absolute.Host)
+                ? $"absolute-mailru:{absolute.Host}"
+                : $"absolute-external:{absolute.Host}";
+        }
+
+        return "opaque-string";
+    }
+
+    private static bool IsMailRuHost(string host) =>
+        host.Equals("mail.ru", StringComparison.OrdinalIgnoreCase) ||
+        host.EndsWith(".mail.ru", StringComparison.OrdinalIgnoreCase);
+
+    private static string? FindStringByNamesIgnoreCase(
+        JsonElement root,
+        params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (TryFindStringIgnoreCase(root, name, out var value) &&
+                !string.IsNullOrWhiteSpace(value))
+            {
+                return value;
+            }
+        }
+
+        return null;
+    }
+
+    private static bool TryFindStringIgnoreCase(
+        JsonElement element,
+        string name,
+        out string? value)
+    {
+        if (element.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var property in element.EnumerateObject())
+            {
+                if (property.Name.Equals(name, StringComparison.OrdinalIgnoreCase) &&
+                    property.Value.ValueKind == JsonValueKind.String)
+                {
+                    value = property.Value.GetString();
+                    return true;
+                }
+
+                if (TryFindStringIgnoreCase(property.Value, name, out value))
+                    return true;
+            }
+        }
+        else if (element.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in element.EnumerateArray())
+            {
+                if (TryFindStringIgnoreCase(item, name, out value))
+                    return true;
+            }
+        }
+
+        value = null;
+        return false;
+    }
 
     private static MailRuAuthState ClassifyAuthState(
         JsonElement root,
