@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using MailRuDesktop.Protocol;
 
 namespace MailRuDesktop.App;
@@ -34,56 +33,39 @@ public partial class MainWindow
                 this,
                 "Дополнительная проверка Mail.ru",
                 $"Mail.ru запросил {verificationName}.\n\n" +
-                "Приложение не обходит проверку автоматически. " +
-                "В ответе сервера нет безопасной ссылки, которую можно открыть пользователю. " +
-                "Обезличенная структура ответа сохранена в разделе диагностики.");
+                "В ответе нет безопасной страницы Mail.ru, которую можно открыть внутри приложения. " +
+                "Обезличенная структура ответа сохранена в диагностике.");
             return null;
         }
 
-        if (!AppDialog.Confirm(
-                this,
-                "Дополнительная проверка Mail.ru",
-                $"Mail.ru запросил {verificationName}.\n\n" +
-                "Открыть штатную страницу Mail.ru для прохождения проверки? " +
-                "После завершения вернитесь в приложение.",
-                "Открыть Mail.ru",
-                "Отмена"))
+        var verificationWindow = new MailRuVerificationWindow(url)
         {
-            return null;
-        }
+            Owner = this
+        };
 
-        try
+        var verified = verificationWindow.ShowDialog() == true;
+        if (!verified)
+            return null;
+
+        AuthStatusText.Text = "Повторная авторизация после проверки Mail.ru...";
+
+        var retry = await _mailRu.AuthenticateWithSessionCookiesAsync(
+            login,
+            password,
+            verificationWindow.SessionCookieHeader);
+
+        WriteAuthDiagnostics(retry);
+
+        if (!retry.Success && IsInteractiveAuthState(retry))
         {
-            Process.Start(new ProcessStartInfo(url)
-            {
-                UseShellExecute = true
-            });
-        }
-        catch (Exception ex)
-        {
-            DiagnosticLog.Write(
-                "auth_verification_open",
-                ex.GetType().Name + ": " + ex.Message);
             AppDialog.Info(
                 this,
-                "Дополнительная проверка Mail.ru",
-                "Не удалось открыть страницу проверки Mail.ru.");
-            return null;
+                "Проверка Mail.ru не завершена",
+                "Mail.ru снова запросил дополнительную проверку. " +
+                "Это означает, что одной браузерной сессии недостаточно либо проверка не была подтверждена сервером. " +
+                "Диагностика обновлена; автоматический цикл повторных CAPTCHA не запускается.");
         }
 
-        if (!AppDialog.Confirm(
-                this,
-                "Повторить вход",
-                "Завершите проверку на странице Mail.ru, затем нажмите «Повторить вход». " +
-                "Если проверка ещё не завершена, выберите «Позже».",
-                "Повторить вход",
-                "Позже"))
-        {
-            return null;
-        }
-
-        var retry = await _mailRu.AuthenticateAsync(login, password);
-        WriteAuthDiagnostics(retry);
         return retry;
     }
 

@@ -33,6 +33,7 @@ public partial class MainWindow : Window
     private bool _readerReady;
     private long _messageLoadGeneration;
     private MailRuFullMessage? _currentFullMessage;
+    private string? _currentPreparedHtml;
     private bool _serverSearchMode;
     private readonly List<AccountRailItem> _accountRailItems = [];
     private bool _updatingAccountRail;
@@ -503,6 +504,7 @@ public partial class MainWindow : Window
         _refreshToken = null;
         _activeLogin = null;
         _currentFullMessage = null;
+        _currentPreparedHtml = null;
     }
 
     private void ShowAuthFailure(MailRuAuthResult result)
@@ -706,6 +708,7 @@ public partial class MainWindow : Window
         DownloadAttachmentButton.Visibility = Visibility.Collapsed;
         DownloadAllAttachmentsButton.Visibility = Visibility.Collapsed;
         _currentFullMessage = null;
+        _currentPreparedHtml = null;
         ShowReaderText(string.IsNullOrWhiteSpace(message.Snippet)
             ? "Загрузка полного письма..."
             : message.Snippet);
@@ -739,6 +742,7 @@ public partial class MainWindow : Window
 
         var generation = ++_messageLoadGeneration;
         _currentFullMessage = null;
+        _currentPreparedHtml = null;
         IncomingAttachmentsListBox.ItemsSource = null;
 
         try
@@ -769,11 +773,18 @@ public partial class MainWindow : Window
                 ReplaceMessage(message, message with { Unread = false });
 
             if (!string.IsNullOrWhiteSpace(full.Html))
-                ShowReaderHtml(full.Html);
+            {
+                _currentPreparedHtml = await PrepareMailHtmlAsync(full.Html);
+                ShowReaderHtml(_currentPreparedHtml);
+            }
             else if (!string.IsNullOrWhiteSpace(full.Text))
+            {
                 ShowReaderText(full.Text);
+            }
             else
+            {
                 ShowReaderText(message.Snippet);
+            }
         }
         catch (Exception ex)
         {
@@ -1896,7 +1907,9 @@ public partial class MainWindow : Window
 
         if (_currentFullMessage is not null)
         {
-            if (!string.IsNullOrWhiteSpace(_currentFullMessage.Html))
+            if (!string.IsNullOrWhiteSpace(_currentPreparedHtml))
+                ShowReaderHtml(_currentPreparedHtml);
+            else if (!string.IsNullOrWhiteSpace(_currentFullMessage.Html))
                 ShowReaderHtml(_currentFullMessage.Html);
             else
                 ShowReaderText(_currentFullMessage.Text);
@@ -1923,7 +1936,9 @@ public partial class MainWindow : Window
 
         if (_currentFullMessage is not null)
         {
-            if (!string.IsNullOrWhiteSpace(_currentFullMessage.Html))
+            if (!string.IsNullOrWhiteSpace(_currentPreparedHtml))
+                ShowReaderHtml(_currentPreparedHtml);
+            else if (!string.IsNullOrWhiteSpace(_currentFullMessage.Html))
                 ShowReaderHtml(_currentFullMessage.Html);
             else
                 ShowReaderText(_currentFullMessage.Text);

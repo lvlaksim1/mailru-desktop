@@ -150,10 +150,32 @@ public sealed partial class MailRuClient : IDisposable
         }
     }
 
-    public async Task<MailRuAuthResult> AuthenticateAsync(
+    public Task<MailRuAuthResult> AuthenticateAsync(
         string login,
         string password,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default) =>
+        AuthenticateCoreAsync(
+            login,
+            password,
+            sessionCookieHeader: null,
+            cancellationToken);
+
+    public Task<MailRuAuthResult> AuthenticateWithSessionCookiesAsync(
+        string login,
+        string password,
+        string? sessionCookieHeader,
+        CancellationToken cancellationToken = default) =>
+        AuthenticateCoreAsync(
+            login,
+            password,
+            sessionCookieHeader,
+            cancellationToken);
+
+    private async Task<MailRuAuthResult> AuthenticateCoreAsync(
+        string login,
+        string password,
+        string? sessionCookieHeader,
+        CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(login))
             throw new ArgumentException("Login is required.", nameof(login));
@@ -167,6 +189,13 @@ public sealed partial class MailRuClient : IDisposable
         });
 
         using var request = CreateRequest(HttpMethod.Post, uri);
+        if (!string.IsNullOrWhiteSpace(sessionCookieHeader))
+        {
+            request.Headers.TryAddWithoutValidation(
+                "Cookie",
+                sessionCookieHeader);
+        }
+
         request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
         {
             ["Password"] = password,
@@ -223,7 +252,10 @@ public sealed partial class MailRuClient : IDisposable
 
             if (!string.IsNullOrWhiteSpace(continueValue))
             {
-                if (state == MailRuAuthState.Unknown)
+                var continueState = ClassifyContinueValue(continueValue);
+                if (continueState != MailRuAuthState.Unknown)
+                    state = continueState;
+                else if (state == MailRuAuthState.Unknown)
                     state = MailRuAuthState.RecoveryRequired;
 
                 challenge = BuildContinueChallenge(
@@ -673,6 +705,28 @@ public sealed partial class MailRuClient : IDisposable
 
     private static bool IsAllowedRuntimeHost(string host) =>
         MailRuEndpointCatalog.IsRuntimeHostAllowed(host);
+
+    private static MailRuAuthState ClassifyContinueValue(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return MailRuAuthState.Unknown;
+
+        if (value.Contains("recaptcha", StringComparison.OrdinalIgnoreCase))
+            return MailRuAuthState.ReCaptcha;
+
+        if (value.Contains("captcha", StringComparison.OrdinalIgnoreCase))
+            return MailRuAuthState.Captcha;
+
+        if (value.Contains("2fa", StringComparison.OrdinalIgnoreCase) ||
+            value.Contains("twofactor", StringComparison.OrdinalIgnoreCase) ||
+            value.Contains("two_factor", StringComparison.OrdinalIgnoreCase) ||
+            value.Contains("otp", StringComparison.OrdinalIgnoreCase))
+        {
+            return MailRuAuthState.TwoFactor;
+        }
+
+        return MailRuAuthState.Unknown;
+    }
 
     private static MailRuAuthState ClassifyAuthStatusValue(string? status)
     {
