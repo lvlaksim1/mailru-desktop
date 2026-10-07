@@ -49,17 +49,17 @@ public partial class MainWindow
 
     private async Task RemoveSavedAccountAsync(string login)
     {
-        var answer = MessageBox.Show(
-            this,
-            $"Удалить аккаунт «{login}» из MailRu Desktop?\n\n" +
-            "Сохранённая локальная авторизация этого аккаунта будет удалена. " +
-            "Сам почтовый ящик Mail.ru не удаляется.",
-            "MailRu Desktop",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Question);
-
-        if (answer != MessageBoxResult.Yes)
+        if (!AppDialog.Confirm(
+                this,
+                "Удаление аккаунта",
+                $"Удалить аккаунт «{login}» из MailRu Desktop?\n\n" +
+                "Сохранённая локальная авторизация этого аккаунта будет удалена. " +
+                "Сам почтовый ящик Mail.ru не удаляется.",
+                "Удалить",
+                "Отмена"))
+        {
             return;
+        }
 
         var wasActive = string.Equals(
             login,
