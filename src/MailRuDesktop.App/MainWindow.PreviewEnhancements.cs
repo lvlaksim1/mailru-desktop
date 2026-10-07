@@ -1,0 +1,383 @@
+using System.IO;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using MailRuDesktop.Protocol;
+using Microsoft.Web.WebView2.Core;
+using Microsoft.Win32;
+
+namespace MailRuDesktop.App;
+
+public partial class MainWindow
+{
+    private readonly List<string> _previewAttachmentPaths = [];
+    private PreviewComposeMode _previewComposeMode;
+    private string? _previewAutoReadMessageId;
+    private bool _previewEnhancementsInitialized;
+
+    private void PreviewEnhancements_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (_previewEnhancementsInitialized)
+            return;
+
+        _previewEnhancementsInitialized = true;
+        MessagesGrid.SelectionChanged += PreviewMessagesGrid_SelectionChanged;
+        MessageWebView.NavigationCompleted += PreviewMessageWebView_NavigationCompleted;
+    }
+
+    private void PreviewMessagesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        PreviewComposePanel.Visibility = Visibility.Collapsed;
+        PreviewComposeStatusText.Text = string.Empty;
+
+        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message)
+        {
+            SelectedSenderNameText.Text = string.Empty;
+            SelectedToText.Text = string.Empty;
+            return;
+        }
+
+        SelectedSenderNameText.Text = message.SenderName;
+        SelectedSenderText.Text = string.IsNullOrWhiteSpace(message.SenderEmail)
+            ? message.SenderDisplay
+            : message.SenderEmail;
+        SelectedToText.Text = string.Empty;
+
+        if (message.Unread)
+            _previewAutoReadMessageId = message.Id;
+        else if (!string.Equals(_previewAutoReadMessageId, message.Id, StringComparison.Ordinal))
+            _previewAutoReadMessageId = null;
+    }
+
+    private void PreviewMessageWebView_NavigationCompleted(
+        object? sender,
+        CoreWebView2NavigationCompletedEventArgs e)
+    {
+        if (_currentFullMessage is not null &&
+            MessagesGrid.SelectedItem is MailRuMessageSummary selected &&
+            string.Equals(_currentFullMessage.Id, selected.Id, StringComparison.Ordinal))
+        {
+            SelectedSenderNameText.Text = _currentFullMessage.FromName;
+            SelectedSenderText.Text = string.IsNullOrWhiteSpace(_currentFullMessage.FromEmail)
+                ? selected.SenderEmail
+                : _currentFullMessage.FromEmail;
+            SelectedToText.Text = string.Join(", ", _currentFullMessage.To);
+
+            if (string.Equals(_previewAutoReadMessageId, selected.Id, StringComparison.Ordinal) &&
+                !selected.Unread)
+            {
+                AdjustActiveInboxUnread(-1);
+                _previewAutoReadMessageId = null;
+            }
+        }
+    }
+
+    private void PreviewAddress_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not TextBox textBox || string.IsNullOrWhiteSpace(textBox.Text))
+            return;
+
+        textBox.SelectAll();
+        try
+        {
+            Clipboard.SetText(textBox.Text.Trim());
+            FolderStatusText.Text = "Адрес скопирован в буфер обмена.";
+        }
+        catch
+        {
+            FolderStatusText.Text = "Не удалось скопировать адрес.";
+        }
+
+        e.Handled = true;
+    }
+
+    private async void MessageUnreadWithCounterButton_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as Button)?.Tag is not MailRuMessageSummary message ||
+            string.IsNullOrWhiteSpace(_accessToken))
+            return;
+
+        var makeUnread = !message.Unread;
+        try
+        {
+            var result = await _mailRu.SetUnreadAsync(
+                _accessToken,
+                _activeLogin ?? string.Empty,
+                message.Id,
+                makeUnread);
+
+            ResponseTextBox.Text = result.RawResponse;
+            if (!result.Success)
+            {
+                FolderStatusText.Text = "Mail.ru отклонил изменение статуса.";
+                return;
+            }
+
+            ReplaceMessage(message, message with { Unread = makeUnread });
+            if (_currentFolderId == 0)
+                AdjustActiveInboxUnread(makeUnread ? 1 : -1);
+        }
+        catch (Exception ex)
+        {
+            FolderStatusText.Text = "Ошибка изменения статуса.";
+            DiagnosticLog.Write("message_marks", ex.GetType().Name + ": " + ex.Message);
+        }
+
+        e.Handled = true;
+    }
+
+    private async void MessageArchiveWithCounterButton_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as Button)?.Tag is not MailRuMessageSummary message)
+            return;
+
+        await ArchiveMessageFromPreviewAsync(message);
+        e.Handled = true;
+    }
+
+    private async void PreviewArchiveButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (MessagesGrid.SelectedItem is MailRuMessageSummary message)
+            await ArchiveMessageFromPreviewAsync(message);
+    }
+
+    private async Task ArchiveMessageFromPreviewAsync(MailRuMessageSummary message)
+    {
+        if (string.IsNullOrWhiteSpace(_accessToken))
+            return;
+
+        var folders = (FolderListBox.ItemsSource as IEnumerable<MailRuFolderSummary>)?.ToArray()
+            ?? Array.Empty<MailRuFolderSummary>();
+        var archive = folders.FirstOrDefault(folder =>
+            folder.Type.Equals("archive", StringComparison.OrdinalIgnoreCase) ||
+            folder.Name.Equals("Архив", StringComparison.CurrentCultureIgnoreCase) ||
+            folder.Id == 500010);
+
+        try
+        {
+            var result = await _mailRu.MoveMessagesAsync(
+                _accessToken,
+                new[] { message.Id },
+                archive?.Id ?? 500010);
+
+            ResponseTextBox.Text = result.RawResponse;
+            if (!result.Success)
+            {
+                FolderStatusText.Text = "Mail.ru отклонил перенос в архив.";
+                return;
+            }
+
+            if (_currentFolderId == 0 && message.Unread)
+                AdjustActiveInboxUnread(-1);
+
+            _currentMessages.RemoveAll(item => item.Id == message.Id);
+            ApplyFilters();
+            ClearSelectedMessage();
+            FolderStatusText.Text = "Письмо перемещено в архив.";
+        }
+        catch (Exception ex)
+        {
+            FolderStatusText.Text = "Ошибка перемещения в архив.";
+            DiagnosticLog.Write("message_archive", ex.GetType().Name + ": " + ex.Message);
+        }
+    }
+
+    private void AdjustActiveInboxUnread(long delta)
+    {
+        if (_currentFolderId != 0)
+            return;
+
+        var item = _accountRailItems.FirstOrDefault(account =>
+            string.Equals(account.Login, _activeLogin, StringComparison.OrdinalIgnoreCase));
+        if (item is null)
+            return;
+
+        var next = Math.Max(0, (item.Unread ?? 0) + delta);
+        item.Unread = next;
+        item.Status = $"Непрочитанных во Входящих: {next}";
+    }
+
+    private void UnifiedSearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (!IsLoaded)
+            return;
+
+        ApplyFilters();
+    }
+
+    private void PreviewReplyButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message)
+            return;
+
+        _previewComposeMode = PreviewComposeMode.Reply;
+        PreviewComposePanel.Visibility = Visibility.Visible;
+        PreviewComposeToTextBox.Text = !string.IsNullOrWhiteSpace(_currentFullMessage?.FromEmail)
+            ? _currentFullMessage.FromEmail
+            : message.SenderEmail;
+        PreviewComposeSubjectTextBox.Text = PrefixPreviewSubject(
+            "Re:",
+            _currentFullMessage?.Subject ?? message.Subject);
+        PreviewComposeBodyTextBox.Clear();
+        _previewAttachmentPaths.Clear();
+        RefreshPreviewAttachments();
+        PreviewComposeStatusText.Text = string.Empty;
+        PreviewComposeBodyTextBox.Focus();
+    }
+
+    private void PreviewForwardButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message)
+            return;
+
+        _previewComposeMode = PreviewComposeMode.Forward;
+        PreviewComposePanel.Visibility = Visibility.Visible;
+        PreviewComposeToTextBox.Clear();
+        PreviewComposeSubjectTextBox.Text = PrefixPreviewSubject(
+            "Fwd:",
+            _currentFullMessage?.Subject ?? message.Subject);
+
+        var full = _currentFullMessage;
+        PreviewComposeBodyTextBox.Text = full is null
+            ? string.Empty
+            : "\n\n---------- Пересланное сообщение ----------\n" +
+              $"От: {full.SenderDisplay}\n" +
+              $"Кому: {string.Join(", ", full.To)}\n" +
+              $"Дата: {full.DateDisplay}\n" +
+              $"Тема: {full.Subject}\n\n" +
+              full.Text;
+
+        _previewAttachmentPaths.Clear();
+        RefreshPreviewAttachments();
+        PreviewComposeStatusText.Text = string.Empty;
+        PreviewComposeToTextBox.Focus();
+    }
+
+    private sealed record PreviewAttachmentItem(string Path, string Name);
+
+    private void PreviewComposeAttachButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog
+        {
+            Multiselect = true,
+            CheckFileExists = true,
+            Title = "Выберите вложения"
+        };
+
+        if (dialog.ShowDialog(this) != true)
+            return;
+
+        foreach (var path in dialog.FileNames)
+        {
+            if (!_previewAttachmentPaths.Contains(path, StringComparer.OrdinalIgnoreCase))
+                _previewAttachmentPaths.Add(path);
+        }
+
+        RefreshPreviewAttachments();
+    }
+
+    private void PreviewRemoveAttachmentButton_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as Button)?.Tag is not string path)
+            return;
+
+        _previewAttachmentPaths.RemoveAll(item =>
+            string.Equals(item, path, StringComparison.OrdinalIgnoreCase));
+        RefreshPreviewAttachments();
+    }
+
+    private void RefreshPreviewAttachments()
+    {
+        PreviewComposeAttachmentsItemsControl.ItemsSource = _previewAttachmentPaths
+            .Select(path => new PreviewAttachmentItem(path, Path.GetFileName(path)))
+            .ToArray();
+    }
+
+    private async void PreviewSendComposeButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message)
+            return;
+
+        if (string.IsNullOrWhiteSpace(PreviewComposeToTextBox.Text))
+        {
+            PreviewComposeStatusText.Text = "Укажите получателя.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(_accessToken))
+        {
+            PreviewComposeStatusText.Text = "Нет access_token. Выполните авторизацию заново.";
+            return;
+        }
+
+        PreviewSendComposeButton.IsEnabled = false;
+        try
+        {
+            var messageId = MailRuClient.KnownWorkingMessageId;
+            var attachmentIds = new List<string>();
+
+            for (var i = 0; i < _previewAttachmentPaths.Count; i++)
+            {
+                var path = _previewAttachmentPaths[i];
+                PreviewComposeStatusText.Text =
+                    $"Загрузка вложения {i + 1}/{_previewAttachmentPaths.Count}...";
+
+                await using var stream = File.OpenRead(path);
+                attachmentIds.Add(await _mailRu.UploadAttachmentAsync(
+                    _accessToken,
+                    stream,
+                    Path.GetFileName(path),
+                    messageId));
+            }
+
+            PreviewComposeStatusText.Text = "Отправка...";
+            var result = await _mailRu.SendMessageAsync(
+                _accessToken,
+                new MailRuOutgoingMessage(
+                    To: PreviewComposeToTextBox.Text.Trim(),
+                    Subject: PreviewComposeSubjectTextBox.Text,
+                    Text: PreviewComposeBodyTextBox.Text,
+                    ReplyToId: _previewComposeMode == PreviewComposeMode.Reply ? message.Id : null,
+                    AttachmentIds: attachmentIds,
+                    MessageId: messageId));
+
+            ResponseTextBox.Text = result.RawResponse;
+            if (!result.Success)
+            {
+                PreviewComposeStatusText.Text = "Mail.ru отклонил отправку.";
+                return;
+            }
+
+            PreviewComposeStatusText.Text = "Отправлено.";
+            PreviewComposeBodyTextBox.Clear();
+            _previewAttachmentPaths.Clear();
+            RefreshPreviewAttachments();
+        }
+        catch (Exception ex)
+        {
+            PreviewComposeStatusText.Text = ex.Message;
+            DiagnosticLog.Write("preview_send", ex.GetType().Name + ": " + ex.Message);
+        }
+        finally
+        {
+            PreviewSendComposeButton.IsEnabled = true;
+        }
+    }
+
+    private void PreviewCancelComposeButton_Click(object sender, RoutedEventArgs e)
+    {
+        PreviewComposePanel.Visibility = Visibility.Collapsed;
+        PreviewComposeStatusText.Text = string.Empty;
+    }
+
+    private static string PrefixPreviewSubject(string prefix, string subject) =>
+        subject.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
+            ? subject
+            : prefix + " " + subject;
+
+    private enum PreviewComposeMode
+    {
+        Reply,
+        Forward
+    }
+}
