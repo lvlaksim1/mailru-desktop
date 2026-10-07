@@ -1,0 +1,744 @@
+using System.Collections;
+using System.ComponentModel;
+using System.Globalization;
+using System.Reflection;
+using System.Text.Json;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Markup;
+using System.Windows.Threading;
+using MailRuDesktop.Protocol;
+
+namespace MailRuDesktop.App;
+
+public partial class MainWindow
+{
+    private bool _modernMailListConfigured;
+    private DependencyPropertyDescriptor? _modernMailItemsSourceDescriptor;
+    private Button? _markSelectedUnreadButton;
+
+    private static readonly PropertyInfo? UnreadProperty =
+        typeof(MailRuMessageSummary).GetProperty(nameof(MailRuMessageSummary.Unread));
+
+    protected override void OnActivated(EventArgs e)
+    {
+        base.OnActivated(e);
+
+        Dispatcher.BeginInvoke(
+            DispatcherPriority.ApplicationIdle,
+            new Action(ConfigureModernMailList));
+    }
+
+    private void ConfigureModernMailList()
+    {
+        var dictionary = (ResourceDictionary)XamlReader.Parse(ModernMailListTemplateXaml);
+        MessagesGrid.ItemTemplate = (DataTemplate)dictionary["ModernMailRowTemplate"];
+        MessagesGrid.ItemContainerStyle = (Style)dictionary["ModernMailRowItemStyle"];
+
+        MessagesGrid.GroupStyle.Clear();
+        MessagesGrid.GroupStyle.Add(new GroupStyle
+        {
+            HeaderTemplate = (DataTemplate)dictionary["ModernDateHeaderTemplate"],
+            HidesIfEmpty = true
+        });
+
+        if (!_modernMailListConfigured)
+        {
+            _modernMailListConfigured = true;
+
+            _modernMailItemsSourceDescriptor = DependencyPropertyDescriptor.FromProperty(
+                ItemsControl.ItemsSourceProperty,
+                typeof(ItemsControl));
+            _modernMailItemsSourceDescriptor?.AddValueChanged(
+                MessagesGrid,
+                ModernMailItemsSourceChanged);
+
+            MessagesGrid.AddHandler(
+                Button.ClickEvent,
+                new RoutedEventHandler(ModernMailListButton_Click),
+                handledEventsToo: true);
+            MessagesGrid.SelectionChanged += ModernMailListSelectionChanged;
+            Closed += ModernMailListClosed;
+
+            AddMarkSelectedUnreadButton();
+        }
+
+        ScheduleModernMailListRefresh();
+        UpdateMarkSelectedUnreadButton();
+    }
+
+    private void ModernMailListClosed(object? sender, EventArgs e)
+    {
+        _modernMailItemsSourceDescriptor?.RemoveValueChanged(
+            MessagesGrid,
+            ModernMailItemsSourceChanged);
+        MessagesGrid.SelectionChanged -= ModernMailListSelectionChanged;
+        Closed -= ModernMailListClosed;
+    }
+
+    private void ModernMailItemsSourceChanged(object? sender, EventArgs e) =>
+        ScheduleModernMailListRefresh();
+
+    private void ScheduleModernMailListRefresh() =>
+        Dispatcher.BeginInvoke(
+            DispatcherPriority.ApplicationIdle,
+            new Action(RefreshModernMailListView));
+
+    private void RefreshModernMailListView()
+    {
+        RefreshThreadCountIndex();
+
+        if (MessagesGrid.ItemsSource is null)
+            return;
+
+        var view = CollectionViewSource.GetDefaultView(MessagesGrid.ItemsSource);
+        if (view is null)
+            return;
+
+        using (view.DeferRefresh())
+        {
+            if (view.CanGroup)
+            {
+                view.GroupDescriptions.Clear();
+                view.GroupDescriptions.Add(new PropertyGroupDescription(
+                    nameof(MailRuMessageSummary.DateUnix),
+                    new MailDateGroupConverter()));
+            }
+
+            if (view is ListCollectionView listView)
+            {
+                listView.SortDescriptions.Clear();
+                listView.CustomSort = new MailDateThenPinnedComparer();
+            }
+            else if (view.CanSort)
+            {
+                view.SortDescriptions.Clear();
+                view.SortDescriptions.Add(new SortDescription(
+                    nameof(MailRuMessageSummary.DateUnix),
+                    ListSortDirection.Descending));
+            }
+        }
+
+        view.Refresh();
+    }
+
+    private void RefreshThreadCountIndex()
+    {
+        var raw = ResponseTextBox.Text;
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            MailThreadCountRegistry.Replace(new Dictionary<string, int>(StringComparer.Ordinal));
+            return;
+        }
+
+        try
+        {
+            MailThreadCountRegistry.Replace(BuildThreadCountIndex(raw));
+        }
+        catch (JsonException ex)
+        {
+            MailThreadCountRegistry.Replace(new Dictionary<string, int>(StringComparer.Ordinal));
+            DiagnosticLog.Write("thread_count_index", ex.Message);
+        }
+    }
+
+    private static Dictionary<string, int> BuildThreadCountIndex(string payload)
+    {
+        using var document = JsonDocument.Parse(payload);
+        var result = new Dictionary<string, int>(StringComparer.Ordinal);
+        IndexThreadArrays(document.RootElement, result);
+        return result;
+    }
+
+    private static void IndexThreadArrays(
+        JsonElement element,
+        Dictionary<string, int> result)
+    {
+        if (element.ValueKind == JsonValueKind.Object)
+        {
+            if (element.TryGetProperty("threads", out var threads) &&
+                threads.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var thread in threads.EnumerateArray())
+                    IndexThread(thread, result);
+            }
+
+            foreach (var property in element.EnumerateObject())
+            {
+                if (!property.NameEquals("threads"))
+                    IndexThreadArrays(property.Value, result);
+            }
+
+            return;
+        }
+
+        if (element.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in element.EnumerateArray())
+                IndexThreadArrays(item, result);
+        }
+    }
+
+    private static void IndexThread(
+        JsonElement thread,
+        Dictionary<string, int> result)
+    {
+        if (thread.ValueKind != JsonValueKind.Object)
+            return;
+
+        var count =
+            ReadPositiveThreadCount(thread, "messages_count") ??
+            ReadPositiveThreadCount(thread, "message_count") ??
+            ReadPositiveThreadCount(thread, "messages_total") ??
+            ReadPositiveThreadCount(thread, "count") ??
+            0;
+
+        var ids = new HashSet<string>(StringComparer.Ordinal);
+        AddThreadId(thread, "id", ids);
+        AddThreadId(thread, "message_id_last", ids);
+
+        if (thread.TryGetProperty("base_message", out var baseMessage) &&
+            baseMessage.ValueKind == JsonValueKind.Object)
+        {
+            AddThreadId(baseMessage, "id", ids);
+            AddThreadId(baseMessage, "message_id_last", ids);
+            count = Math.Max(
+                count,
+                ReadPositiveThreadCount(baseMessage, "messages_count") ??
+                ReadPositiveThreadCount(baseMessage, "message_count") ??
+                0);
+        }
+
+        if (thread.TryGetProperty("messages", out var messages) &&
+            messages.ValueKind == JsonValueKind.Array)
+        {
+            count = Math.Max(count, messages.GetArrayLength());
+            foreach (var message in messages.EnumerateArray())
+            {
+                if (message.ValueKind != JsonValueKind.Object)
+                    continue;
+
+                AddThreadId(message, "id", ids);
+                AddThreadId(message, "message_id_last", ids);
+            }
+        }
+
+        if (thread.TryGetProperty("representations", out var representations) &&
+            representations.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var representation in representations.EnumerateArray())
+            {
+                if (representation.ValueKind != JsonValueKind.Object)
+                    continue;
+
+                AddThreadId(representation, "id", ids);
+                AddThreadId(representation, "message_id_last", ids);
+                count = Math.Max(
+                    count,
+                    ReadPositiveThreadCount(representation, "messages_count") ??
+                    ReadPositiveThreadCount(representation, "message_count") ??
+                    0);
+            }
+        }
+
+        count = Math.Max(count, 1);
+        foreach (var id in ids)
+        {
+            if (!result.TryGetValue(id, out var existing) || count > existing)
+                result[id] = count;
+        }
+    }
+
+    private static int? ReadPositiveThreadCount(JsonElement element, string name)
+    {
+        if (!element.TryGetProperty(name, out var value))
+            return null;
+
+        if (value.ValueKind == JsonValueKind.Number &&
+            value.TryGetInt32(out var number) &&
+            number > 0)
+        {
+            return number;
+        }
+
+        if (value.ValueKind == JsonValueKind.String &&
+            int.TryParse(value.GetString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out number) &&
+            number > 0)
+        {
+            return number;
+        }
+
+        return null;
+    }
+
+    private static void AddThreadId(
+        JsonElement element,
+        string propertyName,
+        HashSet<string> ids)
+    {
+        if (!element.TryGetProperty(propertyName, out var value))
+            return;
+
+        var id = value.ValueKind switch
+        {
+            JsonValueKind.String => value.GetString(),
+            JsonValueKind.Number => value.GetRawText(),
+            _ => null
+        };
+
+        if (!string.IsNullOrWhiteSpace(id))
+            ids.Add(id);
+    }
+
+    private async void ModernMailListButton_Click(object sender, RoutedEventArgs e)
+    {
+        var button = FindAncestorButton(e.OriginalSource as DependencyObject);
+        if (!string.Equals(button?.Name, "ModernUnreadActionButton", StringComparison.Ordinal) ||
+            button.DataContext is not MailRuMessageSummary message)
+        {
+            return;
+        }
+
+        await SetUnreadPreservingSelectionAsync(message, !message.Unread);
+        e.Handled = true;
+    }
+
+    private void ModernMailListSelectionChanged(object sender, SelectionChangedEventArgs e) =>
+        UpdateMarkSelectedUnreadButton();
+
+    private void AddMarkSelectedUnreadButton()
+    {
+        if (_markSelectedUnreadButton is not null ||
+            PreviewReplyButton.Parent is not Panel panel)
+        {
+            return;
+        }
+
+        _markSelectedUnreadButton = new Button
+        {
+            Content = "Не прочитано",
+            Padding = new Thickness(10, 6, 10, 6),
+            Margin = new Thickness(0, 0, 6, 4),
+            ToolTip = "Пометить выделенное письмо непрочитанным"
+        };
+        _markSelectedUnreadButton.Click += MarkSelectedUnreadButton_Click;
+
+        var forwardIndex = panel.Children.IndexOf(PreviewForwardButton);
+        panel.Children.Insert(
+            forwardIndex >= 0 ? forwardIndex + 1 : panel.Children.Count,
+            _markSelectedUnreadButton);
+    }
+
+    private async void MarkSelectedUnreadButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message ||
+            message.Unread)
+        {
+            return;
+        }
+
+        await SetUnreadPreservingSelectionAsync(message, true);
+    }
+
+    private void UpdateMarkSelectedUnreadButton()
+    {
+        if (_markSelectedUnreadButton is null)
+            return;
+
+        _markSelectedUnreadButton.IsEnabled =
+            MessagesGrid.SelectedItem is MailRuMessageSummary { Unread: false };
+    }
+
+    private async Task SetUnreadPreservingSelectionAsync(
+        MailRuMessageSummary message,
+        bool makeUnread)
+    {
+        if (string.IsNullOrWhiteSpace(_accessToken) || message.Unread == makeUnread)
+            return;
+
+        var previousUnread = message.Unread;
+
+        try
+        {
+            var result = await _mailRu.SetUnreadAsync(
+                _accessToken,
+                _activeLogin ?? string.Empty,
+                message.Id,
+                makeUnread);
+
+            ResponseTextBox.Text = result.RawResponse;
+            if (!result.Success)
+            {
+                FolderStatusText.Text = "Mail.ru отклонил изменение статуса.";
+                return;
+            }
+
+            var mutatedInPlace = false;
+            try
+            {
+                UnreadProperty?.SetValue(message, makeUnread);
+                mutatedInPlace = message.Unread == makeUnread;
+            }
+            catch (Exception ex)
+            {
+                DiagnosticLog.Write(
+                    "message_unread_local_state",
+                    ex.GetType().Name + ": " + ex.Message);
+            }
+
+            if (mutatedInPlace)
+            {
+                if (string.Equals(
+                        (MessagesGrid.SelectedItem as MailRuMessageSummary)?.Id,
+                        message.Id,
+                        StringComparison.Ordinal))
+                {
+                    _previewAutoReadMessageId = null;
+                    DisplaySummary(message);
+                }
+
+                CollectionViewSource.GetDefaultView(MessagesGrid.ItemsSource)?.Refresh();
+            }
+            else
+            {
+                var wasSelected = string.Equals(
+                    (MessagesGrid.SelectedItem as MailRuMessageSummary)?.Id,
+                    message.Id,
+                    StringComparison.Ordinal);
+
+                if (wasSelected)
+                    MessagesGrid.SelectedItem = null;
+
+                ReplaceMessage(message, message with { Unread = makeUnread });
+            }
+
+            if (_currentFolderId == 0 && previousUnread != makeUnread)
+                AdjustActiveInboxUnread(makeUnread ? 1 : -1);
+
+            FolderStatusText.Text = makeUnread
+                ? "Письмо помечено непрочитанным."
+                : "Письмо помечено прочитанным.";
+
+            UpdateMarkSelectedUnreadButton();
+        }
+        catch (Exception ex)
+        {
+            FolderStatusText.Text = "Ошибка изменения статуса.";
+            DiagnosticLog.Write("message_marks", ex.GetType().Name + ": " + ex.Message);
+        }
+    }
+
+    private const string ModernMailListTemplateXaml = """
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:MailRuDesktop.App;assembly=MailRuDesktop.App">
+    <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+    <local:MailTimeConverter x:Key="MailTimeConverter"/>
+    <local:FirstLineConverter x:Key="FirstLineConverter"/>
+    <local:ThreadCountConverter x:Key="ThreadCountConverter"/>
+    <local:ThreadCountVisibilityConverter x:Key="ThreadCountVisibilityConverter"/>
+
+    <Style x:Key="ModernMailRowItemStyle" TargetType="{x:Type ListBoxItem}">
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Margin" Value="0"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                    <Border x:Name="Row"
+                            Padding="2,0"
+                            Background="Transparent"
+                            BorderBrush="{DynamicResource AppBorderBrush}"
+                            BorderThickness="0,0,0,1"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="Stretch"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Row"
+                                    Property="Background"
+                                    Value="{DynamicResource AppControlHoverBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Row"
+                                    Property="Background"
+                                    Value="{DynamicResource AppSelectionBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <DataTemplate x:Key="ModernDateHeaderTemplate">
+        <Border Padding="4,10,4,5"
+                Background="{DynamicResource AppWindowBrush}">
+            <TextBlock Text="{Binding Name}"
+                       FontSize="12"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource AppMutedTextBrush}"/>
+        </Border>
+    </DataTemplate>
+
+    <DataTemplate x:Key="ModernMailRowTemplate">
+        <Grid Height="42">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="26"/>
+                <ColumnDefinition Width="1.15*"/>
+                <ColumnDefinition Width="28"/>
+                <ColumnDefinition Width="32"/>
+                <ColumnDefinition Width="2.15*"/>
+                <ColumnDefinition Width="28"/>
+                <ColumnDefinition Width="58"/>
+            </Grid.ColumnDefinitions>
+
+            <Button x:Name="ModernUnreadActionButton"
+                    Grid.Column="0"
+                    Width="24"
+                    Height="40"
+                    Padding="0"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    ToolTip="Прочитано / непрочитано">
+                <Ellipse Width="8"
+                         Height="8"
+                         StrokeThickness="1.4">
+                    <Ellipse.Style>
+                        <Style TargetType="Ellipse">
+                            <Setter Property="Stroke"
+                                    Value="{DynamicResource AppMutedTextBrush}"/>
+                            <Setter Property="Fill"
+                                    Value="Transparent"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Unread}" Value="True">
+                                    <Setter Property="Stroke"
+                                            Value="{DynamicResource AppAccentBrush}"/>
+                                    <Setter Property="Fill"
+                                            Value="{DynamicResource AppAccentBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Ellipse.Style>
+                </Ellipse>
+            </Button>
+
+            <TextBlock Grid.Column="1"
+                       Margin="5,0,8,0"
+                       VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis"
+                       Text="{Binding SenderDisplay}"/>
+
+            <Button x:Name="FlagActionButton"
+                    Grid.Column="2"
+                    Width="26"
+                    Height="40"
+                    Padding="0"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    ToolTip="Флажок">
+                <TextBlock FontSize="16">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Text" Value="☆"/>
+                            <Setter Property="Foreground"
+                                    Value="{DynamicResource AppMutedTextBrush}"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Flagged}" Value="True">
+                                    <Setter Property="Text" Value="★"/>
+                                    <Setter Property="Foreground" Value="#FFD54A"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Button>
+
+            <Border Grid.Column="3"
+                    MinWidth="22"
+                    Height="22"
+                    Margin="4,0"
+                    Padding="4,0"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    CornerRadius="11"
+                    Background="{DynamicResource AppControlBrush}"
+                    Visibility="{Binding Id, Converter={StaticResource ThreadCountVisibilityConverter}}">
+                <TextBlock HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           FontSize="10"
+                           Text="{Binding Id, Converter={StaticResource ThreadCountConverter}}"/>
+            </Border>
+
+            <TextBlock Grid.Column="4"
+                       Margin="7,0,8,0"
+                       VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="FontWeight" Value="Normal"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Unread}" Value="True">
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+                <Run Text="{Binding Subject}"/>
+                <Run Text="  "/>
+                <Run Foreground="{DynamicResource AppMutedTextBrush}"
+                     Text="{Binding Snippet, Converter={StaticResource FirstLineConverter}}"/>
+            </TextBlock>
+
+            <Path Grid.Column="5"
+                  Width="14"
+                  Height="14"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Center"
+                  Visibility="{Binding HasAttachment, Converter={StaticResource BoolToVisibility}}"
+                  Stretch="Uniform"
+                  Stroke="{DynamicResource AppMutedTextBrush}"
+                  StrokeThickness="1.5"
+                  StrokeStartLineCap="Round"
+                  StrokeEndLineCap="Round"
+                  Data="M21.44,11.05 L12.25,20.24 C9.91,22.58 6.11,22.58 3.76,20.24 C1.42,17.90 1.42,14.10 3.76,11.75 L12.95,2.56 C14.51,1 17.05,1 18.61,2.56 C20.17,4.12 20.17,6.66 18.61,8.22 L9.41,17.41 C8.63,18.19 7.37,18.19 6.59,17.41 C5.81,16.63 5.81,15.37 6.59,14.59 L15.08,6.10"/>
+
+            <TextBlock Grid.Column="6"
+                       Margin="5,0,3,0"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Right"
+                       Foreground="{DynamicResource AppMutedTextBrush}"
+                       Text="{Binding DateUnix, Converter={StaticResource MailTimeConverter}}"/>
+        </Grid>
+    </DataTemplate>
+</ResourceDictionary>
+""";
+}
+
+public sealed class MailDateGroupConverter : IValueConverter
+{
+    private static readonly CultureInfo Russian = CultureInfo.GetCultureInfo("ru-RU");
+
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is not long unix)
+            return "Без даты";
+
+        try
+        {
+            var text = DateTimeOffset
+                .FromUnixTimeSeconds(unix)
+                .ToLocalTime()
+                .ToString("dddd, d MMMM yyyy", Russian);
+
+            return text.Length == 0
+                ? "Без даты"
+                : char.ToUpper(text[0], Russian) + text[1..];
+        }
+        catch
+        {
+            return "Без даты";
+        }
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
+        Binding.DoNothing;
+}
+
+public sealed class ThreadCountConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        var id = value?.ToString();
+        if (string.IsNullOrWhiteSpace(id))
+            return string.Empty;
+
+        var count = MailThreadCountRegistry.Get(id);
+        return count > 1
+            ? count.ToString(CultureInfo.InvariantCulture)
+            : string.Empty;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
+        Binding.DoNothing;
+}
+
+public sealed class ThreadCountVisibilityConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        var id = value?.ToString();
+        return !string.IsNullOrWhiteSpace(id) && MailThreadCountRegistry.Get(id) > 1
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
+        Binding.DoNothing;
+}
+
+internal static class MailThreadCountRegistry
+{
+    private static readonly object Gate = new();
+    private static Dictionary<string, int> _counts =
+        new(StringComparer.Ordinal);
+
+    public static int Get(string id)
+    {
+        lock (Gate)
+            return _counts.TryGetValue(id, out var count) ? count : 1;
+    }
+
+    public static void Replace(Dictionary<string, int> counts)
+    {
+        lock (Gate)
+            _counts = new Dictionary<string, int>(counts, StringComparer.Ordinal);
+    }
+}
+
+internal sealed class MailDateThenPinnedComparer : IComparer
+{
+    public int Compare(object? x, object? y)
+    {
+        if (ReferenceEquals(x, y))
+            return 0;
+        if (x is not MailRuMessageSummary left)
+            return 1;
+        if (y is not MailRuMessageSummary right)
+            return -1;
+
+        var leftDate = LocalDate(left.DateUnix);
+        var rightDate = LocalDate(right.DateUnix);
+
+        var dateGroupCompare = Nullable.Compare(rightDate, leftDate);
+        if (dateGroupCompare != 0)
+            return dateGroupCompare;
+
+        var pinnedCompare = right.Pinned.CompareTo(left.Pinned);
+        if (pinnedCompare != 0)
+            return pinnedCompare;
+
+        return Nullable.Compare(right.DateUnix, left.DateUnix);
+    }
+
+    private static DateTime? LocalDate(long? unix)
+    {
+        if (unix is null)
+            return null;
+
+        try
+        {
+            return DateTimeOffset
+                .FromUnixTimeSeconds(unix.Value)
+                .ToLocalTime()
+                .Date;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+}
