@@ -34,6 +34,8 @@ public partial class MainWindow : Window
     private bool _serverSearchMode;
     private readonly List<AccountRailItem> _accountRailItems = [];
     private bool _updatingAccountRail;
+    private long _accountSwitchGeneration;
+    private readonly SemaphoreSlim _accountSwitchGate = new(1, 1);
 
     public MainWindow()
     {
@@ -137,15 +139,37 @@ public partial class MainWindow : Window
             _authStore.LastLogin ??
             _authStore.Logins.FirstOrDefault();
 
-        _accountRailItems.Clear();
+        var existingByLogin = _accountRailItems.ToDictionary(
+            item => item.Login,
+            StringComparer.OrdinalIgnoreCase);
+        var reconciled = new List<AccountRailItem>();
+
         foreach (var login in _authStore.Logins)
-            _accountRailItems.Add(new AccountRailItem(login));
+        {
+            reconciled.Add(existingByLogin.TryGetValue(login, out var existing)
+                ? existing
+                : new AccountRailItem(login));
+        }
+
+        var listChanged =
+            reconciled.Count != _accountRailItems.Count ||
+            reconciled.Where((item, index) => !ReferenceEquals(item, _accountRailItems[index])).Any();
 
         _updatingAccountRail = true;
         try
         {
-            AccountRailListBox.ItemsSource = null;
-            AccountRailListBox.ItemsSource = _accountRailItems;
+            if (listChanged)
+            {
+                _accountRailItems.Clear();
+                _accountRailItems.AddRange(reconciled);
+                AccountRailListBox.ItemsSource = null;
+                AccountRailListBox.ItemsSource = _accountRailItems;
+            }
+            else if (AccountRailListBox.ItemsSource is null)
+            {
+                AccountRailListBox.ItemsSource = _accountRailItems;
+            }
+
             AccountRailListBox.SelectedItem = _accountRailItems.FirstOrDefault(item =>
                 string.Equals(item.Login, selectedLogin, StringComparison.OrdinalIgnoreCase));
 
@@ -197,7 +221,9 @@ public partial class MainWindow : Window
 
     private async Task RefreshAccountUnreadCountsAsync()
     {
-        foreach (var item in _accountRailItems)
+        // Iterate a stable snapshot. Account switching can reconcile the visible rail
+        // while these asynchronous requests are in flight.
+        foreach (var item in _accountRailItems.ToArray())
         {
             if (string.Equals(item.Login, _activeLogin, StringComparison.OrdinalIgnoreCase) &&
                 item.Unread is not null)
@@ -210,7 +236,7 @@ public partial class MainWindow : Window
                 string.IsNullOrWhiteSpace(authorization.AccessToken))
             {
                 item.Status = "Требуется повторный вход";
-                item.Unread = null;
+                // Keep the last known counter instead of flashing it away.
                 continue;
             }
 
@@ -224,13 +250,16 @@ public partial class MainWindow : Window
                     limit: 1);
 
                 var snapshot = MailRuThreadStatusParser.Parse(raw, 0);
-                item.Unread = snapshot.MessagesUnread ?? 0;
+                item.Unread = snapshot.MessagesUnread ?? item.Unread ?? 0;
                 item.Status = $"Непрочитанных: {item.Unread}";
             }
             catch (Exception ex)
             {
-                item.Unread = null;
-                item.Status = "Ошибка загрузки";
+                // A transient refresh failure must not erase a previously displayed
+                // unread counter.
+                item.Status = item.Unread is null
+                    ? "Ошибка загрузки"
+                    : $"Непрочитанных: {item.Unread} · обновление не удалось";
                 DiagnosticLog.Write(
                     "account_unread_" + item.Login,
                     ex.GetType().Name + ": " + ex.Message);
@@ -300,18 +329,63 @@ public partial class MainWindow : Window
             return;
         }
 
+        var requestedLogin = item.Login;
+        var generation = Interlocked.Increment(ref _accountSwitchGeneration);
         item.Status = "Переключение...";
-        if (!RestoreSavedAuthorization(item.Login))
-        {
-            item.Status = "Требуется повторный вход";
-            AuthStatusText.Text = "Не удалось восстановить авторизацию";
-            return;
-        }
 
-        RefreshAccountRail(item.Login);
-        ShowWorkspace(MailWorkspace);
-        await LoadFolderAsync(0);
-        await RefreshAccountUnreadCountsAsync();
+        // Collapse several rapid clicks into the last requested account.
+        await Task.Delay(120);
+        if (generation != Volatile.Read(ref _accountSwitchGeneration))
+            return;
+
+        await _accountSwitchGate.WaitAsync();
+        try
+        {
+            if (generation != Volatile.Read(ref _accountSwitchGeneration))
+                return;
+
+            // Do not change the shared authorization while an older folder load is
+            // still using it. A newer click may supersede us while we wait.
+            while (_loadingFolder)
+            {
+                await Task.Delay(25);
+                if (generation != Volatile.Read(ref _accountSwitchGeneration))
+                    return;
+            }
+
+            if (!RestoreSavedAuthorization(requestedLogin))
+            {
+                item.Status = "Требуется повторный вход";
+                AuthStatusText.Text = "Не удалось восстановить авторизацию";
+                return;
+            }
+
+            // Reconcile without recreating AccountRailItem instances. Their last
+            // known unread values therefore stay visible during the switch.
+            RefreshAccountRail(requestedLogin);
+            ShowWorkspace(MailWorkspace);
+
+            await LoadFolderAsync(0, generation);
+
+            if (generation == Volatile.Read(ref _accountSwitchGeneration))
+                item.Status = "Активен";
+        }
+        catch (Exception ex)
+        {
+            if (generation == Volatile.Read(ref _accountSwitchGeneration))
+            {
+                item.Status = "Ошибка переключения";
+                AuthStatusText.Text = "Не удалось переключить аккаунт";
+            }
+
+            DiagnosticLog.Write(
+                "account_switch_" + requestedLogin,
+                ex.GetType().Name + ": " + ex.Message);
+        }
+        finally
+        {
+            _accountSwitchGate.Release();
+        }
     }
 
     private async void AddAccountButton_Click(object sender, RoutedEventArgs e)
@@ -461,8 +535,15 @@ public partial class MainWindow : Window
         await LoadFolderAsync(folder.Id);
     }
 
-    private async Task LoadFolderAsync(int folderId)
+    private async Task LoadFolderAsync(int folderId, long? accountSwitchGeneration = null)
     {
+        bool IsStaleAccountSwitch() =>
+            accountSwitchGeneration is not null &&
+            accountSwitchGeneration.Value != Volatile.Read(ref _accountSwitchGeneration);
+
+        if (IsStaleAccountSwitch())
+            return;
+
         if (!HasMailboxTransport())
         {
             AuthStatusText.Text = "Сначала выполните вход";
@@ -481,8 +562,12 @@ public partial class MainWindow : Window
         try
         {
             var raw = await LoadFolderWithRefreshAsync(folderId);
-            ResponseTextBox.Text = raw;
 
+            // A newer account selection supersedes this result.
+            if (IsStaleAccountSwitch())
+                return;
+
+            ResponseTextBox.Text = raw;
             var snapshot = MailRuThreadStatusParser.Parse(raw, folderId);
 
             _currentFolderId = snapshot.SelectedFolderId ?? folderId;
@@ -518,7 +603,9 @@ public partial class MainWindow : Window
                 $"Всего: {total} · непрочитанных: {unread} · показано: {snapshot.Messages.Count}";
 
             if (_currentFolderId == 0)
-                UpdateAccountRailState(snapshot.MessagesUnread ?? 0, $"Непрочитанных: {snapshot.MessagesUnread ?? 0}");
+                UpdateAccountRailState(
+                    snapshot.MessagesUnread ?? 0,
+                    $"Непрочитанных: {snapshot.MessagesUnread ?? 0}");
 
             if (_currentMessages.Count > 0)
                 MessagesGrid.SelectedIndex = 0;
@@ -530,6 +617,9 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            if (IsStaleAccountSwitch())
+                return;
+
             FolderStatusText.Text = "Ошибка загрузки: " + ex.Message;
             SelectedSubjectText.Text = "Не удалось загрузить почту";
             SelectedSenderText.Text = ex.Message;
