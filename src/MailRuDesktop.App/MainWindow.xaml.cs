@@ -421,27 +421,18 @@ public partial class MainWindow : Window
         try
         {
             var result = await _mailRu.AuthenticateAsync(login, password);
+            WriteAuthDiagnostics(result);
 
-            if (!string.IsNullOrWhiteSpace(result.DiagnosticReason))
-                DiagnosticLog.Write("auth", result.DiagnosticReason);
+            if (!result.Success && IsInteractiveAuthState(result))
+            {
+                AuthStatusText.Text = "Mail.ru запросил дополнительную проверку";
+                var retry = await TryHandleInteractiveAuthAsync(login, password, result);
+                if (retry is not null)
+                    result = retry;
+            }
 
             if (!result.Success)
             {
-                if (result.State is MailRuAuthState.Captcha or MailRuAuthState.ReCaptcha ||
-                    string.Equals(result.ErrorCode, "captcha_required", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(result.ErrorCode, "additional_verification_required", StringComparison.OrdinalIgnoreCase))
-                {
-                    AuthStatusText.Text = "Авторизация не выполнена · требуется CAPTCHA";
-                    MessageBox.Show(
-                        this,
-                        "Mail.ru требует CAPTCHA или дополнительную проверку. " +
-                        "В текущем режиме приложение CAPTCHA не проходит, поэтому авторизация не выполнена.",
-                        "MailRu Desktop",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
-                    return;
-                }
-
                 ShowAuthFailure(result);
                 return;
             }
@@ -518,11 +509,20 @@ public partial class MainWindow : Window
     {
         var translated = TranslateAuthError(result.ErrorCode, result.State);
         AuthStatusText.Text = $"Ошибка: {translated}";
+        WriteAuthDiagnostics(result);
 
-        if (!string.IsNullOrWhiteSpace(result.DiagnosticReason))
+        if (string.Equals(
+                result.DiagnosticReason,
+                "aj_mobile_auth_returned_no_access_token",
+                StringComparison.Ordinal))
         {
-            ResponseTextBox.Text = result.DiagnosticReason;
-            DiagnosticLog.Write("auth_failure", result.DiagnosticReason);
+            AppDialog.Info(
+                this,
+                "Авторизация Mail.ru",
+                "Mail.ru ответил на запрос авторизации, но не выдал access_token. " +
+                "Это не считается автоматически CAPTCHA. " +
+                "Приложение сохранило обезличенную структуру ответа в диагностике, " +
+                "чтобы определить точный вид дополнительной проверки без сохранения пароля или токена.");
         }
     }
 
