@@ -324,6 +324,10 @@ public partial class MainWindow
 
         _accountDragHoldTimer.Stop();
         _accountDragHoldTimer.Start();
+
+        // Delay selection until mouse-up. Otherwise a long press used only for
+        // reordering would start an expensive account switch before the drag.
+        e.Handled = true;
     }
 
     private void AccountDragHoldTimer_Tick(object? sender, EventArgs e)
@@ -481,7 +485,28 @@ public partial class MainWindow
 
         if (!_accountDragActive)
         {
+            var clickedAccount = _accountDragCandidate;
             _accountDragCandidate = null;
+
+            if (clickedAccount is not null)
+            {
+                if (!ReferenceEquals(
+                        AccountRailListBox.SelectedItem,
+                        clickedAccount))
+                {
+                    AccountRailListBox.SelectedItem = clickedAccount;
+                }
+                else if (string.Equals(
+                             clickedAccount.Login,
+                             _activeLogin,
+                             StringComparison.OrdinalIgnoreCase))
+                {
+                    ShowWorkspace(MailWorkspace);
+                }
+
+                e.Handled = true;
+            }
+
             return;
         }
 
