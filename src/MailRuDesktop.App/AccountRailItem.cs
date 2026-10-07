@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace MailRuDesktop.App;
 
-internal sealed class AccountRailItem : INotifyPropertyChanged
+public sealed class AccountRailItem : INotifyPropertyChanged
 {
     private long? _unread;
     private string _status = "Ожидание";
@@ -79,7 +79,7 @@ internal sealed class AccountRailItem : INotifyPropertyChanged
 }
 
 
-internal sealed class AccountSectionItem : INotifyPropertyChanged
+public sealed class AccountSectionItem : INotifyPropertyChanged
 {
     private bool _isCollapsed;
     private string _name;
