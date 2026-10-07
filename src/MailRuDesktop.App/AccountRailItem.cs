@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace MailRuDesktop.App;
 
-internal sealed class AccountRailItem : INotifyPropertyChanged
+public sealed class AccountRailItem : INotifyPropertyChanged
 {
     private long? _unread;
     private string _status = "Ожидание";
@@ -17,6 +17,7 @@ internal sealed class AccountRailItem : INotifyPropertyChanged
 
     public string Login { get; }
     public string Initials { get; }
+    public string IconText => Initials;
 
     public long? Unread
     {
@@ -75,4 +76,54 @@ internal sealed class AccountRailItem : INotifyPropertyChanged
 
         return char.ToUpperInvariant(local[0]).ToString();
     }
+}
+
+
+public sealed class AccountSectionItem : INotifyPropertyChanged
+{
+    private bool _isCollapsed;
+    private string _name;
+
+    public AccountSectionItem(string id, string name, bool isCollapsed)
+    {
+        Id = id;
+        _name = name;
+        _isCollapsed = isCollapsed;
+    }
+
+    public string Id { get; }
+
+    public string Name
+    {
+        get => _name;
+        set
+        {
+            if (string.Equals(_name, value, StringComparison.Ordinal))
+                return;
+
+            _name = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public bool IsCollapsed
+    {
+        get => _isCollapsed;
+        set
+        {
+            if (_isCollapsed == value)
+                return;
+
+            _isCollapsed = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(Arrow));
+        }
+    }
+
+    public string Arrow => IsCollapsed ? "▸" : "▾";
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void OnPropertyChanged([CallerMemberName] string? name = null) =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }

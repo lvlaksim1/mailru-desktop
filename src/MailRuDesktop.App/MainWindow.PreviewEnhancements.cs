@@ -214,6 +214,7 @@ public partial class MainWindow
             return;
 
         _previewComposeMode = PreviewComposeMode.Reply;
+        ResetPreviewTemplateSelectors();
         PreviewComposePanel.Visibility = Visibility.Visible;
         PreviewComposeToTextBox.Text = !string.IsNullOrWhiteSpace(_currentFullMessage?.FromEmail)
             ? _currentFullMessage.FromEmail
@@ -234,6 +235,7 @@ public partial class MainWindow
             return;
 
         _previewComposeMode = PreviewComposeMode.Forward;
+        ResetPreviewTemplateSelectors();
         PreviewComposePanel.Visibility = Visibility.Visible;
         PreviewComposeToTextBox.Clear();
         PreviewComposeSubjectTextBox.Text = PrefixPreviewSubject(

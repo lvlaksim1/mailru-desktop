@@ -37,6 +37,36 @@ public sealed record MailRuMessageSummary(
             ? SenderName
             : SenderEmail;
 
+    public string SenderInitials
+    {
+        get
+        {
+            var source = SenderDisplay.Trim();
+            if (source.Length == 0)
+                return "?";
+
+            var words = source
+                .Replace('@', ' ')
+                .Replace('.', ' ')
+                .Replace('_', ' ')
+                .Replace('-', ' ')
+                .Split(
+                    ' ',
+                    StringSplitOptions.RemoveEmptyEntries |
+                    StringSplitOptions.TrimEntries);
+
+            if (words.Length >= 2)
+            {
+                return (
+                    char.ToUpperInvariant(words[0][0]).ToString() +
+                    char.ToUpperInvariant(words[1][0]))
+                    .Trim();
+            }
+
+            return char.ToUpperInvariant(source[0]).ToString();
+        }
+    }
+
     public string DateDisplay
     {
         get

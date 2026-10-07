@@ -17,6 +17,64 @@
         <local:SenderLineConverter x:Key="SenderLineConverter"/>
         <local:FirstLineConverter x:Key="FirstLineConverter"/>
 
+        <DataTemplate DataType="{x:Type local:AccountRailItem}">
+            <Grid ToolTip="{Binding ToolTipText}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="18"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.Column="0"
+                        Width="16" Height="16"
+                        CornerRadius="8"
+                        VerticalAlignment="Center"
+                        Background="{DynamicResource AppControlHoverBrush}">
+                    <TextBlock HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               FontSize="8"
+                               FontWeight="SemiBold"
+                               Text="{Binding IconText}"/>
+                </Border>
+                <TextBlock Grid.Column="1"
+                           Margin="6,0,0,0"
+                           VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis"
+                           Text="{Binding Login}"/>
+                <Border Grid.Column="2"
+                        MinWidth="24" Height="20"
+                        Margin="6,0,0,0"
+                        Padding="5,0"
+                        CornerRadius="10"
+                        Background="{DynamicResource AppAccentBrush}"
+                        ToolTip="Непрочитанные письма во Входящих"
+                        Visibility="{Binding HasUnread, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               FontSize="10"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource AppAccentTextBrush}"
+                               Text="{Binding UnreadDisplay}"/>
+                </Border>
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type local:AccountSectionItem}">
+            <Button Padding="6,5"
+                    HorizontalContentAlignment="Left"
+                    BorderThickness="0"
+                    Background="Transparent"
+                    Click="AccountSectionButton_Click">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock FontWeight="SemiBold"
+                               Text="{Binding Name}"/>
+                    <TextBlock Margin="6,0,0,0"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource AppMutedTextBrush}"
+                               Text="{Binding Arrow}"/>
+                </StackPanel>
+            </Button>
+        </DataTemplate>
+
         <Style x:Key="NavButtonStyle" TargetType="Button">
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="Padding" Value="14,10"/>
@@ -34,7 +92,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBoxItem">
-                        <Border x:Name="Root" Padding="8,6" CornerRadius="6" Background="Transparent">
+                        <Border x:Name="Root" Padding="8,4" CornerRadius="6" Background="Transparent">
                             <ContentPresenter/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -471,15 +529,13 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
                         <WrapPanel Grid.Row="0" Margin="0,0,0,10">
-                            <Button x:Name="PreviewReplyButton" Padding="10,6" Margin="0,0,6,4" Click="PreviewReplyButton_Click" Content="Ответить"/>
-                            <Button x:Name="PreviewArchiveButton" Padding="10,6" Margin="0,0,6,4" Click="PreviewArchiveButton_Click" Content="В архив"/>
-                            <Button x:Name="TrashMessageButton" Padding="10,6" Margin="0,0,6,4" Click="TrashMessageButton_Click" Content="В корзину"/>
                             <Button x:Name="PreviewForwardButton" Padding="10,6" Margin="0,0,6,4" Click="PreviewForwardButton_Click" Content="Переслать"/>
                             <Button x:Name="MoveMessageButton" Padding="10,6" Margin="0,0,6,4" Click="MoveMessageButton_Click" Content="Переместить в"/>
                             <ComboBox x:Name="MoveFolderComboBox"
@@ -490,7 +546,7 @@
                                       ToolTip="Папка назначения"/>
                         </WrapPanel>
 
-                        <StackPanel Grid.Row="1" Margin="2,0,2,10">
+                        <StackPanel Grid.Row="2" Margin="2,0,2,6">
                             <TextBlock x:Name="SelectedSubjectText"
                                        FontSize="22"
                                        FontWeight="SemiBold"
@@ -538,9 +594,15 @@
                             <TextBlock x:Name="SelectedMetaText" Margin="0,2,0,0" Foreground="{DynamicResource AppMutedTextBrush}" TextWrapping="Wrap"/>
                         </StackPanel>
 
-                        <Border Grid.Row="2" Height="1" Margin="0,0,0,10" Background="{DynamicResource AppBorderBrush}"/>
+                        <WrapPanel Grid.Row="3" Margin="0,0,0,8">
+                            <Button x:Name="PreviewReplyButton" Padding="10,6" Margin="0,0,6,4" Click="PreviewReplyButton_Click" Content="Ответить"/>
+                            <Button x:Name="PreviewArchiveButton" Padding="10,6" Margin="0,0,6,4" Click="PreviewArchiveButton_Click" Content="В архив"/>
+                            <Button x:Name="TrashMessageButton" Padding="10,6" Margin="0,0,6,4" Click="TrashMessageButton_Click" Content="В корзину"/>
+                        </WrapPanel>
 
-                        <Border Grid.Row="3"
+                        <Border Grid.Row="4" Height="1" Margin="0,0,0,10" Background="{DynamicResource AppBorderBrush}"/>
+
+                        <Border Grid.Row="5"
                                 Background="{DynamicResource AppWindowBrush}"
                                 CornerRadius="8"
                                 BorderBrush="{DynamicResource AppBorderBrush}"
@@ -549,7 +611,7 @@
                         </Border>
 
                         <StackPanel x:Name="IncomingAttachmentsPanel"
-                                    Grid.Row="4"
+                                    Grid.Row="6"
                                     Margin="0,10,0,0"
                                     Visibility="Collapsed">
                             <TextBlock FontWeight="SemiBold" Text="Вложения"/>
@@ -582,7 +644,7 @@
                         </StackPanel>
 
                         <Border x:Name="PreviewComposePanel"
-                                Grid.Row="5"
+                                Grid.Row="1"
                                 Margin="0,10,0,0"
                                 Padding="12"
                                 Visibility="Collapsed"
@@ -595,6 +657,7 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="130"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
@@ -602,12 +665,27 @@
                                     <ColumnDefinition Width="75"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Row="0" Margin="0,0,8,7" VerticalAlignment="Center" Text="Кому:"/>
-                                <TextBox x:Name="PreviewComposeToTextBox" Grid.Row="0" Grid.Column="1" Margin="0,0,0,7" Padding="7"/>
-                                <TextBlock Grid.Row="1" Margin="0,0,8,7" VerticalAlignment="Center" Text="Тема:"/>
-                                <TextBox x:Name="PreviewComposeSubjectTextBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,7" Padding="7"/>
-                                <TextBlock Grid.Row="2" Margin="0,0,8,7" VerticalAlignment="Top" Text="Вложения:"/>
-                                <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,0,0,7">
+
+                                <WrapPanel Grid.Row="0" Grid.ColumnSpan="2" Margin="0,0,0,8">
+                                    <TextBlock Margin="0,0,6,0" VerticalAlignment="Center" Text="Подпись:"/>
+                                    <ComboBox x:Name="PreviewSignatureComboBox"
+                                              Width="180"
+                                              Margin="0,0,14,0"
+                                              DisplayMemberPath="Name"
+                                              SelectionChanged="PreviewSignatureComboBox_SelectionChanged"/>
+                                    <TextBlock Margin="0,0,6,0" VerticalAlignment="Center" Text="Из шаблона:"/>
+                                    <ComboBox x:Name="PreviewTemplateComboBox"
+                                              Width="210"
+                                              DisplayMemberPath="Name"
+                                              SelectionChanged="PreviewTemplateComboBox_SelectionChanged"/>
+                                </WrapPanel>
+
+                                <TextBlock Grid.Row="1" Margin="0,0,8,7" VerticalAlignment="Center" Text="Кому:"/>
+                                <TextBox x:Name="PreviewComposeToTextBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,7" Padding="7"/>
+                                <TextBlock Grid.Row="2" Margin="0,0,8,7" VerticalAlignment="Center" Text="Тема:"/>
+                                <TextBox x:Name="PreviewComposeSubjectTextBox" Grid.Row="2" Grid.Column="1" Margin="0,0,0,7" Padding="7"/>
+                                <TextBlock Grid.Row="3" Margin="0,0,8,7" VerticalAlignment="Top" Text="Вложения:"/>
+                                <StackPanel Grid.Row="3" Grid.Column="1" Margin="0,0,0,7">
                                     <Button Width="130" HorizontalAlignment="Left" Padding="10,5" Click="PreviewComposeAttachButton_Click" Content="Добавить файл"/>
                                     <ItemsControl x:Name="PreviewComposeAttachmentsItemsControl" Margin="0,5,0,0">
                                         <ItemsControl.ItemTemplate>
@@ -620,14 +698,14 @@
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
                                 </StackPanel>
-                                <TextBlock Grid.Row="3" Margin="0,0,8,0" VerticalAlignment="Top" Text="Текст:"/>
+                                <TextBlock Grid.Row="4" Margin="0,0,8,0" VerticalAlignment="Top" Text="Текст:"/>
                                 <TextBox x:Name="PreviewComposeBodyTextBox"
-                                         Grid.Row="3" Grid.Column="1"
+                                         Grid.Row="4" Grid.Column="1"
                                          Padding="7"
                                          AcceptsReturn="True"
                                          TextWrapping="Wrap"
                                          VerticalScrollBarVisibility="Auto"/>
-                                <WrapPanel Grid.Row="4" Grid.Column="1" Margin="0,9,0,0">
+                                <WrapPanel Grid.Row="5" Grid.Column="1" Margin="0,9,0,0">
                                     <Button x:Name="PreviewSendComposeButton" Padding="14,7" Margin="0,0,6,0" Click="PreviewSendComposeButton_Click" Content="Отправить"/>
                                     <Button Padding="14,7" Margin="0,0,12,0" Click="PreviewCancelComposeButton_Click" Content="Отмена"/>
                                     <TextBlock x:Name="PreviewComposeStatusText" VerticalAlignment="Center" Foreground="{DynamicResource AppMutedTextBrush}"/>
@@ -748,6 +826,91 @@
                                 <TextBlock Margin="0,8,0,0" Foreground="{DynamicResource AppMutedTextBrush}" Text="При первом запуске используется тёмная тема."/>
                             </StackPanel>
                         </GroupBox>
+                        <GroupBox Margin="0,16,0,0" Header="Подписи">
+                            <Grid Margin="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="220"/>
+                                    <ColumnDefinition Width="16"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <ListBox x:Name="SignaturesListBox"
+                                         Grid.RowSpan="2"
+                                         MinHeight="150"
+                                         DisplayMemberPath="Name"
+                                         SelectionChanged="SignaturesListBox_SelectionChanged"/>
+                                <Grid Grid.Column="2">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBox x:Name="SignatureNameTextBox" Padding="7" ToolTip="Название подписи"/>
+                                    <TextBox x:Name="SignatureBodyTextBox"
+                                             Grid.Row="1"
+                                             Margin="0,7,0,7"
+                                             MinHeight="105"
+                                             Padding="7"
+                                             AcceptsReturn="True"
+                                             TextWrapping="Wrap"
+                                             VerticalScrollBarVisibility="Auto"/>
+                                    <WrapPanel Grid.Row="2">
+                                        <Button Padding="10,6" Margin="0,0,6,0" Click="NewSignatureButton_Click" Content="Новая"/>
+                                        <Button Padding="10,6" Margin="0,0,6,0" Click="SaveSignatureButton_Click" Content="Сохранить"/>
+                                        <Button Padding="10,6" Click="DeleteSignatureButton_Click" Content="Удалить"/>
+                                    </WrapPanel>
+                                </Grid>
+                            </Grid>
+                        </GroupBox>
+
+                        <GroupBox Margin="0,16,0,0" Header="Шаблоны">
+                            <Grid Margin="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="220"/>
+                                    <ColumnDefinition Width="16"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <ListBox x:Name="MailTemplatesListBox"
+                                         MinHeight="230"
+                                         DisplayMemberPath="Name"
+                                         SelectionChanged="MailTemplatesListBox_SelectionChanged"/>
+                                <Grid Grid.Column="2">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="120"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="90"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBox x:Name="TemplateNameTextBox" Padding="7" ToolTip="Название шаблона"/>
+                                    <TextBox x:Name="TemplateSubjectTextBox" Grid.Row="1" Margin="0,7,0,7" Padding="7" ToolTip="Тема письма"/>
+                                    <TextBox x:Name="TemplateBodyTextBox"
+                                             Grid.Row="2"
+                                             Padding="7"
+                                             AcceptsReturn="True"
+                                             TextWrapping="Wrap"
+                                             VerticalScrollBarVisibility="Auto"
+                                             ToolTip="Текст письма"/>
+                                    <WrapPanel Grid.Row="3" Margin="0,7,0,4">
+                                        <Button Padding="10,5" Margin="0,0,6,0" Click="AddTemplateAttachmentsButton_Click" Content="Добавить вложения"/>
+                                        <Button Padding="10,5" Click="RemoveTemplateAttachmentButton_Click" Content="Убрать выбранное"/>
+                                    </WrapPanel>
+                                    <ListBox x:Name="TemplateAttachmentsListBox"
+                                             Grid.Row="4"
+                                             MinHeight="70"/>
+                                    <WrapPanel Grid.Row="5" Margin="0,7,0,0">
+                                        <Button Padding="10,6" Margin="0,0,6,0" Click="NewMailTemplateButton_Click" Content="Новый"/>
+                                        <Button Padding="10,6" Margin="0,0,6,0" Click="SaveMailTemplateButton_Click" Content="Сохранить"/>
+                                        <Button Padding="10,6" Click="DeleteMailTemplateButton_Click" Content="Удалить"/>
+                                    </WrapPanel>
+                                </Grid>
+                            </Grid>
+                        </GroupBox>
+
                         <GroupBox Margin="0,16,0,0" Header="Обновление">
                             <StackPanel Margin="12">
                                 <WrapPanel>
@@ -790,7 +953,23 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <TextBlock Margin="6,4,6,6" FontSize="11" Foreground="{DynamicResource AppMutedTextBrush}" Text="АККАУНТЫ"/>
+                <Grid Margin="6,2,2,5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center"
+                               FontSize="11"
+                               Foreground="{DynamicResource AppMutedTextBrush}"
+                               Text="АККАУНТЫ"/>
+                    <Button Grid.Column="1"
+                            Padding="7,3"
+                            BorderThickness="0"
+                            Background="Transparent"
+                            Click="AddAccountSectionButton_Click"
+                            ToolTip="Добавить раздел аккаунтов"
+                            Content="+ Раздел"/>
+                </Grid>
                 <ListBox x:Name="AccountRailListBox"
                          Grid.Row="1"
                          BorderThickness="0"
@@ -799,23 +978,7 @@
                          ScrollViewer.VerticalScrollBarVisibility="Auto"
                          ItemContainerStyle="{StaticResource RoundAccountItemStyle}"
                          SelectionChanged="AccountRailListBox_SelectionChanged"
-                         PreviewMouseRightButtonDown="AccountRailListBox_PreviewMouseRightButtonDown">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <Grid ToolTip="{Binding ToolTipText}">
-                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Text="{Binding Login}"/>
-                                <Border Grid.Column="1"
-                                        MinWidth="24" Height="20" Margin="6,0,0,0" Padding="5,0" CornerRadius="10"
-                                        Background="{DynamicResource AppAccentBrush}"
-                                        ToolTip="Непрочитанные письма во Входящих"
-                                        Visibility="{Binding HasUnread, Converter={StaticResource BoolToVisibility}}">
-                                    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource AppAccentTextBrush}" Text="{Binding UnreadDisplay}"/>
-                                </Border>
-                            </Grid>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
+                         PreviewMouseRightButtonDown="AccountRailListBox_PreviewMouseRightButtonDown"/>
                 <Button x:Name="AddAccountButton" Grid.Row="2" Margin="2,8,2,2" Padding="8,6" HorizontalAlignment="Stretch" Click="AddAccountButton_Click" ToolTip="Добавить аккаунт" Content="+ Добавить аккаунт"/>
                 <ComboBox x:Name="LoginComboBox" Visibility="Collapsed" SelectionChanged="LoginComboBox_SelectionChanged"/>
             </Grid>

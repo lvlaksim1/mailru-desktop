@@ -41,6 +41,35 @@ internal sealed class UserInterfaceState
     public GridLengthSetting SubjectColumn { get; set; } = new() { Value = 2.15, UnitType = "Star" };
 }
 
+internal sealed class AccountRailLayoutEntryState
+{
+    public string Kind { get; set; } = "account";
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    public string? Login { get; set; }
+    public string? Title { get; set; }
+    public bool IsCollapsed { get; set; }
+}
+
+internal sealed class SavedSignature
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    public string Name { get; set; } = string.Empty;
+    public string Body { get; set; } = string.Empty;
+
+    public override string ToString() => Name;
+}
+
+internal sealed class SavedMailTemplate
+{
+    public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    public string Name { get; set; } = string.Empty;
+    public string Subject { get; set; } = string.Empty;
+    public string Body { get; set; } = string.Empty;
+    public List<string> Attachments { get; set; } = [];
+
+    public override string ToString() => Name;
+}
+
 internal sealed class AppSettingsStore
 {
     private readonly string _path;
@@ -88,6 +117,66 @@ internal sealed class AppSettingsStore
         }
     }
 
+    public List<AccountRailLayoutEntryState> LoadAccountRailLayout() =>
+        LoadState().AccountRailLayout
+            ?.Select(CloneAccountRailEntry)
+            .ToList()
+        ?? [];
+
+    public void SaveAccountRailLayout(IEnumerable<AccountRailLayoutEntryState> entries)
+    {
+        ArgumentNullException.ThrowIfNull(entries);
+
+        lock (_sync)
+        {
+            var state = LoadStateCore();
+            state.AccountRailLayout = entries
+                .Select(CloneAccountRailEntry)
+                .ToList();
+            SaveStateCore(state);
+        }
+    }
+
+    public List<SavedSignature> LoadSignatures() =>
+        LoadState().Signatures
+            ?.Select(CloneSignature)
+            .ToList()
+        ?? [];
+
+    public void SaveSignatures(IEnumerable<SavedSignature> signatures)
+    {
+        ArgumentNullException.ThrowIfNull(signatures);
+
+        lock (_sync)
+        {
+            var state = LoadStateCore();
+            state.Signatures = signatures
+                .Select(CloneSignature)
+                .ToList();
+            SaveStateCore(state);
+        }
+    }
+
+    public List<SavedMailTemplate> LoadMailTemplates() =>
+        LoadState().MailTemplates
+            ?.Select(CloneTemplate)
+            .ToList()
+        ?? [];
+
+    public void SaveMailTemplates(IEnumerable<SavedMailTemplate> templates)
+    {
+        ArgumentNullException.ThrowIfNull(templates);
+
+        lock (_sync)
+        {
+            var state = LoadStateCore();
+            state.MailTemplates = templates
+                .Select(CloneTemplate)
+                .ToList();
+            SaveStateCore(state);
+        }
+    }
+
     private SettingsState LoadState()
     {
         lock (_sync)
@@ -122,9 +211,41 @@ internal sealed class AppSettingsStore
         File.Move(temp, _path, true);
     }
 
+    private static AccountRailLayoutEntryState CloneAccountRailEntry(
+        AccountRailLayoutEntryState value) =>
+        new()
+        {
+            Kind = value.Kind,
+            Id = value.Id,
+            Login = value.Login,
+            Title = value.Title,
+            IsCollapsed = value.IsCollapsed
+        };
+
+    private static SavedSignature CloneSignature(SavedSignature value) =>
+        new()
+        {
+            Id = value.Id,
+            Name = value.Name,
+            Body = value.Body
+        };
+
+    private static SavedMailTemplate CloneTemplate(SavedMailTemplate value) =>
+        new()
+        {
+            Id = value.Id,
+            Name = value.Name,
+            Subject = value.Subject,
+            Body = value.Body,
+            Attachments = value.Attachments.ToList()
+        };
+
     private sealed class SettingsState
     {
         public string Theme { get; set; } = AppThemeMode.Dark.ToString();
         public UserInterfaceState? UserInterface { get; set; }
+        public List<AccountRailLayoutEntryState>? AccountRailLayout { get; set; }
+        public List<SavedSignature>? Signatures { get; set; }
+        public List<SavedMailTemplate>? MailTemplates { get; set; }
     }
 }

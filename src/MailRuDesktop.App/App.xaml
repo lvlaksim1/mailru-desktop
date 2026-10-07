@@ -22,6 +22,9 @@
             <SolidColorBrush x:Key="AppSelectionTextBrush" Color="#202124"/>
             <SolidColorBrush x:Key="AppAccentBrush" Color="#0D6EFD"/>
             <SolidColorBrush x:Key="AppAccentTextBrush" Color="#FFFFFF"/>
+            <SolidColorBrush x:Key="AppScrollTrackBrush" Color="#F2F4F7"/>
+            <SolidColorBrush x:Key="AppScrollThumbBrush" Color="#AEB6C2"/>
+            <SolidColorBrush x:Key="AppScrollArrowBrush" Color="#7B8490"/>
 
             <!-- Owner-approved cloud + envelope mark. -->
             <DrawingImage x:Key="AppIcon">

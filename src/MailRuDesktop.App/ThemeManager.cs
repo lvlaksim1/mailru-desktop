@@ -81,6 +81,9 @@ internal static class ThemeManager
             SetBrush(resources, "AppSelectionTextBrush", "#FFFFFF");
             SetBrush(resources, "AppAccentBrush", "#5AA7FF");
             SetBrush(resources, "AppAccentTextBrush", "#FFFFFF");
+            SetBrush(resources, "AppScrollTrackBrush", "#1A1D22");
+            SetBrush(resources, "AppScrollThumbBrush", "#3A4049");
+            SetBrush(resources, "AppScrollArrowBrush", "#5F6874");
         }
         else
         {
@@ -97,6 +100,9 @@ internal static class ThemeManager
             SetBrush(resources, "AppSelectionTextBrush", "#202124");
             SetBrush(resources, "AppAccentBrush", "#0D6EFD");
             SetBrush(resources, "AppAccentTextBrush", "#FFFFFF");
+            SetBrush(resources, "AppScrollTrackBrush", "#F2F4F7");
+            SetBrush(resources, "AppScrollThumbBrush", "#AEB6C2");
+            SetBrush(resources, "AppScrollArrowBrush", "#7B8490");
         }
 
         ApplySystemBrushAliases(resources);
