@@ -1,7 +1,6 @@
 using System.Collections;
 using System.ComponentModel;
 using System.Globalization;
-using System.Reflection;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,18 +16,6 @@ public partial class MainWindow
     private bool _modernMailListConfigured;
     private DependencyPropertyDescriptor? _modernMailItemsSourceDescriptor;
     private Button? _markSelectedUnreadButton;
-
-    private static readonly PropertyInfo? UnreadProperty =
-        typeof(MailRuMessageSummary).GetProperty(nameof(MailRuMessageSummary.Unread));
-
-    protected override void OnActivated(EventArgs e)
-    {
-        base.OnActivated(e);
-
-        Dispatcher.BeginInvoke(
-            DispatcherPriority.ApplicationIdle,
-            new Action(ConfigureModernMailList));
-    }
 
     private void ConfigureModernMailList()
     {
@@ -294,14 +281,20 @@ public partial class MainWindow
     private async void ModernMailListButton_Click(object sender, RoutedEventArgs e)
     {
         var button = FindAncestorButton(e.OriginalSource as DependencyObject);
-        if (!string.Equals(button?.Name, "ModernUnreadActionButton", StringComparison.Ordinal) ||
-            button.DataContext is not MailRuMessageSummary message)
-        {
+        if (button?.DataContext is not MailRuMessageSummary message)
             return;
-        }
 
-        await SetUnreadPreservingSelectionAsync(message, !message.Unread);
-        e.Handled = true;
+        switch (button.Name)
+        {
+            case "ModernUnreadActionButton":
+                await SetUnreadPreservingSelectionAsync(message, !message.Unread);
+                e.Handled = true;
+                break;
+
+            case "FlagActionButton":
+                MessageFlagButton_Click(button, e);
+                break;
+        }
     }
 
     private void ModernMailListSelectionChanged(object sender, SelectionChangedEventArgs e) =>
@@ -374,44 +367,10 @@ public partial class MainWindow
                 return;
             }
 
-            var mutatedInPlace = false;
-            try
-            {
-                UnreadProperty?.SetValue(message, makeUnread);
-                mutatedInPlace = message.Unread == makeUnread;
-            }
-            catch (Exception ex)
-            {
-                DiagnosticLog.Write(
-                    "message_unread_local_state",
-                    ex.GetType().Name + ": " + ex.Message);
-            }
+            if (makeUnread)
+                _previewAutoReadMessageId = null;
 
-            if (mutatedInPlace)
-            {
-                if (string.Equals(
-                        (MessagesGrid.SelectedItem as MailRuMessageSummary)?.Id,
-                        message.Id,
-                        StringComparison.Ordinal))
-                {
-                    _previewAutoReadMessageId = null;
-                    DisplaySummary(message);
-                }
-
-                CollectionViewSource.GetDefaultView(MessagesGrid.ItemsSource)?.Refresh();
-            }
-            else
-            {
-                var wasSelected = string.Equals(
-                    (MessagesGrid.SelectedItem as MailRuMessageSummary)?.Id,
-                    message.Id,
-                    StringComparison.Ordinal);
-
-                if (wasSelected)
-                    MessagesGrid.SelectedItem = null;
-
-                ReplaceMessage(message, message with { Unread = makeUnread });
-            }
+            ReplaceMessage(message, message with { Unread = makeUnread });
 
             if (_currentFolderId == 0 && previousUnread != makeUnread)
                 AdjustActiveInboxUnread(makeUnread ? 1 : -1);
@@ -505,6 +464,7 @@ public partial class MainWindow
 
             <Button x:Name="FlagActionButton"
                     Grid.Column="1"
+                    Tag="{Binding}"
                     Width="26"
                     Height="40"
                     Padding="0"
@@ -530,6 +490,7 @@ public partial class MainWindow
 
             <Button x:Name="ModernUnreadActionButton"
                     Grid.Column="2"
+                    Tag="{Binding}"
                     Width="24"
                     Height="40"
                     Padding="0"
