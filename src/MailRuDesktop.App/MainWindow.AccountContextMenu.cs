@@ -30,16 +30,33 @@ public partial class MainWindow
         MouseButtonEventArgs e)
     {
         if (e.OriginalSource is not DependencyObject source ||
-            ItemsControl.ContainerFromElement(AccountRailListBox, source) is not ListBoxItem item ||
-            item.DataContext is not AccountRailItem account)
+            ItemsControl.ContainerFromElement(AccountRailListBox, source) is not ListBoxItem item)
         {
             return;
         }
 
         var menu = CreateCompactContextMenu();
-        var deleteItem = CreateCompactMenuItem("Удалить");
-        deleteItem.Click += async (_, _) => await RemoveSavedAccountAsync(account.Login);
-        menu.Items.Add(deleteItem);
+
+        if (item.DataContext is AccountRailItem account)
+        {
+            var deleteItem = CreateCompactMenuItem("Удалить");
+            deleteItem.Click += async (_, _) => await RemoveSavedAccountAsync(account.Login);
+            menu.Items.Add(deleteItem);
+        }
+        else if (item.DataContext is AccountSectionItem section)
+        {
+            var renameItem = CreateCompactMenuItem("Переименовать раздел");
+            renameItem.Click += (_, _) => RenameAccountSection(section);
+            menu.Items.Add(renameItem);
+
+            var deleteSectionItem = CreateCompactMenuItem("Удалить раздел");
+            deleteSectionItem.Click += (_, _) => DeleteAccountSection(section);
+            menu.Items.Add(deleteSectionItem);
+        }
+        else
+        {
+            return;
+        }
 
         item.ContextMenu = menu;
         menu.PlacementTarget = item;
@@ -69,6 +86,7 @@ public partial class MainWindow
         if (!_authStore.Remove(login))
             return;
 
+        RemoveAccountFromRailLayout(login);
         await MailRuAuthProfileStore.DeleteProfileAsync(login);
 
         if (!wasActive)
