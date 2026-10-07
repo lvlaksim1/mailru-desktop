@@ -143,56 +143,8 @@ public partial class MainWindow : Window
         RefreshAccountRail(current);
     }
 
-    private void RefreshAccountRail(string? preferredLogin = null)
-    {
-        var selectedLogin =
-            preferredLogin ??
-            _activeLogin ??
-            _authStore.LastLogin ??
-            _authStore.Logins.FirstOrDefault();
-
-        var existingByLogin = _accountRailItems.ToDictionary(
-            item => item.Login,
-            StringComparer.OrdinalIgnoreCase);
-        var reconciled = new List<AccountRailItem>();
-
-        foreach (var login in _authStore.Logins)
-        {
-            reconciled.Add(existingByLogin.TryGetValue(login, out var existing)
-                ? existing
-                : new AccountRailItem(login));
-        }
-
-        var listChanged =
-            reconciled.Count != _accountRailItems.Count ||
-            reconciled.Where((item, index) => !ReferenceEquals(item, _accountRailItems[index])).Any();
-
-        _updatingAccountRail = true;
-        try
-        {
-            if (listChanged)
-            {
-                _accountRailItems.Clear();
-                _accountRailItems.AddRange(reconciled);
-                AccountRailListBox.ItemsSource = null;
-                AccountRailListBox.ItemsSource = _accountRailItems;
-            }
-            else if (AccountRailListBox.ItemsSource is null)
-            {
-                AccountRailListBox.ItemsSource = _accountRailItems;
-            }
-
-            AccountRailListBox.SelectedItem = _accountRailItems.FirstOrDefault(item =>
-                string.Equals(item.Login, selectedLogin, StringComparison.OrdinalIgnoreCase));
-
-            foreach (var item in _accountRailItems)
-                item.IsActive = string.Equals(item.Login, _activeLogin, StringComparison.OrdinalIgnoreCase);
-        }
-        finally
-        {
-            _updatingAccountRail = false;
-        }
-    }
+    private void RefreshAccountRail(string? preferredLogin = null) =>
+        RefreshAccountRailLayout(preferredLogin);
 
     private async Task EnsureStartupAccountAsync()
     {
