@@ -70,7 +70,6 @@ public partial class MainWindow : Window
         Loaded += MainWindow_Loaded;
         Closed += (_, _) =>
         {
-            SaveUserInterfaceState();
             ThemeManager.ThemeChanged -= ThemeManager_ThemeChanged;
             if (MessageWebView.CoreWebView2 is not null && _mailImageProxyConfigured)
                 MessageWebView.CoreWebView2.WebResourceRequested -= MailImageProxy_WebResourceRequested;
