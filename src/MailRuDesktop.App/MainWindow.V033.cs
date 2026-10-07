@@ -110,7 +110,6 @@ public partial class MainWindow
         }
         catch
         {
-            // Older Windows versions can ignore non-client refresh requests.
         }
     }
 
@@ -193,8 +192,8 @@ public partial class MainWindow
 
         host.Visibility = Visibility.Visible;
         host.Margin = new Thickness(0, 0, 0, 8);
-
         host.Children.Clear();
+
         var row = new WrapPanel
         {
             Orientation = Orientation.Horizontal,
@@ -342,7 +341,7 @@ public partial class MainWindow
         if (e.Handled)
             return;
 
-        var button = FindAncestor<Button>(e.OriginalSource as DependencyObject);
+        var button = FindAncestorButton(e.OriginalSource as DependencyObject);
         if (button?.DataContext is not MailRuMessageSummary)
             return;
 
@@ -398,7 +397,7 @@ public partial class MainWindow
         }
     }
 
-    private static Button? FindAncestor<Button>(DependencyObject? source)
+    private static Button? FindAncestorButton(DependencyObject? source)
     {
         while (source is not null)
         {
@@ -457,16 +456,11 @@ public partial class MainWindow
                 <ColumnDefinition Width="34"/>
             </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Column="0"
-                        VerticalAlignment="Center"
-                        HorizontalAlignment="Center">
-                <TextBlock FontSize="11"
-                           HorizontalAlignment="Center"
+            <StackPanel Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <TextBlock FontSize="11" HorizontalAlignment="Center"
                            Foreground="{DynamicResource AppMutedTextBrush}"
                            Text="{Binding DateUnix, Converter={StaticResource MailDateConverter}}"/>
-                <TextBlock Margin="0,3,0,0"
-                           FontSize="11"
-                           HorizontalAlignment="Center"
+                <TextBlock Margin="0,3,0,0" FontSize="11" HorizontalAlignment="Center"
                            Foreground="{DynamicResource AppMutedTextBrush}"
                            Text="{Binding DateUnix, Converter={StaticResource MailTimeConverter}}"/>
             </StackPanel>
@@ -482,10 +476,8 @@ public partial class MainWindow
                     <RowDefinition Height="19"/>
                 </Grid.RowDefinitions>
 
-                <Button x:Name="UnreadActionButton"
-                        Grid.Row="0" Grid.Column="0"
-                        Width="21" Height="19" Padding="0"
-                        Tag="{Binding}"
+                <Button x:Name="UnreadActionButton" Grid.Row="0" Grid.Column="0"
+                        Width="21" Height="19" Padding="0" Tag="{Binding}"
                         ToolTip="Прочитано / непрочитано">
                     <TextBlock FontSize="13">
                         <TextBlock.Style>
@@ -503,11 +495,8 @@ public partial class MainWindow
                     </TextBlock>
                 </Button>
 
-                <Button x:Name="FlagActionButton"
-                        Grid.Row="1" Grid.Column="0"
-                        Width="21" Height="19" Padding="0"
-                        Tag="{Binding}"
-                        ToolTip="Флажок">
+                <Button x:Name="FlagActionButton" Grid.Row="1" Grid.Column="0"
+                        Width="21" Height="19" Padding="0" Tag="{Binding}" ToolTip="Флажок">
                     <TextBlock FontSize="15">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
@@ -524,22 +513,15 @@ public partial class MainWindow
                     </TextBlock>
                 </Button>
 
-                <Path Grid.Row="2" Grid.Column="0"
-                      Width="15" Height="15"
-                      VerticalAlignment="Center"
-                      HorizontalAlignment="Center"
+                <Path Grid.Row="2" Grid.Column="0" Width="15" Height="15"
+                      VerticalAlignment="Center" HorizontalAlignment="Center"
                       Visibility="{Binding HasAttachment, Converter={StaticResource BoolToVisibility}}"
-                      Stretch="Uniform"
-                      Stroke="{DynamicResource AppMutedTextBrush}"
-                      StrokeThickness="1.5"
-                      StrokeStartLineCap="Round"
-                      StrokeEndLineCap="Round"
+                      Stretch="Uniform" Stroke="{DynamicResource AppMutedTextBrush}"
+                      StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                       Data="M21.44,11.05 L12.25,20.24 C9.91,22.58 6.11,22.58 3.76,20.24 C1.42,17.90 1.42,14.10 3.76,11.75 L12.95,2.56 C14.51,1 17.05,1 18.61,2.56 C20.17,4.12 20.17,6.66 18.61,8.22 L9.41,17.41 C8.63,18.19 7.37,18.19 6.59,17.41 C5.81,16.63 5.81,15.37 6.59,14.59 L15.08,6.10"/>
 
-                <TextBlock Grid.Row="0" Grid.Column="1"
-                           VerticalAlignment="Center"
-                           TextTrimming="CharacterEllipsis"
-                           FontWeight="SemiBold">
+                <TextBlock Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis" FontWeight="SemiBold">
                     <TextBlock.Text>
                         <MultiBinding Converter="{StaticResource SenderLineConverter}">
                             <Binding Path="SenderEmail"/>
@@ -547,13 +529,10 @@ public partial class MainWindow
                         </MultiBinding>
                     </TextBlock.Text>
                 </TextBlock>
-                <TextBlock Grid.Row="1" Grid.Column="1"
-                           VerticalAlignment="Center"
-                           TextTrimming="CharacterEllipsis"
-                           FontWeight="SemiBold"
+                <TextBlock Grid.Row="1" Grid.Column="1" VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis" FontWeight="SemiBold"
                            Text="{Binding Subject}"/>
-                <TextBlock Grid.Row="2" Grid.Column="1"
-                           VerticalAlignment="Center"
+                <TextBlock Grid.Row="2" Grid.Column="1" VerticalAlignment="Center"
                            TextTrimming="CharacterEllipsis"
                            Foreground="{DynamicResource AppMutedTextBrush}"
                            Text="{Binding Snippet, Converter={StaticResource FirstLineConverter}}"/>
@@ -565,18 +544,10 @@ public partial class MainWindow
                     <RowDefinition Height="29"/>
                 </Grid.RowDefinitions>
 
-                <Button x:Name="PinActionButton"
-                        Grid.Row="0"
-                        Width="25" Height="23" Padding="2"
-                        HorizontalAlignment="Right"
-                        Tag="{Binding}"
-                        ToolTip="Закрепить / открепить">
-                    <Path Width="16" Height="18"
-                          Stretch="Uniform"
-                          StrokeThickness="1.45"
-                          StrokeLineJoin="Round"
-                          StrokeStartLineCap="Round"
-                          StrokeEndLineCap="Round"
+                <Button x:Name="PinActionButton" Grid.Row="0" Width="25" Height="23" Padding="2"
+                        HorizontalAlignment="Right" Tag="{Binding}" ToolTip="Закрепить / открепить">
+                    <Path Width="16" Height="18" Stretch="Uniform" StrokeThickness="1.45"
+                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                           Data="M6,2 L18,2 L18,4 L16,6 L16,10 L19,13 L19,15 L13,15 L13,21 L12,24 L11,21 L11,15 L5,15 L5,13 L8,10 L8,6 L6,4 Z">
                         <Path.Style>
                             <Style TargetType="Path">
@@ -593,16 +564,10 @@ public partial class MainWindow
                     </Path>
                 </Button>
 
-                <Button x:Name="ArchiveActionButton"
-                        Grid.Row="1"
-                        Width="25" Height="23" Padding="2"
-                        HorizontalAlignment="Right"
-                        Tag="{Binding}"
-                        ToolTip="В архив">
-                    <Path Width="14" Height="14"
-                          Stretch="Uniform"
-                          Stroke="{DynamicResource AppMutedTextBrush}"
-                          StrokeThickness="1.4"
+                <Button x:Name="ArchiveActionButton" Grid.Row="1" Width="25" Height="23" Padding="2"
+                        HorizontalAlignment="Right" Tag="{Binding}" ToolTip="В архив">
+                    <Path Width="14" Height="14" Stretch="Uniform"
+                          Stroke="{DynamicResource AppMutedTextBrush}" StrokeThickness="1.4"
                           Data="M2,4 L14,4 M3,5 L13,5 L12,14 L4,14 Z M6,8 L10,8"/>
                 </Button>
             </Grid>
