@@ -35,6 +35,7 @@ public static class MailRuEndpointCatalog
         new("messages.send", "POST", "aj-https.mail.ru", "/api/v1/messages/send", EndpointEvidence.VerifiedLocal, "Send message"),
         new("messages.schedule", "POST", "aj-https.mail.ru", "/api/v1/messages/schedule", EndpointEvidence.VerifiedLocal, "Server-side scheduled send"),
         new("attachments.readmsg", "GET", "af.attachmail.ru", "/cgi-bin/readmsg", EndpointEvidence.VerifiedLocal, "Download incoming attachment"),
+        new("images.proxy", "GET", "proxy.imgsmail.ru", "/", EndpointEvidence.ExternalConfirmed, "Signed image proxy URLs observed in live Mail.ru message HTML"),
         new("messages.remove", "POST", "aj-https.mail.ru", "/api/v1/messages/remove", EndpointEvidence.VerifiedLocal, "Permanent message removal"),
         new("messages.search", "GET", "aj-https.mail.ru", "/api/v1/messages/search", EndpointEvidence.VerifiedLocal, "Server-side message search"),
         new("messages.search.new", "GET", "go.mail.ru", "/api/v1/go/search/emails", EndpointEvidence.StaticOfficialClient, "New server-side message search"),
@@ -78,6 +79,7 @@ public sealed record MailRuAuthResult(
     public string? TouchCookieHeader { get; init; }
     public MailRuAuthChallenge? Challenge { get; init; }
     public string? DiagnosticReason { get; init; }
+    public string? DiagnosticDetails { get; init; }
 
     public bool HasMailboxCredential =>
         !string.IsNullOrWhiteSpace(AccessToken);
@@ -86,12 +88,14 @@ public sealed record MailRuAuthResult(
         string code,
         MailRuAuthState state = MailRuAuthState.Unknown,
         string? diagnosticReason = null,
-        MailRuAuthChallenge? challenge = null) =>
+        MailRuAuthChallenge? challenge = null,
+        string? diagnosticDetails = null) =>
         new(false, null, null, code)
         {
             State = state,
             DiagnosticReason = diagnosticReason,
-            Challenge = challenge
+            Challenge = challenge,
+            DiagnosticDetails = diagnosticDetails
         };
 }
 
@@ -178,17 +182,6 @@ public sealed partial class MailRuClient : IDisposable
         var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         var location = response.Headers.Location?.ToString() ?? string.Empty;
 
-        if (LooksLikeCaptcha(payload, location))
-        {
-            return MailRuAuthResult.Failed(
-                "captcha_required",
-                payload.Contains("recaptcha", StringComparison.OrdinalIgnoreCase) ||
-                location.Contains("recaptcha", StringComparison.OrdinalIgnoreCase)
-                    ? MailRuAuthState.ReCaptcha
-                    : MailRuAuthState.Captcha,
-                "aj_mobile_auth_requires_captcha");
-        }
-
         JsonDocument? document = null;
         try
         {
@@ -212,29 +205,66 @@ public sealed partial class MailRuClient : IDisposable
                     ? parsedError!
                     : "token_missing";
 
-            var state = LooksLikeInvalidCredentials(error, payload)
-                ? MailRuAuthState.InvalidCredentials
-                : MailRuAuthState.Unknown;
+            var state = ClassifyAuthState(document.RootElement, error);
+            var challenge = TryBuildAuthChallenge(document.RootElement, state, location);
+            var diagnostic = BuildJsonShapeDiagnostic(document.RootElement);
+
+            var normalizedError = state switch
+            {
+                MailRuAuthState.ReCaptcha => "recaptcha_required",
+                MailRuAuthState.Captcha => "captcha_required",
+                MailRuAuthState.TwoFactor => "two_factor_required",
+                MailRuAuthState.Blocked => "account_blocked",
+                MailRuAuthState.RecoveryRequired => "account_recovery_required",
+                _ => error
+            };
 
             return MailRuAuthResult.Failed(
-                error,
+                normalizedError,
                 state,
-                "aj_mobile_auth_returned_no_access_token");
+                "aj_mobile_auth_returned_no_access_token",
+                challenge,
+                diagnostic);
         }
         catch (JsonException)
         {
+            if (LooksLikeCaptcha(payload, location))
+            {
+                var state =
+                    payload.Contains("recaptcha", StringComparison.OrdinalIgnoreCase) ||
+                    location.Contains("recaptcha", StringComparison.OrdinalIgnoreCase)
+                        ? MailRuAuthState.ReCaptcha
+                        : MailRuAuthState.Captcha;
+
+                return MailRuAuthResult.Failed(
+                    state == MailRuAuthState.ReCaptcha
+                        ? "recaptcha_required"
+                        : "captcha_required",
+                    state,
+                    "aj_mobile_auth_requires_captcha",
+                    BuildRedirectChallenge(state, location),
+                    $"http={(int)response.StatusCode}; response=non-json");
+            }
+
             if ((int)response.StatusCode is >= 300 and < 400)
             {
                 return MailRuAuthResult.Failed(
                     "additional_verification_required",
-                    MailRuAuthState.Captcha,
-                    "aj_mobile_auth_redirected_to_additional_verification");
+                    MailRuAuthState.RecoveryRequired,
+                    "aj_mobile_auth_redirected_to_additional_verification",
+                    challenge: null,
+                    diagnosticDetails:
+                        $"http={(int)response.StatusCode}; location-host={SafeHost(location)}");
             }
 
             return MailRuAuthResult.Failed(
-                response.IsSuccessStatusCode ? "malformed_json" : $"http_{(int)response.StatusCode}",
+                response.IsSuccessStatusCode
+                    ? "malformed_json"
+                    : $"http_{(int)response.StatusCode}",
                 MailRuAuthState.ProtocolError,
-                "aj_mobile_auth_response_not_json");
+                "aj_mobile_auth_response_not_json",
+                diagnosticDetails:
+                    $"http={(int)response.StatusCode}; response=non-json");
         }
         finally
         {
@@ -606,6 +636,282 @@ public sealed partial class MailRuClient : IDisposable
 
     private static bool IsAllowedRuntimeHost(string host) =>
         MailRuEndpointCatalog.IsRuntimeHostAllowed(host);
+
+    private static MailRuAuthState ClassifyAuthState(
+        JsonElement root,
+        string error)
+    {
+        if (LooksLikeInvalidCredentials(error, string.Empty))
+            return MailRuAuthState.InvalidCredentials;
+
+        if (ContainsPropertyFragment(root, "recaptcha"))
+            return MailRuAuthState.ReCaptcha;
+
+        if (ContainsPropertyFragment(root, "captcha"))
+            return MailRuAuthState.Captcha;
+
+        if (ContainsAnyPropertyFragment(root, "two_factor", "twofactor", "2fa", "otp"))
+            return MailRuAuthState.TwoFactor;
+
+        if (ContainsAnyPropertyFragment(root, "blocked", "lockout", "suspended"))
+            return MailRuAuthState.Blocked;
+
+        if (ContainsAnyPropertyFragment(
+                root,
+                "recovery",
+                "verification",
+                "verify",
+                "challenge",
+                "confirmation",
+                "confirm"))
+        {
+            return MailRuAuthState.RecoveryRequired;
+        }
+
+        return MailRuAuthState.Unknown;
+    }
+
+    private static MailRuAuthChallenge? TryBuildAuthChallenge(
+        JsonElement root,
+        MailRuAuthState state,
+        string location)
+    {
+        if (state is not (
+            MailRuAuthState.Captcha or
+            MailRuAuthState.ReCaptcha or
+            MailRuAuthState.TwoFactor))
+        {
+            return null;
+        }
+
+        var kind = state switch
+        {
+            MailRuAuthState.ReCaptcha => MailRuChallengeKind.ReCaptcha,
+            MailRuAuthState.TwoFactor => MailRuChallengeKind.TwoFactor,
+            _ => MailRuChallengeKind.Captcha
+        };
+
+        var sessionId =
+            FindStringByNames(
+                root,
+                "captcha_sid",
+                "session_id",
+                "sessionId",
+                "challenge_id",
+                "challengeId",
+                "sid") ??
+            string.Empty;
+
+        var url =
+            FindSafeMailRuUrlByNames(
+                root,
+                "captcha_url",
+                "captchaUrl",
+                "verification_url",
+                "verificationUrl",
+                "challenge_url",
+                "challengeUrl",
+                "url",
+                "link") ??
+            NormalizeSafeMailRuUrl(location);
+
+        var siteKey = FindStringByNames(
+            root,
+            "sitekey",
+            "site_key",
+            "siteKey",
+            "recaptcha_sitekey",
+            "recaptcha_site_key");
+
+        var image = FindStringByNames(
+            root,
+            "captcha_image_base64",
+            "captchaImageBase64",
+            "image_base64");
+
+        return new MailRuAuthChallenge(
+            kind,
+            sessionId,
+            url,
+            siteKey,
+            image,
+            "interactive_verification_detected");
+    }
+
+    private static MailRuAuthChallenge? BuildRedirectChallenge(
+        MailRuAuthState state,
+        string location)
+    {
+        var url = NormalizeSafeMailRuUrl(location);
+        if (url is null)
+            return null;
+
+        return new MailRuAuthChallenge(
+            state == MailRuAuthState.ReCaptcha
+                ? MailRuChallengeKind.ReCaptcha
+                : MailRuChallengeKind.Captcha,
+            string.Empty,
+            url,
+            null,
+            null,
+            "interactive_verification_redirect");
+    }
+
+    private static string BuildJsonShapeDiagnostic(JsonElement root)
+    {
+        var paths = new List<string>(80);
+        CollectJsonShape(root, "$", paths, 0);
+
+        return paths.Count == 0
+            ? "json-shape: empty"
+            : "json-shape: " + string.Join("; ", paths);
+    }
+
+    private static void CollectJsonShape(
+        JsonElement element,
+        string path,
+        List<string> output,
+        int depth)
+    {
+        if (output.Count >= 80 || depth > 7)
+            return;
+
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                foreach (var property in element.EnumerateObject())
+                {
+                    if (output.Count >= 80)
+                        break;
+
+                    var childPath = path + "." + property.Name;
+                    output.Add(childPath + ":" + JsonKindName(property.Value.ValueKind));
+                    CollectJsonShape(property.Value, childPath, output, depth + 1);
+                }
+                break;
+
+            case JsonValueKind.Array:
+                var index = 0;
+                foreach (var item in element.EnumerateArray())
+                {
+                    if (output.Count >= 80 || index >= 3)
+                        break;
+
+                    CollectJsonShape(item, path + "[]", output, depth + 1);
+                    index++;
+                }
+                break;
+        }
+    }
+
+    private static string JsonKindName(JsonValueKind kind) => kind switch
+    {
+        JsonValueKind.Object => "object",
+        JsonValueKind.Array => "array",
+        JsonValueKind.String => "string",
+        JsonValueKind.Number => "number",
+        JsonValueKind.True or JsonValueKind.False => "boolean",
+        JsonValueKind.Null => "null",
+        _ => "other"
+    };
+
+    private static bool ContainsAnyPropertyFragment(
+        JsonElement root,
+        params string[] fragments) =>
+        fragments.Any(fragment => ContainsPropertyFragment(root, fragment));
+
+    private static bool ContainsPropertyFragment(
+        JsonElement element,
+        string fragment)
+    {
+        if (element.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var property in element.EnumerateObject())
+            {
+                if (property.Name.Contains(fragment, StringComparison.OrdinalIgnoreCase) ||
+                    ContainsPropertyFragment(property.Value, fragment))
+                {
+                    return true;
+                }
+            }
+        }
+        else if (element.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in element.EnumerateArray())
+            {
+                if (ContainsPropertyFragment(item, fragment))
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static string? FindStringByNames(
+        JsonElement root,
+        params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (TryFindString(root, name, out var value) &&
+                !string.IsNullOrWhiteSpace(value))
+            {
+                return value;
+            }
+        }
+
+        return null;
+    }
+
+    private static string? FindSafeMailRuUrlByNames(
+        JsonElement root,
+        params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (!TryFindString(root, name, out var value) ||
+                string.IsNullOrWhiteSpace(value))
+            {
+                continue;
+            }
+
+            var safe = NormalizeSafeMailRuUrl(value);
+            if (safe is not null)
+                return safe;
+        }
+
+        return null;
+    }
+
+    private static string? NormalizeSafeMailRuUrl(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value) ||
+            !Uri.TryCreate(value, UriKind.Absolute, out var uri) ||
+            uri.Scheme != Uri.UriSchemeHttps)
+        {
+            return null;
+        }
+
+        var host = uri.Host;
+        if (host.Equals("mail.ru", StringComparison.OrdinalIgnoreCase) ||
+            host.EndsWith(".mail.ru", StringComparison.OrdinalIgnoreCase))
+        {
+            return uri.ToString();
+        }
+
+        return null;
+    }
+
+    private static string SafeHost(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value) ||
+            !Uri.TryCreate(value, UriKind.Absolute, out var uri))
+        {
+            return "none";
+        }
+
+        return uri.Host;
+    }
 
     private static bool LooksLikeCaptcha(string payload, string location) =>
         payload.Contains("captcha", StringComparison.OrdinalIgnoreCase) ||

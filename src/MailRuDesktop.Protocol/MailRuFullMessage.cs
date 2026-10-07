@@ -264,12 +264,18 @@ public static class MailRuFullMessageParser
                 {
                     var key = $"{id}\n{name}\n{download}";
                     if (seen.Add(key))
+                    {
                         result.Add(new MailRuIncomingAttachment(
                             id,
                             name,
                             contentType,
                             download ?? string.Empty,
                             size));
+
+                        // Do not recursively treat MIME/service metadata nested inside
+                        // an already-recognized attachment as additional user files.
+                        return;
+                    }
                 }
             }
 
