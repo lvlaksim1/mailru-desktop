@@ -80,6 +80,49 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="CompactContextMenuItemStyle" TargetType="{x:Type MenuItem}">
+            <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Padding" Value="12,7"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type MenuItem}">
+                        <Border x:Name="MenuItemRoot"
+                                MinWidth="150"
+                                Padding="{TemplateBinding Padding}"
+                                CornerRadius="4"
+                                Background="{TemplateBinding Background}">
+                            <ContentPresenter ContentSource="Header"
+                                              RecognizesAccessKey="True"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="MenuItemRoot"
+                                        Property="Background"
+                                        Value="{DynamicResource AppControlHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground"
+                                        Value="{DynamicResource AppDisabledTextBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="CompactContextMenuStyle" TargetType="{x:Type ContextMenu}">
+            <Setter Property="Background" Value="{DynamicResource AppPanelBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="ItemContainerStyle"
+                    Value="{StaticResource CompactContextMenuItemStyle}"/>
+        </Style>
     </Window.Resources>
 
     <Grid>
@@ -107,13 +150,9 @@
 
                 <StackPanel Grid.Row="0">
                     <TextBlock Text="MailRu Desktop" Margin="4,2,4,12" FontSize="20" FontWeight="SemiBold"/>
-                    <Button Padding="14,11"
+                    <Button Style="{StaticResource NavButtonStyle}"
                             Margin="0,0,0,10"
-                            HorizontalContentAlignment="Left"
                             FontWeight="SemiBold"
-                            Background="{DynamicResource AppAccentBrush}"
-                            Foreground="{DynamicResource AppAccentTextBrush}"
-                            BorderThickness="0"
                             Click="ShowComposeButton_Click"
                             Content="✎  Новое письмо"/>
                 </StackPanel>
@@ -421,16 +460,16 @@
 
                         <WrapPanel Grid.Row="0" Margin="0,0,0,10">
                             <Button x:Name="PreviewReplyButton" Padding="10,6" Margin="0,0,6,4" Click="PreviewReplyButton_Click" Content="Ответить"/>
+                            <Button x:Name="PreviewArchiveButton" Padding="10,6" Margin="0,0,6,4" Click="PreviewArchiveButton_Click" Content="В архив"/>
+                            <Button x:Name="TrashMessageButton" Padding="10,6" Margin="0,0,6,4" Click="TrashMessageButton_Click" Content="В корзину"/>
                             <Button x:Name="PreviewForwardButton" Padding="10,6" Margin="0,0,6,4" Click="PreviewForwardButton_Click" Content="Переслать"/>
-                            <Button x:Name="PreviewArchiveButton" Padding="10,6" Margin="0,0,10,4" Click="PreviewArchiveButton_Click" Content="В архив"/>
+                            <Button x:Name="MoveMessageButton" Padding="10,6" Margin="0,0,6,4" Click="MoveMessageButton_Click" Content="Переместить в"/>
                             <ComboBox x:Name="MoveFolderComboBox"
                                       Width="165"
                                       Margin="0,0,6,4"
                                       DisplayMemberPath="Name"
                                       TextSearch.TextPath="Name"
                                       ToolTip="Папка назначения"/>
-                            <Button x:Name="MoveMessageButton" Padding="10,6" Margin="0,0,6,4" Click="MoveMessageButton_Click" Content="Переместить"/>
-                            <Button x:Name="TrashMessageButton" Padding="10,6" Margin="0,0,6,4" Click="TrashMessageButton_Click" Content="В корзину"/>
                         </WrapPanel>
 
                         <StackPanel Grid.Row="1" Margin="2,0,2,10">
@@ -741,7 +780,8 @@
                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                          ScrollViewer.VerticalScrollBarVisibility="Auto"
                          ItemContainerStyle="{StaticResource RoundAccountItemStyle}"
-                         SelectionChanged="AccountRailListBox_SelectionChanged">
+                         SelectionChanged="AccountRailListBox_SelectionChanged"
+                         PreviewMouseRightButtonDown="AccountRailListBox_PreviewMouseRightButtonDown">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <Grid ToolTip="{Binding ToolTipText}">

@@ -1273,9 +1273,12 @@ public partial class MainWindow : Window
         }
 
         if (_currentFolderId == 500002)
-            await DeleteSelectedPermanentlyAsync(message);
-        else
-            await MoveMessagesAsync([message.Id], 500002, "Перемещение в корзину");
+        {
+            FolderStatusText.Text = "Письмо уже находится в Корзине.";
+            return;
+        }
+
+        await MoveMessagesAsync([message.Id], 500002, "Перемещение в корзину");
     }
 
     private async Task MoveMessagesAsync(
@@ -1371,8 +1374,8 @@ public partial class MainWindow : Window
 
     private void UpdateTrashButtonMode()
     {
-        TrashMessageButton.Content =
-            _currentFolderId == 500002 ? "Удалить навсегда" : "В корзину";
+        TrashMessageButton.Content = "В корзину";
+        TrashMessageButton.IsEnabled = _currentFolderId != 500002;
     }
 
     private void ClearSelectedMessage()
@@ -1854,7 +1857,7 @@ public partial class MainWindow : Window
 
         var document =
             "<!doctype html><html><head><meta charset=\"utf-8\">" +
-            "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; img-src data:; style-src 'unsafe-inline';\">" +
+            "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; img-src data: https: http:; style-src 'unsafe-inline';\">" +
             "<style>" +
             $"html, body {{ background-color: {background} !important; color: {foreground} !important; }}" +
             "body { font-family: Segoe UI, Arial, sans-serif; font-size: 14px; margin: 14px; overflow-wrap: anywhere; }" +

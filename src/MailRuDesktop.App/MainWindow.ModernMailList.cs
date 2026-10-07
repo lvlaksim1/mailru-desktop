@@ -16,7 +16,6 @@ public partial class MainWindow
 {
     private bool _modernMailListConfigured;
     private DependencyPropertyDescriptor? _modernMailItemsSourceDescriptor;
-    private Button? _markSelectedUnreadButton;
 
     private void ConfigureModernMailList()
     {
@@ -50,11 +49,9 @@ public partial class MainWindow
             MessagesGrid.PreviewMouseRightButtonDown += ModernMailList_PreviewMouseRightButtonDown;
             Closed += ModernMailListClosed;
 
-            AddMarkSelectedUnreadButton();
         }
 
         RefreshModernMailListView();
-        UpdateMarkSelectedUnreadButton();
     }
 
     private void ModernMailListClosed(object? sender, EventArgs e)
@@ -290,19 +287,14 @@ public partial class MainWindow
             return;
         }
 
-        var menu = new ContextMenu();
+        var menu = CreateCompactContextMenu();
 
-        var pinItem = new MenuItem
-        {
-            Header = message.Pinned ? "Открепить" : "Закрепить"
-        };
+        var pinItem = CreateCompactMenuItem(
+            message.Pinned ? "Открепить" : "Закрепить");
         pinItem.Click += async (_, _) => await SetPinnedFromContextAsync(message);
         menu.Items.Add(pinItem);
 
-        var archiveItem = new MenuItem
-        {
-            Header = "Добавить в архив"
-        };
+        var archiveItem = CreateCompactMenuItem("Добавить в архив");
         archiveItem.Click += async (_, _) =>
         {
             var folders = (FolderListBox.ItemsSource as IEnumerable<MailRuFolderSummary>)?.ToArray()
@@ -319,12 +311,7 @@ public partial class MainWindow
         };
         menu.Items.Add(archiveItem);
 
-        menu.Items.Add(new Separator());
-
-        var deleteItem = new MenuItem
-        {
-            Header = "Удалить"
-        };
+        var deleteItem = CreateCompactMenuItem("Удалить");
         deleteItem.Click += async (_, _) =>
         {
             if ((message.FolderId ?? _currentFolderId) == 500002)
@@ -446,50 +433,8 @@ public partial class MainWindow
         }
     }
 
-    private void ModernMailListSelectionChanged(object sender, SelectionChangedEventArgs e) =>
-        UpdateMarkSelectedUnreadButton();
-
-    private void AddMarkSelectedUnreadButton()
+    private void ModernMailListSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (_markSelectedUnreadButton is not null ||
-            PreviewReplyButton.Parent is not Panel panel)
-        {
-            return;
-        }
-
-        _markSelectedUnreadButton = new Button
-        {
-            Content = "Не прочитано",
-            Padding = new Thickness(10, 6, 10, 6),
-            Margin = new Thickness(0, 0, 6, 4),
-            ToolTip = "Пометить выделенное письмо непрочитанным"
-        };
-        _markSelectedUnreadButton.Click += MarkSelectedUnreadButton_Click;
-
-        var forwardIndex = panel.Children.IndexOf(PreviewForwardButton);
-        panel.Children.Insert(
-            forwardIndex >= 0 ? forwardIndex + 1 : panel.Children.Count,
-            _markSelectedUnreadButton);
-    }
-
-    private async void MarkSelectedUnreadButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message ||
-            message.Unread)
-        {
-            return;
-        }
-
-        await SetUnreadPreservingSelectionAsync(message, true);
-    }
-
-    private void UpdateMarkSelectedUnreadButton()
-    {
-        if (_markSelectedUnreadButton is null)
-            return;
-
-        _markSelectedUnreadButton.IsEnabled =
-            MessagesGrid.SelectedItem is MailRuMessageSummary { Unread: false };
     }
 
     private async Task SetUnreadPreservingSelectionAsync(
@@ -528,7 +473,6 @@ public partial class MainWindow
                 ? "Письмо помечено непрочитанным."
                 : "Письмо помечено прочитанным.";
 
-            UpdateMarkSelectedUnreadButton();
         }
         catch (Exception ex)
         {
@@ -595,13 +539,26 @@ public partial class MainWindow
     <DataTemplate x:Key="ModernMailRowTemplate">
         <Grid Height="42">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="58"/>
-                <ColumnDefinition Width="28"/>
-                <ColumnDefinition Width="26"/>
-                <ColumnDefinition Width="32"/>
-                <ColumnDefinition Width="28"/>
-                <ColumnDefinition Width="1.15*"/>
-                <ColumnDefinition Width="2.15*"/>
+                <ColumnDefinition MinWidth="44"
+                                  Width="{Binding Time, Source={x:Static local:MailColumnLayout.Instance}, Mode=TwoWay}"/>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition MinWidth="24"
+                                  Width="{Binding Flag, Source={x:Static local:MailColumnLayout.Instance}, Mode=TwoWay}"/>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition MinWidth="24"
+                                  Width="{Binding Unread, Source={x:Static local:MailColumnLayout.Instance}, Mode=TwoWay}"/>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition MinWidth="26"
+                                  Width="{Binding ThreadCount, Source={x:Static local:MailColumnLayout.Instance}, Mode=TwoWay}"/>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition MinWidth="24"
+                                  Width="{Binding Attachment, Source={x:Static local:MailColumnLayout.Instance}, Mode=TwoWay}"/>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition MinWidth="90"
+                                  Width="{Binding Sender, Source={x:Static local:MailColumnLayout.Instance}, Mode=TwoWay}"/>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition MinWidth="140"
+                                  Width="{Binding Subject, Source={x:Static local:MailColumnLayout.Instance}, Mode=TwoWay}"/>
             </Grid.ColumnDefinitions>
 
             <TextBlock Grid.Column="0"
@@ -611,8 +568,17 @@ public partial class MainWindow
                        Foreground="{DynamicResource AppMutedTextBrush}"
                        Text="{Binding DateUnix, Converter={StaticResource MailTimeConverter}}"/>
 
+            <GridSplitter Grid.Column="1"
+                          Width="4"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          Background="Transparent"
+                          Cursor="SizeWE"
+                          ResizeDirection="Columns"
+                          ResizeBehavior="PreviousAndNext"/>
+
             <Button x:Name="FlagActionButton"
-                    Grid.Column="1"
+                    Grid.Column="2"
                     Tag="{Binding}"
                     Width="26"
                     Height="40"
@@ -637,8 +603,17 @@ public partial class MainWindow
                 </TextBlock>
             </Button>
 
+            <GridSplitter Grid.Column="3"
+                          Width="4"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          Background="Transparent"
+                          Cursor="SizeWE"
+                          ResizeDirection="Columns"
+                          ResizeBehavior="PreviousAndNext"/>
+
             <Button x:Name="ModernUnreadActionButton"
-                    Grid.Column="2"
+                    Grid.Column="4"
                     Tag="{Binding}"
                     Width="24"
                     Height="40"
@@ -668,7 +643,16 @@ public partial class MainWindow
                 </Ellipse>
             </Button>
 
-            <Border Grid.Column="3"
+            <GridSplitter Grid.Column="5"
+                          Width="4"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          Background="Transparent"
+                          Cursor="SizeWE"
+                          ResizeDirection="Columns"
+                          ResizeBehavior="PreviousAndNext"/>
+
+            <Border Grid.Column="6"
                     MinWidth="22"
                     Height="22"
                     Margin="4,0"
@@ -684,7 +668,16 @@ public partial class MainWindow
                            Text="{Binding Id, Converter={StaticResource ThreadCountConverter}}"/>
             </Border>
 
-            <Path Grid.Column="4"
+            <GridSplitter Grid.Column="7"
+                          Width="4"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          Background="Transparent"
+                          Cursor="SizeWE"
+                          ResizeDirection="Columns"
+                          ResizeBehavior="PreviousAndNext"/>
+
+            <Path Grid.Column="8"
                   Width="14"
                   Height="14"
                   VerticalAlignment="Center"
@@ -697,13 +690,31 @@ public partial class MainWindow
                   StrokeEndLineCap="Round"
                   Data="M21.44,11.05 L12.25,20.24 C9.91,22.58 6.11,22.58 3.76,20.24 C1.42,17.90 1.42,14.10 3.76,11.75 L12.95,2.56 C14.51,1 17.05,1 18.61,2.56 C20.17,4.12 20.17,6.66 18.61,8.22 L9.41,17.41 C8.63,18.19 7.37,18.19 6.59,17.41 C5.81,16.63 5.81,15.37 6.59,14.59 L15.08,6.10"/>
 
-            <TextBlock Grid.Column="5"
+            <GridSplitter Grid.Column="9"
+                          Width="4"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          Background="Transparent"
+                          Cursor="SizeWE"
+                          ResizeDirection="Columns"
+                          ResizeBehavior="PreviousAndNext"/>
+
+            <TextBlock Grid.Column="10"
                        Margin="5,0,8,0"
                        VerticalAlignment="Center"
                        TextTrimming="CharacterEllipsis"
                        Text="{Binding SenderDisplay}"/>
 
-            <TextBlock Grid.Column="6"
+            <GridSplitter Grid.Column="11"
+                          Width="4"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          Background="Transparent"
+                          Cursor="SizeWE"
+                          ResizeDirection="Columns"
+                          ResizeBehavior="PreviousAndNext"/>
+
+            <TextBlock Grid.Column="12"
                        Margin="7,0,8,0"
                        VerticalAlignment="Center"
                        TextTrimming="CharacterEllipsis">
