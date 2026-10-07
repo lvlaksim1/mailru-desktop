@@ -252,7 +252,10 @@ public sealed partial class MailRuClient : IDisposable
 
             if (!string.IsNullOrWhiteSpace(continueValue))
             {
-                if (state == MailRuAuthState.Unknown)
+                var continueState = ClassifyContinueValue(continueValue);
+                if (continueState != MailRuAuthState.Unknown)
+                    state = continueState;
+                else if (state == MailRuAuthState.Unknown)
                     state = MailRuAuthState.RecoveryRequired;
 
                 challenge = BuildContinueChallenge(
@@ -702,6 +705,28 @@ public sealed partial class MailRuClient : IDisposable
 
     private static bool IsAllowedRuntimeHost(string host) =>
         MailRuEndpointCatalog.IsRuntimeHostAllowed(host);
+
+    private static MailRuAuthState ClassifyContinueValue(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return MailRuAuthState.Unknown;
+
+        if (value.Contains("recaptcha", StringComparison.OrdinalIgnoreCase))
+            return MailRuAuthState.ReCaptcha;
+
+        if (value.Contains("captcha", StringComparison.OrdinalIgnoreCase))
+            return MailRuAuthState.Captcha;
+
+        if (value.Contains("2fa", StringComparison.OrdinalIgnoreCase) ||
+            value.Contains("twofactor", StringComparison.OrdinalIgnoreCase) ||
+            value.Contains("two_factor", StringComparison.OrdinalIgnoreCase) ||
+            value.Contains("otp", StringComparison.OrdinalIgnoreCase))
+        {
+            return MailRuAuthState.TwoFactor;
+        }
+
+        return MailRuAuthState.Unknown;
+    }
 
     private static MailRuAuthState ClassifyAuthStatusValue(string? status)
     {
