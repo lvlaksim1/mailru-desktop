@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Threading;
 using MailRuDesktop.Protocol;
@@ -46,6 +47,7 @@ public partial class MainWindow
                 new RoutedEventHandler(ModernMailListButton_Click),
                 handledEventsToo: true);
             MessagesGrid.SelectionChanged += ModernMailListSelectionChanged;
+            MessagesGrid.PreviewMouseRightButtonDown += ModernMailList_PreviewMouseRightButtonDown;
             Closed += ModernMailListClosed;
 
             AddMarkSelectedUnreadButton();
@@ -61,6 +63,7 @@ public partial class MainWindow
             MessagesGrid,
             ModernMailItemsSourceChanged);
         MessagesGrid.SelectionChanged -= ModernMailListSelectionChanged;
+        MessagesGrid.PreviewMouseRightButtonDown -= ModernMailList_PreviewMouseRightButtonDown;
         Closed -= ModernMailListClosed;
     }
 
@@ -88,9 +91,7 @@ public partial class MainWindow
             if (view.CanGroup)
             {
                 view.GroupDescriptions.Clear();
-                view.GroupDescriptions.Add(new PropertyGroupDescription(
-                    nameof(MailRuMessageSummary.DateUnix),
-                    new MailDateGroupConverter()));
+                view.GroupDescriptions.Add(new MailSectionGroupDescription());
             }
 
             if (view is ListCollectionView listView)
@@ -276,6 +277,154 @@ public partial class MainWindow
 
         if (!string.IsNullOrWhiteSpace(id))
             ids.Add(id);
+    }
+
+    private void ModernMailList_PreviewMouseRightButtonDown(
+        object sender,
+        MouseButtonEventArgs e)
+    {
+        if (e.OriginalSource is not DependencyObject source ||
+            ItemsControl.ContainerFromElement(MessagesGrid, source) is not ListBoxItem item ||
+            item.DataContext is not MailRuMessageSummary message)
+        {
+            return;
+        }
+
+        var menu = new ContextMenu();
+
+        var pinItem = new MenuItem
+        {
+            Header = message.Pinned ? "Открепить" : "Закрепить"
+        };
+        pinItem.Click += async (_, _) => await SetPinnedFromContextAsync(message);
+        menu.Items.Add(pinItem);
+
+        var archiveItem = new MenuItem
+        {
+            Header = "Добавить в архив"
+        };
+        archiveItem.Click += async (_, _) =>
+        {
+            var folders = (FolderListBox.ItemsSource as IEnumerable<MailRuFolderSummary>)?.ToArray()
+                ?? Array.Empty<MailRuFolderSummary>();
+            var archive = folders.FirstOrDefault(folder =>
+                folder.Type.Equals("archive", StringComparison.OrdinalIgnoreCase) ||
+                folder.Name.Equals("Архив", StringComparison.CurrentCultureIgnoreCase) ||
+                folder.Id == 500010);
+
+            await MoveMessageFromContextAsync(
+                message,
+                archive?.Id ?? 500010,
+                "Письмо перемещено в архив.");
+        };
+        menu.Items.Add(archiveItem);
+
+        menu.Items.Add(new Separator());
+
+        var deleteItem = new MenuItem
+        {
+            Header = "Удалить"
+        };
+        deleteItem.Click += async (_, _) =>
+        {
+            if ((message.FolderId ?? _currentFolderId) == 500002)
+            {
+                FolderStatusText.Text = "Письмо уже находится в Корзине.";
+                return;
+            }
+
+            await MoveMessageFromContextAsync(
+                message,
+                500002,
+                "Письмо перемещено в Корзину.");
+        };
+        menu.Items.Add(deleteItem);
+
+        item.ContextMenu = menu;
+        menu.PlacementTarget = item;
+        menu.IsOpen = true;
+        e.Handled = true;
+    }
+
+    private async Task SetPinnedFromContextAsync(MailRuMessageSummary message)
+    {
+        if (string.IsNullOrWhiteSpace(_accessToken))
+            return;
+
+        try
+        {
+            var makePinned = !message.Pinned;
+            var result = await _mailRu.SetPinnedAsync(
+                _accessToken,
+                _activeLogin ?? string.Empty,
+                message.Id,
+                message.FolderId ?? _currentFolderId,
+                makePinned);
+
+            ResponseTextBox.Text = result.RawResponse;
+            if (!result.Success)
+            {
+                FolderStatusText.Text = "Mail.ru отклонил изменение закрепления.";
+                return;
+            }
+
+            ReplaceMessage(message, message with { Pinned = makePinned });
+            FolderStatusText.Text = makePinned
+                ? "Письмо закреплено."
+                : "Письмо откреплено.";
+        }
+        catch (Exception ex)
+        {
+            FolderStatusText.Text = "Ошибка изменения закрепления.";
+            DiagnosticLog.Write(
+                "message_pin_context",
+                ex.GetType().Name + ": " + ex.Message);
+        }
+    }
+
+    private async Task MoveMessageFromContextAsync(
+        MailRuMessageSummary message,
+        int destinationFolderId,
+        string successText)
+    {
+        if (string.IsNullOrWhiteSpace(_accessToken))
+            return;
+
+        var selectedId = (MessagesGrid.SelectedItem as MailRuMessageSummary)?.Id;
+
+        try
+        {
+            var result = await _mailRu.MoveMessagesAsync(
+                _accessToken,
+                new[] { message.Id },
+                destinationFolderId);
+
+            ResponseTextBox.Text = result.RawResponse;
+            if (!result.Success)
+            {
+                FolderStatusText.Text = "Mail.ru отклонил перемещение.";
+                return;
+            }
+
+            if (_currentFolderId == 0 && message.Unread)
+                AdjustActiveInboxUnread(-1);
+
+            _currentMessages.RemoveAll(item =>
+                string.Equals(item.Id, message.Id, StringComparison.Ordinal));
+            ApplyFilters();
+
+            if (string.Equals(selectedId, message.Id, StringComparison.Ordinal))
+                ClearSelectedMessage();
+
+            FolderStatusText.Text = successText;
+        }
+        catch (Exception ex)
+        {
+            FolderStatusText.Text = "Ошибка перемещения письма.";
+            DiagnosticLog.Write(
+                "message_context_move",
+                ex.GetType().Name + ": " + ex.Message);
+        }
     }
 
     private async void ModernMailListButton_Click(object sender, RoutedEventArgs e)
@@ -610,6 +759,29 @@ public sealed class MailDateGroupConverter : IValueConverter
         Binding.DoNothing;
 }
 
+public sealed class MailSectionGroupDescription : GroupDescription
+{
+    private static readonly MailDateGroupConverter DateConverter = new();
+
+    public override object GroupNameFromItem(
+        object item,
+        int level,
+        CultureInfo culture)
+    {
+        if (item is not MailRuMessageSummary message)
+            return "Без даты";
+
+        if (message.Pinned)
+            return "Закреплённые";
+
+        return DateConverter.Convert(
+            message.DateUnix ?? 0L,
+            typeof(string),
+            parameter: null!,
+            culture);
+    }
+}
+
 public sealed class ThreadCountConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -672,16 +844,19 @@ internal sealed class MailDateThenPinnedComparer : IComparer
         if (y is not MailRuMessageSummary right)
             return -1;
 
+        var pinnedCompare = right.Pinned.CompareTo(left.Pinned);
+        if (pinnedCompare != 0)
+            return pinnedCompare;
+
+        if (left.Pinned && right.Pinned)
+            return Nullable.Compare(right.DateUnix, left.DateUnix);
+
         var leftDate = LocalDate(left.DateUnix);
         var rightDate = LocalDate(right.DateUnix);
 
         var dateGroupCompare = Nullable.Compare(rightDate, leftDate);
         if (dateGroupCompare != 0)
             return dateGroupCompare;
-
-        var pinnedCompare = right.Pinned.CompareTo(left.Pinned);
-        if (pinnedCompare != 0)
-            return pinnedCompare;
 
         return Nullable.Compare(right.DateUnix, left.DateUnix);
     }
