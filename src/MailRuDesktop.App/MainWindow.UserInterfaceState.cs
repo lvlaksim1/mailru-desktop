@@ -11,13 +11,13 @@ public partial class MainWindow
         RestoreWindowBounds(state);
 
         NavigationPaneColumn.Width = new GridLength(
-            ClampFinite(state.NavigationPaneWidth, 160, 520, 230));
+            ClampFinite(state.NavigationPaneWidth, 80, 900, 230));
         AccountPaneColumn.Width = new GridLength(
-            ClampFinite(state.AccountPaneWidth, 140, 520, 220));
+            ClampFinite(state.AccountPaneWidth, 140, 360, 220));
         MailListPaneColumn.Width = new GridLength(
-            ClampFinite(state.MailListPaneWidth, 260, 1200, 455));
+            ClampFinite(state.MailListPaneWidth, 120, 1600, 455));
         ContactsListPaneColumn.Width = new GridLength(
-            ClampFinite(state.ContactsListPaneWidth, 220, 900, 390));
+            ClampFinite(state.ContactsListPaneWidth, 120, 1200, 390));
 
         FolderManageExpander.IsExpanded = state.FolderManageExpanded;
 
@@ -41,7 +41,7 @@ public partial class MainWindow
     {
         try
         {
-            var bounds = WindowState == WindowState.Normal
+            var bounds = WindowState == System.Windows.WindowState.Normal
                 ? new Rect(Left, Top, ActualWidth, ActualHeight)
                 : RestoreBounds;
 
@@ -53,12 +53,12 @@ public partial class MainWindow
                 WindowTop = IsFinite(bounds.Top) ? bounds.Top : null,
                 WindowWidth = IsFinite(bounds.Width) ? bounds.Width : null,
                 WindowHeight = IsFinite(bounds.Height) ? bounds.Height : null,
-                WindowMaximized = WindowState == WindowState.Maximized,
+                WindowMaximized = WindowState == System.Windows.WindowState.Maximized,
 
-                NavigationPaneWidth = NavigationPaneColumn.ActualWidth,
-                AccountPaneWidth = AccountPaneColumn.ActualWidth,
-                MailListPaneWidth = MailListPaneColumn.ActualWidth,
-                ContactsListPaneWidth = ContactsListPaneColumn.ActualWidth,
+                NavigationPaneWidth = NavigationPaneColumn.Width.Value,
+                AccountPaneWidth = AccountPaneColumn.Width.Value,
+                MailListPaneWidth = MailListPaneColumn.Width.Value,
+                ContactsListPaneWidth = ContactsListPaneColumn.Width.Value,
 
                 FolderManageExpanded = FolderManageExpander.IsExpanded,
 
@@ -129,7 +129,7 @@ public partial class MainWindow
         WindowStartupLocation = WindowStartupLocation.Manual;
 
         if (state.WindowMaximized)
-            WindowState = WindowState.Maximized;
+            WindowState = System.Windows.WindowState.Maximized;
     }
 
     private static GridLength RestoreGridLength(
