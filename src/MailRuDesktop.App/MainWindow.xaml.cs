@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Net;
@@ -18,6 +19,7 @@ public partial class MainWindow : Window
     private readonly AuthorizationStore _authStore = new();
     private readonly AppSettingsStore _settingsStore = new();
     private readonly List<string> _attachmentPaths = [];
+    private readonly ObservableCollection<MailRuMessageSummary> _visibleMessages = [];
     private List<MailRuMessageSummary> _currentMessages = [];
 
     private string? _accessToken;
@@ -36,12 +38,15 @@ public partial class MainWindow : Window
     private bool _updatingAccountRail;
     private long _accountSwitchGeneration;
     private readonly SemaphoreSlim _accountSwitchGate = new(1, 1);
+    private bool _suppressMessageSelectionChanged;
 
     public MainWindow()
     {
         InitializeComponent();
 
         ThemeManager.Apply(_settingsStore.LoadTheme());
+        MessagesGrid.ItemsSource = _visibleMessages;
+        ConfigureModernMailList();
         SelectThemeComboBox(ThemeManager.CurrentMode);
         ThemeManager.ThemeChanged += ThemeManager_ThemeChanged;
 
@@ -556,7 +561,16 @@ public partial class MainWindow : Window
         _loadingFolder = true;
         RefreshFolderButton.IsEnabled = false;
         FolderStatusText.Text = "Загрузка...";
-        MessagesGrid.ItemsSource = null;
+        _suppressMessageSelectionChanged = true;
+        try
+        {
+            MessagesGrid.SelectedItem = null;
+            _visibleMessages.Clear();
+        }
+        finally
+        {
+            _suppressMessageSelectionChanged = false;
+        }
         ClearSelectedMessage();
 
         try
@@ -568,6 +582,7 @@ public partial class MainWindow : Window
                 return;
 
             ResponseTextBox.Text = raw;
+            RefreshThreadCountIndex();
             var snapshot = MailRuThreadStatusParser.Parse(raw, folderId);
 
             _currentFolderId = snapshot.SelectedFolderId ?? folderId;
@@ -607,9 +622,7 @@ public partial class MainWindow : Window
                     snapshot.MessagesUnread ?? 0,
                     $"Непрочитанных: {snapshot.MessagesUnread ?? 0}");
 
-            if (_currentMessages.Count > 0)
-                MessagesGrid.SelectedIndex = 0;
-            else
+            if (_currentMessages.Count == 0)
                 SelectedSubjectText.Text = "В папке нет распознанных писем";
 
             if (!string.IsNullOrWhiteSpace(_activeLogin))
@@ -667,6 +680,9 @@ public partial class MainWindow : Window
 
     private async void MessagesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (_suppressMessageSelectionChanged)
+            return;
+
         if (MessagesGrid.SelectedItem is not MailRuMessageSummary message)
         {
             ClearSelectedMessage();
@@ -957,17 +973,38 @@ public partial class MainWindow : Window
     private void ReplaceMessage(MailRuMessageSummary original, MailRuMessageSummary updated)
     {
         var selectedId = (MessagesGrid.SelectedItem as MailRuMessageSummary)?.Id;
-        var index = _currentMessages.FindIndex(item => item.Id == original.Id);
-        if (index >= 0)
-            _currentMessages[index] = updated;
 
-        ApplyFilters();
+        var currentIndex = _currentMessages.FindIndex(item => item.Id == original.Id);
+        if (currentIndex >= 0)
+            _currentMessages[currentIndex] = updated;
 
-        if (!string.IsNullOrWhiteSpace(selectedId))
-            MessagesGrid.SelectedItem = (MessagesGrid.ItemsSource as IEnumerable<MailRuMessageSummary>)?
-                .FirstOrDefault(item => item.Id == selectedId);
+        var visibleIndex = -1;
+        for (var i = 0; i < _visibleMessages.Count; i++)
+        {
+            if (string.Equals(_visibleMessages[i].Id, original.Id, StringComparison.Ordinal))
+            {
+                visibleIndex = i;
+                break;
+            }
+        }
 
-        if (selectedId == updated.Id)
+        _suppressMessageSelectionChanged = true;
+        try
+        {
+            if (visibleIndex >= 0)
+                _visibleMessages[visibleIndex] = updated;
+
+            MessagesGrid.Items.Refresh();
+
+            if (string.Equals(selectedId, updated.Id, StringComparison.Ordinal))
+                MessagesGrid.SelectedItem = updated;
+        }
+        finally
+        {
+            _suppressMessageSelectionChanged = false;
+        }
+
+        if (string.Equals(selectedId, updated.Id, StringComparison.Ordinal))
             DisplaySummary(updated);
     }
 
@@ -1005,14 +1042,12 @@ public partial class MainWindow : Window
 
             _currentMessages = result.Messages.ToList();
             _serverSearchMode = true;
-            MessagesGrid.ItemsSource = _currentMessages;
+            ApplyFilters();
             ResponseTextBox.Text = result.RawResponse;
             FilterStatusText.Text =
                 $"Серверный поиск: найдено {result.Found}, показано {_currentMessages.Count} · {result.Source}";
 
-            if (_currentMessages.Count > 0)
-                MessagesGrid.SelectedIndex = 0;
-            else
+            if (_currentMessages.Count == 0)
                 ClearSelectedMessage();
         }
         catch (Exception ex)
@@ -1101,7 +1136,29 @@ public partial class MainWindow : Window
         }
 
         var list = filtered.ToList();
-        MessagesGrid.ItemsSource = list;
+        var selectedId = (MessagesGrid.SelectedItem as MailRuMessageSummary)?.Id;
+
+        _suppressMessageSelectionChanged = true;
+        try
+        {
+            _visibleMessages.Clear();
+            foreach (var message in list)
+                _visibleMessages.Add(message);
+
+            if (!string.IsNullOrWhiteSpace(selectedId))
+            {
+                MessagesGrid.SelectedItem = _visibleMessages.FirstOrDefault(item =>
+                    string.Equals(item.Id, selectedId, StringComparison.Ordinal));
+            }
+        }
+        finally
+        {
+            _suppressMessageSelectionChanged = false;
+        }
+
+        if (!string.IsNullOrWhiteSpace(selectedId) && MessagesGrid.SelectedItem is null)
+            ClearSelectedMessage();
+
         FilterStatusText.Text = list.Count == _currentMessages.Count
             ? string.Empty
             : $"Показано по фильтру: {list.Count} из {_currentMessages.Count}";
