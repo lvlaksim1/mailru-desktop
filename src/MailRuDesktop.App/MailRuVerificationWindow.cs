@@ -25,6 +25,7 @@ internal sealed class MailRuVerificationWindow : Window
 
     public MailRuVerificationWindow(
         string url,
+        string login,
         bool officialSecondStep = false,
         IReadOnlyList<MailRuAuthBrowserCookie>? initialCookies = null)
     {
@@ -39,11 +40,7 @@ internal sealed class MailRuVerificationWindow : Window
         _startUri = uri;
         _officialSecondStep = officialSecondStep;
         _initialCookies = initialCookies ?? Array.Empty<MailRuAuthBrowserCookie>();
-        _profilePath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "MailRuDesktop",
-            "AuthSessions",
-            Guid.NewGuid().ToString("N"));
+        _profilePath = MailRuAuthProfileStore.GetProfilePath(login);
 
         Title = "Проверка Mail.ru";
         Width = 940;
@@ -101,7 +98,7 @@ internal sealed class MailRuVerificationWindow : Window
         _statusText.Text = _officialSecondStep
             ? "Пройдите проверку на странице Mail.ru и нажмите штатную кнопку «Войти». " +
               "После подтверждения окно закроется автоматически."
-            : "Окно использует отдельное временное хранилище cookies и не связано с браузерами на компьютере.";
+            : "Окно использует отдельный профиль этого почтового аккаунта и не связано с браузерами на компьютере.";
         _statusText.TextWrapping = TextWrapping.Wrap;
         _statusText.VerticalAlignment = VerticalAlignment.Center;
         _statusText.Margin = new Thickness(0, 0, 14, 0);
@@ -149,6 +146,10 @@ internal sealed class MailRuVerificationWindow : Window
         try
         {
             Directory.CreateDirectory(_profilePath);
+
+            DiagnosticLog.Write(
+                "auth_verification_profile",
+                "persistent-per-account-profile=1");
 
             var environment = await CoreWebView2Environment.CreateAsync(
                 browserExecutableFolder: null,
@@ -451,27 +452,5 @@ internal sealed class MailRuVerificationWindow : Window
         }
 
         _webView.Dispose();
-        _ = DeleteTemporaryProfileAsync(_profilePath);
-    }
-
-    private static async Task DeleteTemporaryProfileAsync(string path)
-    {
-        for (var attempt = 0; attempt < 8; attempt++)
-        {
-            try
-            {
-                if (Directory.Exists(path))
-                    Directory.Delete(path, recursive: true);
-                return;
-            }
-            catch
-            {
-                await Task.Delay(350);
-            }
-        }
-
-        DiagnosticLog.Write(
-            "auth_verification_cleanup",
-            "temporary-profile-delete-deferred");
     }
 }
