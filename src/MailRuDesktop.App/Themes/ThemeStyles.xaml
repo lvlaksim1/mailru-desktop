@@ -653,8 +653,19 @@
     </Style>
 
     <Style TargetType="{x:Type primitives:ScrollBar}">
-        <Setter Property="Background" Value="{DynamicResource AppControlBrush}"/>
-        <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource AppScrollTrackBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource AppScrollArrowBrush}"/>
+        <Style.Resources>
+            <Style TargetType="{x:Type Thumb}">
+                <Setter Property="Background" Value="{DynamicResource AppScrollThumbBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource AppScrollThumbBrush}"/>
+            </Style>
+            <Style TargetType="{x:Type RepeatButton}">
+                <Setter Property="Background" Value="{DynamicResource AppScrollTrackBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource AppScrollArrowBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource AppScrollTrackBrush}"/>
+            </Style>
+        </Style.Resources>
     </Style>
 
     <Style TargetType="{x:Type ProgressBar}">
