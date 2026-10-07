@@ -37,3 +37,14 @@ credentials.json
 Thumbs.db
 .idea/
 .vscode/
+
+# Repository storage policy
+/dist/
+/build/
+*.exe
+*.msi
+*.zip
+*.7z
+*.rar
+*.dll
+*.pdb
