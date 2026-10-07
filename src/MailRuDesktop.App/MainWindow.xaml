@@ -509,13 +509,19 @@
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
-                            <Button x:Name="DownloadAttachmentButton"
-                                    Visibility="Collapsed"
-                                    Margin="0,7,0,0"
-                                    Padding="11,6"
-                                    HorizontalAlignment="Left"
-                                    Click="DownloadAttachmentButton_Click"
-                                    Content="Скачать вложение"/>
+                            <WrapPanel Margin="0,7,0,0">
+                                <Button x:Name="DownloadAttachmentButton"
+                                        Visibility="Collapsed"
+                                        Margin="0,0,6,0"
+                                        Padding="11,6"
+                                        Click="DownloadAttachmentButton_Click"
+                                        Content="Скачать вложение"/>
+                                <Button x:Name="DownloadAllAttachmentsButton"
+                                        Visibility="Collapsed"
+                                        Padding="11,6"
+                                        Click="DownloadAllAttachmentsButton_Click"
+                                        Content="Скачать всё"/>
+                            </WrapPanel>
                         </StackPanel>
 
                         <Border x:Name="PreviewComposePanel"
@@ -683,6 +689,27 @@
                                     <ComboBoxItem Content="Системная" Tag="System"/>
                                 </ComboBox>
                                 <TextBlock Margin="0,8,0,0" Foreground="{DynamicResource AppMutedTextBrush}" Text="При первом запуске используется тёмная тема."/>
+                            </StackPanel>
+                        </GroupBox>
+                        <GroupBox Margin="0,16,0,0" Header="Обновление">
+                            <StackPanel Margin="12">
+                                <WrapPanel>
+                                    <Button x:Name="CheckForUpdatesButton"
+                                            Padding="14,7"
+                                            Click="CheckForUpdatesButton_Click"
+                                            Content="Проверить обновления"/>
+                                    <Button x:Name="InstallUpdateButton"
+                                            Visibility="Collapsed"
+                                            Margin="8,0,0,0"
+                                            Padding="14,7"
+                                            Click="InstallUpdateButton_Click"
+                                            Content="Обновить"/>
+                                </WrapPanel>
+                                <TextBlock x:Name="UpdateStatusText"
+                                           Margin="0,8,0,0"
+                                           TextWrapping="Wrap"
+                                           Foreground="{DynamicResource AppMutedTextBrush}"
+                                           Text="Обновления проверяются напрямую в выпусках GitHub."/>
                             </StackPanel>
                         </GroupBox>
                         <Expander Margin="0,16,0,0" Header="Для разработчика · диагностика протокола" IsExpanded="False">
