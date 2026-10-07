@@ -1,76 +1,75 @@
 # Current state
 
-Repository: `lvlaksim1/mailru-desktop`
+Repository: lvlaksim1/mailru-desktop
 Visibility: public
-Product authority: `main`
-Manager-state authority: `main`
+Product authority: main
+Manager-state authority: main
 
-Current public release: **v0.3.5**
-Released product-code baseline: `4b5ed4e629112a9151c3659afd6ca408a828d9b5`
+Latest public release: **v0.3.17**
+Current merged product baseline on main: **intended v0.3.18**, PR #62, merge commit 3593e4689c813b4c587518cba4c424742de2f621.
+v0.3.18 has not yet been published as a GitHub Release.
 
-`main` may later contain context-only commits; do not interpret those as a newer released product build.
+## Authorization state
 
-## Product state
+v0.3.17 introduced a persistent browser profile isolated per mailbox account for Mail.ru interactive authorization. Owner runtime on 2026-10-08 confirmed the important problem case: instead of forcing password recovery, Mail.ru requested phone confirmation inside the isolated window and authorization completed successfully without changing the password.
 
-MailRu Desktop is a multi-account native Windows mail client with mailbox OAuth authorization and a theme-aware three-pane interface.
+This is now the stable authorization architecture:
+- account profiles persist across application restarts;
+- profiles do not share cookies with normal desktop browsers;
+- profiles are isolated from other MailRu Desktop accounts;
+- no CAPTCHA solver or verification bypass;
+- do not revert to a disposable profile per verification.
 
-### v0.3.4 parser hotfix
+## Mail list and multi-account baseline
 
-v0.3.4 fixed the second-account regression where folders/counts loaded but messages were absent because Mail.ru returned message data through `body.folders_content[].threads[].representations[]`.
+The parser remains tolerant across base_message, messages[], direct thread-like objects and threads[].representations[].
 
-The released parser now preserves all known smart-thread variants:
-- `threads[].base_message`;
-- `threads[].messages[]`;
-- direct thread-like objects;
-- `threads[].representations[]`, using `message_id_last` when required.
+Current compact message rows use the established seven-column order:
+1. time;
+2. flag;
+3. fixed-size read/unread dot;
+4. thread message count;
+5. attachment indicator;
+6. sender name with email fallback;
+7. subject plus first text line.
 
-CI and release packaging passed. Owner runtime validation on the exact second account that exposed the variant remains an explicit verification gate.
+Messages remain grouped by date, with pinned messages in their separate section when present. No first message is automatically selected/opened merely because the list loaded.
 
-### v0.3.5 mail-list redesign
+## v0.3.18 merged interface bundle
 
-v0.3.5 was merged through PR #36 and released after green pull-request checks and green `main` CI.
+PR #62 is merged to main. Main CI run 37703044365 and repository-storage-policy run 37703044638 passed.
 
-The message list now follows the Owner-provided compact reference:
-1. fixed-width read/unread indicator column with a fixed-size hollow/filled dot;
-2. sender name, falling back to sender email;
-3. flag icon;
-4. message count for a thread when available in the actual Mail.ru response;
-5. subject plus first non-empty text/snippet line;
-6. blank attachment column or paperclip when attachments exist;
-7. time.
+Implemented:
+- corrected saving/restoring of normal versus maximized window state;
+- layout state is saved before window destruction;
+- message-list/preview divider persistence no longer gets overwritten by the older compatibility layer;
+- all seven user-adjusted message-column widths remain part of saved settings;
+- dark-theme scrollbar arrows/thumb use a darker, lower-contrast palette;
+- compact 16 px local sender/account icons are placed left of sender/account text without increasing row height;
+- persistent account ordering;
+- account sections/headings, with the expand/collapse arrow on the right of the section name;
+- section rename/delete; deleting a section does not delete its accounts;
+- account section expanded/collapsed state persists;
+- account movement uses a 275 ms hold before detaching; the mouse stays pressed during the drag; the detached row follows the pointer; neighboring rows animate out of the way; release fixes the position; Escape is not part of the interaction;
+- preview controls were rearranged per Owner request;
+- reply/forward editor appears above the message body;
+- Settings contains Signatures and Templates;
+- signatures are named, editable and removable;
+- message templates are named and contain subject, body and local attachments;
+- reply editor contains Signature and From template selectors;
+- selecting a signature appends/replaces the chosen signature at the end of text;
+- selecting a template populates subject, body and available attachments.
 
-Messages are grouped by local calendar date. Each date is a separate header followed by that date's messages.
+## Release state
 
-Unread presentation:
-- the dot is filled;
-- the fifth-column subject/text line is bold.
+Latest published installers are still v0.3.17. The immediate release task is to publish v0.3.18 from the already merged product code, then perform Owner runtime/visual validation.
 
-Opening a message continues to mark it read automatically. v0.3.5 also exposes `Не прочитано` for the selected message so the user can explicitly return it to unread state.
+## Stable project policies
 
-The implementation uses existing dynamic application theme resources and does not introduce a separate fixed light/dark color scheme.
-
-## Validation evidence
-
-- PR #36 CI run `37567961454`: success.
-- PR #36 repository-storage policy run `37567961514`: success.
-- merged `main` CI run `37568041502`: success.
-- release workflow run `37568123580`: success.
-- GitHub Release `v0.3.5` contains both `MailRuDesktop_Setup_v0.3.5.exe` and `MailRuDesktop_Update_v0.3.5.exe`.
-
-These checks prove build/startup/release integrity. They do not substitute for Owner visual/runtime validation of layout details, thread counts, or the second-account parser behavior.
-
-## Authorization/runtime state
-
-- API scope is defined by the same mailbox OAuth credential `ru.mail.oauth2.access`, not by a fixed host list.
-- CAPTCHA/reCAPTCHA/additional verification stops authorization; no challenge solving or bypass.
-- No IMAP/SMTP, app passwords, or independent web-cookie fallback.
-- Saved `refresh_token` recovers an expired `access_token` through `https://o2.mail.ru/token`.
-- Normal runtime has no fixed five-second delay. Research/probe/test requests keep at least five seconds spacing.
-
-## Stable product policies
-
-- Release updates as `MailRuDesktop_Update_vX.Y.Z.exe`; full installer remains available for first install.
-- Keep only the latest binary release where release-pruning policy applies.
-- Research/test traffic must not look like DDoS; keep at least five seconds between repeated network requests.
-- Do not replace known Mail.ru response variants with one assumed canonical schema.
-- Folder `last_modified` behavior remains unchanged unless explicitly authorized.
+- Scope is based on the mailbox OAuth credential, not a fixed Mail.ru host list.
+- No IMAP/SMTP or app passwords.
+- Update releases use MailRuDesktop_Update_vX.Y.Z.exe; full installer remains for first install.
+- Repeated research/probe/test network requests keep at least five seconds spacing.
+- Normal application runtime has no mandatory five-second delay.
+- Do not collapse known Mail.ru response variants into one assumed schema.
+- Keep folder last_modified behavior unchanged unless explicitly authorized.
