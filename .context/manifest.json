@@ -34,7 +34,9 @@
     "index": ".context/memory/index.md",
     "semantic": ".context/memory/semantic.md",
     "procedural": ".context/memory/procedural.md",
-    "episodes": []
+    "episodes": [
+      ".context/memory/episodes/2026-10-07-v030-v034-ui-and-parser.md"
+    ]
   },
   "current": {
     "state": ".context/current/state.md",
@@ -94,7 +96,7 @@
     "external_gate_reconciliation_required": true,
     "manager_state_coherence_required": true
   },
-  "updated_at": "2026-10-05",
+  "updated_at": "2026-10-07",
   "context_version": "2.0.0-dev",
   "context_capsule_version": "1.3.1",
   "project_manager_version": "2.0.0-dev"
