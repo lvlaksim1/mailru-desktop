@@ -20,18 +20,18 @@
         <DataTemplate DataType="{x:Type local:AccountRailItem}">
             <Grid ToolTip="{Binding ToolTipText}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="22"/>
+                    <ColumnDefinition Width="18"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Border Grid.Column="0"
-                        Width="20" Height="20"
-                        CornerRadius="10"
+                        Width="16" Height="16"
+                        CornerRadius="8"
                         VerticalAlignment="Center"
                         Background="{DynamicResource AppControlHoverBrush}">
                     <TextBlock HorizontalAlignment="Center"
                                VerticalAlignment="Center"
-                               FontSize="9"
+                               FontSize="8"
                                FontWeight="SemiBold"
                                Text="{Binding IconText}"/>
                 </Border>
@@ -92,7 +92,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBoxItem">
-                        <Border x:Name="Root" Padding="8,6" CornerRadius="6" Background="Transparent">
+                        <Border x:Name="Root" Padding="8,4" CornerRadius="6" Background="Transparent">
                             <ContentPresenter/>
                         </Border>
                         <ControlTemplate.Triggers>
