@@ -135,10 +135,16 @@ public static class MailRuThreadStatusParser
 
             var messages = selectedContent is null
                 ? new List<MailRuMessageSummary>()
-                : ParseThreads(selectedContent.Value);
+                : ParseThreads(selectedContent.Value, selectedFolderId);
 
             if (messages.Count == 0)
-                CollectThreads(body, messages, new HashSet<string>(StringComparer.Ordinal));
+            {
+                CollectThreads(
+                    body,
+                    messages,
+                    new HashSet<string>(StringComparer.Ordinal),
+                    selectedFolderId);
+            }
 
             messages.Sort((left, right) =>
                 Nullable.Compare(right.DateUnix, left.DateUnix));
@@ -213,7 +219,9 @@ public static class MailRuThreadStatusParser
         return folders;
     }
 
-    private static List<MailRuMessageSummary> ParseThreads(JsonElement content)
+    private static List<MailRuMessageSummary> ParseThreads(
+        JsonElement content,
+        int? requestedFolderId)
     {
         var result = new List<MailRuMessageSummary>();
 
@@ -223,19 +231,9 @@ public static class MailRuThreadStatusParser
             return result;
         }
 
+        var seenIds = new HashSet<string>(StringComparer.Ordinal);
         foreach (var thread in threads.EnumerateArray())
-        {
-            if (thread.ValueKind != JsonValueKind.Object ||
-                !TryReadId(thread, out var threadId) ||
-                !thread.TryGetProperty("base_message", out var message) ||
-                message.ValueKind != JsonValueKind.Object)
-            {
-                continue;
-            }
-
-            var messageId = TryReadId(message, out var nestedId) ? nestedId : threadId;
-            result.Add(ParseBaseMessage(messageId, message));
-        }
+            TryAddThread(thread, result, seenIds, requestedFolderId);
 
         return result;
     }
@@ -243,7 +241,8 @@ public static class MailRuThreadStatusParser
     private static void CollectThreads(
         JsonElement element,
         List<MailRuMessageSummary> result,
-        HashSet<string> seenIds)
+        HashSet<string> seenIds,
+        int? requestedFolderId)
     {
         if (element.ValueKind == JsonValueKind.Object)
         {
@@ -251,36 +250,37 @@ public static class MailRuThreadStatusParser
                 threads.ValueKind == JsonValueKind.Array)
             {
                 foreach (var thread in threads.EnumerateArray())
-                    TryAddThread(thread, result, seenIds);
+                    TryAddThread(thread, result, seenIds, requestedFolderId);
             }
 
             foreach (var property in element.EnumerateObject())
-                CollectThreads(property.Value, result, seenIds);
+                CollectThreads(property.Value, result, seenIds, requestedFolderId);
         }
         else if (element.ValueKind == JsonValueKind.Array)
         {
             foreach (var item in element.EnumerateArray())
-                CollectThreads(item, result, seenIds);
+                CollectThreads(item, result, seenIds, requestedFolderId);
         }
     }
 
     private static void TryAddThread(
         JsonElement thread,
         List<MailRuMessageSummary> result,
-        HashSet<string> seenIds)
+        HashSet<string> seenIds,
+        int? requestedFolderId)
     {
-        if (thread.ValueKind != JsonValueKind.Object ||
-            !TryReadId(thread, out var threadId) ||
-            !seenIds.Add(threadId))
-        {
+        if (thread.ValueKind != JsonValueKind.Object)
             return;
-        }
+
+        var threadId = TryReadId(thread, out var parsedThreadId)
+            ? parsedThreadId
+            : string.Empty;
 
         if (thread.TryGetProperty("base_message", out var baseMessage) &&
-            baseMessage.ValueKind == JsonValueKind.Object)
+            baseMessage.ValueKind == JsonValueKind.Object &&
+            TryResolveMessageId(baseMessage, threadId, out var baseMessageId))
         {
-            var messageId = TryReadId(baseMessage, out var nestedId) ? nestedId : threadId;
-            result.Add(ParseBaseMessage(messageId, baseMessage));
+            AddParsedMessage(baseMessageId, baseMessage, result, seenIds);
             return;
         }
 
@@ -289,20 +289,100 @@ public static class MailRuThreadStatusParser
         {
             foreach (var message in messages.EnumerateArray())
             {
-                if (message.ValueKind != JsonValueKind.Object)
+                if (message.ValueKind != JsonValueKind.Object ||
+                    !TryResolveMessageId(message, threadId, out var messageId))
+                {
                     continue;
+                }
 
-                var messageId = TryReadId(message, out var nestedId) ? nestedId : threadId;
-                result.Add(ParseBaseMessage(messageId, message));
+                AddParsedMessage(messageId, message, result, seenIds);
                 return;
             }
         }
 
-        if (thread.TryGetProperty("subject", out _) ||
-            thread.TryGetProperty("snippet", out _))
+        if (thread.TryGetProperty("representations", out var representations) &&
+            representations.ValueKind == JsonValueKind.Array)
         {
-            result.Add(ParseBaseMessage(threadId, thread));
+            var representation = SelectRepresentation(representations, requestedFolderId);
+            if (representation is not null &&
+                TryResolveMessageId(representation.Value, threadId, out var representationId))
+            {
+                AddParsedMessage(representationId, representation.Value, result, seenIds);
+                return;
+            }
         }
+
+        if ((thread.TryGetProperty("subject", out _) ||
+             thread.TryGetProperty("snippet", out _)) &&
+            !string.IsNullOrWhiteSpace(threadId))
+        {
+            AddParsedMessage(threadId, thread, result, seenIds);
+        }
+    }
+
+    private static JsonElement? SelectRepresentation(
+        JsonElement representations,
+        int? requestedFolderId)
+    {
+        JsonElement? selected = null;
+        long selectedDate = long.MinValue;
+        var objectCount = 0;
+        JsonElement? onlyObject = null;
+
+        foreach (var representation in representations.EnumerateArray())
+        {
+            if (representation.ValueKind != JsonValueKind.Object)
+                continue;
+
+            objectCount++;
+            onlyObject = representation;
+
+            var folder = ReadInteger(representation, "folder");
+            if (requestedFolderId is not null && folder != requestedFolderId.Value)
+                continue;
+
+            var date = ReadInteger(representation, "date") ?? long.MinValue;
+            if (selected is null || date > selectedDate)
+            {
+                selected = representation;
+                selectedDate = date;
+            }
+        }
+
+        if (selected is not null)
+            return selected;
+
+        // Preserve the v0.3.4 fallback behavior: if the server gives exactly one
+        // representation, accept it even when folder metadata is absent/different.
+        return objectCount == 1 ? onlyObject : null;
+    }
+
+    private static bool TryResolveMessageId(
+        JsonElement message,
+        string fallbackId,
+        out string id)
+    {
+        id = ReadString(message, "message_id_last") ?? string.Empty;
+        if (!string.IsNullOrWhiteSpace(id))
+            return true;
+
+        if (TryReadId(message, out id))
+            return true;
+
+        id = fallbackId;
+        return !string.IsNullOrWhiteSpace(id);
+    }
+
+    private static void AddParsedMessage(
+        string id,
+        JsonElement message,
+        List<MailRuMessageSummary> result,
+        HashSet<string> seenIds)
+    {
+        if (!seenIds.Add(id))
+            return;
+
+        result.Add(ParseBaseMessage(id, message));
     }
 
     private static MailRuMessageSummary ParseBaseMessage(string id, JsonElement message)
