@@ -774,8 +774,11 @@ public sealed class MailSectionGroupDescription : GroupDescription
         if (message.Pinned)
             return "Закреплённые";
 
+        if (message.DateUnix is null)
+            return "Без даты";
+
         return DateConverter.Convert(
-            message.DateUnix ?? 0L,
+            message.DateUnix.Value,
             typeof(string),
             parameter: null!,
             culture);
