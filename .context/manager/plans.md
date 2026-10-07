@@ -1,40 +1,45 @@
 # Manager plans
 
-## Access-token protocol plan
+## Protocol plan
 
-1. Keep eligibility credential-based: official-client use of the same `ru.mail.oauth2.access`, not hostname.
-2. Keep the endpoint registry as the runtime/CI boundary; a host used by product code must belong to a registered endpoint.
-3. APK evidence is static evidence. Enable a newly discovered operation in normal UI only after controlled live validation.
-4. Preserve at least five seconds between research/probe/test network requests; ordinary application runtime has no artificial fixed delay.
+1. Keep API eligibility based on the same mailbox OAuth credential, not hostname.
+2. Keep protocol changes isolated inside MailRuDesktop.Protocol.
+3. Treat APK evidence as static evidence; newly enabled operations need controlled live or Owner-runtime validation.
+4. Preserve at least five seconds between repeated research/probe/test network requests. Normal application runtime has no artificial fixed delay.
+5. Preserve the v0.3.17 persistent isolated authorization profile for each account. Do not return to a fresh profile for every verification and do not share these profiles with normal desktop browsers.
 
-## Current released baseline — v0.3.5
+## Current product baseline
 
-The current public build includes:
-- v0.3.4 tolerant parsing for `threads[].representations[]` in multi-account mailbox responses;
-- the v0.3.x three-pane desktop interface and account rail;
-- v0.3.5 date-grouped mail rows with seven columns;
-- a fixed-size filled/hollow unread dot;
-- sender name with email fallback;
-- flag and thread-count columns;
-- subject plus first text line, bold when unread;
-- attachment paperclip only when an attachment exists;
-- time as the final column;
-- explicit re-mark-unread action for the currently selected message.
+Latest public GitHub Release: v0.3.17.
 
-## Immediate validation plan
+Current product code on main: merged PR #62, intended v0.3.18, merge commit 3593e4689c813b4c587518cba4c424742de2f621. Main CI and repository-storage-policy checks passed. The v0.3.18 release package is still pending.
 
-1. Owner validates v0.3.5 visually in the normal application theme.
-2. Owner validates the second account that produced `threads[].representations[]`.
-3. Confirm that switching accounts preserves independent message contents and Inbox unread counts.
-4. Correct any layout/parser regression found by Owner runtime evidence before expanding the protocol surface.
+The merged v0.3.18 bundle covers:
+- window/maximized state and layout-width persistence;
+- message-list/preview divider persistence;
+- dark-theme scrollbar palette correction;
+- compact sender/account icons;
+- persistent account order and account sections;
+- 275 ms hold-to-detach animated account reordering, with release-to-drop and no Escape cancellation;
+- right-side expand/collapse arrow in section headers;
+- requested preview/reply control relocation;
+- named signatures;
+- named message templates with subject, body and attachments;
+- reply-form signature/template selectors.
 
-## Stage 2 plan
+## Immediate plan
 
-1. Add thread and bulk operations: bulk remove/move/marks and thread remove/move/marks.
-2. Add spam/unspam for messages and threads.
-3. Add unsubscribe and message category change/feedback.
-4. Add attachment lifecycle: explicit attachment list, outgoing attachment removal, reattach from another message.
-5. Add EML download, message metadata and read-receipt notification.
-6. Add search suggestions and investigate the `go.mail.ru` HTTP 520 before any attempt to enable new search.
-7. Then proceed to snooze, color tags, filters, aliases/collectors, cloud operations, translation, summarization and smart replies.
-8. Continue separate validation of delayed-send `send_date` and modern compose-session message-id semantics.
+1. Publish v0.3.18 from the already merged and green product code.
+2. Owner validates window state, divider and column persistence, scrollbar appearance, compact icons, account dragging and saved order, account sections, preview/reply layout, signatures and templates.
+3. Fix defects established by Owner runtime evidence before expanding unrelated protocol functionality.
+
+## Later plan
+
+1. Thread and bulk operations.
+2. Spam/unspam.
+3. Unsubscribe and categories.
+4. Attachment lifecycle.
+5. EML, metadata and read receipt.
+6. Search suggestions and separate investigation of go.mail.ru HTTP 520.
+7. Snooze, color tags, filters, aliases/collectors, cloud operations and other mapped mechanisms.
+8. Dedicated validation of delayed-send send_date and compose-session message-id semantics.
