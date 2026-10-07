@@ -6,7 +6,9 @@ Product authority: `main`
 Manager-state authority: `main`
 
 Current public release: **v0.3.3**
-Current `main`: `d5c9e25cae00015a0bcab71711ac9d9b84d3dbbf`
+Released product-code baseline: `d5c9e25cae00015a0bcab71711ac9d9b84d3dbbf`
+
+`main` may contain later context-only commits; do not interpret those as a newer released product build.
 
 ## Product state
 
