@@ -33,31 +33,40 @@ public partial class MainWindow
                 this,
                 "Дополнительная проверка Mail.ru",
                 $"Mail.ru запросил {verificationName}.\n\n" +
-                "В ответе нет безопасной страницы Mail.ru, которую можно открыть внутри приложения. " +
+                "В ответе нет страницы продолжения, которую можно открыть внутри приложения. " +
                 "Обезличенная структура ответа сохранена в диагностике.");
             return null;
         }
 
-        var isRecaptcha = result.State == MailRuAuthState.ReCaptcha;
         var localSessionId = result.Challenge?.SessionId;
+        var isOfficialSecondStep =
+            string.Equals(
+                result.DiagnosticReason,
+                "aj_mobile_auth_continue_required",
+                StringComparison.Ordinal) &&
+            !string.IsNullOrWhiteSpace(localSessionId);
 
-        if (isRecaptcha && string.IsNullOrWhiteSpace(localSessionId))
+        if (string.Equals(
+                result.DiagnosticReason,
+                "aj_mobile_auth_continue_required",
+                StringComparison.Ordinal) &&
+            string.IsNullOrWhiteSpace(localSessionId))
         {
             AppDialog.Info(
                 this,
                 "Проверка Mail.ru",
-                "Mail.ru запросил reCAPTCHA, но локальная сессия исходной попытки входа не была сохранена. " +
-                "Авторизация остановлена, чтобы не начинать новую несвязанную попытку.");
+                "Mail.ru запросил второй шаг авторизации, но локальная сессия первого запроса не сохранена. " +
+                "Авторизация остановлена, чтобы не запускать несвязанную повторную попытку.");
             return null;
         }
 
-        var initialCookies = isRecaptcha
-            ? _mailRu.GetChallengeBrowserCookies(localSessionId!)
+        var initialCookies = !string.IsNullOrWhiteSpace(localSessionId)
+            ? _mailRu.GetChallengeBrowserCookies(localSessionId)
             : Array.Empty<MailRuAuthBrowserCookie>();
 
         var verificationWindow = new MailRuVerificationWindow(
             url,
-            waitForRecaptchaToken: isRecaptcha,
+            officialSecondStep: isOfficialSecondStep,
             initialCookies: initialCookies)
         {
             Owner = this
@@ -67,21 +76,22 @@ public partial class MainWindow
         if (!verified)
             return null;
 
-        AuthStatusText.Text = "Продолжение исходной авторизации после проверки Mail.ru...";
+        AuthStatusText.Text =
+            "Продолжение исходной авторизации после проверки Mail.ru...";
 
         MailRuAuthResult retry;
-        if (isRecaptcha)
+        if (isOfficialSecondStep)
         {
-            retry = await _mailRu.CompleteChallengeAsync(
+            retry = await _mailRu.CompleteSecondStepAsync(
                 login,
-                new MailRuChallengeCompletion(
-                    localSessionId!,
-                    verificationWindow.RecaptchaResponse ?? string.Empty));
+                localSessionId!,
+                verificationWindow.TsaCookie,
+                verificationWindow.AdditionalParams);
         }
         else
         {
-            // Other challenge types have not yet been confirmed to use the
-            // g-recaptcha-response continuation contract.
+            // This fallback is retained for challenge forms other than the
+            // Status=ok + Continue second-step contract confirmed in the APK.
             retry = await _mailRu.AuthenticateWithSessionCookiesAsync(
                 login,
                 password,
@@ -95,8 +105,8 @@ public partial class MainWindow
             AppDialog.Info(
                 this,
                 "Проверка Mail.ru не завершена",
-                isRecaptcha
-                    ? "Mail.ru снова запросил дополнительную проверку после передачи результата reCAPTCHA в исходную сессию входа. Диагностика обновлена."
+                isOfficialSecondStep
+                    ? "Mail.ru снова запросил дополнительную проверку после штатного второго шага. Диагностика обновлена."
                     : "Mail.ru снова запросил дополнительную проверку. Диагностика обновлена.");
         }
 

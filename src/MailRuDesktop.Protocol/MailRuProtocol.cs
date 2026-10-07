@@ -169,7 +169,7 @@ public sealed partial class MailRuClient : IDisposable
             login,
             password,
             sessionCookieHeader: null,
-            reCaptchaResponse: null,
+            additionalParams: null,
             registerChallengeSession: true,
             cancellationToken);
 
@@ -182,7 +182,7 @@ public sealed partial class MailRuClient : IDisposable
             login,
             password,
             sessionCookieHeader,
-            reCaptchaResponse: null,
+            additionalParams: null,
             registerChallengeSession: true,
             cancellationToken);
 
@@ -190,7 +190,7 @@ public sealed partial class MailRuClient : IDisposable
         string login,
         string password,
         string? sessionCookieHeader,
-        string? reCaptchaResponse,
+        IReadOnlyDictionary<string, string>? additionalParams,
         bool registerChallengeSession,
         CancellationToken cancellationToken)
     {
@@ -224,8 +224,14 @@ public sealed partial class MailRuClient : IDisposable
             ["simple"] = "1"
         };
 
-        if (!string.IsNullOrWhiteSpace(reCaptchaResponse))
-            form["g-recaptcha-response"] = reCaptchaResponse;
+        if (additionalParams is not null)
+        {
+            foreach (var pair in additionalParams)
+            {
+                if (!string.IsNullOrWhiteSpace(pair.Key))
+                    form[pair.Key] = pair.Value ?? string.Empty;
+            }
+        }
 
         request.Content = new FormUrlEncodedContent(form);
 
@@ -283,7 +289,7 @@ public sealed partial class MailRuClient : IDisposable
                     state = MailRuAuthState.RecoveryRequired;
 
                 var localSessionId =
-                    state == MailRuAuthState.ReCaptcha && registerChallengeSession
+                    registerChallengeSession
                         ? RegisterPendingAuthSession(
                             login,
                             password,
@@ -408,17 +414,17 @@ public sealed partial class MailRuClient : IDisposable
             string.IsNullOrWhiteSpace(completion.Answer))
         {
             return MailRuAuthResult.Failed(
-                "recaptcha_result_missing",
-                MailRuAuthState.ReCaptcha,
-                "recaptcha_completion_missing");
+                "captcha_result_missing",
+                MailRuAuthState.Captcha,
+                "captcha_completion_missing");
         }
 
         if (!_pendingAuthSessions.TryRemove(completion.SessionId, out var session))
         {
             return MailRuAuthResult.Failed(
-                "recaptcha_session_expired",
-                MailRuAuthState.ReCaptcha,
-                "recaptcha_pending_session_not_found");
+                "captcha_session_expired",
+                MailRuAuthState.Captcha,
+                "captcha_pending_session_not_found");
         }
 
         if (!string.Equals(
@@ -427,16 +433,69 @@ public sealed partial class MailRuClient : IDisposable
                 StringComparison.OrdinalIgnoreCase))
         {
             return MailRuAuthResult.Failed(
-                "recaptcha_session_account_mismatch",
+                "captcha_session_account_mismatch",
                 MailRuAuthState.ProtocolError,
-                "recaptcha_pending_session_account_mismatch");
+                "captcha_pending_session_account_mismatch");
         }
 
         return await AuthenticateCoreAsync(
             session.Login,
             session.Password,
-            session.CookieHeader,
-            completion.Answer,
+            sessionCookieHeader: null,
+            additionalParams: new Dictionary<string, string>
+            {
+                ["ludwig_token"] = completion.Answer
+            },
+            registerChallengeSession: false,
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<MailRuAuthResult> CompleteSecondStepAsync(
+        string login,
+        string sessionId,
+        string? tsaCookie,
+        IReadOnlyDictionary<string, string> additionalParams,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(sessionId))
+        {
+            return MailRuAuthResult.Failed(
+                "second_step_session_missing",
+                MailRuAuthState.RecoveryRequired,
+                "second_step_session_missing");
+        }
+
+        if (!_pendingAuthSessions.TryRemove(sessionId, out var session))
+        {
+            return MailRuAuthResult.Failed(
+                "second_step_session_expired",
+                MailRuAuthState.RecoveryRequired,
+                "second_step_pending_session_not_found");
+        }
+
+        if (!string.Equals(
+                login,
+                session.Login,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return MailRuAuthResult.Failed(
+                "second_step_session_account_mismatch",
+                MailRuAuthState.ProtocolError,
+                "second_step_pending_session_account_mismatch");
+        }
+
+        // Official APK starts the browser second step with Set-Cookie from
+        // the 808 response, then returns to password auth with the tsa cookie
+        // and all query parameters from the mobile-auth/success redirect.
+        var tsaHeader = string.IsNullOrWhiteSpace(tsaCookie)
+            ? null
+            : "tsa=" + tsaCookie;
+
+        return await AuthenticateCoreAsync(
+            session.Login,
+            session.Password,
+            tsaHeader,
+            additionalParams,
             registerChallengeSession: false,
             cancellationToken).ConfigureAwait(false);
     }
@@ -1085,7 +1144,20 @@ public sealed partial class MailRuClient : IDisposable
             return null;
         }
 
-        return uri.ToString();
+        var builder = new UriBuilder(uri);
+        var query = builder.Query.TrimStart('?');
+        var hasClient = query
+            .Split('&', StringSplitOptions.RemoveEmptyEntries)
+            .Any(item => item.StartsWith("client=", StringComparison.OrdinalIgnoreCase));
+
+        if (!hasClient)
+        {
+            builder.Query = string.IsNullOrEmpty(query)
+                ? "client=mobile.app"
+                : query + "&client=mobile.app";
+        }
+
+        return builder.Uri.ToString();
     }
 
     private static string BuildNoTokenDiagnostic(
