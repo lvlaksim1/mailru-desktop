@@ -607,11 +607,10 @@ public partial class MainWindow : Window
             (string.IsNullOrWhiteSpace(message.SizeDisplay) ? string.Empty : $" · {message.SizeDisplay}") +
             (markers.Count == 0 ? string.Empty : $" · {string.Join(", ", markers)}");
 
-        ReadStateButton.Content = message.Unread ? "Прочитано" : "Непрочитано";
-        FlagMessageButton.Content = message.Flagged ? "Снять флажок" : "Флажок";
-        PinMessageButton.Content = message.Pinned ? "Открепить" : "Закрепить";
 
         IncomingAttachmentsListBox.ItemsSource = null;
+        IncomingAttachmentsPanel.Visibility = Visibility.Collapsed;
+        DownloadAttachmentButton.Visibility = Visibility.Collapsed;
         _currentFullMessage = null;
         ShowReaderText(string.IsNullOrWhiteSpace(message.Snippet)
             ? "Загрузка полного письма..."
@@ -632,7 +631,7 @@ public partial class MainWindow : Window
             var full = await _mailRu.GetFullMessageAsync(
                 _accessToken,
                 message.Id,
-                markRead: false);
+                markRead: message.Unread);
 
             if (generation != _messageLoadGeneration ||
                 MessagesGrid.SelectedItem is not MailRuMessageSummary selected ||
@@ -643,7 +642,14 @@ public partial class MainWindow : Window
 
             _currentFullMessage = full;
             IncomingAttachmentsListBox.ItemsSource = full.Attachments;
+            IncomingAttachmentsPanel.Visibility =
+                full.Attachments.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            DownloadAttachmentButton.Visibility =
+                full.Attachments.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
             ResponseTextBox.Text = full.RawJson;
+
+            if (message.Unread)
+                ReplaceMessage(message, message with { Unread = false });
 
             if (!string.IsNullOrWhiteSpace(full.Html))
                 ShowReaderHtml(full.Html);
@@ -713,59 +719,21 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void ReadStateButton_Click(object sender, RoutedEventArgs e)
+    private async void MessageUnreadButton_Click(object sender, RoutedEventArgs e)
     {
-        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message ||
-            string.IsNullOrWhiteSpace(_accessToken))
-        {
-            FolderStatusText.Text = "Выберите письмо.";
+        if ((sender as Button)?.Tag is not MailRuMessageSummary message)
             return;
-        }
 
-        ReadStateButton.IsEnabled = false;
-        var makeUnread = !message.Unread;
-        FolderStatusText.Text = makeUnread
-            ? "Отмечаем непрочитанным..."
-            : "Отмечаем прочитанным...";
-
-        try
-        {
-            var result = await _mailRu.SetUnreadAsync(
-                _accessToken,
-                _activeLogin ?? string.Empty,
-                message.Id,
-                makeUnread);
-
-            ResponseTextBox.Text = result.RawResponse;
-            if (!result.Success)
-            {
-                FolderStatusText.Text = "Mail.ru отклонил изменение статуса.";
-                return;
-            }
-
-            await LoadFolderAsync(_currentFolderId);
-        }
-        catch (Exception ex)
-        {
-            FolderStatusText.Text = "Ошибка изменения статуса.";
-            DiagnosticLog.Write("message_marks", ex.GetType().Name + ": " + ex.Message);
-        }
-        finally
-        {
-            ReadStateButton.IsEnabled = true;
-        }
+        await SetUnreadStateFromCardAsync(message, !message.Unread);
+        e.Handled = true;
     }
 
-    private async void FlagMessageButton_Click(object sender, RoutedEventArgs e)
+    private async void MessageFlagButton_Click(object sender, RoutedEventArgs e)
     {
-        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message ||
+        if ((sender as Button)?.Tag is not MailRuMessageSummary message ||
             string.IsNullOrWhiteSpace(_accessToken))
-        {
-            FolderStatusText.Text = "Выберите письмо.";
             return;
-        }
 
-        FlagMessageButton.IsEnabled = false;
         try
         {
             var result = await _mailRu.SetFlaggedAsync(
@@ -782,29 +750,23 @@ public partial class MainWindow : Window
                 return;
             }
 
-            await LoadFolderAsync(_currentFolderId);
+            ReplaceMessage(message, message with { Flagged = !message.Flagged });
         }
         catch (Exception ex)
         {
             FolderStatusText.Text = "Ошибка изменения флажка.";
             DiagnosticLog.Write("message_flag", ex.GetType().Name + ": " + ex.Message);
         }
-        finally
-        {
-            FlagMessageButton.IsEnabled = true;
-        }
+
+        e.Handled = true;
     }
 
-    private async void PinMessageButton_Click(object sender, RoutedEventArgs e)
+    private async void MessagePinButton_Click(object sender, RoutedEventArgs e)
     {
-        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message ||
+        if ((sender as Button)?.Tag is not MailRuMessageSummary message ||
             string.IsNullOrWhiteSpace(_accessToken))
-        {
-            FolderStatusText.Text = "Выберите письмо.";
             return;
-        }
 
-        PinMessageButton.IsEnabled = false;
         try
         {
             var result = await _mailRu.SetPinnedAsync(
@@ -821,17 +783,102 @@ public partial class MainWindow : Window
                 return;
             }
 
-            await LoadFolderAsync(_currentFolderId);
+            ReplaceMessage(message, message with { Pinned = !message.Pinned });
         }
         catch (Exception ex)
         {
             FolderStatusText.Text = "Ошибка изменения закрепления.";
             DiagnosticLog.Write("message_pin", ex.GetType().Name + ": " + ex.Message);
         }
-        finally
+
+        e.Handled = true;
+    }
+
+    private async void MessageArchiveButton_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as Button)?.Tag is not MailRuMessageSummary message ||
+            string.IsNullOrWhiteSpace(_accessToken))
+            return;
+
+        var folders = (FolderListBox.ItemsSource as IEnumerable<MailRuFolderSummary>)?.ToArray()
+            ?? Array.Empty<MailRuFolderSummary>();
+        var archive = folders.FirstOrDefault(folder =>
+            folder.Type.Equals("archive", StringComparison.OrdinalIgnoreCase) ||
+            folder.Name.Equals("Архив", StringComparison.CurrentCultureIgnoreCase) ||
+            folder.Id == 500010);
+
+        try
         {
-            PinMessageButton.IsEnabled = true;
+            var result = await _mailRu.MoveMessagesAsync(
+                _accessToken,
+                new[] { message.Id },
+                archive?.Id ?? 500010);
+
+            ResponseTextBox.Text = result.RawResponse;
+            if (!result.Success)
+            {
+                FolderStatusText.Text = "Mail.ru отклонил перенос в архив.";
+                return;
+            }
+
+            _currentMessages.RemoveAll(item => item.Id == message.Id);
+            ApplyFilters();
+            ClearSelectedMessage();
+            FolderStatusText.Text = "Письмо перемещено в архив.";
         }
+        catch (Exception ex)
+        {
+            FolderStatusText.Text = "Ошибка перемещения в архив.";
+            DiagnosticLog.Write("message_archive", ex.GetType().Name + ": " + ex.Message);
+        }
+
+        e.Handled = true;
+    }
+
+    private async Task SetUnreadStateFromCardAsync(MailRuMessageSummary message, bool makeUnread)
+    {
+        if (string.IsNullOrWhiteSpace(_accessToken))
+            return;
+
+        try
+        {
+            var result = await _mailRu.SetUnreadAsync(
+                _accessToken,
+                _activeLogin ?? string.Empty,
+                message.Id,
+                makeUnread);
+
+            ResponseTextBox.Text = result.RawResponse;
+            if (!result.Success)
+            {
+                FolderStatusText.Text = "Mail.ru отклонил изменение статуса.";
+                return;
+            }
+
+            ReplaceMessage(message, message with { Unread = makeUnread });
+        }
+        catch (Exception ex)
+        {
+            FolderStatusText.Text = "Ошибка изменения статуса.";
+            DiagnosticLog.Write("message_marks", ex.GetType().Name + ": " + ex.Message);
+        }
+    }
+
+    private void ReplaceMessage(MailRuMessageSummary original, MailRuMessageSummary updated)
+    {
+        var selectedId = (MessagesGrid.SelectedItem as MailRuMessageSummary)?.Id;
+        var index = _currentMessages.FindIndex(item => item.Id == original.Id);
+        if (index >= 0)
+            _currentMessages[index] = updated;
+
+        ApplyFilters();
+
+        if (!string.IsNullOrWhiteSpace(selectedId))
+            MessagesGrid.SelectedItem = (MessagesGrid.ItemsSource as IEnumerable<MailRuMessageSummary>)?
+                .FirstOrDefault(item => item.Id == selectedId);
+
+        if (selectedId == updated.Id)
+            DisplaySummary(updated);
     }
 
     private async void ServerSearchButton_Click(object sender, RoutedEventArgs e)
@@ -889,8 +936,11 @@ public partial class MainWindow : Window
         }
     }
 
-    private void ApplyFilterButton_Click(object sender, RoutedEventArgs e)
+    private void InteractiveFilter_Changed(object sender, RoutedEventArgs e)
     {
+        if (!IsLoaded)
+            return;
+
         ApplyFilters();
     }
 
@@ -1180,10 +1230,16 @@ public partial class MainWindow : Window
         SelectedDateText.Text = string.Empty;
         SelectedMetaText.Text = string.Empty;
         IncomingAttachmentsListBox.ItemsSource = null;
-        ReadStateButton.Content = "Прочитано";
-        FlagMessageButton.Content = "Флажок";
-        PinMessageButton.Content = "Закрепить";
+        IncomingAttachmentsPanel.Visibility = Visibility.Collapsed;
+        DownloadAttachmentButton.Visibility = Visibility.Collapsed;
         ShowReaderText("Выберите письмо.");
+    }
+
+    private void FolderManageToggleButton_Click(object sender, RoutedEventArgs e)
+    {
+        FolderManageExpander.IsExpanded = !FolderManageExpander.IsExpanded;
+        if (FolderManageExpander.IsExpanded)
+            FolderNameTextBox.Focus();
     }
 
     private async void CreateFolderButton_Click(object sender, RoutedEventArgs e)
@@ -1344,9 +1400,30 @@ public partial class MainWindow : Window
                 _attachmentPaths.Add(path);
         }
 
+        RefreshComposeAttachments();
+    }
+
+    private sealed record ComposeAttachmentItem(string Path, string Name);
+
+    private void RefreshComposeAttachments()
+    {
         AttachmentSummaryText.Text = _attachmentPaths.Count == 0
             ? "Вложений нет"
-            : $"Вложений: {_attachmentPaths.Count} · {string.Join(", ", _attachmentPaths.Select(Path.GetFileName))}";
+            : $"Вложений: {_attachmentPaths.Count}";
+
+        ComposeAttachmentsItemsControl.ItemsSource = _attachmentPaths
+            .Select(path => new ComposeAttachmentItem(path, Path.GetFileName(path)))
+            .ToArray();
+    }
+
+    private void RemoveComposeAttachmentButton_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as Button)?.Tag is not string path)
+            return;
+
+        _attachmentPaths.RemoveAll(item =>
+            string.Equals(item, path, StringComparison.OrdinalIgnoreCase));
+        RefreshComposeAttachments();
     }
 
     private async void SaveDraftButton_Click(object sender, RoutedEventArgs e)
@@ -1517,7 +1594,7 @@ public partial class MainWindow : Window
             ComposeSubjectTextBox.Clear();
             ComposeBodyTextBox.Clear();
             _attachmentPaths.Clear();
-            AttachmentSummaryText.Text = "Вложений нет";
+            RefreshComposeAttachments();
 
             if (scheduledFor is null)
             {
@@ -1709,6 +1786,7 @@ public partial class MainWindow : Window
     private void ShowComposeButton_Click(object sender, RoutedEventArgs e)
     {
         ShowWorkspace(ComposeWorkspace);
+        RefreshComposeAttachments();
         ComposeToTextBox.Focus();
     }
 
