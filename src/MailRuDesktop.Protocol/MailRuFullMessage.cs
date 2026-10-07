@@ -260,22 +260,26 @@ public static class MailRuFullMessageParser
                 if (!string.IsNullOrWhiteSpace(download))
                     download = NormalizeDownloadUrl(download);
 
-                if (!string.IsNullOrWhiteSpace(id) || !string.IsNullOrWhiteSpace(download))
-                {
-                    var key = $"{id}\n{name}\n{download}";
-                    if (seen.Add(key))
-                    {
-                        result.Add(new MailRuIncomingAttachment(
-                            id,
-                            name,
-                            contentType,
-                            download ?? string.Empty,
-                            size));
+                // The current verified download path requires Mail.ru's
+                // attachment id. Objects without an id are metadata/MIME helper
+                // entries from the full-message response and are not downloadable
+                // by the application. Do not expose them as user attachments.
+                if (string.IsNullOrWhiteSpace(id))
+                    return;
 
-                        // Do not recursively treat MIME/service metadata nested inside
-                        // an already-recognized attachment as additional user files.
-                        return;
-                    }
+                var key = $"{id}\n{name}\n{download}";
+                if (seen.Add(key))
+                {
+                    result.Add(new MailRuIncomingAttachment(
+                        id,
+                        name,
+                        contentType,
+                        download ?? string.Empty,
+                        size));
+
+                    // Do not recursively treat MIME/service metadata nested inside
+                    // an already-recognized attachment as additional user files.
+                    return;
                 }
             }
 
