@@ -129,6 +129,27 @@ internal sealed class AuthorizationStore
         }
     }
 
+    public bool Remove(string login)
+    {
+        if (string.IsNullOrWhiteSpace(login))
+            return false;
+
+        var removed = _state.Accounts.RemoveAll(account =>
+            string.Equals(account.Login, login, StringComparison.OrdinalIgnoreCase));
+        if (removed == 0)
+            return false;
+
+        if (string.Equals(_state.LastLogin, login, StringComparison.OrdinalIgnoreCase))
+        {
+            _state.LastLogin = _state.Accounts
+                .Select(account => account.Login)
+                .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
+        }
+
+        Persist();
+        return true;
+    }
+
     private static string? ProtectOptional(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : Dpapi.Protect(value);
 
