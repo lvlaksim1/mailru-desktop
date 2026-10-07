@@ -699,11 +699,30 @@ public partial class MainWindow
                           ResizeDirection="Columns"
                           ResizeBehavior="PreviousAndNext"/>
 
-            <TextBlock Grid.Column="10"
-                       Margin="5,0,8,0"
-                       VerticalAlignment="Center"
-                       TextTrimming="CharacterEllipsis"
-                       Text="{Binding SenderDisplay}"/>
+            <Grid Grid.Column="10"
+                  Margin="5,0,8,0"
+                  VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="18"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Border Width="16"
+                        Height="16"
+                        CornerRadius="8"
+                        VerticalAlignment="Center"
+                        Background="{DynamicResource AppControlHoverBrush}">
+                    <TextBlock HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               FontSize="8"
+                               FontWeight="SemiBold"
+                               Text="{Binding SenderInitials}"/>
+                </Border>
+                <TextBlock Grid.Column="1"
+                           Margin="5,0,0,0"
+                           VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis"
+                           Text="{Binding SenderDisplay}"/>
+            </Grid>
 
             <GridSplitter Grid.Column="11"
                           Width="4"
