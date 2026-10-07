@@ -38,7 +38,22 @@ public partial class MainWindow
             return null;
         }
 
-        var verificationWindow = new MailRuVerificationWindow(url)
+        var isRecaptcha = result.State == MailRuAuthState.ReCaptcha;
+        var localSessionId = result.Challenge?.SessionId;
+
+        if (isRecaptcha && string.IsNullOrWhiteSpace(localSessionId))
+        {
+            AppDialog.Info(
+                this,
+                "Проверка Mail.ru",
+                "Mail.ru запросил reCAPTCHA, но локальная сессия исходной попытки входа не была сохранена. " +
+                "Авторизация остановлена, чтобы не начинать новую несвязанную попытку.");
+            return null;
+        }
+
+        var verificationWindow = new MailRuVerificationWindow(
+            url,
+            waitForRecaptchaToken: isRecaptcha)
         {
             Owner = this
         };
@@ -47,12 +62,26 @@ public partial class MainWindow
         if (!verified)
             return null;
 
-        AuthStatusText.Text = "Повторная авторизация после проверки Mail.ru...";
+        AuthStatusText.Text = "Продолжение исходной авторизации после проверки Mail.ru...";
 
-        var retry = await _mailRu.AuthenticateWithSessionCookiesAsync(
-            login,
-            password,
-            verificationWindow.SessionCookieHeader);
+        MailRuAuthResult retry;
+        if (isRecaptcha)
+        {
+            retry = await _mailRu.CompleteChallengeAsync(
+                login,
+                new MailRuChallengeCompletion(
+                    localSessionId!,
+                    verificationWindow.RecaptchaResponse ?? string.Empty));
+        }
+        else
+        {
+            // Other challenge types have not yet been confirmed to use the
+            // g-recaptcha-response continuation contract.
+            retry = await _mailRu.AuthenticateWithSessionCookiesAsync(
+                login,
+                password,
+                verificationWindow.SessionCookieHeader);
+        }
 
         WriteAuthDiagnostics(retry);
 
@@ -61,9 +90,9 @@ public partial class MainWindow
             AppDialog.Info(
                 this,
                 "Проверка Mail.ru не завершена",
-                "Mail.ru снова запросил дополнительную проверку. " +
-                "Это означает, что одной браузерной сессии недостаточно либо проверка не была подтверждена сервером. " +
-                "Диагностика обновлена; автоматический цикл повторных CAPTCHA не запускается.");
+                isRecaptcha
+                    ? "Mail.ru снова запросил дополнительную проверку после передачи результата reCAPTCHA в исходную сессию входа. Диагностика обновлена."
+                    : "Mail.ru снова запросил дополнительную проверку. Диагностика обновлена.");
         }
 
         return retry;
