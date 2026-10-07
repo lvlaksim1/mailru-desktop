@@ -27,6 +27,9 @@ public partial class MainWindow
 
     private void PreviewMessagesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (_suppressMessageSelectionChanged)
+            return;
+
         PreviewComposePanel.Visibility = Visibility.Collapsed;
         PreviewComposeStatusText.Text = string.Empty;
 
