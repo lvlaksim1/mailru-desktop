@@ -370,6 +370,77 @@ Expect(MailRuExplicitFolderCounts.Read(
     """{"body":{"folders_content":[{"id":0}]}}""").Count,
     0, "compact folder response without folder metadata preserves counters");
 
+// The updater must keep working if the API host is unavailable while
+// github.com still exposes /releases/latest. These tests make NO network calls.
+const string releaseJson = """
+{
+ "tag_name":"v0.3.27",
+ "assets":[{"name":"MailRuDesktop_Update_v0.3.27.exe",
+   "browser_download_url":"https://github.com/lvlaksim1/mailru-desktop/releases/download/v0.3.27/MailRuDesktop_Update_v0.3.27.exe"}]
+}
+""";
+using (var api = new HttpClient(new UpdateStubHandler(_ =>
+           new HttpResponseMessage(HttpStatusCode.OK)
+           { Content = new StringContent(releaseJson) })))
+using (var site = new HttpClient(new UpdateStubHandler(_ =>
+           throw new Exception("The website fallback must not be used when API succeeds."))))
+{
+    var release = await GitHubUpdateService.GetLatestReleaseAsync(api, site);
+    Expect(release.Version, new Version(0, 3, 27), "update API parses current release");
+    Expect(release.Tag, "v0.3.27", "update API retains authoritative tag");
+}
+using (var api = new HttpClient(new UpdateStubHandler(_ =>
+           new HttpResponseMessage(HttpStatusCode.Forbidden))))
+using (var site = new HttpClient(new UpdateStubHandler(_ =>
+{
+    var redirect = new HttpResponseMessage(HttpStatusCode.Redirect);
+    redirect.Headers.Location = new Uri(
+        "https://github.com/lvlaksim1/mailru-desktop/releases/tag/v0.3.27");
+    return redirect;
+})))
+{
+    var release = await GitHubUpdateService.GetLatestReleaseAsync(api, site);
+    Expect(release.Version, new Version(0, 3, 27),
+        "API HTTP403 falls back to website release redirect");
+    Expect(release.UpdateDownloadUrl,
+        "https://github.com/lvlaksim1/mailru-desktop/releases/download/v0.3.27/MailRuDesktop_Update_v0.3.27.exe",
+        "website fallback uses canonical same-repository installer path");
+}
+using (var api = new HttpClient(new UpdateStubHandler(_ =>
+           new HttpResponseMessage(HttpStatusCode.ServiceUnavailable))))
+using (var site = new HttpClient(new UpdateStubHandler(_ =>
+{
+    var redirect = new HttpResponseMessage(HttpStatusCode.Redirect);
+    redirect.Headers.Location = new Uri("https://example.net/evil.exe");
+    return redirect;
+})))
+{
+    var refusedUnsafeDestination = false;
+    try { await GitHubUpdateService.GetLatestReleaseAsync(api, site); }
+    catch (InvalidOperationException error)
+    {
+        refusedUnsafeDestination = error.Message.Contains("HTTP 503", StringComparison.Ordinal) &&
+                                   error.Message.Contains("неподходящий ответ", StringComparison.Ordinal);
+    }
+    Expect(refusedUnsafeDestination, true,
+        "unsafe website redirect is rejected with useful diagnostic categories");
+}
+using (var api = new HttpClient(new UpdateStubHandler(_ =>
+           new HttpResponseMessage(HttpStatusCode.Forbidden))))
+using (var site = new HttpClient(new UpdateStubHandler(_ =>
+           new HttpResponseMessage(HttpStatusCode.BadGateway))))
+{
+    var diagnosedBothFailures = false;
+    try { await GitHubUpdateService.GetLatestReleaseAsync(api, site); }
+    catch (InvalidOperationException error)
+    {
+        diagnosedBothFailures = error.Message.Contains("HTTP 403", StringComparison.Ordinal) &&
+                                error.Message.Contains("HTTP 502", StringComparison.Ordinal);
+    }
+    Expect(diagnosedBothFailures, true,
+        "both unavailable hosts report safe status codes instead of silent failure");
+}
+
 Console.WriteLine("All interaction logic tests passed.");
 
 sealed class RecordingHandler : HttpMessageHandler
@@ -398,4 +469,12 @@ sealed class TokenEnvelopeHandler(HttpStatusCode code, string payload) : HttpMes
         {
             Content = new StringContent(payload)
         });
+}
+
+sealed class UpdateStubHandler(Func<HttpRequestMessage, HttpResponseMessage> responder)
+    : HttpMessageHandler
+{
+    protected override Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request, CancellationToken cancellationToken) =>
+        Task.FromResult(responder(request));
 }
