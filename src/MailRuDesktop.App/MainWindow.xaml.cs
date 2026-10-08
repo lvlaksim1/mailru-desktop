@@ -137,12 +137,19 @@ public partial class MainWindow : Window
             };
             MessageWebView.NavigationCompleted += (_, args) =>
             {
-                if (!_readerWaitingForFullMessage &&
-                    args.NavigationId == _latestReaderNavigationId)
+                if (_readerWaitingForFullMessage ||
+                    args.NavigationId != _latestReaderNavigationId)
+                    return;
+
+                if (!args.IsSuccess)
                 {
-                    MessageWebView.Visibility = Visibility.Visible;
-                    ReaderLoadingOverlay.Visibility = Visibility.Collapsed;
+                    ReaderLoadingText.Text = "Не удалось отобразить содержимое письма.";
+                    DiagnosticLog.Write("reader_navigation", "WebView2 error=" + args.WebErrorStatus);
+                    return;
                 }
+
+                MessageWebView.Visibility = Visibility.Visible;
+                ReaderLoadingOverlay.Visibility = Visibility.Collapsed;
             };
             _readerReady = true;
 
@@ -747,6 +754,7 @@ public partial class MainWindow : Window
         _readerWaitingForFullMessage = true;
         MessageWebView.Visibility = Visibility.Hidden;
         ReaderLoadingOverlay.Visibility = Visibility.Visible;
+        ReaderLoadingText.Text = "Загрузка письма…";
         MessageWebView.CoreWebView2?.Stop();
     }
 
@@ -2030,6 +2038,13 @@ public partial class MainWindow : Window
             Dispatcher.BeginInvoke(() => ThemeManager_ThemeChanged(sender, e));
             return;
         }
+
+        // A theme update while images or navigation are still pending must
+        // never replace the new letter with the raw, unprepared HTML body.
+        if (!_readerReady || _readerWaitingForFullMessage ||
+            _readerNavigationPending ||
+            MessageWebView.Visibility != Visibility.Visible)
+            return;
 
         if (_currentFullMessage is not null)
         {
