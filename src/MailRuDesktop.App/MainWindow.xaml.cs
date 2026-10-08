@@ -528,6 +528,7 @@ public partial class MainWindow : Window
             return;
 
         _loadingFolder = true;
+        ++_missingSenderLoadGeneration;
         RefreshFolderButton.IsEnabled = false;
         FolderStatusText.Text = "Загрузка...";
         _suppressMessageSelectionChanged = true;
@@ -558,6 +559,7 @@ public partial class MainWindow : Window
             _currentMessages = snapshot.Messages.ToList();
             _serverSearchMode = false;
             ApplyFilters();
+            ScheduleMissingSenderResolution();
             UpdateTrashButtonMode();
 
             if (snapshot.Folders.Count > 0)
