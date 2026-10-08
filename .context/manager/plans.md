@@ -10,7 +10,7 @@
 
 ## Current product baseline
 
-Latest public GitHub Release: v0.3.20, published on 2026-10-08.
+Latest public GitHub Release: v0.3.21, published on 2026-10-08.
 
 Current product code on main: merged PR #62 and PR #63. Main CI 37707321540 and release workflow 37707435464 passed; full and update installers are published.
 
@@ -57,7 +57,7 @@ The template source of truth is the top-level .md files in %LOCALAPPDATA%/MailRu
 4. Verify sender fallback with absent names in both array/object variants and across multiple accounts.
 5. Preserve all previously released OAuth, Markdown templates, avatars and auth-profile constraints.
 
-## v0.3.20 immediate verification plan
+## v0.3.21 immediate verification plan
 
 1. Owner installs update and tests dark vertical/horizontal scrollbars in lists, settings and mail viewer.
 2. Owner tests selected same signature/template twice with mouse and Enter, and top-right × in inline reply/forward.
@@ -66,3 +66,11 @@ The template source of truth is the top-level .md files in %LOCALAPPDATA%/MailRu
 5. Owner checks initially empty sender rows; select an affected message so full FromEmail populates row and verify parent thread fallback where present.
 6. Owner checks receipt and scheduled send both in inline reply/forward and standalone compose; test with authorized recipient and observe real server acceptance/delivery.
 7. Preserve existing account drag and splitter behavior that Owner positively confirmed. Fix actual runtime defects before unrelated API expansion.
+
+## Color system enforcement after v0.3.21
+
+1. Treat docs/theme-palette.md and ThemePalette.Roles as the authoritative inventory of 26 immutable semantic roles. Users may edit only hexadecimal color values; fixed role membership is a product invariant.
+2. Audit every future XAML window/control and WPF programmatic element for color references. Prefer DynamicResource role keys; never add hard-coded UI hex values outside ThemePalette defaults or branded artwork.
+3. Owner tests both built-in theme palettes, edits single/multiple roles, validates instant refresh and persisted dark/light settings after restart, color-picker functionality and system-theme automatic switching.
+4. Audit contrast warning messaging and browser content/scrollbars without recoloring sender images or other branded media.
+5. Do not regress owner-approved account drag physics and splitter geometry; postpone unrelated unfinished mail backlog until palette visual gate.
