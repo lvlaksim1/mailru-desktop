@@ -24,7 +24,7 @@ internal sealed class TextPromptWindow : Window
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         ShowInTaskbar = false;
 
-        SetResourceReference(BackgroundProperty, "AppWindowBrush");
+        SetResourceReference(BackgroundProperty, "AppDialogBrush");
         SetResourceReference(ForegroundProperty, "AppTextBrush");
 
         var root = new Grid { Margin = new Thickness(16) };
