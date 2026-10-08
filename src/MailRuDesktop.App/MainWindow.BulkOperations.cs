@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using MailRuDesktop.Protocol;
 
 namespace MailRuDesktop.App;
@@ -10,7 +11,20 @@ public partial class MainWindow
     private void BulkRowCheckBox_PreviewMouseLeftButtonDown(
         object sender, MouseButtonEventArgs e)
     {
-        if (sender is not CheckBox checkbox)
+        var source = e.OriginalSource as DependencyObject;
+        CheckBox? checkbox = null;
+        while (source is not null && !ReferenceEquals(source, MessagesGrid))
+        {
+            if (source is CheckBox candidate &&
+                candidate.Name == "BulkSelectCheckBox")
+            {
+                checkbox = candidate;
+                break;
+            }
+            source = VisualTreeHelper.GetParent(source);
+        }
+
+        if (checkbox is null)
             return;
 
         var container = ItemsControl.ContainerFromElement(MessagesGrid, checkbox) as ListBoxItem;
