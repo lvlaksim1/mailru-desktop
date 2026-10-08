@@ -53,6 +53,7 @@ public partial class MainWindow : Window
 
         RestoreUserInterfaceState();
         InitializeUserContentSettings();
+        InitializeDownloadDirectorySettings();
 
         ThemeManager.Apply(_settingsStore.LoadTheme());
         InitializePaletteEditor();
@@ -800,6 +801,7 @@ public partial class MainWindow : Window
         var dialog = new SaveFileDialog
         {
             FileName = SafeFileName(attachment.DisplayName),
+            InitialDirectory = _settingsStore.LoadAttachmentDownloadDirectory(),
             Title = "Сохранить вложение"
         };
 
@@ -818,6 +820,7 @@ public partial class MainWindow : Window
 
             await File.WriteAllBytesAsync(dialog.FileName, bytes);
             FolderStatusText.Text = $"Вложение сохранено: {Path.GetFileName(dialog.FileName)}";
+            AttachmentDownloadLocation.OpenAfterSaving(dialog.FileName);
         }
         catch (Exception ex)
         {
