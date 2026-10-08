@@ -206,7 +206,16 @@ internal sealed class MarkdownTemplateStore
                     {
                         var reference = DecodeScalar(line.TrimStart()[2..].Trim());
                         if (!string.IsNullOrWhiteSpace(reference))
-                            attachments.Add(ResolveAttachmentPath(reference));
+                        {
+                            try
+                            {
+                                attachments.Add(ResolveAttachmentPath(reference));
+                            }
+                            catch (ArgumentException ex)
+                            {
+                                DiagnosticLog.Write("template_attachment", $"{name}: {ex.Message}");
+                            }
+                        }
                     }
                 }
                 body = normalized[(end + "\n---\n".Length)..];
