@@ -110,7 +110,8 @@ public sealed record MailRuOutgoingMessage(
     string? SendDate = null,
     IReadOnlyList<string>? AttachmentIds = null,
     int Priority = 3,
-    string? MessageId = null);
+    string? MessageId = null,
+    bool RequestReadReceipt = false);
 
 public sealed record MailRuCommandResult(bool Success, string RawResponse);
 
@@ -776,7 +777,7 @@ public sealed partial class MailRuClient : IDisposable
         });
 
         using var request = CreateRequest(HttpMethod.Post, uri);
-        request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+        var form = new Dictionary<string, string>
         {
             ["attaches"] = attaches,
             ["body"] = body,
@@ -786,7 +787,14 @@ public sealed partial class MailRuClient : IDisposable
             ["subject"] = subject,
             ["send_date"] = scheduled ? message.SendDate! : "0",
             ["priority"] = message.Priority.ToString(CultureInfo.InvariantCulture)
-        });
+        };
+
+        // TornadoSendParamsImpl: @Param POST "receipt" mReadVerify (boolean).
+        // Keep the existing payload byte-for-byte compatible when unchecked.
+        if (message.RequestReadReceipt)
+            form["receipt"] = "true";
+
+        request.Content = new FormUrlEncodedContent(form);
 
         using var response = await SendSerializedAsync(request, cancellationToken).ConfigureAwait(false);
         var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
