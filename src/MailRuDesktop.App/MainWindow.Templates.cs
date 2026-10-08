@@ -361,10 +361,7 @@ public partial class MainWindow
             var path = Path.GetFullPath(picker.FileName);
             var source = new MarkdownTemplateStore(Path.GetDirectoryName(path));
             var name = Path.GetFileNameWithoutExtension(path);
-            var template = source.LoadAll().FirstOrDefault(item =>
-                string.Equals(item.Name, name, StringComparison.OrdinalIgnoreCase));
-            if (template is null)
-                throw new InvalidDataException("Шаблон не удалось прочитать.");
+            var template = source.ReadExternalFile(path);
 
             var managed = string.Equals(
                 Path.GetDirectoryName(path),
