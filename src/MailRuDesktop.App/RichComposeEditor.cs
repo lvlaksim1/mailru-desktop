@@ -87,8 +87,8 @@ internal sealed class RichComposeEditor
             FontStyles.Italic, FontStyles.Normal));
         Add(toolbar, "Ч", "Подчёркивание", () =>
             EditingCommands.ToggleUnderline.Execute(null, _rich));
-        Add(toolbar, "̶S", "Зачёркивание", () => Toggle(TextElement.TextDecorationsProperty,
-            TextDecorations.Strikethrough, null));
+        Add(toolbar, "̶S", "Зачёркивание", () => Toggle(Inline.TextDecorationsProperty,
+            TextDecorations.Strikethrough, new TextDecorationCollection()));
         Add(toolbar, "•", "Маркированный список", () =>
             EditingCommands.ToggleBullets.Execute(null, _rich));
         Add(toolbar, "1.", "Нумерованный список", () =>
@@ -153,7 +153,7 @@ internal sealed class RichComposeEditor
     {
         var value = _rich.Selection.GetPropertyValue(property);
         _rich.Selection.ApplyPropertyValue(property,
-            Equals(value, enabled) ? disabled ?? DependencyProperty.UnsetValue : enabled);
+            Equals(value, enabled) ? disabled ?? enabled : enabled);
         _rich.Focus();
     }
 
