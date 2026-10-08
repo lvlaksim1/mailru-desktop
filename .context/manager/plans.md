@@ -10,7 +10,7 @@
 
 ## Current product baseline
 
-Latest public GitHub Release: v0.3.23, published on 2026-10-08.
+Latest public GitHub Release: v0.3.24, published on 2026-10-08.
 
 Current product code on main: merged PR #62 and PR #63. Main CI 37707321540 and release workflow 37707435464 passed; full and update installers are published.
 
@@ -93,3 +93,12 @@ The template source of truth is the top-level .md files in %LOCALAPPDATA%/MailRu
 4. Owner installs v0.3.23 and verifies affected saved accounts; test one account's failure does not break or replace others, and the status message matches the actual mailbox result.
 5. Never disclose, request uploading or log auth.json, access_token, refresh_token, session cookies, passwords or full secrets. Gather only anonymized status/error classifications for further debugging.
 6. Keep the Outbox scheduled send-now blocker (#77) separate; preserve delivered bulk actions, sender parsing, rich editor, Markdown and UI.
+
+## v0.3.24 acceptance and remaining deferred-send research
+
+1. Record Owner explicit validation that the saved-account authorization/403-token issue was resolved by v0.3.23; do not reopen without new evidence.
+2. Owner tests new v0.3.24 picker footer, dark calendar, ordinary Enter lines, resizable reply editor and no confirmation on permanent Trash deletion.
+3. Owner repeatedly selects several messages while sender enrichment runs and after message state changes; checked IDs should remain stable. Group Read/Archive/Trash/Permanent Delete must modify ONLY confirmed affected rows, preserving scroll and others' marks.
+4. Investigate remaining first-paint missing senders only if Owner still sees staged loading after same-message smart-thread representation fix. Prefer finding an existing batch payload; do not delay initial folder paint for 20 sequential full-message requests at 5-second intervals.
+5. Maintain issue #77, duplicate-free atomic server transition of a scheduled Outbox message to immediate sending. Disabled buttons/context entry do NOT satisfy original feature request. Prove semantics with authorized test account and post-request schedule state verification before enabling.
+6. Preserve Owner-approved account dragging and pane splitters and confirmed rich-format sending. If needed, publish further fixes with conservative labels and explicit Owner runtime test requirements.
