@@ -59,23 +59,27 @@ internal static class ThemeManager
             FrameworkElement.LoadedEvent,
             new RoutedEventHandler(OnWindowLoaded));
 
+        // Activation and unrelated Windows setting changes must not recreate
+        // every brush or HTML document. Reapply only when the effective
+        // system theme actually changed.
         SystemParameters.StaticPropertyChanged += (_, _) =>
         {
             if (CurrentMode == AppThemeMode.System &&
                 Application.Current?.Dispatcher is { } dispatcher)
             {
-                dispatcher.BeginInvoke(() => Apply(AppThemeMode.System));
+                dispatcher.BeginInvoke(new Action(ApplySystemThemeIfChanged));
             }
         };
 
         if (Application.Current is { } app)
-        {
-            app.Activated += (_, _) =>
-            {
-                if (CurrentMode == AppThemeMode.System)
-                    Apply(AppThemeMode.System);
-            };
-        }
+            app.Activated += (_, _) => ApplySystemThemeIfChanged();
+    }
+
+    private static void ApplySystemThemeIfChanged()
+    {
+        if (CurrentMode == AppThemeMode.System &&
+            IsDarkEffective != IsSystemDark())
+            Apply(AppThemeMode.System);
     }
 
     public static void Apply(AppThemeMode mode)
