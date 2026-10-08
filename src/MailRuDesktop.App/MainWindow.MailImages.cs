@@ -259,25 +259,25 @@ public partial class MainWindow
         {
             if (isInline && !string.IsNullOrWhiteSpace(token))
             {
-                var bytes = await _mailRu.DownloadIncomingAttachmentAsync(
+                var inlineBytes = await _mailRu.DownloadIncomingAttachmentAsync(
                     token, messageId!, attachmentId);
-                var imageType = SniffImageContentType(bytes);
-                if (bytes.Length is > 0 and <= 8_388_608 &&
+                var imageType = SniffImageContentType(inlineBytes);
+                if (inlineBytes.Length is > 0 and <= 8_388_608 &&
                     IsImageContentType(imageType))
                 {
-                    var stream = new MemoryStream(bytes, writable: false);
+                    var inlineStream = new MemoryStream(inlineBytes, writable: false);
                     e.Response = MessageWebView.CoreWebView2.Environment
                         .CreateWebResourceResponse(
-                            stream, 200, "OK",
+                            inlineStream, 200, "OK",
                             "Content-Type: " + imageType + "\r\n" +
                             "Cache-Control: private, max-age=300\r\n");
                     DiagnosticLog.Write("mail_image_inline", 
-                        $"loaded; bytes={bytes.Length}; type={imageType}");
+                        $"loaded; inlineBytes={inlineBytes.Length}; type={imageType}");
                 }
                 else
                 {
                     DiagnosticLog.Write("mail_image_inline",
-                        $"invalid-image; bytes={bytes.Length}");
+                        $"invalid-image; inlineBytes={inlineBytes.Length}");
                 }
                 return;
             }
