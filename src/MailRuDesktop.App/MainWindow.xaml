@@ -29,11 +29,15 @@
                         CornerRadius="8"
                         VerticalAlignment="Center"
                         Background="{DynamicResource AppControlHoverBrush}">
-                    <TextBlock HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               FontSize="8"
-                               FontWeight="SemiBold"
-                               Text="{Binding IconText}"/>
+                    <Grid>
+                        <TextBlock HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontSize="8"
+                                   FontWeight="SemiBold"
+                                   Text="{Binding IconText}"/>
+                        <Image Width="16" Height="16" Stretch="UniformToFill"
+                               Source="{Binding AvatarUrl}"/>
+                    </Grid>
                 </Border>
                 <TextBlock Grid.Column="1"
                            Margin="6,0,0,0"
@@ -677,6 +681,7 @@
                                     <ComboBox x:Name="PreviewTemplateComboBox"
                                               Width="210"
                                               DisplayMemberPath="Name"
+                                              DropDownOpened="PreviewTemplateComboBox_DropDownOpened"
                                               SelectionChanged="PreviewTemplateComboBox_SelectionChanged"/>
                                 </WrapPanel>
 
@@ -905,7 +910,8 @@
                                     <WrapPanel Grid.Row="5" Margin="0,7,0,0">
                                         <Button Padding="10,6" Margin="0,0,6,0" Click="NewMailTemplateButton_Click" Content="Новый"/>
                                         <Button Padding="10,6" Margin="0,0,6,0" Click="SaveMailTemplateButton_Click" Content="Сохранить"/>
-                                        <Button Padding="10,6" Click="DeleteMailTemplateButton_Click" Content="Удалить"/>
+                                        <Button Padding="10,6" Margin="0,0,6,0" Click="DeleteMailTemplateButton_Click" Content="Удалить"/>
+                                        <Button Padding="10,6" Click="OpenTemplatesFolderButton_Click" Content="Открыть папку шаблонов"/>
                                     </WrapPanel>
                                 </Grid>
                             </Grid>

@@ -711,11 +711,15 @@ public partial class MainWindow
                         CornerRadius="8"
                         VerticalAlignment="Center"
                         Background="{DynamicResource AppControlHoverBrush}">
+                    <Grid>
                     <TextBlock HorizontalAlignment="Center"
                                VerticalAlignment="Center"
                                FontSize="8"
                                FontWeight="SemiBold"
                                Text="{Binding SenderInitials}"/>
+                    <Image Width="16" Height="16" Stretch="UniformToFill"
+                           Source="{Binding AvatarUrl}"/>
+                </Grid>
                 </Border>
                 <TextBlock Grid.Column="1"
                            Margin="5,0,0,0"

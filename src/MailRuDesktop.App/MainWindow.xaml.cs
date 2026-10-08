@@ -1930,8 +1930,11 @@ public partial class MainWindow : Window
         ComposeToTextBox.Focus();
     }
 
-    private void ShowSettingsButton_Click(object sender, RoutedEventArgs e) =>
+    private void ShowSettingsButton_Click(object sender, RoutedEventArgs e)
+    {
+        RefreshTemplatesFromDisk();
         ShowWorkspace(SettingsWorkspace);
+    }
 
     private void ShowWorkspace(FrameworkElement workspace)
     {

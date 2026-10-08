@@ -18,6 +18,7 @@ public sealed class AccountRailItem : INotifyPropertyChanged
     public string Login { get; }
     public string Initials { get; }
     public string IconText => Initials;
+    public string? AvatarUrl => MailRuDesktop.Protocol.MailRuAvatarUrls.ForEmail(Login);
 
     public long? Unread
     {

@@ -11,6 +11,9 @@ public partial class MainWindow
     private readonly ObservableCollection<SavedSignature> _signatures = [];
     private readonly ObservableCollection<SavedMailTemplate> _mailTemplates = [];
     private readonly ObservableCollection<string> _templateDraftAttachments = [];
+    private readonly MarkdownTemplateStore _templateFiles = new();
+    private FileSystemWatcher? _templateWatcher;
+    private bool _refreshingTemplateList;
     private string? _previewInsertedSignature;
 
     private void InitializeUserContentSettings()
@@ -19,9 +22,8 @@ public partial class MainWindow
         foreach (var signature in _settingsStore.LoadSignatures())
             _signatures.Add(signature);
 
-        _mailTemplates.Clear();
-        foreach (var template in _settingsStore.LoadMailTemplates())
-            _mailTemplates.Add(template);
+        _templateFiles.ImportLegacyOnce(_settingsStore.LoadMailTemplates());
+        RefreshTemplatesFromDisk();
 
         SignaturesListBox.ItemsSource = _signatures;
         MailTemplatesListBox.ItemsSource = _mailTemplates;
@@ -29,6 +31,66 @@ public partial class MainWindow
 
         PreviewSignatureComboBox.ItemsSource = _signatures;
         PreviewTemplateComboBox.ItemsSource = _mailTemplates;
+
+        _templateWatcher = new FileSystemWatcher(_templateFiles.DirectoryPath, "*.md");
+        _templateWatcher.Changed += TemplatesChangedOnDisk;
+        _templateWatcher.Created += TemplatesChangedOnDisk;
+        _templateWatcher.Deleted += TemplatesChangedOnDisk;
+        _templateWatcher.Renamed += TemplatesRenamedOnDisk;
+        _templateWatcher.EnableRaisingEvents = true;
+        Closed += (_, _) => _templateWatcher?.Dispose();
+    }
+
+    private void TemplatesChangedOnDisk(object sender, FileSystemEventArgs e) =>
+        Dispatcher.BeginInvoke(new Action(() => RefreshTemplatesFromDisk()));
+
+    private void TemplatesRenamedOnDisk(object sender, RenamedEventArgs e) =>
+        Dispatcher.BeginInvoke(new Action(() => RefreshTemplatesFromDisk()));
+
+    private void PreviewTemplateComboBox_DropDownOpened(object sender, EventArgs e) =>
+        RefreshTemplatesFromDisk();
+
+    private void OpenTemplatesFolderButton_Click(object sender, RoutedEventArgs e)
+    {
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = _templateFiles.DirectoryPath,
+            UseShellExecute = true
+        });
+    }
+
+    private void RefreshTemplatesFromDisk(string? selectName = null)
+    {
+        var oldName = selectName ?? (MailTemplatesListBox.SelectedItem as SavedMailTemplate)?.Name;
+        var selectedPreview = (PreviewTemplateComboBox.SelectedItem as SavedMailTemplate)?.Name;
+        var disk = _templateFiles.LoadAll();
+        if (_mailTemplates.Count == disk.Count &&
+            _mailTemplates.Zip(disk).All(pair =>
+                pair.First.Name == pair.Second.Name &&
+                pair.First.Subject == pair.Second.Subject &&
+                pair.First.Body == pair.Second.Body &&
+                pair.First.Attachments.SequenceEqual(pair.Second.Attachments)))
+            return;
+
+        _refreshingTemplateList = true;
+        try
+        {
+            _mailTemplates.Clear();
+            foreach (var template in disk)
+                _mailTemplates.Add(template);
+
+            if (oldName is not null)
+                MailTemplatesListBox.SelectedItem = _mailTemplates.FirstOrDefault(
+                    item => string.Equals(item.Name, oldName, StringComparison.OrdinalIgnoreCase));
+
+            if (selectedPreview is not null)
+                PreviewTemplateComboBox.SelectedItem = _mailTemplates.FirstOrDefault(
+                    item => string.Equals(item.Name, selectedPreview, StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            _refreshingTemplateList = false;
+        }
     }
 
     private void SignaturesListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -139,34 +201,26 @@ public partial class MainWindow
             return;
         }
 
+        var previousName = (MailTemplatesListBox.SelectedItem as SavedMailTemplate)?.Name;
         var replacement = new SavedMailTemplate
         {
-            Id = (MailTemplatesListBox.SelectedItem as SavedMailTemplate)?.Id
-                 ?? Guid.NewGuid().ToString("N"),
             Name = name,
             Subject = TemplateSubjectTextBox.Text,
             Body = TemplateBodyTextBox.Text,
-            Attachments = _templateDraftAttachments
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList()
+            Attachments = _templateDraftAttachments.ToList()
         };
 
-        if (MailTemplatesListBox.SelectedItem is SavedMailTemplate selected)
+        try
         {
-            var index = _mailTemplates.IndexOf(selected);
-            if (index >= 0)
-                _mailTemplates[index] = replacement;
+            var saved = _templateFiles.Save(replacement, previousName);
+            RefreshTemplatesFromDisk(saved.Name);
+            MailTemplatesListBox.SelectedItem = _mailTemplates.FirstOrDefault(
+                item => string.Equals(item.Name, saved.Name, StringComparison.OrdinalIgnoreCase));
         }
-        else
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
         {
-            _mailTemplates.Add(replacement);
+            AppDialog.Info(this, "Не удалось сохранить шаблон", ex.Message);
         }
-
-        _settingsStore.SaveMailTemplates(_mailTemplates);
-        MailTemplatesListBox.SelectedItem = replacement;
-
-        PreviewTemplateComboBox.ItemsSource = null;
-        PreviewTemplateComboBox.ItemsSource = _mailTemplates;
     }
 
     private void DeleteMailTemplateButton_Click(object sender, RoutedEventArgs e)
@@ -174,26 +228,23 @@ public partial class MainWindow
         if (MailTemplatesListBox.SelectedItem is not SavedMailTemplate template)
             return;
 
-        if (!AppDialog.Confirm(
-                this,
-                "Удаление шаблона",
-                $"Удалить шаблон «{template.Name}»?",
-                "Удалить",
-                "Отмена"))
-        {
+        if (!AppDialog.Confirm(this, "Удаление шаблона",
+                $"Удалить шаблон «{template.Name}»?", "Удалить", "Отмена"))
             return;
+
+        try
+        {
+            _templateFiles.Delete(template.Name);
+            RefreshTemplatesFromDisk();
+            TemplateNameTextBox.Clear();
+            TemplateSubjectTextBox.Clear();
+            TemplateBodyTextBox.Clear();
+            _templateDraftAttachments.Clear();
         }
-
-        _mailTemplates.Remove(template);
-        _settingsStore.SaveMailTemplates(_mailTemplates);
-
-        TemplateNameTextBox.Clear();
-        TemplateSubjectTextBox.Clear();
-        TemplateBodyTextBox.Clear();
-        _templateDraftAttachments.Clear();
-
-        PreviewTemplateComboBox.ItemsSource = null;
-        PreviewTemplateComboBox.ItemsSource = _mailTemplates;
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            AppDialog.Info(this, "Не удалось удалить шаблон", ex.Message);
+        }
     }
 
     private void AddTemplateAttachmentsButton_Click(object sender, RoutedEventArgs e)
@@ -259,7 +310,8 @@ public partial class MainWindow
         object sender,
         SelectionChangedEventArgs e)
     {
-        if (PreviewTemplateComboBox.SelectedItem is not SavedMailTemplate template)
+        if (_refreshingTemplateList ||
+            PreviewTemplateComboBox.SelectedItem is not SavedMailTemplate template)
             return;
 
         PreviewComposeSubjectTextBox.Text = template.Subject;
