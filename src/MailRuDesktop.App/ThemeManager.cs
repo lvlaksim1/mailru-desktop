@@ -120,8 +120,7 @@ internal static class ThemeManager
         foreach (var (key, size) in sizes)
             resources[key] = size;
         // Portraits scale with typography, without changing their source URLs.
-        resources["AppAvatarSize"] = Math.Clamp(
-            ThemeTypography.Normalize(requested) * 4.0 / 3.0, 14.0, 24.0);
+        resources["AppAvatarSize"] = ThemeTypography.AvatarSize(requested);
         foreach (Window window in Application.Current.Windows)
             window.FontSize = sizes["AppFontBodySize"];
     }
