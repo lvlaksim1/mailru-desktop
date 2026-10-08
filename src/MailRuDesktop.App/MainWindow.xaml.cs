@@ -524,13 +524,14 @@ public partial class MainWindow : Window
     {
         if (_updatingFolderSelection ||
             _loadingFolder ||
-            FolderListBox.SelectedItem is not MailRuFolderSummary folder ||
-            folder.Id == _currentFolderId)
-        {
+            FolderListBox.SelectedItem is not MailRuFolderSummary folder)
             return;
-        }
 
-        await LoadFolderAsync(folder.Id);
+        if (SettingsWorkspace.Visibility == Visibility.Visible)
+            ShowWorkspace(MailWorkspace);
+
+        if (folder.Id != _currentFolderId)
+            await LoadFolderAsync(folder.Id);
     }
 
     private async Task LoadFolderAsync(int folderId, long? accountSwitchGeneration = null)
@@ -1795,6 +1796,7 @@ public partial class MainWindow : Window
             ComposeToTextBox.Clear();
             ComposeSubjectTextBox.Clear();
             ComposeBodyTextBox.Clear();
+            ResetComposeTemplateSelectors();
             _attachmentPaths.Clear();
             RefreshComposeAttachments();
             RequestReadReceiptCheckBox.IsChecked = false;
@@ -2034,6 +2036,18 @@ public partial class MainWindow : Window
 
     private void ShowComposeButton_Click(object sender, RoutedEventArgs e) =>
         ShowComposeWindow();
+
+    private void CopyDiagnosticsButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Clipboard.SetText(ResponseTextBox.Text ?? string.Empty);
+        }
+        catch (Exception ex)
+        {
+            AppDialog.Info(this, "Диагностика", "Не удалось скопировать: " + ex.Message);
+        }
+    }
 
     private void ShowSettingsButton_Click(object sender, RoutedEventArgs e)
     {
