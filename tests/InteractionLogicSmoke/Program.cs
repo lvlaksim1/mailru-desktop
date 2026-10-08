@@ -93,6 +93,25 @@ using (var client = new MailRuClient(httpClient: http))
     Console.WriteLine("PASS unchecked receipt omits flag");
 }
 
+var exampleImage = new Uri(
+    "https://af12.mail.ru/cgi-bin/readmsg?id=17913042710476616061;0;2&mode=attachment&email=7770082@bk.ru&ct=image%2fgif&cn=&cte=binary");
+Expect(MailRuInlineImageSource.TryParse(exampleImage, "17913042710476616061",
+    "7770082@bk.ru", out var inlineId), true,
+    "Mail.ru embedded-image URL is accepted for matching account and mail");
+Expect(inlineId, "0;2", "embedded-image attachment identifier is preserved");
+Expect(MailRuInlineImageSource.TryParse(exampleImage, "wrong-mail-id",
+    "7770082@bk.ru", out _), false, "other message image is rejected");
+Expect(MailRuInlineImageSource.TryParse(exampleImage, "17913042710476616061",
+    "other@mail.ru", out _), false, "other account image is rejected");
+Expect(MailRuInlineImageSource.TryParse(
+    new Uri("https://evil.example/cgi-bin/readmsg?id=17913042710476616061;0;2&mode=attachment&email=7770082@bk.ru"),
+    "17913042710476616061", "7770082@bk.ru", out _), false,
+    "untrusted image host is rejected");
+Expect(MailRuInlineImageSource.TryParse(
+    new Uri("https://af12.mail.ru/cgi-bin/readmsg?id=17913042710476616061;0;2&mode=mail&email=7770082@bk.ru"),
+    "17913042710476616061", "7770082@bk.ru", out _), false,
+    "only image attachment mode is allowed");
+
 var testRoot = Path.Combine(Path.GetTempPath(), "MailRuDesktopTemplateChecks-" + Guid.NewGuid().ToString("N"));
 try
 {
@@ -147,9 +166,60 @@ try
         throw new Exception("Template attachment was not copied into managed folder");
     Console.WriteLine("PASS managed template attachment copied");
 
+    // Copying a loaded template to another name must NOT rename or delete
+    // the original. Only an explicitly confirmed exact-name overwrite is allowed.
+    var originalReplyPath = Path.Combine(first, "Reply.md");
+    var originalReplyBytes = File.ReadAllBytes(originalReplyPath);
+    var clone = templates.Save(new SavedMailTemplate
+    {
+        Name = "Reply copy",
+        Subject = "Новая тема",
+        Body = "Новый текст",
+        Attachments = saved.Attachments
+    }, previousName: null);
+    Expect(File.Exists(Path.Combine(first, "Reply copy.md")), true,
+        "new template name creates an independent Markdown file");
+    Expect(File.ReadAllBytes(originalReplyPath).SequenceEqual(originalReplyBytes), true,
+        "source template stays byte-for-byte unchanged after Save As");
+    Expect(clone.Attachments.Single() == saved.Attachments.Single(), false,
+        "copy owns independent attachments instead of source template files");
+    Expect(File.Exists(clone.Attachments.Single()), true,
+        "copy attachment was written to independent location");
+
+    bool collisionRejected = false;
+    try
+    {
+        templates.Save(new SavedMailTemplate
+        {
+            Name = "Reply copy", Subject = "Нельзя перезаписывать",
+            Body = "Данные", Attachments = []
+        }, previousName: null);
+    }
+    catch (IOException) { collisionRejected = true; }
+    Expect(collisionRejected, true, "template overwrite needs explicit permission");
+    bool renameRejected = false;
+    try
+    {
+        templates.Save(new SavedMailTemplate
+        {
+            Name = "Reply copy 2", Body = "Данные", Attachments = []
+        }, previousName: "Reply");
+    }
+    catch (IOException) { renameRejected = true; }
+    Expect(renameRejected, true, "Save cannot delete or rename a different template");
+    templates.Save(new SavedMailTemplate
+    {
+        Name = "Reply copy", Subject = "Разрешённая перезапись",
+        Body = "Изменено", Attachments = []
+    }, previousName: "Reply copy");
+    Expect(templates.LoadAll().Single(t => t.Name == "Reply copy").Subject,
+        "Разрешённая перезапись", "exact-target authorized overwrite is allowed");
+    Expect(File.ReadAllBytes(originalReplyPath).SequenceEqual(originalReplyBytes), true,
+        "original still unchanged after copy overwrite");
+
     templates.ChangeDirectory(next);
     Expect(templates.DirectoryPath, Path.GetFullPath(next), "template folder is configurable");
-    Expect(templates.LoadAll().Count, 4, "template files preserved on directory change");
+    Expect(templates.LoadAll().Count, 5, "template files preserved on directory change");
     var moved = templates.LoadAll().Single(t => t.Name == "Reply");
     if (!File.Exists(moved.Attachments.Single()))
         throw new Exception("Attachment missing after template folder change");
@@ -158,7 +228,7 @@ try
         throw new Exception("Original template folder was deleted");
 
     File.WriteAllText(Path.Combine(next, "AddedManually.md"), "New text");
-    Expect(templates.LoadAll().Count, 5, "manually added file appears without restart");
+    Expect(templates.LoadAll().Count, 6, "manually added file appears without restart");
 
     var conflicting = Path.Combine(testRoot, "conflicting");
     Directory.CreateDirectory(conflicting);
