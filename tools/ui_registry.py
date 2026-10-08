@@ -84,7 +84,7 @@ def summarize_xml(source: str, xml: str, owner: str, output: list[dict]) -> None
         tag = local_name(node.tag)
         name = node.attrib.get(X_NS + "Name") or node.attrib.get("Name")
         identity = name or f"{tag}[{sibling_position}]"
-        ident = parent + "/" + identity if parent else owner + "/" + identity
+        ident = parent + "/" + identity if parent else owner + "/" + source + "/" + identity
         # The root is a Window/ResourceDictionary; named descendants are
         # indexed by their stable names, anonymous nodes by tree position.
         styles = {}
@@ -148,7 +148,7 @@ def scan() -> dict:
         for match in re.finditer(r'"""(.*?)"""', code, flags=re.DOTALL):
             xml = match.group(1).strip()
             if xml.startswith("<ResourceDictionary") or xml.startswith("<DataTemplate"):
-                summarize_xml(relative + "#generated-xaml",
+                summarize_xml(relative + "#generated-xaml:" + str(match.start()),
                               xml, "MainWindow", elements)
 
         for match in CONTROL_CTOR.finditer(code):
