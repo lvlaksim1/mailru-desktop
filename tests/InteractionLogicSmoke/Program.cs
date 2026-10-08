@@ -354,6 +354,22 @@ finally
         Directory.Delete(isolatedFontSettings, recursive: true);
 }
 
+var counts = MailRuExplicitFolderCounts.Read("""
+    {"status":200,"body":{"folders":[
+      {"id":0,"messages_unread":5},
+      {"id":500010,"name":"Архив"},
+      {"id":500002,"messages_unread":0},
+      {"id":42,"messages_unread":-2}
+    ]}}
+    """);
+Expect(counts.Count, 2, "only explicitly transmitted nonnegative folder counts");
+Expect(counts[0], 5L, "nonzero folder count");
+Expect(counts[500002], 0L, "explicit server zero is a valid folder count");
+Expect(counts.ContainsKey(500010), false, "missing field must never reset known count");
+Expect(MailRuExplicitFolderCounts.Read(
+    "{\\"body\\":{\\"folders_content\\":[{\\"id\\":0}]}}").Count,
+    0, "compact folder response without folder metadata preserves counters");
+
 Console.WriteLine("All interaction logic tests passed.");
 
 sealed class RecordingHandler : HttpMessageHandler
