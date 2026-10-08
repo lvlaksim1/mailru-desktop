@@ -628,11 +628,13 @@ public partial class MainWindow : Window
 
     private async void MessagesGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        if (ActivePreviewMessage is not MailRuMessageSummary message ||
-            string.IsNullOrWhiteSpace(_activeLogin))
-        {
-            return;
-        }
+        if (ActivePreviewMessage is { } message)
+            await OpenDetachedMailWindowAsync(message);
+    }
+
+    private async Task OpenDetachedMailWindowAsync(MailRuMessageSummary message)
+    {
+        if (string.IsNullOrWhiteSpace(_activeLogin)) return;
 
         var folders = (FolderListBox.ItemsSource as IEnumerable<MailRuFolderSummary>)?.ToArray()
             ?? Array.Empty<MailRuFolderSummary>();
