@@ -97,10 +97,17 @@ internal static class ThemeManager
         foreach (var role in ThemePalette.Roles)
             SetBrush(resources, role.Key, _currentColors[role.Key]);
 
+        foreach (var (key, fontSize) in ThemeTypography.Resolve(
+                     new AppSettingsStore().LoadInterfaceFontSize()))
+            resources[key] = fontSize;
+
         ApplySystemBrushAliases(resources);
 
         foreach (Window window in Application.Current.Windows)
+        {
+            window.FontSize = (double)resources["AppFontBodySize"];
             ApplyNativeWindowTheme(window);
+        }
 
         ThemeChanged?.Invoke(null, EventArgs.Empty);
     }
@@ -108,7 +115,11 @@ internal static class ThemeManager
     private static void OnWindowLoaded(object sender, RoutedEventArgs e)
     {
         if (sender is Window window)
+        {
+            if (Application.Current?.Resources["AppFontBodySize"] is double size)
+                window.FontSize = size;
             ApplyNativeWindowTheme(window);
+        }
     }
 
     private static void SetBrush(ResourceDictionary resources, string key, string hex)
