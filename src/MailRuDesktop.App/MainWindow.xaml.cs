@@ -57,10 +57,13 @@ public partial class MainWindow : Window
         InitializeDownloadDirectorySettings();
 
         ThemeManager.Apply(_settingsStore.LoadTheme());
+        InitializeInterfaceFontSettings();
         InitializePaletteEditor();
         MessagesGrid.ItemsSource = _visibleMessages;
+        InitializeLiveFolderCounters();
         ConfigureModernMailList();
         MessagesGrid.PreviewMouseLeftButtonDown += BulkRowCheckBox_PreviewMouseLeftButtonDown;
+        MessagesGrid.PreviewMouseLeftButtonDown += MailPreviewRow_PreviewMouseLeftButtonDown;
         SelectThemeComboBox(ThemeManager.CurrentMode);
         ThemeManager.ThemeChanged += ThemeManager_ThemeChanged;
 
@@ -536,7 +539,10 @@ public partial class MainWindow : Window
             return;
 
         if (folderId != _currentFolderId || accountSwitchGeneration is not null)
+        {
             _selectedMailIds.Clear();
+            _checkboxRangeAnchorId = null;
+        }
         _loadingFolder = true;
         ++_missingSenderLoadGeneration;
         RefreshFolderButton.IsEnabled = false;
@@ -565,33 +571,20 @@ public partial class MainWindow : Window
             RefreshThreadCountIndex();
             var snapshot = MailRuThreadStatusParser.Parse(raw, folderId);
 
+            var completeRows = snapshot.Messages.ToList();
+            await PrefetchFirstMissingSendersAsync(completeRows, _accessToken);
+            if (IsStaleAccountSwitch())
+                return;
+
             _currentFolderId = snapshot.SelectedFolderId ?? folderId;
-            _currentMessages = snapshot.Messages.ToList();
+            _currentMessages = completeRows;
             _serverSearchMode = false;
             ApplyFilters();
             ScheduleMissingSenderResolution();
             UpdateTrashButtonMode();
 
             if (snapshot.Folders.Count > 0)
-            {
-                _updatingFolderSelection = true;
-                try
-                {
-                    FolderListBox.ItemsSource = snapshot.Folders;
-                    MoveFolderComboBox.ItemsSource = snapshot.Folders;
-
-                    FolderListBox.SelectedItem =
-                        snapshot.Folders.FirstOrDefault(folder => folder.Id == _currentFolderId);
-
-                    MoveFolderComboBox.SelectedItem =
-                        snapshot.Folders.FirstOrDefault(folder => folder.Id == 500002) ??
-                        snapshot.Folders.FirstOrDefault(folder => folder.Id != _currentFolderId);
-                }
-                finally
-                {
-                    _updatingFolderSelection = false;
-                }
-            }
+                ReplaceFolderSummaries(snapshot.Folders);
 
             UpdateBulkToolbar();
 
@@ -640,11 +633,13 @@ public partial class MainWindow : Window
 
     private async void MessagesGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message ||
-            string.IsNullOrWhiteSpace(_activeLogin))
-        {
-            return;
-        }
+        if (ActivePreviewMessage is { } message)
+            await OpenDetachedMailWindowAsync(message);
+    }
+
+    private async Task OpenDetachedMailWindowAsync(MailRuMessageSummary message)
+    {
+        if (string.IsNullOrWhiteSpace(_activeLogin)) return;
 
         var folders = (FolderListBox.ItemsSource as IEnumerable<MailRuFolderSummary>)?.ToArray()
             ?? Array.Empty<MailRuFolderSummary>();
@@ -666,21 +661,13 @@ public partial class MainWindow : Window
             await LoadFolderAsync(_currentFolderId);
     }
 
-    private async void MessagesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void MessagesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_suppressMessageSelectionChanged)
             return;
         RememberSelectedMailIds();
         UpdateBulkToolbar();
-
-        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message)
-        {
-            ClearSelectedMessage();
-            return;
-        }
-
-        DisplaySummary(message);
-        await LoadFullMessageAsync(message);
+        // Checking boxes NEVER changes the current mail preview.
     }
 
     private void DisplaySummary(MailRuMessageSummary message)
@@ -737,8 +724,7 @@ public partial class MainWindow : Window
                 markRead: message.Unread);
 
             if (generation != _messageLoadGeneration ||
-                MessagesGrid.SelectedItem is not MailRuMessageSummary selected ||
-                selected.Id != message.Id)
+                !string.Equals(_activePreviewMailId, message.Id, StringComparison.Ordinal))
             {
                 return;
             }
@@ -1001,7 +987,11 @@ public partial class MainWindow : Window
 
     private void ReplaceMessage(MailRuMessageSummary original, MailRuMessageSummary updated)
     {
-        var selectedId = (MessagesGrid.SelectedItem as MailRuMessageSummary)?.Id;
+        var selectedId = _activePreviewMailId;
+
+        if (original.Unread != updated.Unread)
+            ChangeFolderUnreadCount(original.FolderId ?? _currentFolderId,
+                updated.Unread ? 1 : -1);
 
         var currentIndex = _currentMessages.FindIndex(item => item.Id == original.Id);
         if (currentIndex >= 0)
@@ -1166,7 +1156,7 @@ public partial class MainWindow : Window
         }
 
         var list = filtered.ToList();
-        var selectedId = (MessagesGrid.SelectedItem as MailRuMessageSummary)?.Id;
+        var selectedId = _activePreviewMailId;
 
         _suppressMessageSelectionChanged = true;
         try
@@ -1182,7 +1172,8 @@ public partial class MainWindow : Window
             _suppressMessageSelectionChanged = false;
         }
 
-        if (!string.IsNullOrWhiteSpace(selectedId) && MessagesGrid.SelectedItem is null)
+        if (!string.IsNullOrWhiteSpace(selectedId) &&
+            !_currentMessages.Any(item => item.Id == selectedId))
             ClearSelectedMessage();
 
         FilterStatusText.Text = list.Count == _currentMessages.Count
@@ -1273,31 +1264,30 @@ public partial class MainWindow : Window
 
     private async void MoveMessageButton_Click(object sender, RoutedEventArgs e)
     {
-        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message ||
-            MoveFolderComboBox.SelectedItem is not MailRuFolderSummary folder)
+        if (MoveFolderComboBox.SelectedItem is not MailRuFolderSummary folder)
         {
-            FolderStatusText.Text = "Выберите письмо и папку назначения.";
+            FolderStatusText.Text = "Выберите папку назначения.";
             return;
         }
 
-        await MoveMessagesAsync([message.Id], folder.Id, $"Перемещение в «{folder.Name}»");
+        var targets = ResolveActionMessages();
+        if (targets.Count == 0) return;
+        await MoveMessagesAsync(targets.Select(m => m.Id).ToArray(),
+            folder.Id, $"Перемещение в «{folder.Name}»");
     }
 
     private async void TrashMessageButton_Click(object sender, RoutedEventArgs e)
     {
-        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message)
-        {
-            FolderStatusText.Text = "Выберите письмо.";
-            return;
-        }
-
+        var targets = ResolveActionMessages();
+        if (targets.Count == 0) return;
         if (_currentFolderId == 500002)
         {
             FolderStatusText.Text = "Письмо уже находится в Корзине.";
             return;
         }
 
-        await MoveMessagesAsync([message.Id], 500002, "Перемещение в корзину");
+        await MoveMessagesAsync(targets.Select(m => m.Id).ToArray(),
+            500002, "Перемещение в корзину");
     }
 
     private async Task MoveMessagesAsync(
@@ -1335,6 +1325,8 @@ public partial class MainWindow : Window
                 && _currentFolderId == operationFolder)
             {
                 var unread = _currentMessages.Count(x => ids.Contains(x.Id) && x.Unread);
+                if (unread > 0)
+                    ChangeFolderUnreadCount(destinationFolderId, unread);
                 RemoveConfirmedMailRows(ids);
                 if (_currentFolderId == 0 && unread > 0)
                     AdjustActiveInboxUnread(-unread);
@@ -1400,6 +1392,7 @@ public partial class MainWindow : Window
 
     private void ClearSelectedMessage()
     {
+        ClearActivePreviewId();
         _messageLoadGeneration++;
         _currentFullMessage = null;
         SelectedSubjectText.Text = "Выберите письмо";
@@ -1960,7 +1953,7 @@ public partial class MainWindow : Window
         }
         else
         {
-            ShowReaderText(MessagesGrid.SelectedItem is MailRuMessageSummary message
+            ShowReaderText(ActivePreviewMessage is MailRuMessageSummary message
                 ? message.Snippet
                 : "Выберите письмо.");
         }
@@ -1989,7 +1982,7 @@ public partial class MainWindow : Window
         }
         else
         {
-            ShowReaderText(MessagesGrid.SelectedItem is MailRuMessageSummary message
+            ShowReaderText(ActivePreviewMessage is MailRuMessageSummary message
                 ? message.Snippet
                 : "Выберите письмо.");
         }

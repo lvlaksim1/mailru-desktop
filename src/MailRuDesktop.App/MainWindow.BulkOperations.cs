@@ -34,22 +34,47 @@ public partial class MainWindow
         if (container is null)
             return;
 
-        // Checking an item is a selection action, not an invitation to open
-        // and mark the message read. Keep all other checked rows selected.
+        var message = container.DataContext as MailRuMessageSummary;
+        if (message is null)
+            return;
+
+        // Shift-click marks the inclusive visible range. Ctrl is not needed:
+        // each plain checkbox click toggles one arbitrary message.
         var old = _suppressMessageSelectionChanged;
         _suppressMessageSelectionChanged = true;
-        try { container.IsSelected = !container.IsSelected; }
-        finally { _suppressMessageSelectionChanged = old; }
+        try
+        {
+            if ((Keyboard.Modifiers & ModifierKeys.Shift) != 0 &&
+                _checkboxRangeAnchorId is { } anchorId)
+            {
+                var rows = _visibleMessages.ToArray();
+                var from = Array.FindIndex(rows, m => m.Id == anchorId);
+                var to = Array.FindIndex(rows, m => m.Id == message.Id);
+                if (from >= 0 && to >= 0)
+                {
+                    for (var i = Math.Min(from, to); i <= Math.Max(from, to); i++)
+                        if (!MessagesGrid.SelectedItems.Contains(rows[i]))
+                            MessagesGrid.SelectedItems.Add(rows[i]);
+                }
+                else
+                    container.IsSelected = true;
+            }
+            else
+                container.IsSelected = !container.IsSelected;
+        }
+        finally
+        {
+            _suppressMessageSelectionChanged = old;
+        }
+
+        _checkboxRangeAnchorId = message.Id;
         RememberSelectedMailIds();
         UpdateBulkToolbar();
         e.Handled = true;
     }
 
     private List<MailRuMessageSummary> SelectedForBulk() =>
-        MessagesGrid.SelectedItems.Cast<MailRuMessageSummary>()
-            .GroupBy(message => message.Id, StringComparer.Ordinal)
-            .Select(group => group.First())
-            .ToList();
+        ResolveActionMessages().ToList();
 
     private bool CurrentFolderIsTrash =>
         _currentFolderId == 500002 ||
@@ -79,20 +104,18 @@ public partial class MainWindow
             ? Visibility.Visible : Visibility.Collapsed;
         PreviewSendNowButton.IsEnabled = false;
 
-        BulkTrashButton.IsEnabled = count > 0 && !_bulkOperationInProgress;
-        BulkArchiveButton.IsEnabled = count > 0 && !_bulkOperationInProgress;
-        BulkReadButton.IsEnabled = count > 0 && !_bulkOperationInProgress;
-        BulkDeletePermanentlyButton.IsEnabled = count > 0 && !_bulkOperationInProgress;
+        BulkTrashButton.IsEnabled = !_bulkOperationInProgress;
+        BulkArchiveButton.IsEnabled = !_bulkOperationInProgress;
+        BulkReadButton.IsEnabled = !_bulkOperationInProgress;
+        BulkDeletePermanentlyButton.IsEnabled = !_bulkOperationInProgress;
     }
 
     private void MessagesGrid_PreviewKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.A && Keyboard.Modifiers == ModifierKeys.Control)
-        {
-            MessagesGrid.SelectAll();
-            UpdateBulkToolbar();
+        // Keyboard Ctrl-based selection is deliberately not part of the model.
+        if ((Keyboard.Modifiers & ModifierKeys.Control) != 0 &&
+            e.Key is Key.A or Key.Space)
             e.Handled = true;
-        }
     }
 
     private async void BulkTrashButton_Click(object sender, RoutedEventArgs e)

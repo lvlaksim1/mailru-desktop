@@ -56,9 +56,9 @@ internal sealed class PaletteColorPickerWindow : Window
         Title = "Выбор цвета — " + roleName;
         SelectedHex = hex;
         Width = 390;
-        Height = 468;
+        Height = 420;
         MinWidth = 390;
-        MinHeight = 430;
+        MinHeight = 390;
         ResizeMode = ResizeMode.CanResize;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         ShowInTaskbar = false;

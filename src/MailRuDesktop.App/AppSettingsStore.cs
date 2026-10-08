@@ -103,6 +103,23 @@ internal sealed class AppSettingsStore
         }
     }
 
+    public int LoadInterfaceFontSize() =>
+        ThemeTypography.Normalize(LoadState().InterfaceFontSize);
+
+    public void SaveInterfaceFontSize(int size)
+    {
+        if (size < ThemeTypography.MinimumSize ||
+            size > ThemeTypography.MaximumSize)
+            throw new ArgumentOutOfRangeException(nameof(size));
+
+        lock (_sync)
+        {
+            var state = LoadStateCore();
+            state.InterfaceFontSize = size;
+            SaveStateCore(state);
+        }
+    }
+
     public Dictionary<string, string> LoadPaletteOverrides(bool dark)
     {
         var state = LoadState();
@@ -335,6 +352,7 @@ internal sealed class AppSettingsStore
     private sealed class SettingsState
     {
         public string Theme { get; set; } = AppThemeMode.Dark.ToString();
+        public int InterfaceFontSize { get; set; } = ThemeTypography.DefaultSize;
         public Dictionary<string, string>? DarkPalette { get; set; }
         public Dictionary<string, string>? LightPalette { get; set; }
         public UserInterfaceState? UserInterface { get; set; }

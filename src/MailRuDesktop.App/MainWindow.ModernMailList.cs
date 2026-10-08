@@ -287,6 +287,17 @@ public partial class MainWindow
             return;
         }
 
+        // Right-click identifies the preview fallback only when no boxes are
+        // checked. It never changes existing checkbox selection.
+        if (_selectedMailIds.Count == 0)
+        {
+            _activePreviewMailId = message.Id;
+            MailPreviewState.Instance.ActiveId = message.Id;
+            DisplaySummary(message);
+            UpdatePreviewSelectionFields(message);
+            _ = LoadFullMessageAsync(message);
+        }
+
         var menu = CreateCompactContextMenu();
 
         var pinItem = CreateCompactMenuItem(
@@ -378,48 +389,20 @@ public partial class MainWindow
     }
 
     private async Task MoveMessageFromContextAsync(
-        MailRuMessageSummary message,
+        MailRuMessageSummary clicked,
         int destinationFolderId,
         string successText)
     {
-        if (string.IsNullOrWhiteSpace(_accessToken))
+        // A checked selection takes precedence even when the context menu was
+        // opened on a different row. An unmarked context row is not silently
+        // added to the user's selected set.
+        var targets = ResolveActionMessages();
+        if (targets.Count == 0)
             return;
 
-        var selectedId = (MessagesGrid.SelectedItem as MailRuMessageSummary)?.Id;
-
-        try
-        {
-            var result = await _mailRu.MoveMessagesAsync(
-                _accessToken,
-                new[] { message.Id },
-                destinationFolderId);
-
-            ResponseTextBox.Text = result.RawResponse;
-            if (!result.Success)
-            {
-                FolderStatusText.Text = "Mail.ru отклонил перемещение.";
-                return;
-            }
-
-            if (_currentFolderId == 0 && message.Unread)
-                AdjustActiveInboxUnread(-1);
-
-            _currentMessages.RemoveAll(item =>
-                string.Equals(item.Id, message.Id, StringComparison.Ordinal));
-            ApplyFilters();
-
-            if (string.Equals(selectedId, message.Id, StringComparison.Ordinal))
-                ClearSelectedMessage();
-
-            FolderStatusText.Text = successText;
-        }
-        catch (Exception ex)
-        {
-            FolderStatusText.Text = "Ошибка перемещения письма.";
-            DiagnosticLog.Write(
-                "message_context_move",
-                ex.GetType().Name + ": " + ex.Message);
-        }
+        await ExecuteBulkMoveAsync(
+            targets, destinationFolderId,
+            successText);
     }
 
     private async void ModernMailListButton_Click(object sender, RoutedEventArgs e)
@@ -499,6 +482,7 @@ public partial class MainWindow
     <local:FirstLineConverter x:Key="FirstLineConverter"/>
     <local:ThreadCountConverter x:Key="ThreadCountConverter"/>
     <local:ThreadCountVisibilityConverter x:Key="ThreadCountVisibilityConverter"/>
+    <local:MailActivePreviewConverter x:Key="MailActivePreviewConverter"/>
 
     <Style x:Key="ModernMailRowItemStyle" TargetType="{x:Type ListBoxItem}">
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -528,6 +512,19 @@ public partial class MainWindow
                                     Property="Background"
                                     Value="{DynamicResource AppSelectionBrush}"/>
                         </Trigger>
+                        <DataTrigger Value="True">
+                            <DataTrigger.Binding>
+                                <MultiBinding Converter="{StaticResource MailActivePreviewConverter}">
+                                    <Binding Path="Id"/>
+                                    <Binding Path="ActiveId"
+                                             Source="{x:Static local:MailPreviewState.Instance}"/>
+                                </MultiBinding>
+                            </DataTrigger.Binding>
+                            <Setter TargetName="Row" Property="BorderBrush"
+                                    Value="{DynamicResource AppAccentBrush}"/>
+                            <Setter TargetName="Row" Property="BorderThickness"
+                                    Value="3,0,0,1"/>
+                        </DataTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
@@ -538,7 +535,7 @@ public partial class MainWindow
         <Border Padding="4,10,4,5"
                 Background="{DynamicResource AppWindowBrush}">
             <TextBlock Text="{Binding Name}"
-                       FontSize="12"
+                       FontSize="{DynamicResource AppFontBodySize}"
                        FontWeight="SemiBold"
                        Foreground="{DynamicResource AppMutedTextBrush}"/>
         </Border>
@@ -600,7 +597,7 @@ public partial class MainWindow
                     Background="Transparent"
                     BorderThickness="0"
                     ToolTip="Флажок">
-                <TextBlock FontSize="16">
+                <TextBlock FontSize="{DynamicResource AppFontEmphasisSize}">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
                             <Setter Property="Text" Value="☆"/>
@@ -678,7 +675,7 @@ public partial class MainWindow
                     Visibility="{Binding Id, Converter={StaticResource ThreadCountVisibilityConverter}}">
                 <TextBlock HorizontalAlignment="Center"
                            VerticalAlignment="Center"
-                           FontSize="10"
+                           FontSize="{DynamicResource AppFontTinySize}"
                            Text="{Binding Id, Converter={StaticResource ThreadCountConverter}}"/>
             </Border>
 
@@ -728,7 +725,7 @@ public partial class MainWindow
                     <Grid>
                     <TextBlock HorizontalAlignment="Center"
                                VerticalAlignment="Center"
-                               FontSize="8"
+                               FontSize="{DynamicResource AppFontTinySize}"
                                FontWeight="SemiBold"
                                Text="{Binding SenderInitials}"/>
                     <Image Width="16" Height="16" Stretch="UniformToFill"

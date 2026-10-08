@@ -32,7 +32,7 @@
                     <Grid>
                         <TextBlock HorizontalAlignment="Center"
                                    VerticalAlignment="Center"
-                                   FontSize="8"
+                                   FontSize="{DynamicResource AppFontTinySize}"
                                    FontWeight="SemiBold"
                                    Text="{Binding IconText}"/>
                         <Image Width="16" Height="16" Stretch="UniformToFill"
@@ -54,7 +54,7 @@
                         Visibility="{Binding HasUnread, Converter={StaticResource BoolToVisibility}}">
                     <TextBlock HorizontalAlignment="Center"
                                VerticalAlignment="Center"
-                               FontSize="10"
+                               FontSize="{DynamicResource AppFontTinySize}"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource AppAccentTextBrush}"
                                Text="{Binding UnreadDisplay}"/>
@@ -79,12 +79,50 @@
             </Button>
         </DataTemplate>
 
+        <!-- All visual states are explicit. The default Windows Button chrome
+             previously produced a pale cyan hover outside the 26-role palette. -->
         <Style x:Key="NavButtonStyle" TargetType="Button">
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="Padding" Value="14,10"/>
             <Setter Property="Margin" Value="0,2"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="NavButtonSurface"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{DynamicResource AppBorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="Center"
+                                Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="NavButtonSurface" Property="Background"
+                                        Value="{DynamicResource AppControlHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="NavButtonSurface" Property="Background"
+                                        Value="{DynamicResource AppControlPressedBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="NavButtonSurface" Property="BorderBrush"
+                                        Value="{DynamicResource AppFocusBrush}"/>
+                                <Setter TargetName="NavButtonSurface" Property="BorderThickness" Value="1"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="{DynamicResource AppDisabledTextBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <Style x:Key="RoundAccountItemStyle" TargetType="ListBoxItem">
@@ -229,7 +267,7 @@
                 </Grid.RowDefinitions>
 
                 <StackPanel Grid.Row="0">
-                    <TextBlock Text="MailRu Desktop" Margin="4,2,4,12" FontSize="20" FontWeight="SemiBold"/>
+                    <TextBlock Text="MailRu Desktop" Margin="4,2,4,12" FontSize="{DynamicResource AppFontHeadingSize}" FontWeight="SemiBold"/>
                     <Button Style="{StaticResource NavButtonStyle}"
                             Margin="0,0,0,10"
                             FontWeight="SemiBold"
@@ -287,7 +325,7 @@
                            Grid.Row="4"
                            Margin="8,8,8,2"
                            TextWrapping="Wrap"
-                           FontSize="11"
+                           FontSize="{DynamicResource AppFontSmallSize}"
                            Foreground="{DynamicResource AppMutedTextBrush}"
                            Text="Не авторизовано"/>
             </Grid>
@@ -322,7 +360,7 @@
                                  Grid.Column="0"
                                  Height="38"
                                  Padding="10,7"
-                                 FontSize="14"
+                                 FontSize="{DynamicResource AppFontFormSize}"
                                  TextChanged="UnifiedSearchTextBox_TextChanged"
                                  ToolTip="Ищет по адресу и имени отправителя, теме и текстовому фрагменту письма"/>
                         <Button x:Name="ServerSearchButton"
@@ -376,7 +414,7 @@
                     </StackPanel>
 
                     <ListBox x:Name="MessagesGrid"
-                             Grid.Row="2" SelectionMode="Extended"
+                             Grid.Row="2" SelectionMode="Multiple"
                              PreviewKeyDown="MessagesGrid_PreviewKeyDown"
                              BorderThickness="0"
                              Background="Transparent"
@@ -394,12 +432,12 @@
                                     <StackPanel Grid.Column="0"
                                                 VerticalAlignment="Center"
                                                 HorizontalAlignment="Center">
-                                        <TextBlock FontSize="11"
+                                        <TextBlock FontSize="{DynamicResource AppFontSmallSize}"
                                                    HorizontalAlignment="Center"
                                                    Foreground="{DynamicResource AppMutedTextBrush}"
                                                    Text="{Binding DateUnix, Converter={StaticResource MailDateConverter}}"/>
                                         <TextBlock Margin="0,3,0,0"
-                                                   FontSize="11"
+                                                   FontSize="{DynamicResource AppFontSmallSize}"
                                                    HorizontalAlignment="Center"
                                                    Foreground="{DynamicResource AppMutedTextBrush}"
                                                    Text="{Binding DateUnix, Converter={StaticResource MailTimeConverter}}"/>
@@ -421,7 +459,7 @@
                                                 Tag="{Binding}"
                                                 ToolTip="Прочитано / непрочитано"
                                                 Click="MessageUnreadWithCounterButton_Click">
-                                            <TextBlock FontSize="13">
+                                            <TextBlock FontSize="{DynamicResource AppFontMediumSize}">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Setter Property="Foreground" Value="{DynamicResource AppMutedTextBrush}"/>
@@ -442,7 +480,7 @@
                                                 Tag="{Binding}"
                                                 ToolTip="Флажок"
                                                 Click="MessageFlagButton_Click">
-                                            <TextBlock FontSize="15">
+                                            <TextBlock FontSize="{DynamicResource AppFontEmphasisSize}">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Setter Property="Foreground" Value="{DynamicResource AppMutedTextBrush}"/>
@@ -578,7 +616,7 @@
 
                         <StackPanel Grid.Row="2" Margin="2,0,2,6">
                             <TextBlock x:Name="SelectedSubjectText"
-                                       FontSize="22"
+                                       FontSize="{DynamicResource AppFontTitleSize}"
                                        FontWeight="SemiBold"
                                        TextWrapping="Wrap"
                                        Text="Выберите письмо"/>
@@ -653,7 +691,7 @@
                                     <DataTemplate>
                                         <StackPanel Margin="3">
                                             <TextBlock FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Text="{Binding DisplayName}"/>
-                                            <TextBlock FontSize="11" Foreground="{DynamicResource AppMutedTextBrush}" Text="{Binding DisplayMeta}"/>
+                                            <TextBlock FontSize="{DynamicResource AppFontSmallSize}" Foreground="{DynamicResource AppMutedTextBrush}" Text="{Binding DisplayMeta}"/>
                                         </StackPanel>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
@@ -790,7 +828,7 @@
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="Контакты"/>
+                        <TextBlock FontSize="{DynamicResource AppFontHeroSize}" FontWeight="SemiBold" Text="Контакты"/>
                         <Grid Grid.Row="1" Margin="0,12,0,10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -809,7 +847,7 @@
                 <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch"/>
                 <Border Grid.Column="2" Margin="8,0,0,0" Background="{DynamicResource AppPanelBrush}" CornerRadius="10" Padding="22">
                     <StackPanel>
-                        <TextBlock FontSize="26" FontWeight="SemiBold" Text="Адресная книга"/>
+                        <TextBlock FontSize="{DynamicResource AppFontHeroSize}" FontWeight="SemiBold" Text="Адресная книга"/>
                         <TextBlock Margin="0,10,0,18" Foreground="{DynamicResource AppMutedTextBrush}" TextWrapping="Wrap" Text="Выберите контакт слева. Двойной щелчок откроет создание письма этому адресату."/>
                         <Button Width="170" HorizontalAlignment="Left" Padding="14,8" Click="ComposeToContactButton_Click" Content="Написать письмо"/>
                     </StackPanel>
@@ -828,7 +866,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <TextBlock FontSize="26" FontWeight="SemiBold" Text="Новое письмо"/>
+                        <TextBlock FontSize="{DynamicResource AppFontHeroSize}" FontWeight="SemiBold" Text="Новое письмо"/>
                         <Grid Grid.Row="1" Margin="0,16,0,8">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="70"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <TextBlock VerticalAlignment="Center" Text="Кому"/>
@@ -886,7 +924,7 @@
             <Grid x:Name="SettingsWorkspace" Visibility="Collapsed">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel MaxWidth="800" HorizontalAlignment="Left">
-                        <TextBlock FontSize="26" FontWeight="SemiBold" Text="Настройки"/>
+                        <TextBlock FontSize="{DynamicResource AppFontHeroSize}" FontWeight="SemiBold" Text="Настройки"/>
                         <GroupBox Margin="0,16,0,0" Header="Внешний вид">
                             <StackPanel Margin="12">
                                 <TextBlock Margin="0,0,0,6" Text="Тема"/>
@@ -896,6 +934,24 @@
                                     <ComboBoxItem Content="Системная" Tag="System"/>
                                 </ComboBox>
                                 <TextBlock Margin="0,8,0,0" Foreground="{DynamicResource AppMutedTextBrush}" Text="При первом запуске используется тёмная тема."/>
+                                <Separator Margin="0,12,0,10"/>
+                                <TextBlock FontWeight="SemiBold" Text="Размер текста интерфейса"/>
+                                <WrapPanel Margin="0,7,0,0" VerticalAlignment="Center">
+                                    <Slider x:Name="InterfaceFontSlider"
+                                            Minimum="10" Maximum="18" Value="12"
+                                            TickFrequency="1" IsSnapToTickEnabled="True"
+                                            Width="230" VerticalAlignment="Center"
+                                            ValueChanged="InterfaceFontSlider_ValueChanged"
+                                            ToolTip="Основной размер шрифта, в логических пикселях"/>
+                                    <TextBlock x:Name="InterfaceFontValueText"
+                                               Margin="12,0,0,0" Width="100"
+                                               VerticalAlignment="Center" Text="12 пикс."/>
+                                    <Button Content="По умолчанию" Padding="9,5"
+                                            Click="ResetInterfaceFontButton_Click"/>
+                                </WrapPanel>
+                                <TextBlock Margin="0,7,0,0" Foreground="{DynamicResource AppMutedTextBrush}"
+                                           TextWrapping="Wrap"
+                                           Text="Размер заголовков, подписей и обычного текста изменяется согласованно. Форматирование полученных писем не меняется."/>
                             </StackPanel>
                         </GroupBox>
                         <Expander Margin="0,16,0,0" IsExpanded="False" Header="Цвета элементов интерфейса"
@@ -950,7 +1006,7 @@
                                                     <StackPanel Grid.Column="1" Margin="4,0,8,0">
                                                         <TextBlock FontWeight="SemiBold" Text="{Binding Label}"/>
                                                         <TextBlock Foreground="{DynamicResource AppMutedTextBrush}"
-                                                                   FontSize="11" TextWrapping="Wrap"
+                                                                   FontSize="{DynamicResource AppFontSmallSize}" TextWrapping="Wrap"
                                                                    Text="{Binding AppliesTo}"/>
                                                     </StackPanel>
                                                     <TextBox Grid.Column="2" Margin="0,0,6,0"
@@ -1121,7 +1177,7 @@
                             </StackPanel>
                         </GroupBox>
                         <Expander Margin="0,16,0,0" Header="Для разработчика · диагностика протокола" IsExpanded="False">
-                            <TextBox x:Name="ResponseTextBox" Height="220" Margin="0,8,0,0" FontFamily="Consolas" FontSize="12" AcceptsReturn="True" AcceptsTab="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" IsReadOnly="True" TextWrapping="NoWrap"/>
+                            <TextBox x:Name="ResponseTextBox" Height="220" Margin="0,8,0,0" FontFamily="Consolas" FontSize="{DynamicResource AppFontBodySize}" AcceptsReturn="True" AcceptsTab="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" IsReadOnly="True" TextWrapping="NoWrap"/>
                         </Expander>
                     </StackPanel>
                 </ScrollViewer>
@@ -1147,7 +1203,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock VerticalAlignment="Center"
-                               FontSize="11"
+                               FontSize="{DynamicResource AppFontSmallSize}"
                                Foreground="{DynamicResource AppMutedTextBrush}"
                                Text="АККАУНТЫ"/>
                     <Button Grid.Column="1"
