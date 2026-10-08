@@ -563,6 +563,10 @@
 
                         <WrapPanel Grid.Row="0" Margin="0,0,0,10">
                             <Button x:Name="PreviewForwardButton" Padding="10,6" Margin="0,0,6,4" Click="PreviewForwardButton_Click" Content="Переслать"/>
+                            <Button x:Name="PreviewSendNowButton" Visibility="Collapsed"
+                                    Margin="0,0,6,4" Padding="10,6" IsEnabled="False"
+                                    ToolTip="Не включено: нет подтверждённой команды немедленной отправки без повторного письма"
+                                    Content="Отправить сейчас"/>
                             <Button x:Name="MoveMessageButton" Padding="10,6" Margin="0,0,6,4" Click="MoveMessageButton_Click" Content="Переместить в"/>
                             <ComboBox x:Name="MoveFolderComboBox"
                                       Width="165"
