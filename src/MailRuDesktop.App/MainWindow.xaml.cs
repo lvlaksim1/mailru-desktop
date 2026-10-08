@@ -1618,13 +1618,22 @@ public partial class MainWindow : Window
         RefreshComposeAttachments();
     }
 
+    private bool TryGetComposeSender(out string login, out string token)
+    {
+        login = _composeSenderLogin ?? string.Empty;
+        token = _composeSenderToken ?? string.Empty;
+        if (_composeWindow is not null &&
+            !string.IsNullOrWhiteSpace(login) && !string.IsNullOrWhiteSpace(token))
+            return true;
+
+        ComposeStatusText.Text = "Укажите авторизованный аккаунт отправителя.";
+        return false;
+    }
+
     private async void SaveDraftButton_Click(object sender, RoutedEventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(_accessToken) || string.IsNullOrWhiteSpace(_activeLogin))
-        {
-            ComposeStatusText.Text = "Для черновика нужен access_token.";
+        if (!TryGetComposeSender(out var senderLogin, out var senderToken))
             return;
-        }
 
         SaveDraftButton.IsEnabled = false;
         AttachButton.IsEnabled = false;
@@ -1642,15 +1651,15 @@ public partial class MainWindow : Window
 
                 await using var stream = File.OpenRead(path);
                 attachmentIds.Add(await _mailRu.UploadAttachmentAsync(
-                    _accessToken,
+                    senderToken,
                     stream,
                     Path.GetFileName(path),
                     messageId));
             }
 
             var result = await _mailRu.SaveDraftAsync(
-                _accessToken,
-                _activeLogin,
+                senderToken,
+                senderLogin,
                 new MailRuOutgoingMessage(
                     To: ComposeToTextBox.Text.Trim(),
                     Subject: ComposeSubjectTextBox.Text,
@@ -1679,12 +1688,8 @@ public partial class MainWindow : Window
     private async void SendButton_Click(object sender, RoutedEventArgs e)
     {
         ComposeStatusText.SetResourceReference(TextBlock.ForegroundProperty, "AppMutedTextBrush");
-        if (string.IsNullOrWhiteSpace(_accessToken))
-        {
-            ComposeStatusText.Text =
-                "Для отправки нужен access_token. Выполните обычный вход Mail.ru.";
+        if (!TryGetComposeSender(out var senderLogin, out var senderToken))
             return;
-        }
 
         var recipient = ComposeToTextBox.Text.Trim();
         if (recipient.Length == 0)
@@ -1751,7 +1756,7 @@ public partial class MainWindow : Window
 
                 await using var stream = File.OpenRead(path);
                 var attachId = await _mailRu.UploadAttachmentAsync(
-                    _accessToken,
+                    senderToken,
                     stream,
                     Path.GetFileName(path),
                     messageId);
@@ -1762,7 +1767,7 @@ public partial class MainWindow : Window
             ComposeStatusText.Text = "Отправка...";
 
             var result = await _mailRu.SendMessageAsync(
-                _accessToken,
+                senderToken,
                 new MailRuOutgoingMessage(
                     To: recipient,
                     Subject: ComposeSubjectTextBox.Text,
