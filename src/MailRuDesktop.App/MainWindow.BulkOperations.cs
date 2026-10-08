@@ -40,6 +40,7 @@ public partial class MainWindow
         _suppressMessageSelectionChanged = true;
         try { container.IsSelected = !container.IsSelected; }
         finally { _suppressMessageSelectionChanged = old; }
+        RememberSelectedMailIds();
         UpdateBulkToolbar();
         e.Handled = true;
     }
@@ -65,7 +66,7 @@ public partial class MainWindow
 
     private void UpdateBulkToolbar()
     {
-        var count = MessagesGrid.SelectedItems.Count;
+        var count = _selectedMailIds.Count;
         BulkSelectedCountText.Text = $"Выбрано: {count}";
         var trash = CurrentFolderIsTrash;
         BulkTrashButton.Visibility = trash ? Visibility.Collapsed : Visibility.Visible;
@@ -154,7 +155,12 @@ public partial class MainWindow
                 FolderStatusText.Text = "Сервер отклонил групповую отметку.";
                 return;
             }
-            await LoadFolderAsync(_currentFolderId);
+            var changed = selected.Where(item => item.Unread).ToArray();
+            foreach (var item in changed)
+                ReplaceMessage(item, item with { Unread = false });
+            if (_currentFolderId == 0 && changed.Length > 0)
+                AdjustActiveInboxUnread(-changed.Length);
+            FolderStatusText.Text = $"Отмечено прочитанными: {changed.Length}.";
         }
         catch (Exception ex)
         {
@@ -188,7 +194,8 @@ public partial class MainWindow
                 FolderStatusText.Text = "Mail.ru отклонил окончательное удаление.";
                 return;
             }
-            await LoadFolderAsync(_currentFolderId);
+            RemoveConfirmedMailRows(selected.Select(x => x.Id).ToArray());
+            FolderStatusText.Text = $"Удалено: {selected.Count}.";
         }
         catch (Exception ex)
         {
