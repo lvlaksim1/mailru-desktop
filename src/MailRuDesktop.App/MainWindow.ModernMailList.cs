@@ -565,6 +565,7 @@ public partial class MainWindow
             <CheckBox Grid.Column="0" Width="16" Height="16"
                       HorizontalAlignment="Center" VerticalAlignment="Center"
                       ToolTip="Выделить письмо"
+                      PreviewMouseLeftButtonDown="BulkRowCheckBox_PreviewMouseLeftButtonDown"
                       IsChecked="{Binding IsSelected, Mode=TwoWay, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}"/>
 
             <TextBlock Grid.Column="1"
