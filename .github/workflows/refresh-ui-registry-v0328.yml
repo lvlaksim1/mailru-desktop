@@ -27,3 +27,4 @@ jobs:
             git commit -m "docs: regenerate v0.3.28 window and element registry"
             git push origin HEAD:feature/v0.3.28-owner-gui-fixes
           fi
+# repeat after final UI adjustments
