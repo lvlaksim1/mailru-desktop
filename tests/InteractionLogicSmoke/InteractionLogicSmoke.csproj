@@ -9,5 +9,6 @@
   <ItemGroup>
     <ProjectReference Include="../../src/MailRuDesktop.Protocol/MailRuDesktop.Protocol.csproj" />
     <Compile Include="../../src/MailRuDesktop.App/AccountDragMath.cs" Link="AccountDragMath.cs"/>
+    <Compile Include="../../src/MailRuDesktop.App/MarkdownTemplateStore.cs" Link="MarkdownTemplateStore.cs"/>
   </ItemGroup>
 </Project>
