@@ -934,6 +934,24 @@
                                     <ComboBoxItem Content="Системная" Tag="System"/>
                                 </ComboBox>
                                 <TextBlock Margin="0,8,0,0" Foreground="{DynamicResource AppMutedTextBrush}" Text="При первом запуске используется тёмная тема."/>
+                                <Separator Margin="0,12,0,10"/>
+                                <TextBlock FontWeight="SemiBold" Text="Размер текста интерфейса"/>
+                                <WrapPanel Margin="0,7,0,0" VerticalAlignment="Center">
+                                    <Slider x:Name="InterfaceFontSlider"
+                                            Minimum="10" Maximum="18" Value="12"
+                                            TickFrequency="1" IsSnapToTickEnabled="True"
+                                            Width="230" VerticalAlignment="Center"
+                                            ValueChanged="InterfaceFontSlider_ValueChanged"
+                                            ToolTip="Основной размер шрифта, в логических пикселях"/>
+                                    <TextBlock x:Name="InterfaceFontValueText"
+                                               Margin="12,0,0,0" Width="100"
+                                               VerticalAlignment="Center" Text="12 пикс."/>
+                                    <Button Content="По умолчанию" Padding="9,5"
+                                            Click="ResetInterfaceFontButton_Click"/>
+                                </WrapPanel>
+                                <TextBlock Margin="0,7,0,0" Foreground="{DynamicResource AppMutedTextBrush}"
+                                           TextWrapping="Wrap"
+                                           Text="Размер заголовков, подписей и обычного текста изменяется согласованно. Форматирование полученных писем не меняется."/>
                             </StackPanel>
                         </GroupBox>
                         <Expander Margin="0,16,0,0" IsExpanded="False" Header="Цвета элементов интерфейса"
