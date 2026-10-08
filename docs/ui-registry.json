@@ -1,4 +1,33 @@
 {
+  "color_reference_audit": {
+    "declared_roles": 26,
+    "unresolved_roles": [],
+    "used_roles": [
+      "AppAccentBrush",
+      "AppAccentTextBrush",
+      "AppBorderBrush",
+      "AppControlBrush",
+      "AppControlHoverBrush",
+      "AppControlPressedBrush",
+      "AppDangerBrush",
+      "AppDialogBrush",
+      "AppDisabledTextBrush",
+      "AppFocusBrush",
+      "AppInputBrush",
+      "AppMutedTextBrush",
+      "AppPanelBrush",
+      "AppPinBrush",
+      "AppScrollArrowBrush",
+      "AppScrollThumbBrush",
+      "AppScrollTrackBrush",
+      "AppSelectionBrush",
+      "AppSelectionTextBrush",
+      "AppStarBrush",
+      "AppTextBrush",
+      "AppWarningBrush",
+      "AppWindowBrush"
+    ]
+  },
   "elements": [
     {
       "color_roles_and_values": {
@@ -448,6 +477,695 @@
       "type": "Grid",
       "typography": {},
       "window": "AppDialog"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]",
+      "location": {},
+      "name": null,
+      "parent": null,
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": null,
+      "type": "Application",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": null,
+      "type": "Application.Resources",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": null,
+      "type": "ResourceDictionary",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/Double[1]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppFontTinySize",
+      "type": "Double",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/Double[2]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppFontSmallSize",
+      "type": "Double",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/Double[3]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppFontBodySize",
+      "type": "Double",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/Double[4]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppFontMediumSize",
+      "type": "Double",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/Double[5]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppFontFormSize",
+      "type": "Double",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/Double[6]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppFontEmphasisSize",
+      "type": "Double",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/Double[7]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppFontHeadingSize",
+      "type": "Double",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/Double[8]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppFontTitleSize",
+      "type": "Double",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/Double[9]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppFontHeroSize",
+      "type": "Double",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/DrawingImage[36]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppIcon",
+      "type": "DrawingImage",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/DrawingImage[36]/DrawingImage.Drawing[0]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/DrawingImage[36]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": null,
+      "type": "DrawingImage.Drawing",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/DrawingImage[36]/DrawingImage.Drawing[0]/DrawingGroup[0]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/DrawingImage[36]/DrawingImage.Drawing[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": null,
+      "type": "DrawingGroup",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/DrawingImage[36]/DrawingImage.Drawing[0]/DrawingGroup[0]/GeometryDrawing[0]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/DrawingImage[36]/DrawingImage.Drawing[0]/DrawingGroup[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": null,
+      "type": "GeometryDrawing",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/DrawingImage[36]/DrawingImage.Drawing[0]/DrawingGroup[0]/GeometryDrawing[1]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/DrawingImage[36]/DrawingImage.Drawing[0]/DrawingGroup[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": null,
+      "type": "GeometryDrawing",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/DrawingImage[36]/DrawingImage.Drawing[0]/DrawingGroup[0]/GeometryDrawing[2]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/DrawingImage[36]/DrawingImage.Drawing[0]/DrawingGroup[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": null,
+      "type": "GeometryDrawing",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/DrawingImage[36]/DrawingImage.Drawing[0]/DrawingGroup[0]/GeometryDrawing[3]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/DrawingImage[36]/DrawingImage.Drawing[0]/DrawingGroup[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": null,
+      "type": "GeometryDrawing",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/DrawingImage[36]/DrawingImage.Drawing[0]/DrawingGroup[0]/GeometryDrawing[4]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/DrawingImage[36]/DrawingImage.Drawing[0]/DrawingGroup[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": null,
+      "type": "GeometryDrawing",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/DrawingImage[36]/DrawingImage.Drawing[0]/DrawingGroup[0]/GeometryDrawing[5]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/DrawingImage[36]/DrawingImage.Drawing[0]/DrawingGroup[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": null,
+      "type": "GeometryDrawing",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/ResourceDictionary.MergedDictionaries[0]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": null,
+      "type": "ResourceDictionary.MergedDictionaries",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/ResourceDictionary.MergedDictionaries[0]/ResourceDictionary[0]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/ResourceDictionary.MergedDictionaries[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": null,
+      "type": "ResourceDictionary",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#FFFFFF"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[10]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppWindowBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#FFFFFF"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[11]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppDialogBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#FFFFFF"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[12]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppReaderBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#FFFFFF"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[13]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppInputBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#1769BC"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[14]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppFocusBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#0B57D0"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[15]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppLinkBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#18794E"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[16]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppSuccessBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#946200"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[17]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppWarningBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#C62832"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[18]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppDangerBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#D49E00"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[19]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppStarBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#C62832"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[20]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppPinBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#F7F9FC"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[21]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppPanelBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#F3F5F7"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[22]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppControlBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#E8EFF8"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[23]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppControlHoverBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#D8E5F4"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[24]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppControlPressedBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#202124"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[25]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppTextBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#616B78"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[26]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppMutedTextBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#7A8491"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[27]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppDisabledTextBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#D6DCE5"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[28]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppBorderBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#DCEBFA"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[29]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppSelectionBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#202124"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[30]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppSelectionTextBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#0D6EFD"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[31]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppAccentBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#FFFFFF"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[32]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppAccentTextBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#F2F4F7"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[33]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppScrollTrackBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#AEB6C2"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[34]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppScrollThumbBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
+    },
+    {
+      "color_roles_and_values": {
+        "Color": "#7B8490"
+      },
+      "id": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]/SolidColorBrush[35]",
+      "location": {},
+      "name": null,
+      "parent": "ApplicationStyles/src/MailRuDesktop.App/App.xaml/Application[0]/Application.Resources[0]/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/App.xaml",
+      "states": null,
+      "style": "AppScrollArrowBrush",
+      "type": "SolidColorBrush",
+      "typography": {},
+      "window": "ApplicationStyles"
     },
     {
       "color_roles_and_values": {},
@@ -19545,13 +20263,14 @@
     "all_windows_must_be_declared": true,
     "changing_props_requires_registry_regeneration": true,
     "styles_source": [
+      "src/MailRuDesktop.App/App.xaml",
       "src/MailRuDesktop.App/Themes/ThemeStyles.xaml"
     ],
     "unregistered_elements_fail_ci": true,
     "user_can_change_role_values": true,
     "user_can_reassign_role_membership": false
   },
-  "schema": 1,
+  "schema": 2,
   "source_of_truth": "Application source: XAML + WPF controls instantiated in C#",
   "windows": {
     "AddAccountWindow": {
