@@ -119,6 +119,28 @@ internal sealed class AuthorizationStore
         Persist();
     }
 
+    /// <summary>
+    /// Update credentials for one known account without changing LastLogin,
+    /// deleting other accounts, or invalidating their independently saved tokens.
+    /// </summary>
+    public bool UpdateTokens(string login, string accessToken, string? refreshToken)
+    {
+        if (string.IsNullOrWhiteSpace(login) || string.IsNullOrWhiteSpace(accessToken))
+            return false;
+
+        var record = _state.Accounts.FirstOrDefault(account =>
+            string.Equals(account.Login, login, StringComparison.OrdinalIgnoreCase));
+        if (record is null)
+            return false;
+
+        record.AccessToken = ProtectOptional(accessToken);
+        if (!string.IsNullOrWhiteSpace(refreshToken))
+            record.RefreshToken = ProtectOptional(refreshToken);
+        record.SavedAtUtc = DateTimeOffset.UtcNow;
+        Persist();
+        return true;
+    }
+
     public void MarkLastUsed(string login)
     {
         if (_state.Accounts.Any(account =>
