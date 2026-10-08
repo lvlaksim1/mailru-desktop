@@ -11,6 +11,8 @@
     <Compile Include="../../src/MailRuDesktop.App/AccountDragMath.cs" Link="AccountDragMath.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/MarkdownTemplateStore.cs" Link="MarkdownTemplateStore.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/ThemePalette.cs" Link="ThemePalette.cs"/>
+    <Compile Include="../../src/MailRuDesktop.App/ThemeTypography.cs" Link="ThemeTypography.cs"/>
+    <Compile Include="../../src/MailRuDesktop.App/MailTargetResolver.cs" Link="MailTargetResolver.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/AppSettingsStore.cs" Link="AppSettingsStore.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/AuthorizationStore.cs" Link="AuthorizationStore.cs"/>
   </ItemGroup>
