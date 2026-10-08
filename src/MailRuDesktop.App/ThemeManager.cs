@@ -188,6 +188,24 @@ internal static class ThemeManager
         }
     }
 
+    private static readonly DependencyProperty ChromeAttachedProperty =
+        DependencyProperty.RegisterAttached(
+            "ChromeAttached", typeof(bool), typeof(ThemeManager),
+            new PropertyMetadata(false));
+
+    // Attach before Show/ShowDialog: Windows can otherwise paint a white
+    // native caption on the first activation before the Loaded event.
+    public static void AttachWindowChrome(Window window)
+    {
+        if ((bool)window.GetValue(ChromeAttachedProperty))
+            return;
+        window.SetValue(ChromeAttachedProperty, true);
+        window.SourceInitialized += (_, _) => RefreshWindowChrome(window);
+        window.Loaded += (_, _) => RefreshWindowChrome(window);
+        window.Activated += (_, _) => window.Dispatcher.BeginInvoke(
+            new Action(() => RefreshWindowChrome(window)));
+    }
+
     public static void RefreshWindowChrome(Window window) =>
         ApplyNativeWindowTheme(window);
 
