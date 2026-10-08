@@ -10,7 +10,7 @@
 
 ## Current product baseline
 
-Latest public GitHub Release: v0.3.22, published on 2026-10-08.
+Latest public GitHub Release: v0.3.23, published on 2026-10-08.
 
 Current product code on main: merged PR #62 and PR #63. Main CI 37707321540 and release workflow 37707435464 passed; full and update installers are published.
 
@@ -84,3 +84,12 @@ The template source of truth is the top-level .md files in %LOCALAPPDATA%/MailRu
 5. **Open issue #77:** identify and confirm a safe server command to immediately send an existing scheduled message without duplicate or remaining schedule. Static APK evidence for source.schedule alone is insufficient. Use controlled disposable test mail only.
 6. Enable Outbox bulk, preview, detached and context-menu Send Now actions only after atomic server behavior is verified. Add end-to-end regression and publish follow-up; v0.3.22 must NOT be marked as fully completing all 12 items.
 7. Preserve approved account drag animation and pane splitters unchanged.
+
+## v0.3.23 authorization regression and account isolation plan
+
+1. Treat Mail.ru HTTP200 + JSON {"status":403,"body":"token"} as an authorization failure, NOT an empty Inbox. This requirement applies to folder and full-message reads.
+2. Detect expiring/invalid access tokens per account, try the saved refresh token only for the affected account, read its folder with the candidate token to confirm it works, then store encrypted replacement. Preserve LastLogin and unrelated account credentials.
+3. Where the refresh token cannot restore access, show "Требуется повторный вход" only on that mailbox. Never clear every account or silently delete old encrypted credentials.
+4. Owner installs v0.3.23 and verifies affected saved accounts; test one account's failure does not break or replace others, and the status message matches the actual mailbox result.
+5. Never disclose, request uploading or log auth.json, access_token, refresh_token, session cookies, passwords or full secrets. Gather only anonymized status/error classifications for further debugging.
+6. Keep the Outbox scheduled send-now blocker (#77) separate; preserve delivered bulk actions, sender parsing, rich editor, Markdown and UI.

@@ -283,3 +283,10 @@ statement: On 2026-10-08, the Owner asked to collapse 26-role palette settings a
 
 source: User directives and examples 2026-10-08; merged GitHub PR #76; main CI 37719927017; release workflow 37720023234; static official APK /api/v1/messages/send and /schedule research; open issue #77.
 authority: owner-directive + verified-repository + verified-ci + static-protocol; not verified Owner GUI or recipient delivery.
+
+## B-036 — Mail.ru embedded JSON 403 token caused false active auth and empty folder
+
+statement: Owner v0.3.22 screenshot reported empty mailbox for previously authorized accounts while status said "Авторизация активна" and diagnostic JSON returned {"status":403,"email":"","htmlencoded":true,"body":"token"}. Source investigation established GetFolderThreadsAsync only checked HTTP response status, not JSON status, so HTTP200/status403 masqueraded as empty mailbox. Catch/retry previously relied on the HTTP status exception string. Inactive mailbox unread-counter fetches used stored access tokens but did not refresh them separately. In v0.3.23 PR #80, a typed authorization exception detects both HTTP 401/403 and embedded JSON status 401/403 for folder and full-message reads. New access tokens are persisted ONLY after the mailbox responds successfully. A non-active account can refresh its own token without modifying another account's credentials or the last selected login. Failed recovery preserves stored auth, signals that only this account needs login, and never logs secrets. Windows tests for false HTTP200/JSON403, refresh isolation with encrypted two-account persistence, build, startup and release passed. Owner's actual Mail.ru credentials were not tested; a revoked refresh token can still require sign-in.
+
+source: Owner screenshot and JSON error, source PR #80, main SHA afdf7572953e79c6860bf6fb1a2c5fb93fea544a, CI 37768224358, release 37768430779.
+authority: owner evidence + verified-source + verified-ci; NOT confirmed in live Owner accounts.
