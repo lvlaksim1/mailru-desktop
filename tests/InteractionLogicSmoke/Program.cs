@@ -166,6 +166,36 @@ Expect(ThemePalette.Contrast("#FFFFFF", "#000000") > 20, true,
 Expect(ThemePalette.Contrast("#777777", "#777777"), 1.0,
     "identical colors contrast 1:1");
 
+var isolatedPaletteFolder = Path.Combine(Path.GetTempPath(),
+    "MailRuPalette-" + Guid.NewGuid().ToString("N"));
+try
+{
+    var settings = new AppSettingsStore(isolatedPaletteFolder);
+    Expect(settings.LoadPaletteOverrides(true)["AppWindowBrush"],
+        ThemePalette.Defaults(true)["AppWindowBrush"], "new dark palette uses defaults");
+    settings.SavePaletteOverride(true, "AppWindowBrush", "#123456");
+    settings.SavePaletteOverride(false, "AppWindowBrush", "#ABCDEF");
+    var reloaded = new AppSettingsStore(isolatedPaletteFolder);
+    Expect(reloaded.LoadPaletteOverrides(true)["AppWindowBrush"], "#123456",
+        "dark palette saved and reloaded");
+    Expect(reloaded.LoadPaletteOverrides(false)["AppWindowBrush"], "#ABCDEF",
+        "light palette saved independently and reloaded");
+    reloaded.ResetPaletteOverride(true, "AppWindowBrush");
+    Expect(reloaded.LoadPaletteOverrides(true)["AppWindowBrush"],
+        ThemePalette.Defaults(true)["AppWindowBrush"],
+        "one dark role reset without affecting light palette");
+    Expect(reloaded.LoadPaletteOverrides(false)["AppWindowBrush"], "#ABCDEF",
+        "light palette is unaffected by dark reset");
+    reloaded.ResetPaletteOverride(false);
+    Expect(reloaded.LoadPaletteOverrides(false)["AppWindowBrush"],
+        ThemePalette.Defaults(false)["AppWindowBrush"], "whole light theme reset");
+}
+finally
+{
+    if (Directory.Exists(isolatedPaletteFolder))
+        Directory.Delete(isolatedPaletteFolder, recursive: true);
+}
+
 Console.WriteLine("All interaction logic tests passed.");
 
 sealed class RecordingHandler : HttpMessageHandler
