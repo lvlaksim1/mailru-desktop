@@ -226,3 +226,19 @@ source: GitHub Actions runs `37538167641`, `37538857673`, and release implementa
 authority: verified-runtime + verified-repository
 supersedes: any plan to make the new search the default before live success
 
+## B-029 — v0.3.17 persistent isolated authorization profile is runtime-confirmed
+
+statement: MailRu Desktop v0.3.17 replaced the disposable browser profile used for interactive Mail.ru verification with a persistent profile isolated per mailbox account. In Owner runtime on 2026-10-08, an account that had previously been routed through password recovery instead received a normal phone-confirmation step and completed authorization successfully without password recovery. The account profile remains isolated from normal desktop browsers and from other MailRu Desktop accounts.
+
+source: merged PR #60; GitHub Release v0.3.17; direct Owner runtime report on 2026-10-08.
+authority: verified-repository + verified-runtime
+supersedes: B-024 insofar as it stated that interactive verification always stops authorization
+
+## B-030 — v0.3.18 interface/workspace bundle is merged but not yet released
+
+statement: PR #62 was merged to main as commit 3593e4689c813b4c587518cba4c424742de2f621. It implements the Owner-requested interface bundle: corrected window/layout persistence, darker dark-theme scrollbars, compact sender/account icons, persistent account ordering, account sections with a right-side expand/collapse arrow, 275 ms hold-to-detach account dragging with animated neighbor displacement and no Escape cancellation, preview/reply control relocation, and editable signatures/templates with reply-form insertion. Main CI and repository-storage-policy checks passed. No v0.3.18 GitHub Release exists yet; latest public release remains v0.3.17.
+
+source: direct Owner directives in project conversation; merged PR #62; main CI run 37703044365; repository-storage-policy run 37703044638; live release metadata on 2026-10-08.
+authority: owner-directive + verified-repository + verified-ci
+supersedes: none
+
