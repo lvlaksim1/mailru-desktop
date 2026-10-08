@@ -44,6 +44,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        InitializeRichComposeEditors();
 
         // The default date is based on local time at the moment the app opens.
         // Date/time are kept visible but only become active when scheduled
@@ -1626,6 +1627,7 @@ public partial class MainWindow : Window
                     To: ComposeToTextBox.Text.Trim(),
                     Subject: ComposeSubjectTextBox.Text,
                     Text: ComposeBodyTextBox.Text,
+                    Html: _composeRichEditor?.ToHtml(),
                     AttachmentIds: attachmentIds,
                     MessageId: messageId));
 
@@ -1737,6 +1739,7 @@ public partial class MainWindow : Window
                     To: recipient,
                     Subject: ComposeSubjectTextBox.Text,
                     Text: ComposeBodyTextBox.Text,
+                    Html: _composeRichEditor?.ToHtml(),
                     SendDate: sendDate,
                     RequestReadReceipt: RequestReadReceiptCheckBox.IsChecked == true,
                     AttachmentIds: attachmentIds,
