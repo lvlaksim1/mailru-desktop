@@ -93,23 +93,16 @@ public partial class MainWindow
                 _currentFolderId != folder || _folderCounterRevision != revision)
                 return;
 
-            var snapshot = MailRuThreadStatusParser.Parse(raw, folder);
-            if (snapshot.Folders.Count == 0)
-                return;
-
-            foreach (var update in snapshot.Folders)
+            var explicitCounts = MailRuExplicitFolderCounts.Read(raw);
+            foreach (var (folderId, unread) in explicitCounts)
             {
                 var i = -1;
                 for (var j = 0; j < _folderSummaries.Count; j++)
-                    if (_folderSummaries[j].Id == update.Id) { i = j; break; }
+                    if (_folderSummaries[j].Id == folderId) { i = j; break; }
                 if (i < 0) continue;
                 var previous = _folderSummaries[i];
-                if (previous.MessagesUnread != update.MessagesUnread)
-                    ReplaceFolderCountAt(i, previous with
-                    {
-                        MessagesUnread = update.MessagesUnread,
-                        MessagesTotal = update.MessagesTotal
-                    });
+                if (previous.MessagesUnread != unread)
+                    ReplaceFolderCountAt(i, previous with { MessagesUnread = unread });
             }
         }
         catch (Exception ex)
