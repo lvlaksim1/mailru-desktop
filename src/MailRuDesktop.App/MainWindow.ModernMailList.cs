@@ -327,6 +327,14 @@ public partial class MainWindow
         };
         menu.Items.Add(deleteItem);
 
+        if (CurrentFolderIsOutbox)
+        {
+            var immediate = CreateCompactMenuItem("Отправить сейчас");
+            immediate.IsEnabled = false;
+            immediate.ToolTip = "Серверная команда без повторной отправки ещё не подтверждена.";
+            menu.Items.Add(immediate);
+        }
+
         item.ContextMenu = menu;
         menu.PlacementTarget = item;
         menu.IsOpen = true;
