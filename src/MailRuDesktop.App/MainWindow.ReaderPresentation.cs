@@ -9,7 +9,7 @@ public partial class MainWindow
 {
     private readonly DispatcherTimer _readerResourceDeadline = new()
     {
-        Interval = ReaderPresentationPolicy.MaximumResourceWait
+        Interval = TimeSpan.FromMilliseconds(160)
     };
     private ulong _readerStageNavigationId;
     private long _readerStageRevision;
@@ -17,6 +17,7 @@ public partial class MainWindow
     private bool _readerStageResourcesFinished;
     private bool _readerStageDeadlineReached;
     private bool _readerStageRevealing;
+    private bool _readerImageStatusChecking;
     private Stopwatch? _readerStageWatch;
 
     private void InitializeReaderPresentation()
@@ -34,6 +35,7 @@ public partial class MainWindow
         _readerStageResourcesFinished = false;
         _readerStageDeadlineReached = false;
         _readerStageRevealing = false;
+        _readerImageStatusChecking = false;
         _readerStageWatch = null;
     }
 
@@ -63,7 +65,6 @@ public partial class MainWindow
         if (!IsCurrentReaderNavigation(args.NavigationId))
             return;
 
-        _readerStageDomReady = true;
         // Even when a message uses loading=lazy the reader must request its
         // images while hidden, otherwise they only start loading on reveal.
         // Host-initiated WebView2 scripts work independently of the mail's
@@ -81,14 +82,10 @@ public partial class MainWindow
         if (!IsCurrentReaderNavigation(args.NavigationId))
             return;
 
-        if (_readerStageResourcesFinished)
-        {
-            await RevealReaderOnceAsync(args.NavigationId, "complete");
-            return;
-        }
-
+        _readerStageDomReady = true;
         _readerResourceDeadline.Stop();
         _readerResourceDeadline.Start();
+        await TryRevealIfImagesSettledAsync(args.NavigationId);
         // Nothing becomes visible merely because DOMContentLoaded fired.
     }
 
@@ -108,26 +105,73 @@ public partial class MainWindow
         }
 
         _readerStageResourcesFinished = true;
-        _readerResourceDeadline.Stop();
-
         if (_readerStageDomReady)
-            await RevealReaderOnceAsync(args.NavigationId,
-                _readerStageDeadlineReached ? "limited" : "complete");
+            await TryRevealIfImagesSettledAsync(args.NavigationId);
+    }
+
+    // Poll the actual page images, not only navigation completion: an eager
+    // image started after DOMContentLoaded can outlive NavigationCompleted.
+    private async Task TryRevealIfImagesSettledAsync(ulong navigationId)
+    {
+        if (!IsCurrentReaderNavigation(navigationId) ||
+            !_readerStageDomReady || _readerImageStatusChecking ||
+            _readerStageRevealing)
+            return;
+
+        _readerImageStatusChecking = true;
+        bool imagesReady = false;
+        try
+        {
+            var result = await MessageWebView.CoreWebView2.ExecuteScriptAsync(
+                "(function(){return Array.from(document.images).every(i=>i.complete);})()");
+            imagesReady = string.Equals(result, "true", StringComparison.Ordinal) ||
+                (string.Equals(result, "null", StringComparison.Ordinal) &&
+                    _readerStageResourcesFinished);
+        }
+        catch (Exception ex)
+        {
+            DiagnosticLog.Write("reader_image_check", ex.GetType().Name);
+            imagesReady = _readerStageResourcesFinished;
+        }
+        finally
+        {
+            _readerImageStatusChecking = false;
+        }
+
+        if (imagesReady && IsCurrentReaderNavigation(navigationId) &&
+            _readerStageResourcesFinished)
+        {
+            _readerResourceDeadline.Stop();
+            await RevealReaderOnceAsync(navigationId, "complete");
+        }
     }
 
     private async void ReaderResourceDeadline_Tick(object? sender, EventArgs args)
     {
-        _readerResourceDeadline.Stop();
         var navigationId = _readerStageNavigationId;
-        if (!IsCurrentReaderNavigation(navigationId) ||
-            !ReaderPresentationPolicy.ShouldStopLoading(
+        if (!IsCurrentReaderNavigation(navigationId) || !_readerStageDomReady)
+        {
+            _readerResourceDeadline.Stop();
+            return;
+        }
+
+        if (_readerStageWatch?.Elapsed < ReaderPresentationPolicy.MaximumResourceWait)
+        {
+            await TryRevealIfImagesSettledAsync(navigationId);
+            return;
+        }
+
+        _readerResourceDeadline.Stop();
+        if (!ReaderPresentationPolicy.ShouldStopLoading(
                 _readerStageDomReady,
                 _readerStageResourcesFinished,
                 deadlineReached: true))
+        {
+            await TryRevealIfImagesSettledAsync(navigationId);
             return;
+        }
 
         _readerStageDeadlineReached = true;
-
         // Cancel unfinished image requests *before* showing the document.
         // Otherwise a delayed image would reflow the visible receipt later.
         try { MessageWebView.CoreWebView2?.Stop(); }
