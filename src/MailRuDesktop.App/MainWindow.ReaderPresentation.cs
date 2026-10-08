@@ -164,7 +164,7 @@ public partial class MainWindow
         _readerResourceDeadline.Stop();
         if (!ReaderPresentationPolicy.ShouldStopLoading(
                 _readerStageDomReady,
-                _readerStageResourcesFinished,
+                imagesSettled: _readerStageRevealing,
                 deadlineReached: true))
         {
             await TryRevealIfImagesSettledAsync(navigationId);
