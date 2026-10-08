@@ -71,6 +71,9 @@ public partial class MainWindow
         BulkSendNowButton.Visibility = CurrentFolderIsOutbox
             ? Visibility.Visible : Visibility.Collapsed;
         BulkSendNowButton.IsEnabled = false; // No proven safe send-now protocol yet.
+        PreviewSendNowButton.Visibility = CurrentFolderIsOutbox
+            ? Visibility.Visible : Visibility.Collapsed;
+        PreviewSendNowButton.IsEnabled = false;
 
         BulkTrashButton.IsEnabled = count > 0;
         BulkArchiveButton.IsEnabled = count > 0;
