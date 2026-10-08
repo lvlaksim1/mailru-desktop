@@ -1,6 +1,6 @@
 # Latest handoff
 
-Latest public release: v0.3.24, published with full and update installers on 2026-10-08.
+Latest public release: v0.3.25, published with full and update installers on 2026-10-08.
 
 Current merged product baseline: PR #62 and PR #63, main CI passed, release workflow 37707435464 succeeded.
 
@@ -74,3 +74,15 @@ Owner resumed previous GUI defect list. PR #83 merged e89c5ed2ef426e3def7957663b
 Implemented: resizable scrollable palette picker; explicit dark/light DatePicker.CalendarStyle; zero WPF and HTML paragraph spacing; draggable inline/detached reply editor height; selected messages tracked by stable IDs across replacement; bulk operations locally remove or mark only confirmed affected rows, with account/folder stale-result guards; Trash deletion without confirmation; initial thread parser reads matching-message representations for missing senders, including missing subject.
 
 Owner visual validation required. Do not overclaim missing sender no longer stages in all cases: some compact API responses lack all sender data, requiring a full-message query. Rich-format sent messages were already validated by Owner. Scheduled Outbox send-now + context menu remains blocked under issue #77 until verified duplicate-free server action. Approved account drag and splitters untouched.
+
+## v0.3.25 — final release handoff
+
+PR #86 merged 2f25612777b30a15c9f3c1d979d1758ad9b6b5cb. Main CI 37789612268 and storage 37789612042 PASS, release 37789849920 PASS; public v0.3.25 full/update installers present.
+
+Owner's accepted target-resolution rule implemented centrally: checked IDs win over active preview ID; without checks use open letter; neither shows info. Checkbox and active-preview state decoupled; ordinary row click retains checks, Shift ranges, Ctrl selection removed. Double-click and context actions preserved; active-preview accent outline separate from selection shading. Existing bulk operations continue changing only affected rows.
+
+Folder unread counts update locally on confirmed operations and every 90 seconds from explicit server field values only; compact missing fields cannot reset counters to zero. Sender first-paint remains partial (one constrained full-message lookup <=3 sec; rest background at >=5-sec intervals).
+
+New full UI registry docs/ui-registry.json schema 2: seven windows, 1349 UI nodes including global application resources and generated WPF templates; 26 semantic color roles and unknown role audit, automated registry freshness gate on CI. Navigation hover uses theme role rather than Windows default aqua. Typography 10–18 with persisted slider, nine fixed sizes and live application; user role mapping unchangeable.
+
+Owner's GUI approval is NOT yet received for v0.3.25. Test action priority, checkbox/Shift, preview, batch actions, dynamic counts, font sizing, role colors across windows, and sender. Scheduled Outbox Send Now remains DISABLED under issue #77. Official Android APK shows /send, /schedule and source.schedule, but static code is insufficient evidence that a resend cancels the original scheduled message.
