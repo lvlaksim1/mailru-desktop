@@ -281,7 +281,7 @@ public partial class MainWindow : Window
 
     private async void AccountRailListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (_updatingAccountRail ||
+        if (_updatingAccountRail || _accountPressHandled || _accountDragActive ||
             AccountRailListBox.SelectedItem is not AccountRailItem item)
         {
             return;
