@@ -44,6 +44,13 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        // The default date is based on local time at the moment the app opens.
+        // Date/time are kept visible but only become active when scheduled
+        // delivery is selected by the user.
+        ScheduleDatePicker.SelectedDate = DateTime.Today.AddDays(1);
+        ScheduleTimeTextBox.Text = "09:00";
+
         RestoreUserInterfaceState();
         InitializeUserContentSettings();
 
@@ -281,7 +288,7 @@ public partial class MainWindow : Window
 
     private async void AccountRailListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (_updatingAccountRail ||
+        if (_updatingAccountRail || _accountPressHandled || _accountDragActive ||
             AccountRailListBox.SelectedItem is not AccountRailItem item)
         {
             return;
@@ -1710,6 +1717,7 @@ public partial class MainWindow : Window
                     Subject: ComposeSubjectTextBox.Text,
                     Text: ComposeBodyTextBox.Text,
                     SendDate: sendDate,
+                    RequestReadReceipt: RequestReadReceiptCheckBox.IsChecked == true,
                     AttachmentIds: attachmentIds,
                     MessageId: messageId));
 
@@ -1731,6 +1739,10 @@ public partial class MainWindow : Window
             ComposeBodyTextBox.Clear();
             _attachmentPaths.Clear();
             RefreshComposeAttachments();
+            RequestReadReceiptCheckBox.IsChecked = false;
+            ScheduleSendCheckBox.IsChecked = false;
+            ScheduleDatePicker.SelectedDate = DateTime.Today.AddDays(1);
+            ScheduleTimeTextBox.Text = "09:00";
 
             if (scheduledFor is null)
             {
@@ -1740,8 +1752,6 @@ public partial class MainWindow : Window
             {
                 ComposeStatusText.Text =
                     $"Запланировано на {scheduledFor.Value.LocalDateTime:dd.MM.yyyy HH:mm}.";
-                ScheduleSendCheckBox.IsChecked = false;
-                ScheduleDatePicker.SelectedDate = null;
             }
         }
         catch (Exception ex)
@@ -1938,6 +1948,16 @@ public partial class MainWindow : Window
 
     private void ShowWorkspace(FrameworkElement workspace)
     {
+        // Refresh defaults on each new compose session, including when the
+        // application has stayed open across midnight. Do not touch an active
+        // scheduled draft that the user has already configured.
+        if (ReferenceEquals(workspace, ComposeWorkspace) &&
+            ScheduleSendCheckBox.IsChecked != true)
+        {
+            ScheduleDatePicker.SelectedDate = DateTime.Today.AddDays(1);
+            ScheduleTimeTextBox.Text = "09:00";
+        }
+
         MailWorkspace.Visibility = Visibility.Collapsed;
         ContactsWorkspace.Visibility = Visibility.Collapsed;
         ComposeWorkspace.Visibility = Visibility.Collapsed;

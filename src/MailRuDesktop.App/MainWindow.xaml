@@ -801,11 +801,23 @@
                             </ItemsControl>
                         </StackPanel>
                         <TextBox x:Name="ComposeBodyTextBox" Grid.Row="4" Margin="70,0,0,10" MinHeight="320" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
-                        <WrapPanel Grid.Row="5" Margin="70,0,0,10">
-                            <CheckBox x:Name="ScheduleSendCheckBox" Margin="0,0,10,0" Content="Отложенная отправка"/>
-                            <DatePicker x:Name="ScheduleDatePicker" Width="130" Margin="0,0,6,0"/>
-                            <TextBox x:Name="ScheduleTimeTextBox" Width="75" Padding="5" Text="09:00"/>
-                        </WrapPanel>
+                        <StackPanel Grid.Row="5" Margin="70,0,0,10">
+                            <CheckBox x:Name="RequestReadReceiptCheckBox"
+                                      Margin="0,0,0,8"
+                                      Content="Запрос подтверждения прочтения письма"/>
+                            <WrapPanel>
+                                <CheckBox x:Name="ScheduleSendCheckBox"
+                                          Margin="0,0,10,0"
+                                          VerticalAlignment="Center"
+                                          Content="Отложенная отправка"/>
+                                <DatePicker x:Name="ScheduleDatePicker"
+                                            Width="130" Margin="0,0,6,0"
+                                            IsEnabled="{Binding IsChecked, ElementName=ScheduleSendCheckBox}"/>
+                                <TextBox x:Name="ScheduleTimeTextBox"
+                                         Width="75" Padding="5" Text="09:00"
+                                         IsEnabled="{Binding IsChecked, ElementName=ScheduleSendCheckBox}"/>
+                            </WrapPanel>
+                        </StackPanel>
                         <Grid Grid.Row="6" Margin="70,0,0,0">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <Button x:Name="SendButton" Padding="20,9" Margin="0,0,6,0" Background="{DynamicResource AppAccentBrush}" Foreground="{DynamicResource AppAccentTextBrush}" Click="SendButton_Click" Content="Отправить"/>
