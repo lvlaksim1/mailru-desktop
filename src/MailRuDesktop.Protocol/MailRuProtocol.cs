@@ -1023,7 +1023,8 @@ public sealed partial class MailRuClient : IDisposable
         // The AJ endpoint may return HTTP 200 while reporting a failed token
         // inside JSON, e.g. {"status":403,"email":"","body":"token"}.
         // Treat this as authorization failure, not an empty mailbox snapshot.
-        if (string.IsNullOrWhiteSpace(payload) || payload[0] != '{')
+        var trimmed = payload.AsSpan().TrimStart();
+        if (trimmed.IsEmpty || trimmed[0] != '{')
             return;
 
         try
@@ -1034,15 +1035,10 @@ public sealed partial class MailRuClient : IDisposable
                 !root.TryGetProperty("status", out var status))
                 return;
 
-            int? code = status.ValueKind switch
-            {
-                JsonValueKind.Number when status.TryGetInt32(out var n) => n,
-                JsonValueKind.String when int.TryParse(status.GetString(), out var n) => n,
-                _ => null
-            };
-
-            if (code is 401 or 403)
-                throw new MailRuAuthorizationException(code.Value);
+            if (status.ValueKind is JsonValueKind.String or JsonValueKind.Number &&
+                int.TryParse(status.ToString(), out var code) &&
+                code is 401 or 403)
+                throw new MailRuAuthorizationException(code);
         }
         catch (JsonException)
         {
