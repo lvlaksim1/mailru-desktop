@@ -242,3 +242,12 @@ source: direct Owner directives in project conversation; merged PR #62; main CI 
 authority: owner-directive + verified-repository + verified-ci
 supersedes: none
 
+
+
+## B-031 — v0.3.18 is published with real-avatar and Markdown-template work
+
+statement: GitHub Release v0.3.18 was published 2026-10-08 with full and in-place update installers after PR #63 merged. The bundle implements attempts to fetch real Mail.ru sender/account avatars from the official APK-discovered filin.mail.ru/pic?email URL, with 16px initials fallback. It migrates user mail templates from settings.json into separate Templates/<name>.md files, discovers manually edited/added/deleted files, copies newly added local attachment files under Templates/_attachments, refreshes the reply selector without reapplying a template to text already being edited, and inserts templates without confirmation. It also guards against moving an account on a stationary 275 ms long-press. Avatar endpoint photo availability and the full manual-file workflow remain pending Owner runtime validation.
+
+source: direct Owner directives in conversation on 2026-10-08; merged PR #63; main CI 37707321540; release workflow 37707435464; GitHub Release v0.3.18; docs/markdown-templates.md.
+authority: owner-directive + verified-repository + verified-ci (not verified Owner runtime)
+supersedes: B-030 regarding release pending and initials-only icons

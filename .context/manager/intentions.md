@@ -19,9 +19,9 @@ status: active
 Immediate send, reply with attachments, server draft saving, signatures and named message templates are implemented. Exact delayed-send send_date semantics still require dedicated validation.
 
 ## I-005 — installer/update release channel
-status: active
+status: completed for v0.3.18 delivery
 
-Current public release is v0.3.17 with both full and update installers. v0.3.18 product code is merged and green on main but has not yet been published as a GitHub Release. The next release action is to package/publish v0.3.18, not to rewrite the merged feature bundle.
+GitHub Release v0.3.18 is published with both full and update installers. Release workflow 37707435464 succeeded. Future versions continue through this established installer pipeline.
 
 ## I-006 — full-message read and incoming attachments
 status: released
@@ -39,7 +39,7 @@ status: active — core per-message actions released
 Read/unread, move/archive/trash, permanent removal from Trash, flagged and pinned marks remain released. Opening a message marks it read automatically; the selected row can be marked unread again. Bulk/thread, spam/unspam and category operations remain later work.
 
 ## I-009 — desktop UX/settings
-status: active — v0.3.18 implementation merged; Owner runtime validation pending
+status: active — v0.3.18 released; Owner runtime validation pending
 
 The v0.3.18 merged baseline includes:
 - saving/restoring window normal/maximized state and panel/column widths;
@@ -56,7 +56,7 @@ The v0.3.18 merged baseline includes:
 - reply form selectors insert a signature or populate from a template.
 
 ## I-010 — high-value access-token expansion
-status: active — secondary to v0.3.18 release and Owner validation
+status: active — secondary to v0.3.18 Owner runtime validation
 
 After v0.3.18 is published and validated, resume thread/bulk actions, spam/unspam, subscription/category actions, attachment lifecycle, EML/metadata/read receipt and search improvements. go.mail.ru new search remains deferred while its live HTTP 520 behavior is unresolved.
 
@@ -64,3 +64,11 @@ After v0.3.18 is published and validated, resume thread/bulk actions, spam/unspa
 status: active
 
 Each account must independently preserve folders, messages, preview content, unread counts, authorization browser profile, ordering and section membership. Rapid account switching must not leak or mix state.
+
+
+## I-012 — real avatars and manually managed Markdown templates
+status: active — released; real-user behavior not fully validated
+
+The Owner requires actual available contact portraits for message senders and accounts, using initials only when no usable photo exists. The filin.mail.ru/pic?email URL was located in official APK strings and wired to both views with a 16 px footprint. Verify retrieval of real avatars and fallback on the Owner's actual Windows machine.
+
+Each named message template is represented by a top-level Markdown file with the exact template name as its filename, stored in %LOCALAPPDATA%/MailRuDesktop/Templates. Manual creation/edit/rename/delete must update the in-app list, not depend on settings.json. An optional header defines subject/attachment paths, and files selected inside the app are copied to the template attachments directory. Insertion must never ask for confirmation. Code, CI, startup and release are complete, but Owner interaction testing remains outstanding.
