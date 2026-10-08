@@ -37,6 +37,8 @@ public sealed record MailRuMessageSummary(
             ? SenderName
             : SenderEmail;
 
+    public string? AvatarUrl => MailRuAvatarUrls.ForEmail(SenderEmail);
+
     public string SenderInitials
     {
         get
