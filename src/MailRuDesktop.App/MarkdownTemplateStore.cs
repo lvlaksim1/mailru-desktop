@@ -82,10 +82,16 @@ internal sealed class MarkdownTemplateStore
         {
             try
             {
-                using var stream = new FileStream(path, FileMode.Open, FileAccess.Read,
-                    FileShare.ReadWrite | FileShare.Delete);
-                using var reader = new StreamReader(stream, Encoding.UTF8, true);
-                var content = reader.ReadToEnd();
+                string content;
+                using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read,
+                    FileShare.ReadWrite | FileShare.Delete))
+                using (var reader = new StreamReader(stream, Encoding.UTF8, true))
+                {
+                    content = reader.ReadToEnd();
+                }
+
+                // Close the reader before atomically replacing the file:
+                // Windows otherwise refuses to replace an open source file.
                 var readable = UpgradeEscapedMetadata(content);
                 if (!string.Equals(content, readable, StringComparison.Ordinal))
                 {
