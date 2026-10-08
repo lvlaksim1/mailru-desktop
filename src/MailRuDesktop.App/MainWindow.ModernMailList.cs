@@ -728,7 +728,7 @@ public partial class MainWindow
                                FontSize="{DynamicResource AppFontTinySize}"
                                FontWeight="SemiBold"
                                Text="{Binding SenderInitials}"/>
-                    <Image Width="16" Height="16" Stretch="UniformToFill"
+                    <Image Width="{DynamicResource AppAvatarSize}" Height="{DynamicResource AppAvatarSize}" Stretch="UniformToFill"
                            Source="{Binding AvatarUrl}"/>
                 </Grid>
                 </Border>
