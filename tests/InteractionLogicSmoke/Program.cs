@@ -565,22 +565,22 @@ finally
 }
 
 Expect(ReaderPresentationPolicy.CanReveal(
-    domReady: true, resourcesFinished: false, deadlineReached: false),
+    domReady: true, imagesSettled: false, deadlineReached: false),
     false, "HTML DOM alone does not reveal unfinished images");
 Expect(ReaderPresentationPolicy.CanReveal(
-    domReady: true, resourcesFinished: true, deadlineReached: false),
+    domReady: true, imagesSettled: true, deadlineReached: false),
     true, "finished images allow single atomic reveal");
 Expect(ReaderPresentationPolicy.CanReveal(
-    domReady: false, resourcesFinished: true, deadlineReached: true),
+    domReady: false, imagesSettled: true, deadlineReached: true),
     false, "no early reveal before HTML DOM is ready");
 Expect(ReaderPresentationPolicy.CanReveal(
-    domReady: true, resourcesFinished: false, deadlineReached: true),
+    domReady: true, imagesSettled: false, deadlineReached: true),
     true, "resource deadline bounds waiting time");
 Expect(ReaderPresentationPolicy.ShouldStopLoading(
-    domReady: true, resourcesFinished: false, deadlineReached: true),
+    domReady: true, imagesSettled: false, deadlineReached: true),
     true, "timed-out images stop loading before reveal");
 Expect(ReaderPresentationPolicy.ShouldStopLoading(
-    domReady: true, resourcesFinished: true, deadlineReached: true),
+    domReady: true, imagesSettled: true, deadlineReached: true),
     false, "already complete document must never be stopped");
 Expect(ReaderPresentationPolicy.MaximumResourceWait <= TimeSpan.FromSeconds(4),
     true, "image deadline remains bounded under four seconds");
