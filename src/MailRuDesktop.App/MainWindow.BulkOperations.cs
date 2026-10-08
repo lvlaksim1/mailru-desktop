@@ -187,6 +187,8 @@ public partial class MainWindow
             string.IsNullOrWhiteSpace(_activeLogin))
             return;
 
+        var removedFromAccount = _activeLogin;
+        var removedFromFolder = _currentFolderId;
         _bulkOperationInProgress = true;
         UpdateBulkToolbar();
         try
@@ -199,6 +201,9 @@ public partial class MainWindow
                 FolderStatusText.Text = "Mail.ru отклонил окончательное удаление.";
                 return;
             }
+            if (!string.Equals(_activeLogin, removedFromAccount, StringComparison.OrdinalIgnoreCase)
+                || _currentFolderId != removedFromFolder)
+                return;
             RemoveConfirmedMailRows(selected.Select(x => x.Id).ToArray());
             FolderStatusText.Text = $"Удалено: {selected.Count}.";
         }
