@@ -20,7 +20,7 @@
         <DataTemplate DataType="{x:Type local:AccountRailItem}">
             <Grid ToolTip="{Binding ToolTipText}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="18"/>
+                    <ColumnDefinition Width="28"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
