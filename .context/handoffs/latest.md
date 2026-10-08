@@ -1,6 +1,6 @@
 # Latest handoff
 
-Latest public release: v0.3.19, published with full and update installers on 2026-10-08.
+Latest public release: v0.3.20, published with full and update installers on 2026-10-08.
 
 Current merged product baseline: PR #62 and PR #63, main CI passed, release workflow 37707435464 succeeded.
 
@@ -24,3 +24,13 @@ PR #67 merged to main (3640b7e56e8059777d878d9f67f4f8d6bf01c32a); main CI, offli
 User issues addressed: down/up account dragging with stable centers, mouse press-to-release avoiding accidental selection of the row below; optional read-receipt request (bool receipt=true), scheduled send default tomorrow 09:00, and sender name absent -> email address fallback. Static APK source confirms receipt boolean; scheduled send still uses existing /api/v1/messages/schedule and send_date. Unchecked receipt leaves previous payload unchanged.
 
 NEXT: Owner Windows runtime testing for actual drag interaction, sender display and scheduling/delivery; do not claim receipt notification is guaranteed. Preserve v0.3.18 Markdown file templates and real-photo fallback work.
+
+## v0.3.20 handoff
+
+Owner provided two screenshots and reported issues with custom template location, reapplying selected signature/template, closing inline reply, section-name modal dark titlebar, light scrollbars, missing sender email in list, and absent inline reply/forward send receipts and schedule controls. Owner explicitly confirmed account dragging and dividers work perfectly; preserve them.
+
+PR #70 merged as eb3415ac30f81cc3426d4726b53d590d42e57b11; CI 37711634109, storage policy 37711634121 and release workflow 37711732617 succeeded. Published release tag v0.3.20 with full and update installers.
+
+Implemented: choose and persist template directory; copy templates/attachments without collision/overwrite; restart watcher; repeat selected signature/template on mouse/Enter; inline reply ×; dark modal native caption correction; fully custom WPF scrollbar thumbs/arrows plus both WebView reader CSS; parent-thread and full-message sender-email fallback; receipt and scheduled-send controls in inline reply/forward with tomorrow 09:00 default.
+
+Regression tests include manual Markdown addition, directory change, attachment continuity/conflict rejection and parent-thread sender. Runtime UI and mail delivery validation still pending. No network spam; keep >=5 sec research/test request spacing. No IMAP/SMTP/app-passwords.
