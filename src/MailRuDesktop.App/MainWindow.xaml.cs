@@ -61,6 +61,7 @@ public partial class MainWindow : Window
         MessagesGrid.ItemsSource = _visibleMessages;
         ConfigureModernMailList();
         MessagesGrid.PreviewMouseLeftButtonDown += BulkRowCheckBox_PreviewMouseLeftButtonDown;
+        MessagesGrid.PreviewMouseLeftButtonDown += MailPreviewRow_PreviewMouseLeftButtonDown;
         SelectThemeComboBox(ThemeManager.CurrentMode);
         ThemeManager.ThemeChanged += ThemeManager_ThemeChanged;
 
@@ -640,7 +641,7 @@ public partial class MainWindow : Window
 
     private async void MessagesGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message ||
+        if (ActivePreviewMessage is not MailRuMessageSummary message ||
             string.IsNullOrWhiteSpace(_activeLogin))
         {
             return;
@@ -666,21 +667,13 @@ public partial class MainWindow : Window
             await LoadFolderAsync(_currentFolderId);
     }
 
-    private async void MessagesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void MessagesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_suppressMessageSelectionChanged)
             return;
         RememberSelectedMailIds();
         UpdateBulkToolbar();
-
-        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message)
-        {
-            ClearSelectedMessage();
-            return;
-        }
-
-        DisplaySummary(message);
-        await LoadFullMessageAsync(message);
+        // Checking boxes NEVER changes the current mail preview.
     }
 
     private void DisplaySummary(MailRuMessageSummary message)
@@ -737,8 +730,7 @@ public partial class MainWindow : Window
                 markRead: message.Unread);
 
             if (generation != _messageLoadGeneration ||
-                MessagesGrid.SelectedItem is not MailRuMessageSummary selected ||
-                selected.Id != message.Id)
+                !string.Equals(_activePreviewMailId, message.Id, StringComparison.Ordinal))
             {
                 return;
             }
@@ -1001,7 +993,7 @@ public partial class MainWindow : Window
 
     private void ReplaceMessage(MailRuMessageSummary original, MailRuMessageSummary updated)
     {
-        var selectedId = (MessagesGrid.SelectedItem as MailRuMessageSummary)?.Id;
+        var selectedId = _activePreviewMailId;
 
         var currentIndex = _currentMessages.FindIndex(item => item.Id == original.Id);
         if (currentIndex >= 0)
@@ -1166,7 +1158,7 @@ public partial class MainWindow : Window
         }
 
         var list = filtered.ToList();
-        var selectedId = (MessagesGrid.SelectedItem as MailRuMessageSummary)?.Id;
+        var selectedId = _activePreviewMailId;
 
         _suppressMessageSelectionChanged = true;
         try
@@ -1182,7 +1174,8 @@ public partial class MainWindow : Window
             _suppressMessageSelectionChanged = false;
         }
 
-        if (!string.IsNullOrWhiteSpace(selectedId) && MessagesGrid.SelectedItem is null)
+        if (!string.IsNullOrWhiteSpace(selectedId) &&
+            !_currentMessages.Any(item => item.Id == selectedId))
             ClearSelectedMessage();
 
         FilterStatusText.Text = list.Count == _currentMessages.Count
@@ -1273,7 +1266,7 @@ public partial class MainWindow : Window
 
     private async void MoveMessageButton_Click(object sender, RoutedEventArgs e)
     {
-        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message ||
+        if (ActivePreviewMessage is not MailRuMessageSummary message ||
             MoveFolderComboBox.SelectedItem is not MailRuFolderSummary folder)
         {
             FolderStatusText.Text = "Выберите письмо и папку назначения.";
@@ -1285,7 +1278,7 @@ public partial class MainWindow : Window
 
     private async void TrashMessageButton_Click(object sender, RoutedEventArgs e)
     {
-        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message)
+        if (ActivePreviewMessage is not MailRuMessageSummary message)
         {
             FolderStatusText.Text = "Выберите письмо.";
             return;
@@ -1400,6 +1393,7 @@ public partial class MainWindow : Window
 
     private void ClearSelectedMessage()
     {
+        ClearActivePreviewId();
         _messageLoadGeneration++;
         _currentFullMessage = null;
         SelectedSubjectText.Text = "Выберите письмо";
@@ -1960,7 +1954,7 @@ public partial class MainWindow : Window
         }
         else
         {
-            ShowReaderText(MessagesGrid.SelectedItem is MailRuMessageSummary message
+            ShowReaderText(ActivePreviewMessage is MailRuMessageSummary message
                 ? message.Snippet
                 : "Выберите письмо.");
         }
@@ -1989,7 +1983,7 @@ public partial class MainWindow : Window
         }
         else
         {
-            ShowReaderText(MessagesGrid.SelectedItem is MailRuMessageSummary message
+            ShowReaderText(ActivePreviewMessage is MailRuMessageSummary message
                 ? message.Snippet
                 : "Выберите письмо.");
         }
