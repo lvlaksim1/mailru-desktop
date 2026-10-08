@@ -287,6 +287,17 @@ public partial class MainWindow
             return;
         }
 
+        // Right-click identifies the preview fallback only when no boxes are
+        // checked. It never changes existing checkbox selection.
+        if (_selectedMailIds.Count == 0)
+        {
+            _activePreviewMailId = message.Id;
+            MailPreviewState.Instance.ActiveId = message.Id;
+            DisplaySummary(message);
+            UpdatePreviewSelectionFields(message);
+            _ = LoadFullMessageAsync(message);
+        }
+
         var menu = CreateCompactContextMenu();
 
         var pinItem = CreateCompactMenuItem(
@@ -378,48 +389,20 @@ public partial class MainWindow
     }
 
     private async Task MoveMessageFromContextAsync(
-        MailRuMessageSummary message,
+        MailRuMessageSummary clicked,
         int destinationFolderId,
         string successText)
     {
-        if (string.IsNullOrWhiteSpace(_accessToken))
+        // A checked selection takes precedence even when the context menu was
+        // opened on a different row. An unmarked context row is not silently
+        // added to the user's selected set.
+        var targets = ResolveActionMessages();
+        if (targets.Count == 0)
             return;
 
-        var selectedId = (MessagesGrid.SelectedItem as MailRuMessageSummary)?.Id;
-
-        try
-        {
-            var result = await _mailRu.MoveMessagesAsync(
-                _accessToken,
-                new[] { message.Id },
-                destinationFolderId);
-
-            ResponseTextBox.Text = result.RawResponse;
-            if (!result.Success)
-            {
-                FolderStatusText.Text = "Mail.ru отклонил перемещение.";
-                return;
-            }
-
-            if (_currentFolderId == 0 && message.Unread)
-                AdjustActiveInboxUnread(-1);
-
-            _currentMessages.RemoveAll(item =>
-                string.Equals(item.Id, message.Id, StringComparison.Ordinal));
-            ApplyFilters();
-
-            if (string.Equals(selectedId, message.Id, StringComparison.Ordinal))
-                ClearSelectedMessage();
-
-            FolderStatusText.Text = successText;
-        }
-        catch (Exception ex)
-        {
-            FolderStatusText.Text = "Ошибка перемещения письма.";
-            DiagnosticLog.Write(
-                "message_context_move",
-                ex.GetType().Name + ": " + ex.Message);
-        }
+        await ExecuteBulkMoveAsync(
+            targets, destinationFolderId,
+            successText);
     }
 
     private async void ModernMailListButton_Click(object sender, RoutedEventArgs e)
