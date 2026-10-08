@@ -5,9 +5,9 @@ Visibility: public
 Product authority: main
 Manager-state authority: main
 
-Latest public release: **v0.3.17**
-Current merged product baseline on main: **intended v0.3.18**, PR #62, merge commit 3593e4689c813b4c587518cba4c424742de2f621.
-v0.3.18 has not yet been published as a GitHub Release.
+Latest public release: **v0.3.18**, published 2026-10-08 with full and update installers.
+Product changes: PR #62 plus PR #63, merge commit 34e583abc232c9edc939816a92b4e08165836210.
+Release workflow 37707435464, main CI 37707321540 and repository storage check 37707321584: success.
 
 ## Authorization state
 
@@ -60,9 +60,17 @@ Implemented:
 - selecting a signature appends/replaces the chosen signature at the end of text;
 - selecting a template populates subject, body and available attachments.
 
+## v0.3.18 release additions from PR #63
+
+- Genuine sender/account images are requested from Mail.ru filin /pic?email (source: official APK URL strings), with initials as fallback when the photo fails to load. Photo availability in real accounts is not yet verified by Owner runtime.
+- Each template is now a separate filename-equals-name Markdown file under %LOCALAPPDATA%/MailRuDesktop/Templates. Manually created files appear automatically through directory watching, and the list also refreshes when Settings or the reply template selector opens.
+- Plain Markdown is valid; optional front matter stores subject and attachment references. Attachments selected in Settings are copied to Templates/_attachments. Legacy settings.json templates are migrated once without deleting the old backup.
+- Insertion requires no confirmation. Background file refresh does not reinsert the template into an in-progress reply.
+- Releasing a long-pressed account without moving it no longer changes account order.
+
 ## Release state
 
-Latest published installers are still v0.3.17. The immediate release task is to publish v0.3.18 from the already merged product code, then perform Owner runtime/visual validation.
+v0.3.18 is published. CI and release packaging passed. Owner runtime/visual verification of the listed interactions remains outstanding.
 
 ## Stable project policies
 
