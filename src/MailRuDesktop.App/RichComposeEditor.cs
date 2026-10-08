@@ -52,6 +52,9 @@ internal sealed class RichComposeEditor
             Document = new FlowDocument(new Paragraph()),
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             AcceptsTab = true,
+            // Remove the default RichTextBox hover/focus outline animation.
+            BorderThickness = new Thickness(0),
+            FocusVisualStyle = null,
             Padding = new Thickness(8),
             MinHeight = Math.Max(90, plain.MinHeight > 0 ? plain.MinHeight - 36 : 90)
         };
