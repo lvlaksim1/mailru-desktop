@@ -350,6 +350,15 @@ var explicitColors = ThemePalette.Merge(false,
     });
 Expect(explicitColors["AppPanelBrush"], "#135724",
     "explicit canonical background takes priority over older per-panel value");
+var multipleLegacy = ThemePalette.Merge(false, new Dictionary<string,string>
+{
+    ["AppPanelBrush"] = "#ABCDEF",
+    ["AppDialogBrush"] = "#557799"
+});
+Expect(multipleLegacy["AppWindowBrush"], "#ABCDEF",
+    "old panel color wins deterministically over another collapsed legacy value");
+Expect(multipleLegacy["AppDialogBrush"], "#ABCDEF",
+    "merged group uses one color across all former roles");
 Expect(fontRoles["AppFontBodySize"], 12.0, "default font size is 12");
 Expect(ThemeTypography.Normalize(1), 10, "font size minimum is enforced");
 Expect(ThemeTypography.Normalize(99), 18, "font size maximum is enforced");
