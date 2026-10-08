@@ -125,3 +125,14 @@ Published Windows release v0.3.26 (PR #89 / CI 37797743640 / installer 377977873
 5. Especially verify composing across active-account changes does not use an unexpected sender; do not claim this case safe without evidence.
 6. Preserve existing checked-first mail actions, OAuth credential isolation, per-account authorization profile and accepted rich HTML. Keep issue #77 send-now disabled; validate only with disposable test messages and no duplicates before enabling.
 7. Future UI edits must regenerate/check docs/ui-registry.json, including every programmatically created Window and runtime-hosted XAML subtree. No IMAP/SMTP/app passwords; 5-second spacing for research/test HTTP calls.
+
+
+## OVERRIDING UPDATER PLAN — v0.3.27 (2026-10-08)
+
+Product GitHub Release v0.3.27 supersedes v0.3.26. PR #92, main CI 37838100623 and installer release 37838253203 passed. Old primary-only release lookup has backup route through validated github.com releases/latest redirect, user-friendly safe status diagnostics and browser navigation. Do not conflate offline fallback test success with Owner network confirmation.
+
+1. User installs MailRuDesktop_Update_v0.3.27.exe manually from https://github.com/lvlaksim1/mailru-desktop/releases/tag/v0.3.27 if v0.3.25 updater is unable to self-update.
+2. In v0.3.27 check Settings→Update→Check updates; it should either show an actual version or disclose GitHub API/site status reasons; Open releases page should work via external browser.
+3. If both hosts fail, collect only last sanitized github_update_check entry from %LOCALAPPDATA%/MailRuDesktop/diagnostics.log (avoid full log which may carry personal data). Investigate Windows networking/proxy/browser-only routing using concrete codes; do not claim specific root cause without evidence.
+4. Preserve explicit two-step update model: check and then user clicks install. Do not enable unattended auto-install without Owner approval.
+5. Continue pending Owner v0.3.26 UX acceptance, detached-compose cross-account sender investigation, and issue #77 safe scheduled send-now independently.

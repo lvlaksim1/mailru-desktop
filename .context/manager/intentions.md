@@ -130,3 +130,9 @@ v0.3.25 passed build/startup/logic and published with installer; Owner GUI still
 status: active — code published and CI passed; new interactions not yet Owner-runtime confirmed
 
 The nine Owner-authorized v0.3.26 changes are released; verify formatting-first reader, collapsed-only moving sections as account blocks, detached New Mail and contact picker, compact auto-applied folder selectors, collapsed signature/template editors and pressed-color role. PR #91 subsequently repaired runtime-window inventory to nine windows without changing the installer. Preserve previously Owner-confirmed features and avoid claiming visual/mouse validation from CI. Verify sender identity when changing active account while composing in the separate window. Keep scheduled Outbox send-now #77 blocked until a duplicate-free server transition is proven.
+
+
+## I-021 — verify resilient in-app updater in Owner network
+status: released v0.3.27; Owner real-network confirmation pending
+
+After Owner observed v0.3.25 generic update-check failure, PR #92 created a GitHub.com redirect fallback independent of api.github.com plus error diagnostics and a manual release-page button, verified by injected HTTP fakes and Windows CI. Release v0.3.27 is published. The Owner must manually run the v0.3.27 Update installer if the old checker cannot reach the API; verify subsequent in-app update checking under actual network conditions. If both hosts are still inaccessible, request ONLY sanitized diagnostics.log line with category github_update_check and/or codes, not mailbox secrets or full diagnostics. Leave auto-install on startup outside current scope; do not imply this feature exists. No original-user-machine root cause is yet confirmed.

@@ -1,15 +1,9 @@
-# Latest handoff — MailRu Desktop v0.3.26
+# Latest handoff — MailRu Desktop v0.3.27 (2026-10-08)
 
-Persistent manager_id: project-manager. Manager-state authority main; product authority main. Owner direct interaction remains first-class.
+Manager identity project-manager; authority main for both manager state and product. Owner reported v0.3.25 Settings→Update generic «Не удалось проверить обновления». v0.3.26 was publicly available. Inspection established a single-point dependency on api.github.com and silent broad catch in UI; exact User Windows network cause NOT established because the old client log was not supplied.
 
-Owner on 2026-10-08 confirmed blank-subject sender issue resolved and all other v0.3.25 improvements working, then approved nine interface refinements.
+Fix PR #92 merged to main c85cf0e7097c21e4cb26cc2ce30172f50368758f. GitHub Actions PR CI 37837933893 and main CI 37838100623 PASSED Windows build, offline tests, UI registry check and launch. The new updater uses API first and strict fallback to github.com/lvlaksim1/mailru-desktop/releases/latest redirect, permits only an exact GitHub tag and canonical installer path, shows sanitized HTTP/timeout diagnostics when both hosts fail, and opens releases in an external browser. New tests simulate success, API 403 fallback success, malicious redirect rejection, and simultaneous HTTP failures without actual network calls. Version 0.3.27 published via release workflow 37838253203 with both full and update installers: https://github.com/lvlaksim1/mailru-desktop/releases/tag/v0.3.27.
 
-Product PR #89 merged as a1ed3b9bbba67aa29bb38b88f499e038f3709f53. CI on PR 37797350430 and main 37797743640 passed. Release workflow 37797787312 published v0.3.26 full/update installers at https://github.com/lvlaksim1/mailru-desktop/releases/tag/v0.3.26.
+**Critical:** Old v0.3.25 checker lacks the fix, so Owner needs a one-time manual browser download of the v0.3.27 update installer. This is not an unattended auto-installer: user clicks Check and then Install. Owner network test of the fix and CDN download remains pending. If still failing, request only filtered local diagnostics.log records with category github_update_check; do not infer DNS/TLS/HTTP cause without them.
 
-Implemented: no temporary unformatted snippet before final mail page; collapsed-only 275ms drag of account section plus its members; Mail and Contacts nav removed; independent owned New Mail window reusing original compose controls; server-contact recipient picker only in New Mail; compact immediately applied attachment/template directory chooser with text display; initially collapsed signature/template settings; explicit existing 26-role palette entry «Фон нажатой кнопки». No new 27th role.
-
-Follow-up registry-only PR #91 merged as b084203c916d70b3ecfb5c3eec1d28481dea43f3 after source-derived CI 37798726121 passed; catalog now lists 9 windows, 1354 elements, 51 ComposeWorkspace entries with runtime host, 26 fixed palette roles. This code change is documentation/generator only; v0.3.26 installer remains valid.
-
-**Owner runtime acceptance of the nine new changes is pending.** Check especially a detached compose window open during active-account switching. Existing per-account authorization profile, account-row drag, splitter geometry, rich HTML and checked-first actions must not regress.
-
-**Blocked issue #77:** Send Now of an existing scheduled Outbox item disabled until duplicate-free atomic transition is proven; static APK data are insufficient. True scheduled delivery and read receipt outcome need separate live evidence.
+Prior v0.3.26 Owner-approved interface improvements and registry-only repair remain in main. Owner's fresh hands-on acceptance of nine v0.3.26 updates remains pending. Known blank-subject sender defect was Owner-closed; do not reopen without new evidence. Detached New Mail sender binding on account change still needs verification. Outbox scheduled Send Now #77 stays disabled pending duplicate-free validated transition.

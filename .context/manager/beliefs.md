@@ -315,3 +315,12 @@ statement: On 2026-10-08 Owner confirmed blank-subject sender resolution and all
 source: Owner direct instructions and confirmations, PRs #89/#91, workflows 37797350430/37797743640/37797787312/37798726121.
 authority: Owner-runtime for old fixes + owner-directive + verified-repository/CI/release for new code, not Owner-runtime for v0.3.26.
 supersedes: B-038 as the latest published release and seven-window registry, and the blank-subject sender pending status.
+
+
+## B-041 — v0.3.27 updater check fallback published; Owner runtime gate pending
+
+statement: Owner reported in installed v0.3.25 that Settings→Update→Check for updates displayed only «Не удалось проверить обновления», although v0.3.26 was published. Source review showed GitHubUpdateService.GetLatestReleaseAsync relied exclusively on api.github.com/releases/latest and MainWindow suppressed the underlying reason. The exact network failure on Owner Windows is NOT established without the category github_update_check in %LOCALAPPDATA%/MailRuDesktop/diagnostics.log. Owner-facing repair v0.3.27 merged PR #92 as c85cf0e7097c21e4cb26cc2ce30172f50368758f. It retains primary GitHub REST request, adds a strictly validated backup lookup through github.com/.../releases/latest redirect, presents sanitized status reasons when both fail, adds an Open releases page button and offline regression tests for API success, API 403/site success, unsafe redirect and simultaneous 403/502 failures. PR CI 37837933893 and main CI 37838100623 passed. Installer release workflow 37838253203 published verified full/update assets for v0.3.27 on 2026-10-08. The old v0.3.25 cannot acquire this code without installing a newer version (manual browser download if the old check cannot work); Owner real-network verification of fallback/download is pending. No silent update installation was added; checking and applying still require explicit user interaction.
+
+source: Owner screenshot and report, GitHub source and PR #92, CI 37837933893 / 37838100623, release 37838253203 and live release metadata.
+authority: Owner runtime evidence for the v0.3.25 symptom, verified source/CI/release for v0.3.27; not Owner runtime validation of the repair.
+supersedes: latest public release v0.3.26 and any assumption that GitHub API success is assured in Owner environment.
