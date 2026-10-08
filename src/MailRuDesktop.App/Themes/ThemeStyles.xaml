@@ -652,20 +652,127 @@
         <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
     </Style>
 
+    <!-- Complete scrollbar templates: default Windows chrome otherwise draws
+         light thumb/arrows even when the ScrollBar brushes are dark. -->
+    <Style x:Key="AppScrollThumbStyle" TargetType="{x:Type Thumb}">
+        <Setter Property="Background" Value="{DynamicResource AppScrollThumbBrush}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Thumb}">
+                    <Border Margin="2" CornerRadius="5"
+                            Background="{DynamicResource AppScrollThumbBrush}"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="AppScrollPageButtonStyle" TargetType="{x:Type RepeatButton}">
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type RepeatButton}">
+                    <Border Background="{DynamicResource AppScrollTrackBrush}"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="AppScrollArrowButtonStyle" TargetType="{x:Type RepeatButton}">
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type RepeatButton}">
+                    <Border x:Name="ArrowSurface"
+                            Background="{DynamicResource AppScrollTrackBrush}">
+                        <Path HorizontalAlignment="Center" VerticalAlignment="Center"
+                              Width="10" Height="10" Stretch="Uniform"
+                              StrokeThickness="1.6" StrokeStartLineCap="Round"
+                              StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                              Stroke="{DynamicResource AppScrollArrowBrush}"
+                              Data="{TemplateBinding Tag}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="ArrowSurface" Property="Background"
+                                    Value="{DynamicResource AppControlHoverBrush}"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="ArrowSurface" Property="Background"
+                                    Value="{DynamicResource AppControlPressedBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <ControlTemplate x:Key="AppVerticalScrollBarTemplate" TargetType="{x:Type primitives:ScrollBar}">
+        <Grid Width="16" Background="{DynamicResource AppScrollTrackBrush}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="16"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="16"/>
+            </Grid.RowDefinitions>
+            <RepeatButton Grid.Row="0" Tag="M 2,8 L 5,4 L 8,8"
+                          Command="ScrollBar.LineUpCommand"
+                          Style="{StaticResource AppScrollArrowButtonStyle}"/>
+            <primitives:Track x:Name="PART_Track" Grid.Row="1" IsDirectionReversed="True">
+                <primitives:Track.DecreaseRepeatButton>
+                    <RepeatButton Command="ScrollBar.PageUpCommand"
+                                  Style="{StaticResource AppScrollPageButtonStyle}"/>
+                </primitives:Track.DecreaseRepeatButton>
+                <primitives:Track.Thumb>
+                    <Thumb Style="{StaticResource AppScrollThumbStyle}"/>
+                </primitives:Track.Thumb>
+                <primitives:Track.IncreaseRepeatButton>
+                    <RepeatButton Command="ScrollBar.PageDownCommand"
+                                  Style="{StaticResource AppScrollPageButtonStyle}"/>
+                </primitives:Track.IncreaseRepeatButton>
+            </primitives:Track>
+            <RepeatButton Grid.Row="2" Tag="M 2,3 L 5,7 L 8,3"
+                          Command="ScrollBar.LineDownCommand"
+                          Style="{StaticResource AppScrollArrowButtonStyle}"/>
+        </Grid>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="AppHorizontalScrollBarTemplate" TargetType="{x:Type primitives:ScrollBar}">
+        <Grid Height="16" Background="{DynamicResource AppScrollTrackBrush}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="16"/>
+            </Grid.ColumnDefinitions>
+            <RepeatButton Grid.Column="0" Tag="M 8,2 L 4,5 L 8,8"
+                          Command="ScrollBar.LineLeftCommand"
+                          Style="{StaticResource AppScrollArrowButtonStyle}"/>
+            <primitives:Track x:Name="PART_Track" Grid.Column="1">
+                <primitives:Track.DecreaseRepeatButton>
+                    <RepeatButton Command="ScrollBar.PageLeftCommand"
+                                  Style="{StaticResource AppScrollPageButtonStyle}"/>
+                </primitives:Track.DecreaseRepeatButton>
+                <primitives:Track.Thumb>
+                    <Thumb Style="{StaticResource AppScrollThumbStyle}"/>
+                </primitives:Track.Thumb>
+                <primitives:Track.IncreaseRepeatButton>
+                    <RepeatButton Command="ScrollBar.PageRightCommand"
+                                  Style="{StaticResource AppScrollPageButtonStyle}"/>
+                </primitives:Track.IncreaseRepeatButton>
+            </primitives:Track>
+            <RepeatButton Grid.Column="2" Tag="M 2,2 L 6,5 L 2,8"
+                          Command="ScrollBar.LineRightCommand"
+                          Style="{StaticResource AppScrollArrowButtonStyle}"/>
+        </Grid>
+    </ControlTemplate>
+
     <Style TargetType="{x:Type primitives:ScrollBar}">
         <Setter Property="Background" Value="{DynamicResource AppScrollTrackBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource AppScrollArrowBrush}"/>
-        <Style.Resources>
-            <Style TargetType="{x:Type Thumb}">
-                <Setter Property="Background" Value="{DynamicResource AppScrollThumbBrush}"/>
-                <Setter Property="BorderBrush" Value="{DynamicResource AppScrollThumbBrush}"/>
-            </Style>
-            <Style TargetType="{x:Type RepeatButton}">
-                <Setter Property="Background" Value="{DynamicResource AppScrollTrackBrush}"/>
-                <Setter Property="Foreground" Value="{DynamicResource AppScrollArrowBrush}"/>
-                <Setter Property="BorderBrush" Value="{DynamicResource AppScrollTrackBrush}"/>
-            </Style>
-        </Style.Resources>
+        <Setter Property="Template" Value="{StaticResource AppVerticalScrollBarTemplate}"/>
+        <Style.Triggers>
+            <Trigger Property="Orientation" Value="Horizontal">
+                <Setter Property="Template" Value="{StaticResource AppHorizontalScrollBarTemplate}"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <Style TargetType="{x:Type ProgressBar}">

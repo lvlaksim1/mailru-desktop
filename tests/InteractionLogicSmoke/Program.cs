@@ -39,6 +39,16 @@ Expect(parsed.Messages.Count, 2, "two sender shapes parsed");
 Expect(parsed.Messages.Single(x => x.Id == "m1").SenderDisplay, "single@mail.ru", "single object from");
 Expect(parsed.Messages.Single(x => x.Id == "m2").SenderDisplay, "array@mail.ru", "array from");
 
+var threadSender = """
+{"body":{"folders_content":[{"id":0,"threads":[{"id":"m3",
+"correspondents":{"from":[{"email":"thread@mail.ru"}]},
+"base_message":{"id":"m3","subject":"Thread-only sender"}}]}]}}
+""";
+var threadSnapshot = MailRuThreadStatusParser.Parse(threadSender, 0);
+Expect(threadSnapshot.Messages.Single().SenderDisplay, "thread@mail.ru",
+    "sender inherited from thread when base_message omits correspondent");
+
+
 using (var handler = new RecordingHandler())
 using (var http = new HttpClient(handler))
 using (var client = new MailRuClient(httpClient: http))
@@ -64,6 +74,60 @@ using (var client = new MailRuClient(httpClient: http))
     if (handler.LastForm.Contains("receipt=", StringComparison.Ordinal))
         throw new Exception("Unchecked receipt should leave wire protocol unchanged");
     Console.WriteLine("PASS unchecked receipt omits flag");
+}
+
+var testRoot = Path.Combine(Path.GetTempPath(), "MailRuDesktopTemplateChecks-" + Guid.NewGuid().ToString("N"));
+try
+{
+    var first = Path.Combine(testRoot, "first");
+    var next = Path.Combine(testRoot, "next");
+    Directory.CreateDirectory(first);
+    File.WriteAllText(Path.Combine(first, "Manual.md"), "Здравствуйте!\n");
+    var originalAttach = Path.Combine(testRoot, "price.txt");
+    File.WriteAllText(originalAttach, "Тестовое вложение");
+    var templates = new MarkdownTemplateStore(first);
+    Expect(templates.LoadAll().Single().Name, "Manual", "manual Markdown template is discovered");
+
+    templates.Save(new SavedMailTemplate
+    {
+        Name = "Reply",
+        Subject = "Re: test",
+        Body = "Reply text",
+        Attachments = [originalAttach]
+    }, previousName: null);
+    var saved = templates.LoadAll().Single(t => t.Name == "Reply");
+    Expect(saved.Subject, "Re: test", "template subject survives disk roundtrip");
+    Expect(saved.Body, "Reply text", "template body survives disk roundtrip");
+    if (saved.Attachments.Count != 1 || !File.Exists(saved.Attachments[0]))
+        throw new Exception("Template attachment was not copied into managed folder");
+    Console.WriteLine("PASS managed template attachment copied");
+
+    templates.ChangeDirectory(next);
+    Expect(templates.DirectoryPath, Path.GetFullPath(next), "template folder is configurable");
+    Expect(templates.LoadAll().Count, 2, "template files preserved on directory change");
+    var moved = templates.LoadAll().Single(t => t.Name == "Reply");
+    if (!File.Exists(moved.Attachments.Single()))
+        throw new Exception("Attachment missing after template folder change");
+    Console.WriteLine("PASS referenced attachments preserved after changing folder");
+    if (!File.Exists(Path.Combine(first, "Reply.md")))
+        throw new Exception("Original template folder was deleted");
+
+    File.WriteAllText(Path.Combine(next, "AddedManually.md"), "New text");
+    Expect(templates.LoadAll().Count, 3, "manually added file appears without restart");
+
+    var conflicting = Path.Combine(testRoot, "conflicting");
+    Directory.CreateDirectory(conflicting);
+    File.WriteAllText(Path.Combine(conflicting, "Reply.md"), "Destination already exists");
+    var rejectedConflict = false;
+    try { templates.ChangeDirectory(conflicting); }
+    catch (IOException) { rejectedConflict = true; }
+    Expect(rejectedConflict, true, "conflicting folder switch is rejected safely");
+    Expect(templates.DirectoryPath, Path.GetFullPath(next), "conflict keeps prior template directory");
+}
+finally
+{
+    if (Directory.Exists(testRoot))
+        Directory.Delete(testRoot, recursive: true);
 }
 
 Console.WriteLine("All interaction logic tests passed.");

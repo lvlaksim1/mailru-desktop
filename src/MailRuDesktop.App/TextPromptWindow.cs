@@ -86,10 +86,20 @@ internal sealed class TextPromptWindow : Window
 
         Content = root;
 
+        // WPF can repaint the native caption with the light system palette on
+        // activation after keyboard focus enters the text field. Reapply the
+        // explicit dark DWM caption color at each native lifecycle boundary.
+        SourceInitialized += (_, _) => ThemeManager.RefreshWindowChrome(this);
+        Activated += (_, _) => Dispatcher.BeginInvoke(
+            new Action(() => ThemeManager.RefreshWindowChrome(this)));
+
         Loaded += (_, _) =>
         {
+            ThemeManager.RefreshWindowChrome(this);
             _textBox.Focus();
             _textBox.SelectAll();
+            Dispatcher.BeginInvoke(
+                new Action(() => ThemeManager.RefreshWindowChrome(this)));
         };
     }
 }

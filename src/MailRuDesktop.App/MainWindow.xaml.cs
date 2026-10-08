@@ -730,8 +730,20 @@ public partial class MainWindow : Window
                 full.Attachments.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
             ResponseTextBox.Text = full.RawJson;
 
-            if (message.Unread)
-                ReplaceMessage(message, message with { Unread = false });
+            // Some smart-thread summaries omit "correspondents.from", while
+            // /messages/message still supplies the true sender address.
+            // Enrich the selected list row from the verified full message,
+            // rather than leaving a blank sender or guessing from the subject.
+            var completeSender = message with
+            {
+                SenderName = string.IsNullOrWhiteSpace(message.SenderName)
+                    ? full.FromName : message.SenderName,
+                SenderEmail = string.IsNullOrWhiteSpace(message.SenderEmail)
+                    ? full.FromEmail : message.SenderEmail,
+                Unread = false
+            };
+            if (!Equals(message, completeSender))
+                ReplaceMessage(message, completeSender);
 
             if (!string.IsNullOrWhiteSpace(full.Html))
             {
@@ -1854,6 +1866,13 @@ public partial class MainWindow : Window
             $"blockquote {{ border-left: 3px solid {muted}; margin-left: 8px; padding-left: 10px; color: {muted}; }}" +
             $"a {{ color: {link}; text-decoration: none; }}" +
             darkMailOverrides +
+            (ThemeManager.IsDarkEffective
+                ? "::-webkit-scrollbar { width: 12px; height: 12px; background: #1A1D22; }" +
+                  "::-webkit-scrollbar-track { background: #1A1D22; }" +
+                  "::-webkit-scrollbar-thumb { background: #3A4049; border: 2px solid #1A1D22; border-radius: 7px; }" +
+                  "::-webkit-scrollbar-thumb:hover { background: #49505B; }" +
+                  "::-webkit-scrollbar-button { background: #242930; height: 10px; width: 10px; }"
+                : string.Empty) +
             "</style></head><body>" +
             body +
             "</body></html>";

@@ -1,4 +1,5 @@
 using System.IO;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -214,6 +215,7 @@ public partial class MainWindow
             return;
 
         _previewComposeMode = PreviewComposeMode.Reply;
+        ResetPreviewSendOptions();
         ResetPreviewTemplateSelectors();
         PreviewComposePanel.Visibility = Visibility.Visible;
         PreviewComposeToTextBox.Text = !string.IsNullOrWhiteSpace(_currentFullMessage?.FromEmail)
@@ -235,6 +237,7 @@ public partial class MainWindow
             return;
 
         _previewComposeMode = PreviewComposeMode.Forward;
+        ResetPreviewSendOptions();
         ResetPreviewTemplateSelectors();
         PreviewComposePanel.Visibility = Visibility.Visible;
         PreviewComposeToTextBox.Clear();
@@ -298,6 +301,48 @@ public partial class MainWindow
             .ToArray();
     }
 
+    private void ResetPreviewSendOptions()
+    {
+        PreviewReadReceiptCheckBox.IsChecked = false;
+        PreviewScheduleCheckBox.IsChecked = false;
+        PreviewScheduleDatePicker.SelectedDate = DateTime.Today.AddDays(1);
+        PreviewScheduleTimeTextBox.Text = "09:00";
+    }
+
+    private bool TryGetPreviewSchedule(out string? sendDate, out DateTimeOffset? scheduledFor)
+    {
+        sendDate = null;
+        scheduledFor = null;
+
+        if (PreviewScheduleCheckBox.IsChecked != true)
+            return true;
+
+        if (PreviewScheduleDatePicker.SelectedDate is not DateTime date)
+        {
+            PreviewComposeStatusText.Text = "Выберите дату отложенной отправки.";
+            return false;
+        }
+
+        if (!DateTime.TryParseExact(
+                PreviewScheduleTimeTextBox.Text.Trim(), new[] { "H:mm", "HH:mm" },
+                CultureInfo.InvariantCulture, DateTimeStyles.None, out var time))
+        {
+            PreviewComposeStatusText.Text = "Время должно быть в формате ЧЧ:ММ.";
+            return false;
+        }
+
+        var local = DateTime.SpecifyKind(date.Date.Add(time.TimeOfDay), DateTimeKind.Local);
+        scheduledFor = new DateTimeOffset(local);
+        if (scheduledFor <= DateTimeOffset.Now.AddMinutes(1))
+        {
+            PreviewComposeStatusText.Text = "Время отложенной отправки должно быть в будущем.";
+            return false;
+        }
+
+        sendDate = scheduledFor.Value.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture);
+        return true;
+    }
+
     private async void PreviewSendComposeButton_Click(object sender, RoutedEventArgs e)
     {
         if (MessagesGrid.SelectedItem is not MailRuMessageSummary message)
@@ -314,6 +359,9 @@ public partial class MainWindow
             PreviewComposeStatusText.Text = "Нет access_token. Выполните авторизацию заново.";
             return;
         }
+
+        if (!TryGetPreviewSchedule(out var sendDate, out var scheduledFor))
+            return;
 
         PreviewSendComposeButton.IsEnabled = false;
         try
@@ -343,17 +391,24 @@ public partial class MainWindow
                     Subject: PreviewComposeSubjectTextBox.Text,
                     Text: PreviewComposeBodyTextBox.Text,
                     ReplyToId: _previewComposeMode == PreviewComposeMode.Reply ? message.Id : null,
+                    SendDate: sendDate,
+                    RequestReadReceipt: PreviewReadReceiptCheckBox.IsChecked == true,
                     AttachmentIds: attachmentIds,
                     MessageId: messageId));
 
             ResponseTextBox.Text = result.RawResponse;
             if (!result.Success)
             {
-                PreviewComposeStatusText.Text = "Mail.ru отклонил отправку.";
+                PreviewComposeStatusText.Text = scheduledFor is null
+                    ? "Mail.ru отклонил отправку."
+                    : "Mail.ru отклонил отложенную отправку.";
                 return;
             }
 
-            PreviewComposeStatusText.Text = "Отправлено.";
+            PreviewComposeStatusText.Text = scheduledFor is null
+                ? "Отправлено."
+                : $"Запланировано на {scheduledFor.Value.LocalDateTime:dd.MM.yyyy HH:mm}.";
+            ResetPreviewSendOptions();
             PreviewComposeBodyTextBox.Clear();
             _previewAttachmentPaths.Clear();
             RefreshPreviewAttachments();

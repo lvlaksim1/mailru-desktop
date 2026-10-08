@@ -664,26 +664,42 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="130"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="75"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
-                                <WrapPanel Grid.Row="0" Grid.ColumnSpan="2" Margin="0,0,0,8">
+                                <Grid Grid.Row="0" Grid.ColumnSpan="2" Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <WrapPanel Grid.Column="0">
                                     <TextBlock Margin="0,0,6,0" VerticalAlignment="Center" Text="Подпись:"/>
                                     <ComboBox x:Name="PreviewSignatureComboBox"
                                               Width="180"
                                               Margin="0,0,14,0"
                                               DisplayMemberPath="Name"
+                                              DropDownOpened="PreviewSignatureComboBox_DropDownOpened"
+                                              PreviewMouseLeftButtonUp="PreviewSignatureComboBox_PreviewMouseLeftButtonUp"
+                                              PreviewKeyDown="PreviewSignatureComboBox_PreviewKeyDown"
                                               SelectionChanged="PreviewSignatureComboBox_SelectionChanged"/>
                                     <TextBlock Margin="0,0,6,0" VerticalAlignment="Center" Text="Из шаблона:"/>
                                     <ComboBox x:Name="PreviewTemplateComboBox"
                                               Width="210"
                                               DisplayMemberPath="Name"
                                               DropDownOpened="PreviewTemplateComboBox_DropDownOpened"
+                                              PreviewMouseLeftButtonUp="PreviewTemplateComboBox_PreviewMouseLeftButtonUp"
+                                              PreviewKeyDown="PreviewTemplateComboBox_PreviewKeyDown"
                                               SelectionChanged="PreviewTemplateComboBox_SelectionChanged"/>
-                                </WrapPanel>
+                                    </WrapPanel>
+                                    <Button Grid.Column="1" Width="26" Height="26" Padding="0"
+                                            HorizontalAlignment="Right" VerticalAlignment="Top"
+                                            ToolTip="Закрыть форму ответа"
+                                            Click="PreviewCancelComposeButton_Click" Content="×"/>
+                                </Grid>
 
                                 <TextBlock Grid.Row="1" Margin="0,0,8,7" VerticalAlignment="Center" Text="Кому:"/>
                                 <TextBox x:Name="PreviewComposeToTextBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,7" Padding="7"/>
@@ -710,7 +726,20 @@
                                          AcceptsReturn="True"
                                          TextWrapping="Wrap"
                                          VerticalScrollBarVisibility="Auto"/>
-                                <WrapPanel Grid.Row="5" Grid.Column="1" Margin="0,9,0,0">
+                                <StackPanel Grid.Row="5" Grid.Column="1" Margin="0,9,0,0">
+                                    <CheckBox x:Name="PreviewReadReceiptCheckBox"
+                                              Margin="0,0,0,7"
+                                              Content="Запрос подтверждения прочтения письма"/>
+                                    <WrapPanel>
+                                        <CheckBox x:Name="PreviewScheduleCheckBox" Margin="0,0,10,0"
+                                                  VerticalAlignment="Center" Content="Отложенная отправка"/>
+                                        <DatePicker x:Name="PreviewScheduleDatePicker" Width="130" Margin="0,0,6,0"
+                                                    IsEnabled="{Binding IsChecked, ElementName=PreviewScheduleCheckBox}"/>
+                                        <TextBox x:Name="PreviewScheduleTimeTextBox" Width="75" Padding="5" Text="09:00"
+                                                 IsEnabled="{Binding IsChecked, ElementName=PreviewScheduleCheckBox}"/>
+                                    </WrapPanel>
+                                </StackPanel>
+                                <WrapPanel Grid.Row="6" Grid.Column="1" Margin="0,9,0,0">
                                     <Button x:Name="PreviewSendComposeButton" Padding="14,7" Margin="0,0,6,0" Click="PreviewSendComposeButton_Click" Content="Отправить"/>
                                     <Button Padding="14,7" Margin="0,0,12,0" Click="PreviewCancelComposeButton_Click" Content="Отмена"/>
                                     <TextBlock x:Name="PreviewComposeStatusText" VerticalAlignment="Center" Foreground="{DynamicResource AppMutedTextBrush}"/>
@@ -881,6 +910,22 @@
                                     </WrapPanel>
                                 </Grid>
                             </Grid>
+                        </GroupBox>
+
+                        <GroupBox Margin="0,16,0,0" Header="Папка шаблонов">
+                            <StackPanel Margin="12">
+                                <TextBlock Margin="0,0,0,5" Text="Расположение файлов .md и вложений"/>
+                                <TextBox x:Name="TemplateDirectoryTextBox" Padding="7"/>
+                                <WrapPanel Margin="0,7,0,0">
+                                    <Button Padding="12,6" Margin="0,0,7,0" Content="Обзор..."
+                                            Click="BrowseTemplateDirectoryButton_Click"/>
+                                    <Button Padding="12,6" Content="Применить папку"
+                                            Click="ApplyTemplateDirectoryButton_Click"/>
+                                </WrapPanel>
+                                <TextBlock x:Name="TemplateDirectoryStatusText" Margin="0,6,0,0"
+                                           TextWrapping="Wrap" Foreground="{DynamicResource AppMutedTextBrush}"
+                                           Text="При смене папки имеющиеся шаблоны и вложения копируются; исходная папка сохраняется."/>
+                            </StackPanel>
                         </GroupBox>
 
                         <GroupBox Margin="0,16,0,0" Header="Шаблоны">

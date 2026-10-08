@@ -11,13 +11,60 @@ namespace MailRuDesktop.App;
 /// </summary>
 internal sealed class MarkdownTemplateStore
 {
-    public string DirectoryPath { get; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "MailRuDesktop", "Templates");
+    public string DirectoryPath { get; private set; }
 
     private const string LegacyMarker = ".legacy-imported";
 
-    public MarkdownTemplateStore() => Directory.CreateDirectory(DirectoryPath);
+    public MarkdownTemplateStore(string? initialDirectory = null)
+    {
+        DirectoryPath = Path.GetFullPath(initialDirectory ?? Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "MailRuDesktop", "Templates"));
+        Directory.CreateDirectory(DirectoryPath);
+    }
+
+    // Copy first and switch only when every source file has been preserved.
+    // Existing template files in the target must not be silently overwritten.
+    public void ChangeDirectory(string destination)
+    {
+        if (string.IsNullOrWhiteSpace(destination))
+            throw new ArgumentException("Укажите папку шаблонов.", nameof(destination));
+
+        var next = Path.GetFullPath(destination.Trim());
+        var current = Path.GetFullPath(DirectoryPath);
+        if (string.Equals(next, current, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        var rootWithSeparator = current.TrimEnd(Path.DirectorySeparatorChar) +
+                                Path.DirectorySeparatorChar;
+        var nextWithSeparator = next.TrimEnd(Path.DirectorySeparatorChar) +
+                                Path.DirectorySeparatorChar;
+        if (nextWithSeparator.StartsWith(rootWithSeparator, StringComparison.OrdinalIgnoreCase) ||
+            rootWithSeparator.StartsWith(nextWithSeparator, StringComparison.OrdinalIgnoreCase))
+            throw new IOException("Нельзя выбрать родительскую или вложенную папку шаблонов.");
+
+        var paths = Directory.EnumerateFiles(current, "*", SearchOption.AllDirectories)
+            .Select(path => (Source: path, Relative: Path.GetRelativePath(current, path)))
+            .ToArray();
+
+        foreach (var file in paths)
+        {
+            var target = Path.Combine(next, file.Relative);
+            if (File.Exists(target))
+                throw new IOException($"В выбранной папке уже существует файл: {file.Relative}. Слияние не выполнено.");
+        }
+
+        Directory.CreateDirectory(next);
+        foreach (var file in paths)
+        {
+            var target = Path.Combine(next, file.Relative);
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            File.Copy(file.Source, target, overwrite: false);
+        }
+
+        // The previous directory is intentionally kept as a backup.
+        DirectoryPath = next;
+    }
 
     public IReadOnlyList<SavedMailTemplate> LoadAll()
     {

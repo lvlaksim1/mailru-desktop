@@ -157,6 +157,25 @@ internal sealed class AppSettingsStore
         }
     }
 
+    public string LoadTemplateDirectory() =>
+        LoadState().TemplateDirectory is { Length: > 0 } directory
+            ? directory
+            : Path.Combine(Environment.GetFolderPath(
+                Environment.SpecialFolder.LocalApplicationData), "MailRuDesktop", "Templates");
+
+    public void SaveTemplateDirectory(string directory)
+    {
+        if (string.IsNullOrWhiteSpace(directory))
+            throw new ArgumentException("Укажите папку шаблонов.", nameof(directory));
+
+        lock (_sync)
+        {
+            var state = LoadStateCore();
+            state.TemplateDirectory = Path.GetFullPath(directory);
+            SaveStateCore(state);
+        }
+    }
+
     public List<SavedMailTemplate> LoadMailTemplates() =>
         LoadState().MailTemplates
             ?.Select(CloneTemplate)
@@ -247,5 +266,6 @@ internal sealed class AppSettingsStore
         public List<AccountRailLayoutEntryState>? AccountRailLayout { get; set; }
         public List<SavedSignature>? Signatures { get; set; }
         public List<SavedMailTemplate>? MailTemplates { get; set; }
+        public string? TemplateDirectory { get; set; }
     }
 }
