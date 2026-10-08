@@ -136,3 +136,12 @@ The nine Owner-authorized v0.3.26 changes are released; verify formatting-first 
 status: released v0.3.27; Owner real-network confirmation pending
 
 After Owner observed v0.3.25 generic update-check failure, PR #92 created a GitHub.com redirect fallback independent of api.github.com plus error diagnostics and a manual release-page button, verified by injected HTTP fakes and Windows CI. Release v0.3.27 is published. The Owner must manually run the v0.3.27 Update installer if the old checker cannot reach the API; verify subsequent in-app update checking under actual network conditions. If both hosts are still inaccessible, request ONLY sanitized diagnostics.log line with category github_update_check and/or codes, not mailbox secrets or full diagnostics. Leave auto-install on startup outside current scope; do not imply this feature exists. No original-user-machine root cause is yet confirmed.
+
+
+## I-022 — v0.3.28 Owner display, composition and palette acceptance
+status: released v0.3.28; Owner runtime verification pending
+
+Owner directly closed prior sender-photo retrieval, section drag, updater v0.3.27, Contacts menu removal, contact chooser and collapsed template/signature UI. Do not spend research time on sender portraits unless new evidence. New v0.3.28 scales existing photographs with font size, pins the sender and token of a detached compose window, and implements the remaining UI changes. Source implementation PR #94, CI 37847574160 and 37847753416, release 37847893518 passed. Owner must verify new-mail sender identity when switching accounts, full-cycle sending/draft/template insertion, no old-letter flicker, images from private afNN.mail.ru links, dark native captions on their Windows, compact notifications and merged palette color migration. No automatic release validation can prove logged-in email image retrieval. Send Now issue #77 remains independent and blocked.
+
+## I-021 — updater v0.3.27 real-network confirmation
+status: Owner confirmed working 2026-10-09; CLOSED for version detection

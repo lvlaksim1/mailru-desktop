@@ -5,7 +5,7 @@ Visibility: public
 Product authority: main
 Manager-state authority: main
 
-Latest public release: **v0.3.27**, published 2026-10-08 with full and update installers; PR #83 merged as e89c5ed2ef426e3def7957663b17254c66f44892; CI 37771307863 and installer workflow 37771458709; release workflow 37768430779 success, main CI 37768224358 and storage policy 37768224319 success. Product PR #76 merge bd6ff6ff98f93a69458efc921e7c35a21e159afc, main CI 37719927017, storage 37719927127, installer workflow 37720023234: success. PR #73 merged on main as e29a23ab81697b0dd38f0f1b2d9ce38efefb8c52. PR #70 merged as eb3415ac30f81cc3426d4726b53d590d42e57b11. CI 37711634109 and release workflow 37711732617 succeeded.
+Latest public release: **v0.3.28**, published 2026-10-08 with full and update installers; PR #83 merged as e89c5ed2ef426e3def7957663b17254c66f44892; CI 37771307863 and installer workflow 37771458709; release workflow 37768430779 success, main CI 37768224358 and storage policy 37768224319 success. Product PR #76 merge bd6ff6ff98f93a69458efc921e7c35a21e159afc, main CI 37719927017, storage 37719927127, installer workflow 37720023234: success. PR #73 merged on main as e29a23ab81697b0dd38f0f1b2d9ce38efefb8c52. PR #70 merged as eb3415ac30f81cc3426d4726b53d590d42e57b11. CI 37711634109 and release workflow 37711732617 succeeded.
 Product changes: PR #62 plus PR #63, merge commit 34e583abc232c9edc939816a92b4e08165836210.
 Release workflow 37707435464, main CI 37707321540 and repository storage check 37707321584: success.
 
@@ -198,3 +198,12 @@ Owner confirmed blank-subject sender now correct and remaining v0.3.25 features 
 ## v0.3.27 — built and published updater fault-tolerance hotfix
 
 Owner installed v0.3.25 and saw only «Не удалось проверить обновления» despite public v0.3.26. Source inspection verified exclusive reliance on api.github.com and hidden diagnostic detail; exact machine/network cause not proved. PR #92 merged c85cf0e7097c21e4cb26cc2ce30172f50368758f, PR CI 37837933893 and main CI 37838100623 PASS; release workflow 37838253203 published full and update installers v0.3.27. Added safe fallback to latest GitHub website redirect, checked repository/version/host, per-host HTTP/timeout error classes, a browser release page action and offline test suite. Real user Windows network confirmation is pending. The currently installed old version requires manual one-time update if its existing lookup fails. Automatic unattended update installation is not part of the product. Previously published v0.3.26 Owner UX changes and issue #77 retain their respective open gates.
+
+
+## v0.3.28 release — source/CI verified, Owner GUI gate pending
+
+Owner accepted prior account-section drag, v0.3.27 updater, email contact-picker, removed Contacts nav, collapsed signature/template sections and sender photographs; sender-photo retrieval research is CLOSED. Updated requirement: portrait dimensions scale with interface text and detached New Mail displays and pins outgoing sender email. Owner reported severe old/current WebView2 flicker and missing inline afNN.mail.ru images, plus UI color, form, template, dialog, navigation and diagnostics issues documented in annotated screenshots.
+
+PR #94 merged on main 1d07dc2d17d4ffd2fc0cfa238e09d67032ece4f2. PR CI 37847574160 and main CI 37847753416 passed, installer release 37847893518 published MailRuDesktop v0.3.28 with full and update installers. Source supports WebView navigation guarding and loading label, inline attachment image retrieval through mailbox OAuth, independent sender/token in separate New Mail, readable From address, font-scalable sender/account images, templates/signatures for New Mail, safe external Markdown import, window chrome theme hooks, compact notifications, better color picker, folder navigation, action positioning and 20 editable shared colors with 26 preserved technical resource keys. Registry: 9 windows, 1371 elements; schema-compatible.
+
+User-runtime confirmation of v0.3.28 is not yet available. Do not falsely claim private afNN.mail.ru images always load, new reader is flicker-free on User machine, or Windows title chrome fully obeys palette. Known duplicate-safe Send Now of existing scheduled mail #77 stays blocked.

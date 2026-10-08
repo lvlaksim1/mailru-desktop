@@ -30,3 +30,14 @@ A source-derived catalogue that records `new Window` as an element of MainWindow
 ## Procedure — resilient GitHub update discovery (2026-10-08)
 
 For public MailRu Desktop releases, prefer https://api.github.com/repos/lvlaksim1/mailru-desktop/releases/latest metadata and an exact version-matching update installer asset. If API access fails, a GET with redirects disabled to https://github.com/lvlaksim1/mailru-desktop/releases/latest can return a trusted Location release tag; strictly validate HTTPS github.com, repository path and semver vX.Y.Z before deriving the release-policy installer address. Never accept untrusted redirect domains. On failure of both independent hosts, report sanitized per-host HTTP status/timeout class and offer an external browser release page rather than only a generic «Не удалось проверить обновления». Test against mock HTTP handlers (normal API, 403 site fallback, malicious redirect, two-host failures) to avoid live repeated probes. GitHub site/browser may still be unreachable in the Owner's environment; only local runtime evidence can resolve that. Existing installed clients without this fallback need one manual update.
+
+
+## Procedure — v0.3.28 sender binding, HTML resources and palette migration
+
+When detached New Mail is opened, make sender identity explicit and bind transport identity to that composition instance, not the mutable main-window current account. Display the sender address read-only; use the bound token/account for contact list, attachment uploads, drafts and sends; fail safely if no valid token remains instead of switching senders. Code PR #94 requires owner runtime acceptance.
+
+For HTML mail, distinguish UI navigation timing from network image loading. Prevent prior navigation completion from exposing a stale message; cancel obsolete image preparation on selection changes and use a visible neutral loading indication until final document is ready. Do not execute arbitrary received scripts in WebView2. Embedded images in afNN.mail.ru URLs may need the existing access-token attachment endpoint rather than the browser-cookie URL. Validate host, message ID, mailbox, mode, image byte signature and size; never relay arbitrary private URLs or log secrets. Private image success requires authorized user-side check.
+
+If Owner asks to consolidate overly similar palette controls, keep old WPF resource keys and saved settings legible; use a canonical editable role with alias resolution, honoring explicit canonical overrides first and migrating a previously edited alias if no canonical edit exists. Current count: 20 editable controls, 26 resource names. Source-generated catalog must list all windows including new runtime-created ones (9 windows, 1371 entries).
+
+Never infer that a CI pass proves an actual Windows titlebar is dark, no mail flickers, or a private image is accessible. Record owner acceptance separately.

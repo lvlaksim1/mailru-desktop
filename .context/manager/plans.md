@@ -136,3 +136,19 @@ Product GitHub Release v0.3.27 supersedes v0.3.26. PR #92, main CI 37838100623 a
 3. If both hosts fail, collect only last sanitized github_update_check entry from %LOCALAPPDATA%/MailRuDesktop/diagnostics.log (avoid full log which may carry personal data). Investigate Windows networking/proxy/browser-only routing using concrete codes; do not claim specific root cause without evidence.
 4. Preserve explicit two-step update model: check and then user clicks install. Do not enable unattended auto-install without Owner approval.
 5. Continue pending Owner v0.3.26 UX acceptance, detached-compose cross-account sender investigation, and issue #77 safe scheduled send-now independently.
+
+
+## CURRENT OVERRIDING PLAN — v0.3.28, 2026-10-09
+
+Latest public binary release v0.3.28, merged PR #94 (1d07dc2d17d4ffd2fc0cfa238e09d67032ece4f2), main Windows CI 37847753416 PASS, two-installer release workflow 37847893518 PASS. Historical version statements above remain historical. Current interface catalogue: 9 windows / 1371 entries / 26 compatible WPF resource keys; 20 actually editable shared color controls.
+
+1. Owner installs v0.3.28 Update installer and quickly switches between an HTML-heavy message, an image-heavy message and a plain-text letter. Ensure initial reader shows only current message or neutral loading label; no former mail or blank flash; no animation regression when resizing.
+2. Check the two provided private af12.mail.ru readmsg inline GIF images from the Magnet receipt against real browser view. New source uses original email's OAuth attachment endpoint with mail ID/account checks and image signature validation; no claim of actual private-image success until Owner confirms. If images fail, request only sanitized status/case diagnostics, never tokens or private message content.
+3. Increase interface font from 10 to 18: sender and account photo icons scale proportionally and preserve working portraits and compact rows. The portrait retrieval URL and fallback logic are intentionally unchanged.
+4. Open detached New Mail under account A, switch main mailbox to account B, verify the 'От' address remains A and any test draft/send uses A. Avoid real outgoing mail except authorized disposable test recipient. Verify signatures/templates, repeated application and attachments.
+5. Verify no blue default Send fill, no hover editor contour, single consistent native title color for standalone New Mail and contact chooser, compact AppDialog layout without trailing blank space, and responsive color picker brightness strip.
+6. Validate folder clicks from Settings navigate immediately, New Mail command is above messages, signature and template expanders remain ordered and operational, external Markdown import never changes the source until Save, lower directory help messages are gone, all diagnostics copy.
+7. Verify 20 unified theme settings in Appearance, existing custom colors migrated sensibly from 26 legacy roles in DarkPalette/LightPalette, consistent hover/control/scroll hues and persistent theme settings.
+8. Preserve Owner-confirmed account-group drag animation, independent account auth, checkbox-first mail targets, updater v0.3.27+, reply contact UX and accepted sender avatar retrieval.
+9. Keep Send Now for a previously scheduled Outbox letter disabled (#77) until an atomic duplicate-free server transition is proven through authorized test messages; delayed delivery and read receipts require separate recipient proof.
+10. After any subsequent change to windows or controls regenerate and verify docs/ui-registry.json and test the generator's coverage of runtime-created Windows. Distinguish source/CI results from Owner visual runtime confirmation.

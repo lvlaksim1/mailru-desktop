@@ -1,10 +1,14 @@
-# Next actions — 2026-10-08, v0.3.27
+# Next actions — 2026-10-09, v0.3.28
 
-1. Owner installs the published MailRuDesktop_Update_v0.3.27.exe through GitHub Releases in a browser because v0.3.25's original API-only checker currently fails.
-2. In v0.3.27, select Settings→Update→Check updates. Confirm current version or useful per-host diagnostic. Test Open releases page browser action. If manual check cannot work, request only relevant sanitized github_update_check lines from %LOCALAPPDATA%/MailRuDesktop/diagnostics.log to determine actual failed host/status without exposing mailbox/private data.
-3. Verify the built-in Download/Install action with a future version when authorized; unit tests cover metadata fallback but do not prove Owner network/CDN access or a future update cycle.
-4. Do not describe the application as automatically installing unattended updates: it checks after explicit click and requires a user installation action.
-5. Continue Owner GUI acceptance of nine v0.3.26 changes: formatting-first letters, collapsed group reorder, detached compose and server contacts, automatic folder save, collapsed template/signature sections, pressed color role.
-6. Verify sender/account safety when switching accounts with detached New Mail open. Preserve individual account drag and panel splitters.
-7. Keep complete 9-window/1354-element source-generated registry synchronized with UI changes; preserve 26 fixed color roles.
-8. Keep scheduled Outbox Send Now issue #77 disabled until controlled server proof of duplicate-free state transition; retain privacy and 5-second research request spacing.
+1. Owner installs v0.3.28 update from https://github.com/lvlaksim1/mailru-desktop/releases/tag/v0.3.28.
+2. Rapidly open HTML mail, plain-text mail and another message: verify no blank/previous message flashes and that neutral «Загрузка письма…» transitions to final content.
+3. Open the Owner's Magnet receipt with previously missing af12.mail.ru GIF attachments; compare with browser and note only case/status if broken. API access through mailbox OAuth is included but not live-verified on user's credentials.
+4. Increase interface text from 10 to 18; portraits should become 14–24 px without being replaced, clipped or distorting layout.
+5. Open separate New Mail on account A, switch main window to B, verify «От» stays A and drafts, attachments, contact chooser and test send use only A's credentials. Never send live unsolicited mail to validate.
+6. Check new-mail template/signature selectors (including repeated selection), loaded template body/subject/attachments; load an existing .md and verify original file is not changed until Save, and Save As with new name succeeds.
+7. Check editor hover outline removed, send button normal fill, contact/New Mail dark captions, compact standardized AppDialog messages, palette picker brightness-strip synchronization.
+8. Check Settings→folder navigates directly, New Mail button over message list, Signatures before Templates, no bottom folder-help captions and full diagnostic copy.
+9. Test 20 merged color settings in both themes including legacy overrides, repaint of groups and windows; look for any still-incorrect borders/pressed states.
+10. Maintain all Owner-accepted features: photo retrieval, account section drag, updater check, contact chooser, accepted mailbox actions, stable OAuth and splitters. Avoid editing these without new defect evidence.
+11. Hold scheduled Outbox send-now #77 until verified duplicate-free atomic server behavior; keep explicit acceptance gates for delayed delivery/receipts.
+12. When modifying UI, regenerate checked-in docs/ui-registry.json (currently 9 windows, 1371 elements) and audit its runtime Window coverage. Keep 26 technical resource names for backwards compatibility unless intentional migration is designed.
