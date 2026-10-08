@@ -8,6 +8,7 @@ namespace MailRuDesktop.App;
 
 public partial class MainWindow
 {
+    private bool _bulkOperationInProgress;
     private void BulkRowCheckBox_PreviewMouseLeftButtonDown(
         object sender, MouseButtonEventArgs e)
     {
@@ -77,10 +78,10 @@ public partial class MainWindow
             ? Visibility.Visible : Visibility.Collapsed;
         PreviewSendNowButton.IsEnabled = false;
 
-        BulkTrashButton.IsEnabled = count > 0;
-        BulkArchiveButton.IsEnabled = count > 0;
-        BulkReadButton.IsEnabled = count > 0;
-        BulkDeletePermanentlyButton.IsEnabled = count > 0;
+        BulkTrashButton.IsEnabled = count > 0 && !_bulkOperationInProgress;
+        BulkArchiveButton.IsEnabled = count > 0 && !_bulkOperationInProgress;
+        BulkReadButton.IsEnabled = count > 0 && !_bulkOperationInProgress;
+        BulkDeletePermanentlyButton.IsEnabled = count > 0 && !_bulkOperationInProgress;
     }
 
     private void MessagesGrid_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -93,37 +94,56 @@ public partial class MainWindow
         }
     }
 
-    private void BulkTrashButton_Click(object sender, RoutedEventArgs e)
+    private async void BulkTrashButton_Click(object sender, RoutedEventArgs e)
     {
         var selected = SelectedForBulk();
-        if (selected.Count > 0 && !CurrentFolderIsTrash)
-            _ = MoveMessagesAsync(selected.Select(item => item.Id).ToArray(),
-                500002, $"Перемещение {selected.Count} писем в корзину");
+        if (selected.Count == 0 || CurrentFolderIsTrash || _bulkOperationInProgress)
+            return;
+
+        await ExecuteBulkMoveAsync(selected, 500002, "Перемещение писем в корзину");
     }
 
-    private void BulkArchiveButton_Click(object sender, RoutedEventArgs e)
+    private async void BulkArchiveButton_Click(object sender, RoutedEventArgs e)
     {
         var selected = SelectedForBulk();
-        if (selected.Count == 0 || CurrentFolderIsTrash)
+        if (selected.Count == 0 || CurrentFolderIsTrash || _bulkOperationInProgress)
             return;
 
         var archive = FolderListBox.Items.OfType<MailRuFolderSummary>()
             .FirstOrDefault(folder =>
                 folder.Type.Equals("archive", StringComparison.OrdinalIgnoreCase) ||
                 folder.Name.Contains("Архив", StringComparison.OrdinalIgnoreCase));
-        _ = MoveMessagesAsync(selected.Select(item => item.Id).ToArray(),
-            archive?.Id ?? 500010, $"Перемещение {selected.Count} писем в архив");
+        await ExecuteBulkMoveAsync(selected, archive?.Id ?? 500010,
+            "Перемещение писем в архив");
+    }
+
+    private async Task ExecuteBulkMoveAsync(
+        IReadOnlyList<MailRuMessageSummary> selected, int destination, string description)
+    {
+        _bulkOperationInProgress = true;
+        UpdateBulkToolbar();
+        try
+        {
+            await MoveMessagesAsync(selected.Select(item => item.Id).ToArray(),
+                destination, $"{description}: {selected.Count}");
+        }
+        finally
+        {
+            _bulkOperationInProgress = false;
+            UpdateBulkToolbar();
+        }
     }
 
     private async void BulkReadButton_Click(object sender, RoutedEventArgs e)
     {
         var selected = SelectedForBulk();
-        if (selected.Count == 0 ||
+        if (selected.Count == 0 || _bulkOperationInProgress ||
             string.IsNullOrWhiteSpace(_accessToken) ||
             string.IsNullOrWhiteSpace(_activeLogin))
             return;
 
-        BulkReadButton.IsEnabled = false;
+        _bulkOperationInProgress = true;
+        UpdateBulkToolbar();
         try
         {
             var result = await _mailRu.MarkMessagesReadBatchAsync(
@@ -143,6 +163,7 @@ public partial class MainWindow
         }
         finally
         {
+            _bulkOperationInProgress = false;
             UpdateBulkToolbar();
         }
     }
@@ -150,7 +171,7 @@ public partial class MainWindow
     private async void BulkDeletePermanentlyButton_Click(object sender, RoutedEventArgs e)
     {
         var selected = SelectedForBulk();
-        if (selected.Count == 0 || !CurrentFolderIsTrash ||
+        if (selected.Count == 0 || _bulkOperationInProgress || !CurrentFolderIsTrash ||
             string.IsNullOrWhiteSpace(_accessToken) ||
             string.IsNullOrWhiteSpace(_activeLogin))
             return;
@@ -161,7 +182,8 @@ public partial class MainWindow
                 "Удалить навсегда", "Отмена"))
             return;
 
-        BulkDeletePermanentlyButton.IsEnabled = false;
+        _bulkOperationInProgress = true;
+        UpdateBulkToolbar();
         try
         {
             var result = await _mailRu.RemoveMessagesAsync(
@@ -181,6 +203,7 @@ public partial class MainWindow
         }
         finally
         {
+            _bulkOperationInProgress = false;
             UpdateBulkToolbar();
         }
     }
