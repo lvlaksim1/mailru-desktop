@@ -176,12 +176,6 @@ public partial class MainWindow
             string.IsNullOrWhiteSpace(_activeLogin))
             return;
 
-        var count = selected.Count;
-        if (!AppDialog.Confirm(this, "Окончательное удаление",
-                $"Удалить {count} писем навсегда? Отменить это действие нельзя.",
-                "Удалить навсегда", "Отмена"))
-            return;
-
         _bulkOperationInProgress = true;
         UpdateBulkToolbar();
         try
