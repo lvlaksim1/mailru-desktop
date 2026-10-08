@@ -465,8 +465,13 @@ try
 {
     Directory.CreateDirectory(importRoot);
     var importPath = Path.Combine(importRoot, "External.md");
-    var original = "---\\nsubject: \\"Тема\\"\\nattachments:\\n---\\nТело";
-    original = original.Replace("\\n", "\n", StringComparison.Ordinal);
+    var original = """
+---
+subject: "Тема"
+attachments:
+---
+Тело
+""";
     File.WriteAllText(importPath, original);
     var imported = new MarkdownTemplateStore(importRoot).ReadExternalFile(importPath);
     Expect(imported.Name, "External", "single external Markdown file name");
