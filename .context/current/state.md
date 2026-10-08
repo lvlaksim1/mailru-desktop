@@ -5,7 +5,7 @@ Visibility: public
 Product authority: main
 Manager-state authority: main
 
-Latest public release: **v0.3.19**, published 2026-10-08 with full and update installers.
+Latest public release: **v0.3.20**, published 2026-10-08 with full and update installers. PR #70 merged as eb3415ac30f81cc3426d4726b53d590d42e57b11. CI 37711634109 and release workflow 37711732617 succeeded.
 Product changes: PR #62 plus PR #63, merge commit 34e583abc232c9edc939816a92b4e08165836210.
 Release workflow 37707435464, main CI 37707321540 and repository storage check 37707321584: success.
 
@@ -92,3 +92,21 @@ PR #67 merged as product commit 3640b7e56e8059777d878d9f67f4f8d6bf01c32a. Main C
 - Sender display shows the email address when the name is absent/whitespace. Thread response parser now tolerates array, object and string variants for correspondents.from/direct from.
 - Offline deterministic regression checks were added to CI for bidirectional target calculation, sender fallback and outgoing receipt/scheduling parameter serialization. They send no real mail.
 - Release/build/test evidence is NOT live proof that Mail.ru honors read receipt requests or scheduled delivery, nor a substitute for Owner's hands-on dragging validation.
+
+## v0.3.20 — Owner feedback and implementation
+
+Owner confirmed account drag animation and pane dividers now work well; do not change those mechanisms without new evidence.
+
+Addressed eight new feedback items:
+1. Configurable template directory under Settings, persisted in settings.json. The app copies existing Markdown templates, attachments and metadata without overwriting target files; retains source as backup; rebinds file watcher and immediately discovers files in the selected directory.
+2. Re-selecting an already selected signature or email template re-applies the item through mouse/keyboard activation instead of depending on SelectionChanged alone. Repeating a signature appends it again; repeating a template re-populates subject/body/attachments.
+3. Inline reply/forward form has a top-right close ×.
+4. Section-title editing dialog reapplies native dark titlebar on source initialization, activation and load.
+5. Dark WPF scrollbar templates fully own horizontal/vertical thumb and arrows. HTML/WebView message viewers (inline and detached) also get dark scrollbar CSS.
+6. Sender fallback: parser uses correspondence data from the parent thread if a base_message omits it. When loading full selected mail, known FromEmail and FromName update the displayed row (not guessed). Name absent -> email.
+7. Inline reply/forward form has the read receipt request checkbox; the existing outgoing receipt POST flag is transmitted.
+8. Inline reply/forward form has server-side scheduled send controls, defaults to local tomorrow 09:00 and checks user input.
+
+CI tests for thread-only sender and file-backed template migration, attachments, manual file discovery, and conflict protection passed on Windows. Automated tests + successful launch are not equivalent to Owner UI confirmation or successful real scheduled delivery/read receipts.
+
+Release: v0.3.20 with full and in-place update installers. Both installer artifacts were verified on GitHub.
