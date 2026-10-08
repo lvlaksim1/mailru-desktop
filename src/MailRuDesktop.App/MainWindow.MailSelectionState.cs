@@ -57,7 +57,14 @@ public partial class MainWindow
             return;
 
         e.Handled = true; // Prevent WPF from clearing all checked rows.
-        _ = ActivateMailPreviewAsync(message);
+        if (e.ClickCount >= 2)
+        {
+            _activePreviewMailId = message.Id;
+            MailPreviewState.Instance.ActiveId = message.Id;
+            _ = OpenDetachedMailWindowAsync(message);
+        }
+        else
+            _ = ActivateMailPreviewAsync(message);
     }
 
     private async Task ActivateMailPreviewAsync(MailRuMessageSummary message)
