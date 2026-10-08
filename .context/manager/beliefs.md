@@ -260,3 +260,11 @@ statement: GitHub Release v0.3.19 was published 2026-10-08 with both installers 
 source: Owner defect report and feature directives; PR #67 merged commit 3640b7e56e8059777d878d9f67f4f8d6bf01c32a; workflow 37709503446; release workflow 37709585421; official APK decompilation (TornadoSendParamsImpl.java).
 authority: owner-directive + verified-repository + verified-ci + static-official-client (NOT live delivery validation)
 supersedes: I-009 and prior current views wherever they imply v0.3.18 is the latest release.
+
+## B-033 — v0.3.20 fixes inline reply, templates and visual issues without changing drag
+
+statement: The Owner provided screenshots and reported a blank sender row despite the full message containing the sender email, missing read receipt and delayed-send controls in inline reply, light scrollbar elements in dark theme, a light titlebar when naming an account section, inability to reapply the currently selected template/signature and inability to choose the templates folder. The Owner confirmed account reordering/divider behavior was excellent. PR #70 merged on 2026-10-08 and v0.3.20 was published. New features include safe configurable Markdown template directory with file/attachment copy, repeated user-choice handling, inline reply close button and receipt/scheduled delivery, dark WPF and HTML scrollbar templates, DWM native caption reapplication and list-row sender enrichment from parent thread and full message. Offline file and sender tests, Windows build/startup, storage policy and release workflow passed; Owner visual tests and real receipt/delayed delivery are pending.
+
+source: Owner messages and screenshots 2026-10-08; GitHub PR #70; main commit eb3415ac30f81cc3426d4726b53d590d42e57b11; CI 37711634109; release 37711732617.
+authority: owner-directive + verified-repository + verified-ci (not Owner runtime verified)
+supersedes: B-032 only where v0.3.19 was described as latest published version.
