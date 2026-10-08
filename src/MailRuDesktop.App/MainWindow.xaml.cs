@@ -1948,6 +1948,16 @@ public partial class MainWindow : Window
 
     private void ShowWorkspace(FrameworkElement workspace)
     {
+        // Refresh defaults on each new compose session, including when the
+        // application has stayed open across midnight. Do not touch an active
+        // scheduled draft that the user has already configured.
+        if (ReferenceEquals(workspace, ComposeWorkspace) &&
+            ScheduleSendCheckBox.IsChecked != true)
+        {
+            ScheduleDatePicker.SelectedDate = DateTime.Today.AddDays(1);
+            ScheduleTimeTextBox.Text = "09:00";
+        }
+
         MailWorkspace.Visibility = Visibility.Collapsed;
         ContactsWorkspace.Visibility = Visibility.Collapsed;
         ComposeWorkspace.Visibility = Visibility.Collapsed;
