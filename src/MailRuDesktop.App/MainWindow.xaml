@@ -290,7 +290,9 @@
                              BorderThickness="0"
                              Background="Transparent"
                              DisplayMemberPath="DisplayName"
-                             SelectionChanged="FolderListBox_SelectionChanged"/>
+                             SelectionChanged="FolderListBox_SelectionChanged"
+                              PreviewMouseLeftButtonUp="FolderListBox_PreviewMouseLeftButtonUp"
+                              PreviewKeyDown="FolderListBox_PreviewKeyDown"/>
 
                     <Expander x:Name="FolderManageExpander"
                               Grid.Row="2"
