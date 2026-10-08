@@ -57,6 +57,7 @@ public partial class MainWindow : Window
         InitializeDownloadDirectorySettings();
 
         ThemeManager.Apply(_settingsStore.LoadTheme());
+        InitializeInterfaceFontSettings();
         InitializePaletteEditor();
         MessagesGrid.ItemsSource = _visibleMessages;
         InitializeLiveFolderCounters();
