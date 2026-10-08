@@ -25,9 +25,9 @@ internal sealed class AuthorizationStore
     private readonly string _filePath;
     private AuthorizationState _state;
 
-    public AuthorizationStore()
+    public AuthorizationStore(string? directoryOverride = null)
     {
-        _directoryPath = Path.Combine(
+        _directoryPath = directoryOverride ?? Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "MailRuDesktop");
         _filePath = Path.Combine(_directoryPath, "auth.json");
