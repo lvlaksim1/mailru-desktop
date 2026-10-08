@@ -276,3 +276,10 @@ statement: On 2026-10-08 the Owner explicitly specified a thorough cleanup of al
 source: Owner's explicit requirement in chat 2026-10-08; merged PR #73; main product merge e29a23ab81697b0dd38f0f1b2d9ce38efefb8c52; release workflow 37716328414; docs/theme-palette.md.
 authority: owner-directive + verified-repository + verified-ci (not Owner visual runtime confirmed)
 supersedes: no other requirements; v0.3.21 replaces v0.3.20 as latest public release.
+
+## B-035 — v0.3.22 released with safe bulk actions; scheduled send-now is NOT proven
+
+statement: On 2026-10-08, the Owner asked to collapse 26-role palette settings and replace RGB sliders with click-to-pick 2D color selection, then implement the 12-point MailRu Desktop backlog. PR #76 merged as bd6ff6ff98f93a69458efc921e7c35a21e159afc and v0.3.22 was published, release workflow 37720023234, main CI 37719927017 and policy 37719927127 succeeded. The implementation adds sender name/email auto-enrichment (bounded, read=false), human-readable Cyrillic metadata (including migration and backup), downloaded attachment directory plus Explorer, top-mounted attachment controls, synchronized RichTextBox HTML formatting across editors, checkbox/Ctrl/Shift selection, grouped move/mark-read and permanent deletion with confirmation. Color chooser is a 2D hue/saturation surface plus brightness strip. Research did NOT prove duplicate-free immediate sending of an already scheduled message. Outbox Send Now surfaces are explicitly disabled. The Owner's 12-point backlog is therefore NOT fully closed; issue #77 is outstanding.
+
+source: User directives and examples 2026-10-08; merged GitHub PR #76; main CI 37719927017; release workflow 37720023234; static official APK /api/v1/messages/send and /schedule research; open issue #77.
+authority: owner-directive + verified-repository + verified-ci + static-protocol; not verified Owner GUI or recipient delivery.

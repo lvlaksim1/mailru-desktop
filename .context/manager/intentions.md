@@ -96,3 +96,10 @@ status: active — code released v0.3.21; user visual gate pending
 The Owner requires that every theme have a complete named/presented default set of color roles and that users may edit colors but cannot reassign the fixed collection of UI elements governed by each role. The Product Manager selected 26 roles. Maintain the canonical ThemePalette.Roles registry, separate persisted dark/light dictionaries and system-theme switching. All new widgets must use a corresponding named dynamic resource instead of inventing literal element colors.
 
 v0.3.21 implements grouped color settings, swatches/descriptions, RGB/hex input, individual and whole-theme reset and live propagation for the active theme, with nonblocking accessibility contrast alerts. The release passed automated checks; Owner in-app/visual testing remains open. Preserve account dragging and pane splitter behavior.
+
+## I-016 — close the 12-point mail feature backlog safely
+status: active — v0.3.22 delivered; send-now (#10–11) remains blocked on verified server semantics
+
+A full v0.3.22 release has shipped the palette-collapse/new color-picker enhancements and the tested code for sender enrichment, legible Markdown, selectable attachment download directory, automatic Explorer opening, top-of-letter attachments, formatted HTML editor in all compose views, multi-select Ctrl/Shift/checkbox, bulk move/archive/read, and permanent deletion in Trash. Offline/CI testing succeeded; Owner GUI and real HTML reception confirmation pending.
+
+The open, highest-risk remaining subtask is issue #77: safe immediate sending of a message already scheduled to send later. The application currently shows disabled "Отправить сейчас" controls when in Outbox; enabling a method that creates an additional outgoing mail instead of reusing/cancelling the existing schedule is unacceptable. Research with controlled test messages, original scheduled IDs, protocol responses and post-send state verification must precede implementation. The complete 12-point backlog remains open until this condition is met and Owner signs off.

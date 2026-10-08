@@ -10,7 +10,7 @@
 
 ## Current product baseline
 
-Latest public GitHub Release: v0.3.21, published on 2026-10-08.
+Latest public GitHub Release: v0.3.22, published on 2026-10-08.
 
 Current product code on main: merged PR #62 and PR #63. Main CI 37707321540 and release workflow 37707435464 passed; full and update installers are published.
 
@@ -74,3 +74,13 @@ The template source of truth is the top-level .md files in %LOCALAPPDATA%/MailRu
 3. Owner tests both built-in theme palettes, edits single/multiple roles, validates instant refresh and persisted dark/light settings after restart, color-picker functionality and system-theme automatic switching.
 4. Audit contrast warning messaging and browser content/scrollbars without recoloring sender images or other branded media.
 5. Do not regress owner-approved account drag physics and splitter geometry; postpone unrelated unfinished mail backlog until palette visual gate.
+
+## v0.3.22 and remaining 12-point plan
+
+1. Maintain released v0.3.22 features: 2D color palette, automatic missing sender lookup, readable/upgradeable Markdown files, configurable attachment downloads and upper attachment bar, formatted HTML editor while preserving legacy signatures and templates.
+2. Owner GUI tests checkbox/Ctrl/Shift selection, ensuring a checkbox alone does not mark an email read; group move/archive/read and permanent trash deletion with disposable mail and server confirmation.
+3. Owner tests formatting at a recipient, not just the editor preview. Preserve dual outgoing HTML + plain text fields.
+4. Owner tests initial sender enrichment for empty-subject and missing-sender messages, markRead=false, max 20 per folder, 5-second requests and stale-account cancellation.
+5. **Open issue #77:** identify and confirm a safe server command to immediately send an existing scheduled message without duplicate or remaining schedule. Static APK evidence for source.schedule alone is insufficient. Use controlled disposable test mail only.
+6. Enable Outbox bulk, preview, detached and context-menu Send Now actions only after atomic server behavior is verified. Add end-to-end regression and publish follow-up; v0.3.22 must NOT be marked as fully completing all 12 items.
+7. Preserve approved account drag animation and pane splitters unchanged.
