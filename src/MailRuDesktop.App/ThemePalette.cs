@@ -136,17 +136,27 @@ internal static class ThemePalette
                 colors[key] = hex;
         }
 
-        // A migrated setting is chosen deterministically. Explicitly edited
-        // canonical values take precedence over any older alias overrides.
+        // Historical settings can contain several different values that are
+        // now represented by one common color. Keep the first valid legacy
+        // choice in catalog order, rather than allowing the last alias to
+        // overwrite an earlier custom choice accidentally. An explicitly
+        // edited canonical role always takes priority.
+        var selectedFromLegacy = new HashSet<string>(StringComparer.Ordinal);
         foreach (var (alias, canonical) in UnifiedRoleKeys)
         {
-            if (overrides is not null &&
-                !overrides.ContainsKey(canonical) &&
+            var hasCanonicalOverride = overrides.TryGetValue(canonical,
+                out var selectedCanonical) &&
+                TryNormalize(selectedCanonical, out _);
+            if (!hasCanonicalOverride &&
+                selectedFromLegacy.Add(canonical) &&
                 overrides.TryGetValue(alias, out var previous) &&
                 TryNormalize(previous, out var normalized))
+            {
                 colors[canonical] = normalized;
-            colors[alias] = colors[canonical];
+            }
         }
+        foreach (var (alias, canonical) in UnifiedRoleKeys)
+            colors[alias] = colors[canonical];
 
         return colors;
     }
