@@ -48,6 +48,23 @@ var threadSnapshot = MailRuThreadStatusParser.Parse(threadSender, 0);
 Expect(threadSnapshot.Messages.Single().SenderDisplay, "thread@mail.ru",
     "sender inherited from thread when base_message omits correspondent");
 
+var senderInRepresentation = """
+{"body":{"folders_content":[{"id":0,"threads":[{"id":"thread5",
+"base_message":{"id":"m5","date":1700000000},
+"representations":[
+{"id":"other","correspondents":{"from":[{"email":"not-the-sender@mail.ru"}]}},
+{"id":"m5","correspondents":{"from":[{"name":"Тестовый отправитель","email":"sender@mail.ru"}]}}
+]}]}]}}
+""";
+var parsedRepresentation = MailRuThreadStatusParser.Parse(senderInRepresentation, 0);
+Expect(parsedRepresentation.Messages.Single().Subject, "(без темы)",
+    "missing subject does not prevent parsing initial sender");
+Expect(parsedRepresentation.Messages.Single().SenderDisplay, "Тестовый отправитель",
+    "initial list sender inherited only from same-message representation");
+Expect(parsedRepresentation.Messages.Single().SenderEmail, "sender@mail.ru",
+    "missing-subject sender email resolved without full-message request");
+
+
 
 using (var handler = new RecordingHandler())
 using (var http = new HttpClient(handler))

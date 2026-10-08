@@ -270,6 +270,9 @@ public partial class MainWindow : Window
             return false;
         }
 
+        if (!string.Equals(_activeLogin, authorization.Login,
+                StringComparison.OrdinalIgnoreCase))
+            _selectedMailIds.Clear();
         _accessToken = authorization.AccessToken;
         _refreshToken = authorization.RefreshToken;
         _activeLogin = authorization.Login;
@@ -532,6 +535,8 @@ public partial class MainWindow : Window
         if (_loadingFolder)
             return;
 
+        if (folderId != _currentFolderId || accountSwitchGeneration is not null)
+            _selectedMailIds.Clear();
         _loadingFolder = true;
         ++_missingSenderLoadGeneration;
         RefreshFolderButton.IsEnabled = false;
@@ -663,9 +668,10 @@ public partial class MainWindow : Window
 
     private async void MessagesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        UpdateBulkToolbar();
         if (_suppressMessageSelectionChanged)
             return;
+        RememberSelectedMailIds();
+        UpdateBulkToolbar();
 
         if (MessagesGrid.SelectedItem is not MailRuMessageSummary message)
         {
@@ -1017,10 +1023,11 @@ public partial class MainWindow : Window
             if (visibleIndex >= 0)
                 _visibleMessages[visibleIndex] = updated;
 
-            MessagesGrid.Items.Refresh();
-
-            if (string.Equals(selectedId, updated.Id, StringComparison.Ordinal))
-                MessagesGrid.SelectedItem = updated;
+            // Only a pinned state change needs reordering. Refreshing all
+            // items for sender/read-state changes destroyed multi-selection.
+            if (original.Pinned != updated.Pinned)
+                MessagesGrid.Items.Refresh();
+            RestoreSelectedMailIds();
         }
         finally
         {
@@ -1168,11 +1175,7 @@ public partial class MainWindow : Window
             foreach (var message in list)
                 _visibleMessages.Add(message);
 
-            if (!string.IsNullOrWhiteSpace(selectedId))
-            {
-                MessagesGrid.SelectedItem = _visibleMessages.FirstOrDefault(item =>
-                    string.Equals(item.Id, selectedId, StringComparison.Ordinal));
-            }
+            RestoreSelectedMailIds();
         }
         finally
         {
@@ -1308,6 +1311,8 @@ public partial class MainWindow : Window
             return;
         }
 
+        var operationAccount = _activeLogin;
+        var operationFolder = _currentFolderId;
         MoveMessageButton.IsEnabled = false;
         TrashMessageButton.IsEnabled = false;
         FolderStatusText.Text = operationName + "...";
@@ -1326,7 +1331,15 @@ public partial class MainWindow : Window
                 return;
             }
 
-            await LoadFolderAsync(_currentFolderId);
+            if (string.Equals(_activeLogin, operationAccount, StringComparison.OrdinalIgnoreCase)
+                && _currentFolderId == operationFolder)
+            {
+                var unread = _currentMessages.Count(x => ids.Contains(x.Id) && x.Unread);
+                RemoveConfirmedMailRows(ids);
+                if (_currentFolderId == 0 && unread > 0)
+                    AdjustActiveInboxUnread(-unread);
+            }
+            FolderStatusText.Text = "Перемещено писем: " + ids.Count;
         }
         catch (Exception ex)
         {
@@ -1348,16 +1361,6 @@ public partial class MainWindow : Window
             return;
         }
 
-        var answer = MessageBox.Show(
-            this,
-            $"Удалить письмо «{message.Subject}» навсегда? Это действие нельзя отменить.",
-            "MailRu Desktop",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Warning);
-
-        if (answer != MessageBoxResult.Yes)
-            return;
-
         TrashMessageButton.IsEnabled = false;
         FolderStatusText.Text = "Окончательное удаление...";
 
@@ -1375,7 +1378,8 @@ public partial class MainWindow : Window
                 return;
             }
 
-            await LoadFolderAsync(_currentFolderId);
+            RemoveConfirmedMailRows([message.Id]);
+            FolderStatusText.Text = "Письмо удалено.";
         }
         catch (Exception ex)
         {

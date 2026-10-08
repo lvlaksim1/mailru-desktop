@@ -397,6 +397,7 @@
     </Style>
 
     <Style TargetType="{x:Type DatePicker}">
+        <Setter Property="CalendarStyle" Value="{DynamicResource MailCalendarStyle}"/>
         <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
         <Setter Property="Background" Value="{DynamicResource AppControlBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}"/>
@@ -408,7 +409,7 @@
         <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}"/>
     </Style>
 
-    <Style TargetType="{x:Type Calendar}">
+    <Style x:Key="MailCalendarStyle" TargetType="{x:Type Calendar}">
         <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
         <Setter Property="Background" Value="{DynamicResource AppPanelBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}"/>
@@ -429,6 +430,11 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <!-- The DatePicker creates its popup Calendar with an explicit CalendarStyle.
+         It therefore needs this named resource; an implicit Calendar style alone
+         does not reliably theme its dropdown. -->
+    <Style TargetType="{x:Type Calendar}" BasedOn="{StaticResource MailCalendarStyle}"/>
 
     <Style TargetType="{x:Type primitives:CalendarItem}">
         <Setter Property="Background" Value="{DynamicResource AppPanelBrush}"/>
