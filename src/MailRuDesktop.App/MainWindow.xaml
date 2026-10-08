@@ -967,14 +967,12 @@
                                 <TextBlock Margin="0,7,0,0" Foreground="{DynamicResource AppMutedTextBrush}"
                                            TextWrapping="Wrap"
                                            Text="Размер заголовков, подписей и обычного текста изменяется согласованно. Форматирование полученных писем не меняется."/>
-                            </StackPanel>
-                        </GroupBox>
                         <Expander Margin="0,16,0,0" IsExpanded="False" Header="Цвета элементов интерфейса"
                                   Foreground="{DynamicResource AppTextBrush}"
                                   Background="{DynamicResource AppPanelBrush}">
                             <StackPanel Margin="12">
                                 <TextBlock TextWrapping="Wrap" Margin="0,0,0,10"
-                                           Text="Все элементы распределены по 26 фиксированным цветовым ролям. Можно изменять оттенки, но не назначение цветов элементам."/>
+                                           Text="Похожие цвета объединены в общие настройки. Изменённый цвет применяется ко всем связанным элементам."/>
                                 <WrapPanel Margin="0,0,0,8" VerticalAlignment="Center">
                                     <TextBlock Text="Редактировать тему:" VerticalAlignment="Center" Margin="0,0,9,0"/>
                                     <ComboBox x:Name="PaletteThemeComboBox" Width="160"
@@ -1051,6 +1049,8 @@
                             </StackPanel>
                         </Expander>
 
+                            </StackPanel>
+                        </GroupBox>
                         <Expander Margin="0,16,0,0" Header="Подписи" IsExpanded="False">
                             <Grid Margin="12">
                                 <Grid.ColumnDefinitions>
@@ -1090,34 +1090,6 @@
                                 </Grid>
                             </Grid>
                         </Expander>
-
-                        <GroupBox Margin="0,16,0,0" Header="Папка скачивания вложений">
-                            <StackPanel Margin="12">
-                                <TextBlock Margin="0,0,0,5" Text="Загруженные файлы и архивы вложений"/>
-                                <DockPanel Margin="0,5,0,0" LastChildFill="True">
-                                    <Button DockPanel.Dock="Left" Content="Обзор…" Margin="0,0,9,0"
-                                            Padding="12,6" Click="BrowseDownloadDirectoryButton_Click"/>
-                                    <TextBlock x:Name="AttachmentDownloadDirectoryText"
-                                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
-                                               ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
-                                </DockPanel>
-                                <TextBlock x:Name="AttachmentDirectoryStatusText" Visibility="Collapsed"/>
-                            </StackPanel>
-                        </GroupBox>
-
-<GroupBox Margin="0,16,0,0" Header="Папка шаблонов">
-                            <StackPanel Margin="12">
-                                <TextBlock Margin="0,0,0,5" Text="Расположение файлов .md и вложений"/>
-                                <DockPanel Margin="0,5,0,0" LastChildFill="True">
-                                    <Button DockPanel.Dock="Left" Padding="12,6" Margin="0,0,9,0"
-                                            Content="Обзор…" Click="BrowseTemplateDirectoryButton_Click"/>
-                                    <TextBlock x:Name="TemplateDirectoryText" VerticalAlignment="Center"
-                                               TextTrimming="CharacterEllipsis"
-                                               ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
-                                </DockPanel>
-                                <TextBlock x:Name="TemplateDirectoryStatusText" Visibility="Collapsed"/>
-                            </StackPanel>
-                        </GroupBox>
 
                         <Expander Margin="0,16,0,0" Header="Шаблоны" IsExpanded="False">
                             <Grid Margin="12">
@@ -1165,6 +1137,34 @@
                                 </Grid>
                             </Grid>
                         </Expander>
+
+                        <GroupBox Margin="0,16,0,0" Header="Папка скачивания вложений">
+                            <StackPanel Margin="12">
+                                <TextBlock Margin="0,0,0,5" Text="Загруженные файлы и архивы вложений"/>
+                                <DockPanel Margin="0,5,0,0" LastChildFill="True">
+                                    <Button DockPanel.Dock="Left" Content="Обзор…" Margin="0,0,9,0"
+                                            Padding="12,6" Click="BrowseDownloadDirectoryButton_Click"/>
+                                    <TextBlock x:Name="AttachmentDownloadDirectoryText"
+                                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                               ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                                </DockPanel>
+                                <TextBlock x:Name="AttachmentDirectoryStatusText" Visibility="Collapsed"/>
+                            </StackPanel>
+                        </GroupBox>
+
+<GroupBox Margin="0,16,0,0" Header="Папка шаблонов">
+                            <StackPanel Margin="12">
+                                <TextBlock Margin="0,0,0,5" Text="Расположение файлов .md и вложений"/>
+                                <DockPanel Margin="0,5,0,0" LastChildFill="True">
+                                    <Button DockPanel.Dock="Left" Padding="12,6" Margin="0,0,9,0"
+                                            Content="Обзор…" Click="BrowseTemplateDirectoryButton_Click"/>
+                                    <TextBlock x:Name="TemplateDirectoryText" VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"
+                                               ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                                </DockPanel>
+                                <TextBlock x:Name="TemplateDirectoryStatusText" Visibility="Collapsed"/>
+                            </StackPanel>
+                        </GroupBox>
 
                         <GroupBox Margin="0,16,0,0" Header="Обновление">
                             <StackPanel Margin="12">
