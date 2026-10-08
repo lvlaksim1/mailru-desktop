@@ -60,6 +60,7 @@ public partial class MainWindow : Window
         InitializePaletteEditor();
         MessagesGrid.ItemsSource = _visibleMessages;
         ConfigureModernMailList();
+        MessagesGrid.PreviewMouseLeftButtonDown += BulkRowCheckBox_PreviewMouseLeftButtonDown;
         SelectThemeComboBox(ThemeManager.CurrentMode);
         ThemeManager.ThemeChanged += ThemeManager_ThemeChanged;
 
