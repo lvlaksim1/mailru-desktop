@@ -31,6 +31,8 @@ public partial class MainWindow : Window
     private bool _updatingFolderSelection;
     private bool _updatingAccountSelection;
     private bool _readerReady;
+    private bool _readerWaitingForFullMessage;
+    private ulong _latestReaderNavigationId;
     private long _messageLoadGeneration;
     private MailRuFullMessage? _currentFullMessage;
     private string? _currentPreparedHtml;
@@ -118,6 +120,17 @@ public partial class MainWindow : Window
             MessageWebView.CoreWebView2.Settings.AreDevToolsEnabled = false;
             MessageWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
             ConfigureMailImageProxy();
+            MessageWebView.NavigationStarting += (_, args) =>
+            {
+                _latestReaderNavigationId = args.NavigationId;
+                MessageWebView.Visibility = Visibility.Hidden;
+            };
+            MessageWebView.NavigationCompleted += (_, args) =>
+            {
+                if (!_readerWaitingForFullMessage &&
+                    args.NavigationId == _latestReaderNavigationId)
+                    MessageWebView.Visibility = Visibility.Visible;
+            };
             _readerReady = true;
 
             ShowReaderText("Выберите письмо.");
@@ -680,9 +693,9 @@ public partial class MainWindow : Window
         DownloadAllAttachmentsButton.Visibility = Visibility.Collapsed;
         _currentFullMessage = null;
         _currentPreparedHtml = null;
-        ShowReaderText(string.IsNullOrWhiteSpace(message.Snippet)
-            ? "Загрузка полного письма..."
-            : message.Snippet);
+        // Never display the interim unformatted snippet before final rendering.
+        _readerWaitingForFullMessage = true;
+        MessageWebView.Visibility = Visibility.Hidden;
     }
 
     private void UpdateSelectedMessageHeader(MailRuMessageSummary message)
@@ -756,15 +769,22 @@ public partial class MainWindow : Window
 
             if (!string.IsNullOrWhiteSpace(full.Html))
             {
-                _currentPreparedHtml = await PrepareMailHtmlAsync(full.Html);
+                var preparedHtml = await PrepareMailHtmlAsync(full.Html);
+                if (generation != _messageLoadGeneration ||
+                    !string.Equals(_activePreviewMailId, message.Id, StringComparison.Ordinal))
+                    return;
+                _currentPreparedHtml = preparedHtml;
+                _readerWaitingForFullMessage = false;
                 ShowReaderHtml(_currentPreparedHtml);
             }
             else if (!string.IsNullOrWhiteSpace(full.Text))
             {
+                _readerWaitingForFullMessage = false;
                 ShowReaderText(full.Text);
             }
             else
             {
+                _readerWaitingForFullMessage = false;
                 ShowReaderText(message.Snippet);
             }
         }
@@ -773,6 +793,7 @@ public partial class MainWindow : Window
             if (generation != _messageLoadGeneration)
                 return;
 
+            _readerWaitingForFullMessage = false;
             ShowReaderText(string.IsNullOrWhiteSpace(message.Snippet)
                 ? "Не удалось загрузить полное письмо."
                 : message.Snippet);
@@ -1258,7 +1279,7 @@ public partial class MainWindow : Window
         }
 
         ComposeToTextBox.Text = email;
-        ShowWorkspace(ComposeWorkspace);
+        ShowComposeWindow();
         ComposeSubjectTextBox.Focus();
     }
 
@@ -2006,15 +2027,17 @@ public partial class MainWindow : Window
     private void ShowContactsButton_Click(object sender, RoutedEventArgs e) =>
         ShowWorkspace(ContactsWorkspace);
 
-    private void ShowComposeButton_Click(object sender, RoutedEventArgs e)
-    {
-        ShowWorkspace(ComposeWorkspace);
-        RefreshComposeAttachments();
-        ComposeToTextBox.Focus();
-    }
+    private void ShowComposeButton_Click(object sender, RoutedEventArgs e) =>
+        ShowComposeWindow();
 
     private void ShowSettingsButton_Click(object sender, RoutedEventArgs e)
     {
+        // A second click returns to mail now that the redundant Mail nav item is gone.
+        if (SettingsWorkspace.Visibility == Visibility.Visible)
+        {
+            ShowWorkspace(MailWorkspace);
+            return;
+        }
         RefreshTemplatesFromDisk();
         ShowWorkspace(SettingsWorkspace);
     }
@@ -2033,7 +2056,8 @@ public partial class MainWindow : Window
 
         MailWorkspace.Visibility = Visibility.Collapsed;
         ContactsWorkspace.Visibility = Visibility.Collapsed;
-        ComposeWorkspace.Visibility = Visibility.Collapsed;
+        if (_composeWindow is null)
+            ComposeWorkspace.Visibility = Visibility.Collapsed;
         SettingsWorkspace.Visibility = Visibility.Collapsed;
         workspace.Visibility = Visibility.Visible;
     }
