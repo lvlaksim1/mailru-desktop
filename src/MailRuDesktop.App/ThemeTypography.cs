@@ -13,6 +13,9 @@ internal static class ThemeTypography
     public static int Normalize(int requested) =>
         Math.Clamp(requested, MinimumSize, MaximumSize);
 
+    public static double AvatarSize(int requested) =>
+        Math.Clamp(Normalize(requested) * 4.0 / 3.0, 14.0, 24.0);
+
     public static IReadOnlyDictionary<string, double> Resolve(int requested)
     {
         var size = Normalize(requested);
