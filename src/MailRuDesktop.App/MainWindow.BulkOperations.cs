@@ -7,6 +7,26 @@ namespace MailRuDesktop.App;
 
 public partial class MainWindow
 {
+    private void BulkRowCheckBox_PreviewMouseLeftButtonDown(
+        object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not CheckBox checkbox)
+            return;
+
+        var container = ItemsControl.ContainerFromElement(MessagesGrid, checkbox) as ListBoxItem;
+        if (container is null)
+            return;
+
+        // Checking an item is a selection action, not an invitation to open
+        // and mark the message read. Keep all other checked rows selected.
+        var old = _suppressMessageSelectionChanged;
+        _suppressMessageSelectionChanged = true;
+        try { container.IsSelected = !container.IsSelected; }
+        finally { _suppressMessageSelectionChanged = old; }
+        UpdateBulkToolbar();
+        e.Handled = true;
+    }
+
     private List<MailRuMessageSummary> SelectedForBulk() =>
         MessagesGrid.SelectedItems.Cast<MailRuMessageSummary>()
             .GroupBy(message => message.Id, StringComparer.Ordinal)
