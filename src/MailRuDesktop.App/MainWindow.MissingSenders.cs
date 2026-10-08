@@ -1,4 +1,5 @@
 using System.Threading;
+using MailRuDesktop.Protocol;
 
 namespace MailRuDesktop.App;
 
