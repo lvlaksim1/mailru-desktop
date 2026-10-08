@@ -245,6 +245,65 @@ using (var client = new MailRuClient(httpClient: http))
     Console.WriteLine("PASS batch read marks grouped by folder");
 }
 
+
+foreach (var (httpCode, payload, label) in new[]
+{
+    (HttpStatusCode.OK, "{\"status\":403,\"email\":\"\",\"htmlencoded\":true,\"body\":\"token\"}", "JSON 403 inside HTTP 200"),
+    (HttpStatusCode.Forbidden, "{\"status\":403,\"body\":\"token\"}", "HTTP 403 authorization rejection"),
+    (HttpStatusCode.OK, "{\"status\":\"401\",\"body\":\"token\"}", "string status 401 inside HTTP 200")
+})
+{
+    using var handler = new TokenEnvelopeHandler(httpCode, payload);
+    using var http = new HttpClient(handler);
+    using var client = new MailRuClient(httpClient: http);
+    var denied = false;
+    try { await client.GetFolderThreadsAsync("old-token", 0); }
+    catch (MailRuAuthorizationException) { denied = true; }
+    Expect(denied, true, label + " triggers token recovery instead of empty mailbox");
+}
+
+using (var handler = new TokenEnvelopeHandler(HttpStatusCode.OK,
+    "{\"status\":200,\"body\":{\"folders_content\":[]}}"))
+using (var http = new HttpClient(handler))
+using (var client = new MailRuClient(httpClient: http))
+{
+    var result = await client.GetFolderThreadsAsync("valid-token", 0);
+    Expect(result.Contains("\"status\":200", StringComparison.Ordinal), true,
+        "successful folder response remains unchanged");
+}
+
+var isolatedAuthFolder = Path.Combine(Path.GetTempPath(),
+    "MailRuAuth-" + Guid.NewGuid().ToString("N"));
+try
+{
+    var auth = new AuthorizationStore(isolatedAuthFolder);
+    auth.Save("first@example.com", "old-first-token", "first-refresh",
+        null, null, null, null);
+    auth.Save("second@example.com", "second-token", "second-refresh",
+        null, null, null, null);
+    Expect(auth.LastLogin, "second@example.com", "initial last login account");
+
+    Expect(auth.UpdateTokens("first@example.com", "new-first-token", "new-first-refresh"),
+        true, "update first account tokens only");
+    var reloaded = new AuthorizationStore(isolatedAuthFolder);
+    Expect(reloaded.LastLogin, "second@example.com", "token renewal does not switch last used account");
+    Expect(reloaded.TryRestore("first@example.com", out var first), true,
+        "first account credentials survived refresh");
+    Expect(first!.AccessToken, "new-first-token", "first account new access token");
+    Expect(first.RefreshToken, "new-first-refresh", "first account rotated refresh token");
+    Expect(reloaded.TryRestore("second@example.com", out var second), true,
+        "second account credentials still present");
+    Expect(second!.AccessToken, "second-token", "other mailbox token stays unchanged");
+    Expect(second.RefreshToken, "second-refresh", "other mailbox refresh token stays unchanged");
+    Expect(reloaded.UpdateTokens("missing@example.com", "must-not-add", null), false,
+        "refresh cannot create an unrelated account");
+}
+finally
+{
+    if (Directory.Exists(isolatedAuthFolder))
+        Directory.Delete(isolatedAuthFolder, recursive: true);
+}
+
 Console.WriteLine("All interaction logic tests passed.");
 
 sealed class RecordingHandler : HttpMessageHandler
@@ -263,4 +322,14 @@ sealed class RecordingHandler : HttpMessageHandler
             Content = new StringContent("{\"status\":200}")
         };
     }
+}
+
+sealed class TokenEnvelopeHandler(HttpStatusCode code, string payload) : HttpMessageHandler
+{
+    protected override Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request, CancellationToken cancellationToken) =>
+        Task.FromResult(new HttpResponseMessage(code)
+        {
+            Content = new StringContent(payload)
+        });
 }
