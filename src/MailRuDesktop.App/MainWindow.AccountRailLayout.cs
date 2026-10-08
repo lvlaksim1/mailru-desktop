@@ -413,32 +413,14 @@ public partial class MainWindow
 
     private int FindAccountDragTargetDisplayIndex(double y)
     {
-        // Compare against the ORIGINAL row centers. TranslatePoint includes the
-        // running neighbor animations, so measuring the transformed row positions
-        // creates a feedback loop: downward targets disappear or oscillate.
-        // Thresholds are the centers of the OTHER rows, never the dragged row.
-        var from = _accountDragSourceDisplayIndex;
-        if (from < 0)
-            return -1;
-
-        if (TryGetUnanimatedRowMidpoint(from, out var origin) && y < origin)
+        var rowCenters = new double?[_accountRailDisplayItems.Count];
+        for (var i = 0; i < rowCenters.Length; i++)
         {
-            for (var i = 0; i < from; i++)
-            {
-                if (TryGetUnanimatedRowMidpoint(i, out var center) && y < center)
-                    return i;
-            }
-            return from;
+            if (TryGetUnanimatedRowMidpoint(i, out var midpoint))
+                rowCenters[i] = midpoint;
         }
 
-        var target = from;
-        for (var i = from + 1; i < _accountRailDisplayItems.Count; i++)
-        {
-            if (TryGetUnanimatedRowMidpoint(i, out var center) && y >= center)
-                target = i;
-        }
-
-        return target;
+        return AccountDragMath.FindTarget(_accountDragSourceDisplayIndex, y, rowCenters);
     }
 
     private bool TryGetUnanimatedRowMidpoint(int index, out double midpoint)
