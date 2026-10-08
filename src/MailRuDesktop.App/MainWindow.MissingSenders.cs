@@ -6,6 +6,54 @@ public partial class MainWindow
 {
     private long _missingSenderLoadGeneration;
 
+    private async Task PrefetchFirstMissingSendersAsync(
+        List<MailRuMessageSummary> messages, string? token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+            return;
+
+        var missing = messages
+            .Where(message => string.IsNullOrWhiteSpace(message.SenderEmail) &&
+                              string.IsNullOrWhiteSpace(message.SenderName))
+            .Take(4).ToArray();
+
+        // A few missing correspondents can be populated before first paint.
+        // Never hold the whole folder open for a large queue of slow requests.
+        if (missing.Length is 0 or > 3)
+            return;
+
+        using var timeBudget = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        foreach (var item in missing)
+        {
+            if (timeBudget.IsCancellationRequested)
+                break;
+            try
+            {
+                var full = await _mailRu.GetFullMessageAsync(token, item.Id,
+                    markRead: false, cancellationToken: timeBudget.Token);
+                if (!string.Equals(full.Id, item.Id, StringComparison.Ordinal))
+                    continue;
+                var index = messages.FindIndex(message => message.Id == item.Id);
+                if (index >= 0)
+                    messages[index] = messages[index] with
+                    {
+                        SenderName = full.FromName,
+                        SenderEmail = full.FromEmail
+                    };
+            }
+            catch (OperationCanceledException) when (timeBudget.IsCancellationRequested)
+            {
+                break; // Resume normal folder rendering; later retry is bounded.
+            }
+            catch (Exception ex)
+            {
+                DiagnosticLog.Write("first_paint_sender",
+                    ex.GetType().Name + ": " + ex.Message);
+            }
+        }
+    }
+
+
     // Mail.ru may omit correspondents from the folder's compact smart-thread
     // result. Fetch only those missing senders, without marking letters read.
     // This starts automatically; opening the letter is no longer necessary.
@@ -49,7 +97,7 @@ public partial class MainWindow
 
             if (index > 0)
             {
-                await Task.Delay(TimeSpan.FromSeconds(5));
+                await Task.Delay(TimeSpan.FromMilliseconds(1200));
                 if (Stale()) return;
             }
 
