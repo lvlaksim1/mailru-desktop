@@ -571,8 +571,13 @@ public partial class MainWindow : Window
             RefreshThreadCountIndex();
             var snapshot = MailRuThreadStatusParser.Parse(raw, folderId);
 
+            var completeRows = snapshot.Messages.ToList();
+            await PrefetchFirstMissingSendersAsync(completeRows, _accessToken);
+            if (IsStaleAccountSwitch())
+                return;
+
             _currentFolderId = snapshot.SelectedFolderId ?? folderId;
-            _currentMessages = snapshot.Messages.ToList();
+            _currentMessages = completeRows;
             _serverSearchMode = false;
             ApplyFilters();
             ScheduleMissingSenderResolution();
