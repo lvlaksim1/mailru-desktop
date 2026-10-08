@@ -1,6 +1,6 @@
 # Latest handoff
 
-Latest public release: v0.3.22, published with full and update installers on 2026-10-08.
+Latest public release: v0.3.23, published with full and update installers on 2026-10-08.
 
 Current merged product baseline: PR #62 and PR #63, main CI passed, release workflow 37707435464 succeeded.
 
@@ -54,3 +54,13 @@ Implemented: color section starts collapsed, hue/saturation click area with brig
 **Not completed:** #10-11 actual Send Now on an already scheduled message. Research confirms /messages/send, /schedule, source.schedule but not the specific safe atomic transition. Disabled Outbox UI entry points are present only as a scaffold; issue #77 tracks controlled testing. Do not attempt copy-and-send or promise that scheduling is cancelled. No real outgoing email was sent in this work.
 
 Automated Windows tests passed including Cyrillic migration, data backup, and batch marks. Owner GUI and recipient HTML display remain unverified. Do not regress account dragging and splitter animation.
+
+## v0.3.23 — authorization hotfix handoff
+
+Owner screenshot: previously authorized accounts had no list messages and false "Авторизация активна" in status, response {"status":403,"email":"","htmlencoded":true,"body":"token"}. Investigation proved a transport/application status mismatch: MailRuClient checked only HTTP status but the API sometimes sends HTTP 200 with internal status 403; the thread parser then returned an empty Inbox.
+
+PR #80 merged to main as afdf7572953e79c6860bf6fb1a2c5fb93fea544a. CI 37768224358 and storage 37768224319 passed. Release workflow 37768430779 successfully published both installers under v0.3.23.
+
+The protocol now recognizes internal JSON status 401/403 and throws a distinct token-rejection exception without writing credentials to logs. Active account refresh retries mailbox read and saves only proven working credentials; unread-counter checks use independent credentials and refresh tokens per account, preserving LastLogin and other logins. Rejected or missing refresh tokens require login to the affected account only, preserving auth.json. No live test using Owner accounts has been run.
+
+Next: Owner Windows runtime check for previously broken accounts and account independence. Do not claim server-issued tokens can always be refreshed. The scheduled Outbox "Отправить сейчас" feature remains blocked until validated duplicate-safe semantics, issue #77. Other 12-point list UI improvements remain intact.
