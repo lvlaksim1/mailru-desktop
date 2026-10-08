@@ -31,6 +31,11 @@
                     Margin="0,0,6,0"
                     Click="ForwardButton_Click"
                     Content="Переслать"/>
+            <Button x:Name="SendScheduledNowButton"
+                    Padding="14,7" Margin="0,0,8,0"
+                    Content="Отправить сейчас"
+                    Visibility="Collapsed" IsEnabled="False"
+                    ToolTip="Не включено: нельзя гарантировать отсутствие дублирования отложенного письма"/>
             <Button x:Name="ArchiveButton"
                     Padding="14,7"
                     Margin="0,0,14,0"

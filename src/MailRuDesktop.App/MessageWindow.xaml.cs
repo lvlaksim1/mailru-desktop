@@ -20,6 +20,7 @@ public partial class MessageWindow : Window
     private MailRuFullMessage? _fullMessage;
     private ComposeMode _composeMode;
     private readonly List<string> _composeAttachmentPaths = [];
+    private RichComposeEditor? _messageRichEditor;
 
     public bool MailboxChanged { get; private set; }
 
@@ -40,11 +41,19 @@ public partial class MessageWindow : Window
             : null;
 
         InitializeComponent();
+        _messageRichEditor = RichComposeEditor.Attach(ComposeBodyTextBox, this);
 
         Title = $"{summary.Subject} — MailRu Desktop";
         SubjectText.Text = summary.Subject;
         FromText.Text = "От: " + summary.SenderDisplay;
         DateText.Text = "Дата: " + summary.DateDisplay;
+        var folderInfo = folders.FirstOrDefault(f => f.Id == currentFolderId);
+        if (folderInfo is not null &&
+            (folderInfo.Type.Equals("outbox", StringComparison.OrdinalIgnoreCase) ||
+             folderInfo.Type.Equals("scheduled", StringComparison.OrdinalIgnoreCase) ||
+             folderInfo.Name.Contains("Исходящие", StringComparison.OrdinalIgnoreCase)))
+            SendScheduledNowButton.Visibility = Visibility.Visible;
+
         MoveFolderComboBox.ItemsSource = folders;
         MoveFolderComboBox.SelectedItem =
             folders.FirstOrDefault(folder => folder.Id != currentFolderId);
@@ -211,7 +220,7 @@ public partial class MessageWindow : Window
         _composeAttachmentPaths.Clear();
         RefreshComposeAttachments();
         ComposeStatusText.Text = string.Empty;
-        ComposeBodyTextBox.Focus();
+        _messageRichEditor?.Focus();
     }
 
     private void ForwardButton_Click(object sender, RoutedEventArgs e)
@@ -319,6 +328,7 @@ public partial class MessageWindow : Window
                     To: ComposeToTextBox.Text.Trim(),
                     Subject: ComposeSubjectTextBox.Text,
                     Text: ComposeBodyTextBox.Text,
+                    Html: _messageRichEditor?.ToHtml(),
                     ReplyToId: _composeMode == ComposeMode.Reply ? _summary.Id : null,
                     AttachmentIds: attachmentIds,
                     MessageId: messageId));
@@ -425,6 +435,7 @@ public partial class MessageWindow : Window
         var dialog = new SaveFileDialog
         {
             FileName = SanitizeFileName(attachment.DisplayName),
+            InitialDirectory = AttachmentDownloadLocation.GetDirectory(),
             Title = "Сохранить вложение"
         };
 
@@ -442,6 +453,7 @@ public partial class MessageWindow : Window
 
             await File.WriteAllBytesAsync(dialog.FileName, bytes);
             StatusText.Text = $"Вложение сохранено: {Path.GetFileName(dialog.FileName)}";
+            AttachmentDownloadLocation.OpenAfterSaving(dialog.FileName);
         }
         catch (Exception ex)
         {

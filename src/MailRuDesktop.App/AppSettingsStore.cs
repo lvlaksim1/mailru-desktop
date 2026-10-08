@@ -209,6 +209,27 @@ internal sealed class AppSettingsStore
         }
     }
 
+    public string LoadAttachmentDownloadDirectory() =>
+        LoadState().AttachmentDownloadDirectory is { Length: > 0 } value
+            ? value
+            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                "Downloads");
+
+    public void SaveAttachmentDownloadDirectory(string directory)
+    {
+        if (string.IsNullOrWhiteSpace(directory))
+            throw new ArgumentException("Укажите папку скачивания.");
+
+        var full = Path.GetFullPath(directory.Trim());
+        Directory.CreateDirectory(full);
+        lock (_sync)
+        {
+            var state = LoadStateCore();
+            state.AttachmentDownloadDirectory = full;
+            SaveStateCore(state);
+        }
+    }
+
     public string LoadTemplateDirectory() =>
         LoadState().TemplateDirectory is { Length: > 0 } directory
             ? directory
@@ -321,5 +342,6 @@ internal sealed class AppSettingsStore
         public List<SavedSignature>? Signatures { get; set; }
         public List<SavedMailTemplate>? MailTemplates { get; set; }
         public string? TemplateDirectory { get; set; }
+        public string? AttachmentDownloadDirectory { get; set; }
     }
 }

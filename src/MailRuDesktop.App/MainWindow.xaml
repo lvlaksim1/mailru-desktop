@@ -346,16 +346,38 @@
                                 Content="↻"/>
                     </Grid>
 
-                    <Grid Grid.Row="1" Visibility="Collapsed">
-                        <TextBox x:Name="FilterSenderTextBox"/>
-                        <TextBox x:Name="FilterSubjectTextBox"/>
-                        <CheckBox x:Name="FilterAttachmentsCheckBox"/>
-                        <DatePicker x:Name="FilterFromDatePicker"/>
-                        <DatePicker x:Name="FilterToDatePicker"/>
-                    </Grid>
+                    <StackPanel Grid.Row="1" Margin="0,0,0,6">
+                        <WrapPanel VerticalAlignment="Center">
+                            <Button x:Name="BulkTrashButton" Padding="10,5" Margin="0,0,5,4"
+                                    Click="BulkTrashButton_Click" Content="В корзину"/>
+                            <Button x:Name="BulkArchiveButton" Padding="10,5" Margin="0,0,5,4"
+                                    Click="BulkArchiveButton_Click" Content="В архив"/>
+                            <Button x:Name="BulkReadButton" Padding="10,5" Margin="0,0,5,4"
+                                    Click="BulkReadButton_Click" Content="Прочитано"/>
+                            <Button x:Name="BulkDeletePermanentlyButton" Padding="10,5" Margin="0,0,5,4"
+                                    Visibility="Collapsed" Foreground="{DynamicResource AppDangerBrush}"
+                                    Click="BulkDeletePermanentlyButton_Click" Content="Удалить из корзины"/>
+                            <Button x:Name="BulkSendNowButton" Padding="10,5" Margin="0,0,5,4"
+                                    Visibility="Collapsed" IsEnabled="False"
+                                    ToolTip="Требуется подтверждённый серверный способ отправить отложенное письмо без дублирования"
+                                    Content="Отправить сейчас"/>
+                            <TextBlock x:Name="BulkSelectedCountText" Margin="6,0,0,4"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource AppMutedTextBrush}"
+                                       Text="Выбрано: 0"/>
+                        </WrapPanel>
+                        <Grid Visibility="Collapsed">
+                            <TextBox x:Name="FilterSenderTextBox"/>
+                            <TextBox x:Name="FilterSubjectTextBox"/>
+                            <CheckBox x:Name="FilterAttachmentsCheckBox"/>
+                            <DatePicker x:Name="FilterFromDatePicker"/>
+                            <DatePicker x:Name="FilterToDatePicker"/>
+                        </Grid>
+                    </StackPanel>
 
                     <ListBox x:Name="MessagesGrid"
-                             Grid.Row="2"
+                             Grid.Row="2" SelectionMode="Extended"
+                             PreviewKeyDown="MessagesGrid_PreviewKeyDown"
                              BorderThickness="0"
                              Background="Transparent"
                              ItemContainerStyle="{StaticResource MailCardItemStyle}"
@@ -535,12 +557,16 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
                         <WrapPanel Grid.Row="0" Margin="0,0,0,10">
                             <Button x:Name="PreviewForwardButton" Padding="10,6" Margin="0,0,6,4" Click="PreviewForwardButton_Click" Content="Переслать"/>
+                            <Button x:Name="PreviewSendNowButton" Visibility="Collapsed"
+                                    Margin="0,0,6,4" Padding="10,6" IsEnabled="False"
+                                    ToolTip="Не включено: нет подтверждённой команды немедленной отправки без повторного письма"
+                                    Content="Отправить сейчас"/>
                             <Button x:Name="MoveMessageButton" Padding="10,6" Margin="0,0,6,4" Click="MoveMessageButton_Click" Content="Переместить в"/>
                             <ComboBox x:Name="MoveFolderComboBox"
                                       Width="165"
@@ -606,7 +632,7 @@
 
                         <Border Grid.Row="4" Height="1" Margin="0,0,0,10" Background="{DynamicResource AppBorderBrush}"/>
 
-                        <Border Grid.Row="5"
+                        <Border Grid.Row="6"
                                 Background="{DynamicResource AppWindowBrush}"
                                 CornerRadius="8"
                                 BorderBrush="{DynamicResource AppBorderBrush}"
@@ -615,8 +641,8 @@
                         </Border>
 
                         <StackPanel x:Name="IncomingAttachmentsPanel"
-                                    Grid.Row="6"
-                                    Margin="0,10,0,0"
+                                    Grid.Row="5"
+                                    Margin="0,0,0,10"
                                     Visibility="Collapsed">
                             <TextBlock FontWeight="SemiBold" Text="Вложения"/>
                             <ListBox x:Name="IncomingAttachmentsListBox"
@@ -872,7 +898,9 @@
                                 <TextBlock Margin="0,8,0,0" Foreground="{DynamicResource AppMutedTextBrush}" Text="При первом запуске используется тёмная тема."/>
                             </StackPanel>
                         </GroupBox>
-                        <GroupBox Margin="0,16,0,0" Header="Цвета элементов интерфейса">
+                        <Expander Margin="0,16,0,0" IsExpanded="False" Header="Цвета элементов интерфейса"
+                                  Foreground="{DynamicResource AppTextBrush}"
+                                  Background="{DynamicResource AppPanelBrush}">
                             <StackPanel Margin="12">
                                 <TextBlock TextWrapping="Wrap" Margin="0,0,0,10"
                                            Text="Все элементы распределены по 26 фиксированным цветовым ролям. Можно изменять оттенки, но не назначение цветов элементам."/>
@@ -950,7 +978,7 @@
                                         Click="PaletteResetThemeButton_Click"
                                         Content="Восстановить стандартные цвета выбранной темы"/>
                             </StackPanel>
-                        </GroupBox>
+                        </Expander>
 
                         <GroupBox Margin="0,16,0,0" Header="Подписи">
                             <Grid Margin="12">
@@ -992,7 +1020,24 @@
                             </Grid>
                         </GroupBox>
 
-                        <GroupBox Margin="0,16,0,0" Header="Папка шаблонов">
+                                                <GroupBox Margin="0,16,0,0" Header="Папка скачивания вложений">
+                            <StackPanel Margin="12">
+                                <TextBlock Margin="0,0,0,5" Text="Загруженные файлы и архивы вложений"/>
+                                <TextBox x:Name="AttachmentDownloadDirectoryTextBox" Padding="7"/>
+                                <WrapPanel Margin="0,7,0,0">
+                                    <Button Content="Обзор..." Margin="0,0,8,0" Padding="12,6"
+                                            Click="BrowseDownloadDirectoryButton_Click"/>
+                                    <Button Content="Применить" Padding="12,6"
+                                            Click="ApplyDownloadDirectoryButton_Click"/>
+                                </WrapPanel>
+                                <TextBlock x:Name="AttachmentDirectoryStatusText"
+                                           Margin="0,7,0,0" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource AppMutedTextBrush}"
+                                           Text="После скачивания откроется выбранная папка."/>
+                            </StackPanel>
+                        </GroupBox>
+
+<GroupBox Margin="0,16,0,0" Header="Папка шаблонов">
                             <StackPanel Margin="12">
                                 <TextBlock Margin="0,0,0,5" Text="Расположение файлов .md и вложений"/>
                                 <TextBox x:Name="TemplateDirectoryTextBox" Padding="7"/>

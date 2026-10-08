@@ -44,6 +44,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        InitializeRichComposeEditors();
 
         // The default date is based on local time at the moment the app opens.
         // Date/time are kept visible but only become active when scheduled
@@ -53,11 +54,13 @@ public partial class MainWindow : Window
 
         RestoreUserInterfaceState();
         InitializeUserContentSettings();
+        InitializeDownloadDirectorySettings();
 
         ThemeManager.Apply(_settingsStore.LoadTheme());
         InitializePaletteEditor();
         MessagesGrid.ItemsSource = _visibleMessages;
         ConfigureModernMailList();
+        MessagesGrid.PreviewMouseLeftButtonDown += BulkRowCheckBox_PreviewMouseLeftButtonDown;
         SelectThemeComboBox(ThemeManager.CurrentMode);
         ThemeManager.ThemeChanged += ThemeManager_ThemeChanged;
 
@@ -527,6 +530,7 @@ public partial class MainWindow : Window
             return;
 
         _loadingFolder = true;
+        ++_missingSenderLoadGeneration;
         RefreshFolderButton.IsEnabled = false;
         FolderStatusText.Text = "Загрузка...";
         _suppressMessageSelectionChanged = true;
@@ -557,6 +561,7 @@ public partial class MainWindow : Window
             _currentMessages = snapshot.Messages.ToList();
             _serverSearchMode = false;
             ApplyFilters();
+            ScheduleMissingSenderResolution();
             UpdateTrashButtonMode();
 
             if (snapshot.Folders.Count > 0)
@@ -579,6 +584,8 @@ public partial class MainWindow : Window
                     _updatingFolderSelection = false;
                 }
             }
+
+            UpdateBulkToolbar();
 
             var total = snapshot.MessagesTotal?.ToString() ?? "?";
             var unread = snapshot.MessagesUnread?.ToString() ?? "?";
@@ -648,6 +655,7 @@ public partial class MainWindow : Window
 
     private async void MessagesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        UpdateBulkToolbar();
         if (_suppressMessageSelectionChanged)
             return;
 
@@ -800,6 +808,7 @@ public partial class MainWindow : Window
         var dialog = new SaveFileDialog
         {
             FileName = SafeFileName(attachment.DisplayName),
+            InitialDirectory = _settingsStore.LoadAttachmentDownloadDirectory(),
             Title = "Сохранить вложение"
         };
 
@@ -818,6 +827,7 @@ public partial class MainWindow : Window
 
             await File.WriteAllBytesAsync(dialog.FileName, bytes);
             FolderStatusText.Text = $"Вложение сохранено: {Path.GetFileName(dialog.FileName)}";
+            AttachmentDownloadLocation.OpenAfterSaving(dialog.FileName);
         }
         catch (Exception ex)
         {
@@ -1619,6 +1629,7 @@ public partial class MainWindow : Window
                     To: ComposeToTextBox.Text.Trim(),
                     Subject: ComposeSubjectTextBox.Text,
                     Text: ComposeBodyTextBox.Text,
+                    Html: _composeRichEditor?.ToHtml(),
                     AttachmentIds: attachmentIds,
                     MessageId: messageId));
 
@@ -1730,6 +1741,7 @@ public partial class MainWindow : Window
                     To: recipient,
                     Subject: ComposeSubjectTextBox.Text,
                     Text: ComposeBodyTextBox.Text,
+                    Html: _composeRichEditor?.ToHtml(),
                     SendDate: sendDate,
                     RequestReadReceipt: RequestReadReceiptCheckBox.IsChecked == true,
                     AttachmentIds: attachmentIds,

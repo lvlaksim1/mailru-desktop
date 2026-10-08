@@ -23,6 +23,7 @@ public partial class MainWindow
                 string.IsNullOrWhiteSpace(_currentFullMessage.Subject)
                     ? "Вложения.zip"
                     : _currentFullMessage.Subject + " - вложения.zip"),
+            InitialDirectory = _settingsStore.LoadAttachmentDownloadDirectory(),
             DefaultExt = ".zip",
             Filter = "ZIP-архив (*.zip)|*.zip",
             Title = "Сохранить все вложения"
@@ -70,6 +71,7 @@ public partial class MainWindow
 
             FolderStatusText.Text =
                 $"Вложения сохранены: {Path.GetFileName(dialog.FileName)}";
+            AttachmentDownloadLocation.OpenAfterSaving(dialog.FileName);
         }
         catch (Exception ex)
         {

@@ -228,7 +228,7 @@ public partial class MainWindow
         _previewAttachmentPaths.Clear();
         RefreshPreviewAttachments();
         PreviewComposeStatusText.Text = string.Empty;
-        PreviewComposeBodyTextBox.Focus();
+        _previewRichEditor?.Focus();
     }
 
     private void PreviewForwardButton_Click(object sender, RoutedEventArgs e)
@@ -391,6 +391,7 @@ public partial class MainWindow
                     To: PreviewComposeToTextBox.Text.Trim(),
                     Subject: PreviewComposeSubjectTextBox.Text,
                     Text: PreviewComposeBodyTextBox.Text,
+                    Html: _previewRichEditor?.ToHtml(),
                     ReplyToId: _previewComposeMode == PreviewComposeMode.Reply ? message.Id : null,
                     SendDate: sendDate,
                     RequestReadReceipt: PreviewReadReceiptCheckBox.IsChecked == true,

@@ -327,6 +327,14 @@ public partial class MainWindow
         };
         menu.Items.Add(deleteItem);
 
+        if (CurrentFolderIsOutbox)
+        {
+            var immediate = CreateCompactMenuItem("Отправить сейчас");
+            immediate.IsEnabled = false;
+            immediate.ToolTip = "Серверная команда без повторной отправки ещё не подтверждена.";
+            menu.Items.Add(immediate);
+        }
+
         item.ContextMenu = menu;
         menu.PlacementTarget = item;
         menu.IsOpen = true;
@@ -539,6 +547,7 @@ public partial class MainWindow
     <DataTemplate x:Key="ModernMailRowTemplate">
         <Grid Height="42">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="30"/>
                 <ColumnDefinition MinWidth="44"
                                   Width="{Binding Time, Source={x:Static local:MailColumnLayout.Instance}, Mode=TwoWay}"/>
                 <ColumnDefinition Width="4"/>
@@ -561,14 +570,19 @@ public partial class MainWindow
                                   Width="{Binding Subject, Source={x:Static local:MailColumnLayout.Instance}, Mode=TwoWay}"/>
             </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Column="0"
+            <CheckBox x:Name="BulkSelectCheckBox" Grid.Column="0" Width="16" Height="16"
+                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                      ToolTip="Выделить письмо"
+                      IsChecked="{Binding IsSelected, Mode=TwoWay, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}"/>
+
+            <TextBlock Grid.Column="1"
                        Margin="3,0,5,0"
                        VerticalAlignment="Center"
                        HorizontalAlignment="Right"
                        Foreground="{DynamicResource AppMutedTextBrush}"
                        Text="{Binding DateUnix, Converter={StaticResource MailTimeConverter}}"/>
 
-            <GridSplitter Grid.Column="1"
+            <GridSplitter Grid.Column="2"
                           Width="4"
                           HorizontalAlignment="Stretch"
                           VerticalAlignment="Stretch"
@@ -578,7 +592,7 @@ public partial class MainWindow
                           ResizeBehavior="PreviousAndNext"/>
 
             <Button x:Name="FlagActionButton"
-                    Grid.Column="2"
+                    Grid.Column="3"
                     Tag="{Binding}"
                     Width="26"
                     Height="40"
@@ -603,7 +617,7 @@ public partial class MainWindow
                 </TextBlock>
             </Button>
 
-            <GridSplitter Grid.Column="3"
+            <GridSplitter Grid.Column="4"
                           Width="4"
                           HorizontalAlignment="Stretch"
                           VerticalAlignment="Stretch"
@@ -613,7 +627,7 @@ public partial class MainWindow
                           ResizeBehavior="PreviousAndNext"/>
 
             <Button x:Name="ModernUnreadActionButton"
-                    Grid.Column="4"
+                    Grid.Column="5"
                     Tag="{Binding}"
                     Width="24"
                     Height="40"
@@ -643,7 +657,7 @@ public partial class MainWindow
                 </Ellipse>
             </Button>
 
-            <GridSplitter Grid.Column="5"
+            <GridSplitter Grid.Column="6"
                           Width="4"
                           HorizontalAlignment="Stretch"
                           VerticalAlignment="Stretch"
@@ -652,7 +666,7 @@ public partial class MainWindow
                           ResizeDirection="Columns"
                           ResizeBehavior="PreviousAndNext"/>
 
-            <Border Grid.Column="6"
+            <Border Grid.Column="7"
                     MinWidth="22"
                     Height="22"
                     Margin="4,0"
@@ -668,7 +682,7 @@ public partial class MainWindow
                            Text="{Binding Id, Converter={StaticResource ThreadCountConverter}}"/>
             </Border>
 
-            <GridSplitter Grid.Column="7"
+            <GridSplitter Grid.Column="8"
                           Width="4"
                           HorizontalAlignment="Stretch"
                           VerticalAlignment="Stretch"
@@ -677,7 +691,7 @@ public partial class MainWindow
                           ResizeDirection="Columns"
                           ResizeBehavior="PreviousAndNext"/>
 
-            <Path Grid.Column="8"
+            <Path Grid.Column="9"
                   Width="14"
                   Height="14"
                   VerticalAlignment="Center"
@@ -690,7 +704,7 @@ public partial class MainWindow
                   StrokeEndLineCap="Round"
                   Data="M21.44,11.05 L12.25,20.24 C9.91,22.58 6.11,22.58 3.76,20.24 C1.42,17.90 1.42,14.10 3.76,11.75 L12.95,2.56 C14.51,1 17.05,1 18.61,2.56 C20.17,4.12 20.17,6.66 18.61,8.22 L9.41,17.41 C8.63,18.19 7.37,18.19 6.59,17.41 C5.81,16.63 5.81,15.37 6.59,14.59 L15.08,6.10"/>
 
-            <GridSplitter Grid.Column="9"
+            <GridSplitter Grid.Column="10"
                           Width="4"
                           HorizontalAlignment="Stretch"
                           VerticalAlignment="Stretch"
@@ -699,7 +713,7 @@ public partial class MainWindow
                           ResizeDirection="Columns"
                           ResizeBehavior="PreviousAndNext"/>
 
-            <Grid Grid.Column="10"
+            <Grid Grid.Column="11"
                   Margin="5,0,8,0"
                   VerticalAlignment="Center">
                 <Grid.ColumnDefinitions>
@@ -728,7 +742,7 @@ public partial class MainWindow
                            Text="{Binding SenderDisplay}"/>
             </Grid>
 
-            <GridSplitter Grid.Column="11"
+            <GridSplitter Grid.Column="12"
                           Width="4"
                           HorizontalAlignment="Stretch"
                           VerticalAlignment="Stretch"
@@ -737,7 +751,7 @@ public partial class MainWindow
                           ResizeDirection="Columns"
                           ResizeBehavior="PreviousAndNext"/>
 
-            <TextBlock Grid.Column="12"
+            <TextBlock Grid.Column="13"
                        Margin="7,0,8,0"
                        VerticalAlignment="Center"
                        TextTrimming="CharacterEllipsis">
