@@ -41,7 +41,7 @@ public partial class MessageWindow : Window
             : null;
 
         InitializeComponent();
-        _messageRichEditor = RichComposeEditor.Attach(ComposeBodyTextBox, this);
+        _messageRichEditor = RichComposeEditor.Attach(ComposeBodyTextBox, this, resizable: true);
 
         Title = $"{summary.Subject} — MailRu Desktop";
         SubjectText.Text = summary.Subject;
