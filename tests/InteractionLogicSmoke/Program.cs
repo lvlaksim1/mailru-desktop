@@ -459,6 +459,27 @@ using (var site = new HttpClient(new UpdateStubHandler(_ =>
         "both unavailable hosts report safe status codes instead of silent failure");
 }
 
+var importRoot = Path.Combine(Path.GetTempPath(),
+    "MailRuTemplateImport-" + Guid.NewGuid().ToString("N"));
+try
+{
+    Directory.CreateDirectory(importRoot);
+    var importPath = Path.Combine(importRoot, "External.md");
+    var original = "---\\nsubject: \\"Тема\\"\\nattachments:\\n---\\nТело";
+    original = original.Replace("\\n", "\n", StringComparison.Ordinal);
+    File.WriteAllText(importPath, original);
+    var imported = new MarkdownTemplateStore(importRoot).ReadExternalFile(importPath);
+    Expect(imported.Name, "External", "single external Markdown file name");
+    Expect(imported.Subject, "Тема", "external Markdown metadata is loaded");
+    Expect(File.ReadAllText(importPath), original,
+        "loading a template for editing never rewrites its source file");
+}
+finally
+{
+    if (Directory.Exists(importRoot))
+        Directory.Delete(importRoot, recursive: true);
+}
+
 Console.WriteLine("All interaction logic tests passed.");
 
 sealed class RecordingHandler : HttpMessageHandler
