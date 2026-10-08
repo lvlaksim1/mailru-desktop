@@ -34,8 +34,8 @@ public partial class MainWindow : Window
     private bool _readerWaitingForFullMessage;
     private bool _readerNavigationPending;
     private ulong _latestReaderNavigationId;
-    private CancellationTokenSource? _inlineImagePreparation;
     private long _messageLoadGeneration;
+    private CancellationTokenSource? _messageLoadCancellation;
     private MailRuFullMessage? _currentFullMessage;
     private string? _currentPreparedHtml;
     private bool _serverSearchMode;
@@ -757,9 +757,10 @@ public partial class MainWindow : Window
         DownloadAllAttachmentsButton.Visibility = Visibility.Collapsed;
         _currentFullMessage = null;
         _currentPreparedHtml = null;
-        _inlineImagePreparation?.Cancel();
-        _inlineImagePreparation?.Dispose();
-        _inlineImagePreparation = new CancellationTokenSource();
+        // Cancel obsolete full-message HTTP requests instead of making the
+        // newest selected letter wait behind the previous network response.
+        _messageLoadCancellation?.Cancel();
+        _messageLoadCancellation = new CancellationTokenSource();
         // Stop the old document and mask it until the final new navigation
         // completes. No blank page or previous letter is ever shown in between.
         _readerNavigationPending = false;
@@ -797,6 +798,7 @@ public partial class MainWindow : Window
             return;
 
         var generation = ++_messageLoadGeneration;
+        var requestCancellation = _messageLoadCancellation ??= new CancellationTokenSource();
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         _currentFullMessage = null;
         _currentPreparedHtml = null;
@@ -807,7 +809,8 @@ public partial class MainWindow : Window
             var full = await _mailRu.GetFullMessageAsync(
                 _accessToken,
                 message.Id,
-                markRead: message.Unread);
+                markRead: message.Unread,
+                cancellationToken: requestCancellation.Token);
 
             if (generation != _messageLoadGeneration ||
                 !string.Equals(_activePreviewMailId, message.Id, StringComparison.Ordinal))
@@ -864,7 +867,9 @@ public partial class MainWindow : Window
                 $"body-ready-ms={stopwatch.ElapsedMilliseconds}; html={full.Html.Length}; " +
                 $"attachment-count={full.Attachments.Count}");
         }
-        catch (OperationCanceledException) when (generation != _messageLoadGeneration)
+        catch (OperationCanceledException) when (
+            requestCancellation.IsCancellationRequested ||
+            generation != _messageLoadGeneration)
         {
             return;
         }
@@ -878,6 +883,12 @@ public partial class MainWindow : Window
                 ? "Не удалось загрузить полное письмо."
                 : message.Snippet);
             DiagnosticLog.Write("full_message", ex.GetType().Name + ": " + ex.Message);
+        }
+        finally
+        {
+            if (ReferenceEquals(_messageLoadCancellation, requestCancellation))
+                _messageLoadCancellation = null;
+            requestCancellation.Dispose();
         }
     }
 
@@ -1494,6 +1505,7 @@ public partial class MainWindow : Window
     private void ClearSelectedMessage()
     {
         ClearActivePreviewId();
+        _messageLoadCancellation?.Cancel();
         _messageLoadGeneration++;
         _currentFullMessage = null;
         SelectedSubjectText.Text = "Выберите письмо";
