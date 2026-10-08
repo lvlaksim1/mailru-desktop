@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using MailRuDesktop.App;
 
 internal static class Program
@@ -13,6 +14,7 @@ internal static class Program
         Window? mail = null;
         Window? editor = null;
         Window? notice = null;
+        Window? colorPicker = null;
         try
         {
             var app = new App();
@@ -99,6 +101,29 @@ internal static class Program
             notice.Close();
             notice = null;
 
+            var pickerType = typeof(MainWindow).Assembly.GetType(
+                "MailRuDesktop.App.PaletteColorPickerWindow");
+            Check(pickerType is not null, "color picker window exists");
+            colorPicker = Activator.CreateInstance(pickerType!,
+                new object[] { mail, "Проверка цвета", "#FF0000" }) as Window;
+            Check(colorPicker is not null, "palette picker can be constructed");
+            var stripField = pickerType!.GetField("_brightnessBitmap",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            var strip = stripField?.GetValue(colorPicker) as WriteableBitmap;
+            Check(strip is not null, "right-side brightness strip is available");
+            var initial = new byte[strip!.PixelWidth * strip.PixelHeight * 4];
+            strip.CopyPixels(initial, strip.PixelWidth * 4, 0);
+            var moveColor = pickerType.GetMethod("PickSurface",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            Check(moveColor is not null, "surface click operation exists");
+            moveColor!.Invoke(colorPicker, new object[] { new Point(210, 50) });
+            var updated = new byte[initial.Length];
+            strip.CopyPixels(updated, strip.PixelWidth * 4, 0);
+            Check(!initial.SequenceEqual(updated),
+                "right brightness gradient redraws when main color surface changes");
+            colorPicker!.Close();
+            colorPicker = null;
+
             Console.WriteLine("Windows WPF UI interaction smoke: PASS");
             return 0;
         }
@@ -110,6 +135,7 @@ internal static class Program
         }
         finally
         {
+            colorPicker?.Close();
             notice?.Close();
             editor?.Close();
             mail?.Close();
