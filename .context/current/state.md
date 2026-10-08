@@ -5,7 +5,7 @@ Visibility: public
 Product authority: main
 Manager-state authority: main
 
-Latest public release: **v0.3.22**, published 2026-10-08 with full and update installers. Product PR #76 merge bd6ff6ff98f93a69458efc921e7c35a21e159afc, main CI 37719927017, storage 37719927127, installer workflow 37720023234: success. PR #73 merged on main as e29a23ab81697b0dd38f0f1b2d9ce38efefb8c52. PR #70 merged as eb3415ac30f81cc3426d4726b53d590d42e57b11. CI 37711634109 and release workflow 37711732617 succeeded.
+Latest public release: **v0.3.23**, published 2026-10-08 with full and update installers; release workflow 37768430779 success, main CI 37768224358 and storage policy 37768224319 success. Product PR #76 merge bd6ff6ff98f93a69458efc921e7c35a21e159afc, main CI 37719927017, storage 37719927127, installer workflow 37720023234: success. PR #73 merged on main as e29a23ab81697b0dd38f0f1b2d9ce38efefb8c52. PR #70 merged as eb3415ac30f81cc3426d4726b53d590d42e57b11. CI 37711634109 and release workflow 37711732617 succeeded.
 Product changes: PR #62 plus PR #63, merge commit 34e583abc232c9edc939816a92b4e08165836210.
 Release workflow 37707435464, main CI 37707321540 and repository storage check 37707321584: success.
 
@@ -141,3 +141,16 @@ From the 12-point mail backlog:
 **BLOCKED AND NOT DONE:** #10 and #11 immediate send of already scheduled messages. Buttons appear disabled in the Outbox bulk bar, individual preview and context menu. Official APK confirms /messages/send, /schedule and source.schedule metadata but not a validated atomic transition that cancels/resuses a scheduled item without duplicates. Unsafe conjecture must not be enabled. Issue #77 tracks controlled protocol validation. Do not announce all twelve complete.
 
 PR #76, main CI 37719927017 and Windows release workflow 37720023234 passed. Owner GUI/runtime validation of mail selection and actual HTML delivery remains pending. Account dragging/splitters were not modified.
+
+
+## v0.3.23 — saved account token rejection fix
+
+Owner reported that previously authorized accounts showed empty Inbox and "Авторизация активна" while protocol diagnostics displayed JSON {"status":403,"email":"","htmlencoded":true,"body":"token"}.
+
+Root cause proven in source: MailRuClient.GetFolderThreadsAsync checked the HTTP transport status only; Mail.ru may send HTTP 200 with embedded JSON status 401/403. That JSON error was sent to the thread parser as an empty mailbox. The refresh path handled HTTP status only and unread counts for inactive mailboxes never tried per-account refresh.
+
+PR #80 merged as afdf7572953e79c6860bf6fb1a2c5fb93fea544a. MailRuProtocol now throws MailRuAuthorizationException for transport or embedded JSON 401/403 in folder and full-message responses. Active-account recovery uses its own refresh token, reads the folder with the candidate new access token FIRST, and persists only after proof of access. Background unread counters use independently stored account tokens; each invalid account may refresh without switching LastLogin or mutating other accounts. Failed refresh preserves saved credentials and informs Owner that this specific account requires login, rather than falsely claiming active authorization. No sensitive credentials are logged.
+
+Offline Windows regressions cover HTTP200/JSON403, HTTP403, JSON string 401, normal response and two-account encrypted credential persistence/isolation. Build, smoke, storage policy and release passed. Actual Owner mailbox tokens are NOT accessible in CI, so runtime recovery must be Owner tested; some server-invalid refresh credentials may still require interactive sign-in. Do not erase auth.json or require all accounts to sign in again.
+
+Outstanding "Отправить сейчас" for queued mail stays blocked on server-protocol validation (issue #77); other v0.3.22 Owner runtime items remain.
