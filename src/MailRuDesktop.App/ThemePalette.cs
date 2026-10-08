@@ -105,7 +105,7 @@ internal static class ThemePalette
     public static Dictionary<string, string> Merge(
         bool dark, IReadOnlyDictionary<string, string>? overrides)
     {
-        var colors = new Dictionary<string, string>(Defaults(dark), StringComparer.Ordinal);
+        var colors = Defaults(dark).ToDictionary(p => p.Key, p => p.Value, StringComparer.Ordinal);
         if (overrides is null)
             return colors;
 
