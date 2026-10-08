@@ -1641,6 +1641,7 @@ public partial class MainWindow : Window
 
     private async void SendButton_Click(object sender, RoutedEventArgs e)
     {
+        ComposeStatusText.SetResourceReference(TextBlock.ForegroundProperty, "AppMutedTextBrush");
         if (string.IsNullOrWhiteSpace(_accessToken))
         {
             ComposeStatusText.Text =
@@ -1738,6 +1739,7 @@ public partial class MainWindow : Window
 
             if (!result.Success)
             {
+                ComposeStatusText.SetResourceReference(TextBlock.ForegroundProperty, "AppDangerBrush");
                 ComposeStatusText.Text = scheduledFor is null
                     ? "Mail.ru отклонил отправку."
                     : "Mail.ru отклонил отложенную отправку.";
@@ -1757,6 +1759,7 @@ public partial class MainWindow : Window
             ScheduleDatePicker.SelectedDate = DateTime.Today.AddDays(1);
             ScheduleTimeTextBox.Text = "09:00";
 
+            ComposeStatusText.SetResourceReference(TextBlock.ForegroundProperty, "AppSuccessBrush");
             if (scheduledFor is null)
             {
                 ComposeStatusText.Text = "Отправлено.";
@@ -1769,6 +1772,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            ComposeStatusText.SetResourceReference(TextBlock.ForegroundProperty, "AppDangerBrush");
             ComposeStatusText.Text = ex.Message;
             DiagnosticLog.Write("send", ex.GetType().Name + ": " + ex.Message);
         }
