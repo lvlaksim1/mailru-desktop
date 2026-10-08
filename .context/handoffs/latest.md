@@ -1,18 +1,20 @@
-# Последняя передача проекта MailRu Desktop — 2026-10-09
+# Последняя передача менеджера MailRu Desktop — v0.3.30
 
-manager: project-manager
+Дата: 2026-10-09
+manager_id: project-manager
 repository: lvlaksim1/mailru-desktop
-product authority: main
-manager-state authority: main
-latest binary: v0.3.29
-PR #96, merge 8f0ff0c07e59b38fd6e14edd14bebd7b74018c19
-CI PR 37850178802 PASS; main 37850342043 PASS
-Release workflow 37850493662: full and update v0.3.29 assets available at https://github.com/lvlaksim1/mailru-desktop/releases/tag/v0.3.29
+product authority: main; manager state authority: main
+published release: https://github.com/lvlaksim1/mailru-desktop/releases/tag/v0.3.30
+PR: #98; merge: 8b509be0592d3b3bdc4674419dc09d6ec637512f
+Windows CI PR: 37855438488 PASS; main: 37855678396 PASS; installer run: 37855812685 PASS.
+Official assets: MailRuDesktop_Update_v0.3.30.exe, MailRuDesktop_Setup_v0.3.30.exe.
 
-Owner feedback: v0.3.28 works, but only two of the much longer previous package are recognized. Owner reattached the prior 22-point explanation and asked for implementation. Treat its wording as actual acceptance criteria. Source code changes alone do not prove real-world UI function. Stop searching for photos of senders: Owner said retrieval works. The two refinements of avatar scaling and visible outgoing From address had been added in v0.3.28.
+Owner tested v0.3.29, confirmed «в остальном всё вроде бы ок», and reported six outstanding defects: persistent visual flicker, missing images in HTML (prior Magnet receipt with af12.mail.ru GIF), some letters much slower than browser, Load .md opens download rather than template folder, saving loaded template under new name modifies old file rather than making a copy, Send Now on scheduled message remains disabled. Technical debts expressly remain technical debts. Owner approved action.
 
-PR #96 found an actual 16x16 parent image frame clipping an avatar that had only been resized inside it; parent Border and sender column now scale. Clicking an already-selected folder while Settings is open now returns to Mail (mouse and Enter). New Mail button docks right above messages instead of left among bulk actions. New mail signature/template selectors now have visible labels. ThemeManager no longer re-applies an unchanged System theme on every application activation, avoiding needless HTML reload; reader does not expose unfinished raw HTML during a theme change and reports WebView2 failed navigation. TextPromptWindow adapts height to content and follows shared native window chrome; Color picker/contact dialogs no longer duplicate chrome hooks. Legacy shared theme color migration deterministically chooses first valid older value unless explicitly overridden by canonical color.
+v0.3.30: removed obsolete sequential pre-download of every HTML image before rendering; reader now receives full HTML immediately after mail body fetch and reveals at DOMContentLoaded, while images fetch separately through WebView2's resource events. Strict new MailRuInlineImageSource validator checks exact afNN.mail.ru HTTPS /cgi-bin/readmsg URL, same message, same account, numeric attachment ID and correct mode. Incoming attachment bytes fetched using existing mailbox access token and verified as an image; proxied afNN URLs supported; mailbox Cookies are never forwarded to a public proxy. Old full-message fetches are canceled on selection change. Safe stage timing recorded as mail_render_timing.
 
-New tests/WindowsUiSmoke creates real WPF windows on Windows runner, opens Settings, verifies Appearance/Palette placement and Signatures immediately before Templates, returns to Mail, opens New Mail, checks From field/choosers and absence of a forced blue button background, creates a short notice and checks height, then changes the color picker surface and confirms pixels of the right brightness strip change. All passed in CI 37850178802 and 37850342043, together with offline regression tests and source-derived registry (9 windows, 1374 elements).
+Markdown import starts at TemplateFiles.DirectoryPath. Save As with unused name creates new file and independent attachment copies, without deleting source; any existing target name requires explicit warning and permission, the store refuses implicit overwrite or cross-name rename. Unit tests reproduce sample Magnet URL, account/ID validation, byte-for-byte source integrity, clone attachments, and guarded overwrite.
 
-Outstanding OWNER validation: rapid HTML letter switching, images requiring private authorization, titlebar appearance on Owner Windows, full message/template use and 22-point list as a whole. This release has not been confirmed by Owner in the actual app. Do not send unsolicited mail. Protocol debt #77 scheduled Outbox Send Now remains blocked due duplicate risk; read receipts and exact delayed delivery are not fully verified.
+**Owner GUI/credential acceptance still pending:** CI cannot show real user's HTML images, first-paint flicker or exact mail timings. Request only sanitized mail_image_inline/mail_render_timing diagnostic categories if trouble persists. Do not claim these three defects conclusively fixed before user confirms.
+
+**Send Now (#77) remains blocked:** current source proves ordinary /send and /schedule creation only, not atomic change/unschedule of an existing scheduled item; ordinary resend risks duplicate. Detailed safe experiment plan: docs/protocol/scheduled-send-now-safety.md. No real mail sends made. Other unpaid debts: delayed delivery, receipt acknowledgments, unverified search routes. Accepted avatar retrieval, account drag, contact picker, updater and other v0.3.29 UI preserved.
