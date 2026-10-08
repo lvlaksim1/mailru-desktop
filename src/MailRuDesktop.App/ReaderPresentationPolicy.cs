@@ -10,10 +10,10 @@ internal static class ReaderPresentationPolicy
     public static readonly TimeSpan MaximumResourceWait = TimeSpan.FromSeconds(3);
 
     public static bool CanReveal(
-        bool domReady, bool resourcesFinished, bool deadlineReached) =>
-        domReady && (resourcesFinished || deadlineReached);
+        bool domReady, bool imagesSettled, bool deadlineReached) =>
+        domReady && (imagesSettled || deadlineReached);
 
     public static bool ShouldStopLoading(
         bool domReady, bool resourcesFinished, bool deadlineReached) =>
-        domReady && !resourcesFinished && deadlineReached;
+        domReady && !imagesSettled && deadlineReached;
 }
