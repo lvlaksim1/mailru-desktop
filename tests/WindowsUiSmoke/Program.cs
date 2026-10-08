@@ -27,6 +27,14 @@ internal static class Program
             Check(Require<Border>(mail, "ReaderLoadingOverlay") is { },
                 "reader contains stable loading overlay");
 
+            var settingsAction = FindDescendant<Button>(mail,
+                b => b.Content?.ToString()?.Contains("Настройки", StringComparison.Ordinal) == true);
+            Check(settingsAction is not null, "Settings navigation is visible");
+            settingsAction!.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent, settingsAction));
+            mail.UpdateLayout();
+            Check(Require<Grid>(mail, "SettingsWorkspace").Visibility == Visibility.Visible,
+                "Settings can actually be opened by its button");
+
             var palette = FindDescendant<Expander>(mail,
                 e => string.Equals(e.Header?.ToString(),
                     "Цвета элементов интерфейса", StringComparison.Ordinal));
@@ -47,6 +55,11 @@ internal static class Program
             Check(settingsStack.Children.IndexOf(template!) ==
                   settingsStack.Children.IndexOf(signature!) + 1,
                 "Templates appears immediately after Signatures");
+
+            settingsAction!.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent, settingsAction));
+            mail.UpdateLayout();
+            Check(Require<Grid>(mail, "MailWorkspace").Visibility == Visibility.Visible,
+                "Settings button returns to mail without duplicate navigation");
 
             action.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent, action));
             editor = Application.Current.Windows
