@@ -290,3 +290,10 @@ statement: Owner v0.3.22 screenshot reported empty mailbox for previously author
 
 source: Owner screenshot and JSON error, source PR #80, main SHA afdf7572953e79c6860bf6fb1a2c5fb93fea544a, CI 37768224358, release 37768430779.
 authority: owner evidence + verified-source + verified-ci; NOT confirmed in live Owner accounts.
+
+## B-037 — Owner-confirmed saved auth recovery and v0.3.24 GUI corrections
+
+statement: Owner explicitly confirmed after v0.3.23 "всё починилось!", making prior 403 token multiaccount incident Owner-runtime-verified CLOSED. Returned GUI defects were palette footer clipping, white DatePicker popup, lost selected checkboxes after record changes, whole-list reload after batch operations, excessive Enter paragraph spacing, fixed-height reply editor and unnecessary permanent Trash deletion confirmation. Owner previously verified actual rich-formatted mail delivery. PR #83 merged e89c5ed2ef426e3def7957663b17254c66f44892; CI and release published v0.3.24. Changes include picker layout, explicit CalendarStyle, normal paragraph spacing, reply resize grip, ID-keyed selection, local batch mutation and stale-account guard, no Trash delete confirmation, initial same-message sender representation parsing. Owner visual validation of v0.3.24 is pending. Some sender summaries truly omit any correspondent, so full lookup remains necessary. Issue #77 scheduled Outbox send-now remains blocked.
+
+source: Owner confirmation/screenshots on 2026-10-08; PR #83, CI 37771307863, release 37771458709, issue #77.
+authority: Owner-runtime-verified for auth; repository/CI-verified for new GUI fixes.
