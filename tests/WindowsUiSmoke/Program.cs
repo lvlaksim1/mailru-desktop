@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -11,6 +12,7 @@ internal static class Program
     {
         Window? mail = null;
         Window? editor = null;
+        Window? notice = null;
         try
         {
             var app = new App();
@@ -66,6 +68,24 @@ internal static class Program
                     DependencyProperty.UnsetValue),
                 "send button uses the shared theme without a forced blue fill");
 
+            var dialogType = typeof(MainWindow).Assembly.GetType("MailRuDesktop.App.AppDialog");
+            var createNotice = dialogType?.GetMethod("CreateWindow",
+                BindingFlags.Static | BindingFlags.NonPublic);
+            Check(createNotice is not null, "shared notification window factory exists");
+            notice = createNotice!.Invoke(null,
+                new object[] { mail, "Тест", "Короткое сообщение" }) as Window;
+            Check(notice is not null, "short notification is created");
+            ((StackPanel)notice!.Tag).Children.Add(new Button { Content = "Понятно",
+                Padding = new Thickness(14, 7) });
+            notice.Show();
+            notice.UpdateLayout();
+            Check(notice.SizeToContent == SizeToContent.Height,
+                "notification height adapts to content");
+            Check(notice.MinHeight <= 170 && notice.ActualHeight < 260,
+                "short notification has no oversized lower empty region");
+            notice.Close();
+            notice = null;
+
             Console.WriteLine("Windows WPF UI interaction smoke: PASS");
             return 0;
         }
@@ -77,6 +97,7 @@ internal static class Program
         }
         finally
         {
+            notice?.Close();
             editor?.Close();
             mail?.Close();
         }
