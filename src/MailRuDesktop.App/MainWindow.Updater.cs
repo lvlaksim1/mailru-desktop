@@ -36,7 +36,11 @@ public partial class MainWindow
         }
         catch (Exception ex)
         {
-            UpdateStatusText.Text = "Не удалось проверить обновления.";
+            // The updater first checks api.github.com, then github.com.
+            // Display safe diagnostic categories instead of silently failing.
+            UpdateStatusText.Text =
+                "Не удалось проверить обновления. " + ex.Message +
+                " Нажмите «Открыть страницу выпусков» для обновления через браузер.";
             DiagnosticLog.Write(
                 "github_update_check",
                 ex.GetType().Name + ": " + ex.Message);
@@ -44,6 +48,24 @@ public partial class MainWindow
         finally
         {
             CheckForUpdatesButton.IsEnabled = true;
+        }
+    }
+
+    private void OpenReleasesButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo(GitHubUpdateService.LatestReleasePage)
+            {
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            UpdateStatusText.Text = "Не удалось открыть страницу выпусков в браузере.";
+            DiagnosticLog.Write(
+                "github_update_browser",
+                ex.GetType().Name);
         }
     }
 
