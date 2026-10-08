@@ -19,7 +19,7 @@ internal static class ThemePalette
 {
     public static IReadOnlyList<ThemeColorRole> Roles { get; } =
     [
-        new("AppWindowBrush", "Фоны", "Фон окна",
+        new("AppWindowBrush", "Фоны", "Фон окна, панелей и диалогов",
             "Главное окно и свободные области приложения", "#17191D", "#FFFFFF"),
         new("AppPanelBrush", "Фоны", "Фон панелей",
             "Боковые панели, папки, списки, контейнеры и меню", "#1E2228", "#F7F9FC"),
@@ -29,7 +29,7 @@ internal static class ThemePalette
             "Область HTML-письма и отдельное окно просмотра", "#17191D", "#FFFFFF"),
         new("AppInputBrush", "Фоны", "Фон полей ввода",
             "Поля ввода, поиск, редактор ответа и выбор дат", "#252A31", "#FFFFFF"),
-        new("AppControlBrush", "Фоны", "Фон кнопок",
+        new("AppControlBrush", "Фоны", "Фон кнопок и полей ввода",
             "Обычные кнопки, переключатели и закрытые списки", "#252A31", "#F3F5F7"),
 
         new("AppControlHoverBrush", "Взаимодействие", "Наведение",
@@ -79,6 +79,23 @@ internal static class ThemePalette
             "Активные булавки закреплённых писем", "#E5484D", "#C62832")
     ];
 
+    // The visual resource names remain stable for older XAML and saved theme
+    // files. These keys now share one editable setting for similar elements.
+    // Previously saved colors are carried forward without deleting user data.
+    public static IReadOnlyDictionary<string, string> UnifiedRoleKeys { get; } =
+        new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["AppPanelBrush"] = "AppWindowBrush",
+            ["AppDialogBrush"] = "AppWindowBrush",
+            ["AppInputBrush"] = "AppControlBrush",
+            ["AppDisabledTextBrush"] = "AppMutedTextBrush",
+            ["AppScrollArrowBrush"] = "AppScrollThumbBrush",
+            ["AppSelectionTextBrush"] = "AppTextBrush"
+        };
+
+    public static IReadOnlyList<ThemeColorRole> EditableRoles { get; } =
+        Roles.Where(role => !UnifiedRoleKeys.ContainsKey(role.Key)).ToArray();
+
     private static readonly Dictionary<string, ThemeColorRole> ByKey =
         Roles.ToDictionary(role => role.Key, StringComparer.Ordinal);
 
@@ -107,12 +124,28 @@ internal static class ThemePalette
     {
         var colors = Defaults(dark).ToDictionary(p => p.Key, p => p.Value, StringComparer.Ordinal);
         if (overrides is null)
+        {
+            foreach (var (alias, canonical) in UnifiedRoleKeys)
+                colors[alias] = colors[canonical];
             return colors;
+        }
 
         foreach (var (key, value) in overrides)
         {
             if (ByKey.ContainsKey(key) && TryNormalize(value, out var hex))
                 colors[key] = hex;
+        }
+
+        // A migrated setting is chosen deterministically. Explicitly edited
+        // canonical values take precedence over any older alias overrides.
+        foreach (var (alias, canonical) in UnifiedRoleKeys)
+        {
+            if (overrides is not null &&
+                !overrides.ContainsKey(canonical) &&
+                overrides.TryGetValue(alias, out var previous) &&
+                TryNormalize(previous, out var normalized))
+                colors[canonical] = normalized;
+            colors[alias] = colors[canonical];
         }
 
         return colors;
