@@ -75,9 +75,10 @@ internal sealed class AppSettingsStore
     private readonly string _path;
     private readonly object _sync = new();
 
-    public AppSettingsStore()
+    // Optional directory is used only by isolated offline regression tests.
+    public AppSettingsStore(string? directoryOverride = null)
     {
-        var directory = Path.Combine(
+        var directory = directoryOverride ?? Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "MailRuDesktop");
         Directory.CreateDirectory(directory);
