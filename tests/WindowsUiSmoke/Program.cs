@@ -42,8 +42,8 @@ internal static class Program
                      VisualTreeHelper.GetParent(template!)),
                 "signature and template are siblings");
             var settingsStack = (Panel)VisualTreeHelper.GetParent(signature!);
-            Check(settingsStack.Children.IndexOf(signature!) <
-                  settingsStack.Children.IndexOf(template!),
+            Check(settingsStack.Children.IndexOf(template!) ==
+                  settingsStack.Children.IndexOf(signature!) + 1,
                 "Templates appears immediately after Signatures");
 
             action.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent, action));
@@ -61,10 +61,10 @@ internal static class Program
             Check(Require<ComboBox>(mail, "ComposeTemplateComboBox").IsVisible,
                 "template chooser is visible in New Mail");
             var send = Require<Button>(mail, "SendButton");
-            Check(!send.ReadLocalValue(Control.BackgroundProperty).Equals(
-                    DependencyProperty.UnsetValue) == false ||
-                  !send.IsDefault,
-                "send action has no forced default-button activation");
+            Check(ReferenceEquals(
+                    send.ReadLocalValue(Control.BackgroundProperty),
+                    DependencyProperty.UnsetValue),
+                "send button uses the shared theme without a forced blue fill");
 
             Console.WriteLine("Windows WPF UI interaction smoke: PASS");
             return 0;
