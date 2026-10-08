@@ -44,6 +44,13 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        // The default date is based on local time at the moment the app opens.
+        // Date/time are kept visible but only become active when scheduled
+        // delivery is selected by the user.
+        ScheduleDatePicker.SelectedDate = DateTime.Today.AddDays(1);
+        ScheduleTimeTextBox.Text = "09:00";
+
         RestoreUserInterfaceState();
         InitializeUserContentSettings();
 
@@ -1710,6 +1717,7 @@ public partial class MainWindow : Window
                     Subject: ComposeSubjectTextBox.Text,
                     Text: ComposeBodyTextBox.Text,
                     SendDate: sendDate,
+                    RequestReadReceipt: RequestReadReceiptCheckBox.IsChecked == true,
                     AttachmentIds: attachmentIds,
                     MessageId: messageId));
 
@@ -1731,6 +1739,10 @@ public partial class MainWindow : Window
             ComposeBodyTextBox.Clear();
             _attachmentPaths.Clear();
             RefreshComposeAttachments();
+            RequestReadReceiptCheckBox.IsChecked = false;
+            ScheduleSendCheckBox.IsChecked = false;
+            ScheduleDatePicker.SelectedDate = DateTime.Today.AddDays(1);
+            ScheduleTimeTextBox.Text = "09:00";
 
             if (scheduledFor is null)
             {
@@ -1740,8 +1752,6 @@ public partial class MainWindow : Window
             {
                 ComposeStatusText.Text =
                     $"Запланировано на {scheduledFor.Value.LocalDateTime:dd.MM.yyyy HH:mm}.";
-                ScheduleSendCheckBox.IsChecked = false;
-                ScheduleDatePicker.SelectedDate = null;
             }
         }
         catch (Exception ex)
