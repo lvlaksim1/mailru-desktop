@@ -563,7 +563,6 @@ public partial class MainWindow : Window
             ApplyFilters();
             ScheduleMissingSenderResolution();
             UpdateTrashButtonMode();
-            UpdateBulkToolbar();
 
             if (snapshot.Folders.Count > 0)
             {
@@ -585,6 +584,8 @@ public partial class MainWindow : Window
                     _updatingFolderSelection = false;
                 }
             }
+
+            UpdateBulkToolbar();
 
             var total = snapshot.MessagesTotal?.ToString() ?? "?";
             var unread = snapshot.MessagesUnread?.ToString() ?? "?";
