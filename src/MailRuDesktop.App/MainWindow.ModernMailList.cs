@@ -714,11 +714,11 @@ public partial class MainWindow
                   Margin="5,0,8,0"
                   VerticalAlignment="Center">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="18"/>
+                    <ColumnDefinition Width="28"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Border Width="16"
-                        Height="16"
+                <Border Width="{DynamicResource AppAvatarSize}"
+                        Height="{DynamicResource AppAvatarSize}"
                         CornerRadius="8"
                         VerticalAlignment="Center"
                         Background="{DynamicResource AppControlHoverBrush}">
