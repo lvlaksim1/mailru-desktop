@@ -63,13 +63,18 @@ public partial class MainWindow
     private async Task ActivateMailPreviewAsync(MailRuMessageSummary message)
     {
         _activePreviewMailId = message.Id;
+        MailPreviewState.Instance.ActiveId = message.Id;
         DisplaySummary(message);
         UpdatePreviewSelectionFields(message);
         UpdateBulkToolbar();
         await LoadFullMessageAsync(message);
     }
 
-    private void ClearActivePreviewId() => _activePreviewMailId = null;
+    private void ClearActivePreviewId()
+    {
+        _activePreviewMailId = null;
+        MailPreviewState.Instance.ActiveId = null;
+    }
 
 
     private void RememberSelectedMailIds()
