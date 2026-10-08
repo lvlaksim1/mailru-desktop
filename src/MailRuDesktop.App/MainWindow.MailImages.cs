@@ -98,7 +98,7 @@ public partial class MainWindow
     }
 
     private static bool IsMailAttachmentHost(string host) =>
-        Regex.IsMatch(host, @"^af\\d+\\.mail\\.ru$", RegexOptions.IgnoreCase);
+        Regex.IsMatch(host, @"^af\d+\.mail\.ru$", RegexOptions.IgnoreCase);
 
     private async Task<string?> DownloadMailboxInlineImageAsync(
         Uri uri, string messageId, string? accountLogin, string accessToken,
