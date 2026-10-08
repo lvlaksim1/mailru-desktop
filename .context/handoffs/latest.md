@@ -1,6 +1,6 @@
 # Latest handoff
 
-Latest public release: v0.3.21, published with full and update installers on 2026-10-08.
+Latest public release: v0.3.22, published with full and update installers on 2026-10-08.
 
 Current merged product baseline: PR #62 and PR #63, main CI passed, release workflow 37707435464 succeeded.
 
@@ -44,3 +44,13 @@ Merged PR #73 commit e29a23ab81697b0dd38f0f1b2d9ce38efefb8c52. v0.3.21 full/upda
 Technical contract: ThemePalette.Roles = 26 immutable semantic roles; ThemeManager.Apply writes all dynamic WPF brush keys, native caption, message viewer and scrollbar colors. DarkPalette/LightPalette stored separately in settings.json; color entries accept only #RRGGBB. Settings contains grouped role descriptions/swatches, RGB picker, role/theme reset and accessibility warnings; light/dark editor selection is independent from current Windows system mode. Backgrounds, inputs, dialogs, marks and message send state colors share semantic roles; original pictures and brand marks must remain intact. Documentation: docs/theme-palette.md.
 
 Owner runtime/visual verification pending. Keep previously approved account drag and splitters unchanged. Other 12-task backlog remains separate and unfinished.
+
+## v0.3.22 release handoff
+
+Owner asked to collapse color settings and replace RGB sliders with a clickable 2D palette, and to complete the 12-point mail backlog. PR #76 merged to main bd6ff6ff98f93a69458efc921e7c35a21e159afc, main CI 37719927017, storage policy 37719927127, release workflow 37720023234 succeeded. Both installer assets are published.
+
+Implemented: color section starts collapsed, hue/saturation click area with brightness strip; automatic bounded missing-sender full-message lookups without changing unread mark; readable Cyrillic UTF-8 BOM template metadata with migration of old escaped metadata and backup, while preserving message body; chosen attachment download directory, Windows Explorer after successful single/zip save; incoming attachment section above message body; common rich text toolbar in new, inline reply/forward and detached reply/forward, with synchronized legacy plain text and outgoing formatted HTML; checkbox/Ctrl/Shift/Ctrl+A multi-selection; grouped trash/archive/read requests, stateful prevention of repeated operations; grouped permanent Trash deletion with confirmation.
+
+**Not completed:** #10-11 actual Send Now on an already scheduled message. Research confirms /messages/send, /schedule, source.schedule but not the specific safe atomic transition. Disabled Outbox UI entry points are present only as a scaffold; issue #77 tracks controlled testing. Do not attempt copy-and-send or promise that scheduling is cancelled. No real outgoing email was sent in this work.
+
+Automated Windows tests passed including Cyrillic migration, data backup, and batch marks. Owner GUI and recipient HTML display remain unverified. Do not regress account dragging and splitter animation.
