@@ -47,6 +47,13 @@ public partial class MessageWindow : Window
         SubjectText.Text = summary.Subject;
         FromText.Text = "От: " + summary.SenderDisplay;
         DateText.Text = "Дата: " + summary.DateDisplay;
+        var folderInfo = folders.FirstOrDefault(f => f.Id == currentFolderId);
+        if (folderInfo is not null &&
+            (folderInfo.Type.Equals("outbox", StringComparison.OrdinalIgnoreCase) ||
+             folderInfo.Type.Equals("scheduled", StringComparison.OrdinalIgnoreCase) ||
+             folderInfo.Name.Contains("Исходящие", StringComparison.OrdinalIgnoreCase)))
+            SendScheduledNowButton.Visibility = Visibility.Visible;
+
         MoveFolderComboBox.ItemsSource = folders;
         MoveFolderComboBox.SelectedItem =
             folders.FirstOrDefault(folder => folder.Id != currentFolderId);
