@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 
 namespace MailRuDesktop.App;
@@ -14,6 +15,10 @@ internal sealed class MarkdownTemplateStore
     public string DirectoryPath { get; private set; }
 
     private const string LegacyMarker = ".legacy-imported";
+    private static readonly JsonSerializerOptions ReadableRussian = new()
+    {
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+    };
 
     public MarkdownTemplateStore(string? initialDirectory = null)
     {
@@ -171,17 +176,17 @@ internal sealed class MarkdownTemplateStore
 
         var output = new StringBuilder();
         output.AppendLine("---");
-        output.Append("subject: ").AppendLine(JsonSerializer.Serialize(template.Subject));
+        output.Append("subject: ").AppendLine(JsonSerializer.Serialize(template.Subject, ReadableRussian));
         output.AppendLine("attachments:");
         foreach (var attachment in attachments)
-            output.Append("  - ").AppendLine(JsonSerializer.Serialize(attachment));
+            output.Append("  - ").AppendLine(JsonSerializer.Serialize(attachment, ReadableRussian));
         output.AppendLine("---");
         output.Append(template.Body);
 
         var temp = target + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
         {
-            File.WriteAllText(temp, output.ToString(), new UTF8Encoding(false));
+            File.WriteAllText(temp, output.ToString(), new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
             File.Move(temp, target, sameFile);
             if (previous is not null && !sameFile && File.Exists(previous))
                 File.Delete(previous);
