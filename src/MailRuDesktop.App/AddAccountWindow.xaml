@@ -6,7 +6,7 @@
         SizeToContent="WidthAndHeight"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
-        Background="{DynamicResource AppWindowBrush}"
+        Background="{DynamicResource AppDialogBrush}"
         Foreground="{DynamicResource AppTextBrush}">
     <Grid Margin="20" Width="390">
         <Grid.RowDefinitions>
