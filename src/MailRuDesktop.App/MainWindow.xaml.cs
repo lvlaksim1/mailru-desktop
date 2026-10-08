@@ -730,8 +730,20 @@ public partial class MainWindow : Window
                 full.Attachments.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
             ResponseTextBox.Text = full.RawJson;
 
-            if (message.Unread)
-                ReplaceMessage(message, message with { Unread = false });
+            // Some smart-thread summaries omit "correspondents.from", while
+            // /messages/message still supplies the true sender address.
+            // Enrich the selected list row from the verified full message,
+            // rather than leaving a blank sender or guessing from the subject.
+            var completeSender = message with
+            {
+                SenderName = string.IsNullOrWhiteSpace(message.SenderName)
+                    ? full.FromName : message.SenderName,
+                SenderEmail = string.IsNullOrWhiteSpace(message.SenderEmail)
+                    ? full.FromEmail : message.SenderEmail,
+                Unread = false
+            };
+            if (!Equals(message, completeSender))
+                ReplaceMessage(message, completeSender);
 
             if (!string.IsNullOrWhiteSpace(full.Html))
             {
