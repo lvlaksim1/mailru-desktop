@@ -188,10 +188,7 @@ internal sealed class PaletteColorPickerWindow : Window
 
         RenderPalette();
         UpdateSelection(writeHex: true);
-        SourceInitialized += (_, _) => ThemeManager.RefreshWindowChrome(this);
-        Loaded += (_, _) => ThemeManager.RefreshWindowChrome(this);
-        Activated += (_, _) => Dispatcher.BeginInvoke(
-            new Action(() => ThemeManager.RefreshWindowChrome(this)));
+        ThemeManager.AttachWindowChrome(this);
     }
 
     private void PickSurface(Point at)
