@@ -39,6 +39,16 @@ Expect(parsed.Messages.Count, 2, "two sender shapes parsed");
 Expect(parsed.Messages.Single(x => x.Id == "m1").SenderDisplay, "single@mail.ru", "single object from");
 Expect(parsed.Messages.Single(x => x.Id == "m2").SenderDisplay, "array@mail.ru", "array from");
 
+var threadSender = """
+{"body":{"folders_content":[{"id":0,"threads":[{"id":"m3",
+"correspondents":{"from":[{"email":"thread@mail.ru"}]},
+"base_message":{"id":"m3","subject":"Thread-only sender"}}]}]}}
+""";
+var threadSnapshot = MailRuThreadStatusParser.Parse(threadSender, 0);
+Expect(threadSnapshot.Messages.Single().SenderDisplay, "thread@mail.ru",
+    "sender inherited from thread when base_message omits correspondent");
+
+
 using (var handler = new RecordingHandler())
 using (var http = new HttpClient(handler))
 using (var client = new MailRuClient(httpClient: http))
