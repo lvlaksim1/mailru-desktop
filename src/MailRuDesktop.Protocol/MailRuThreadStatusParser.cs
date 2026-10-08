@@ -419,12 +419,45 @@ public static class MailRuThreadStatusParser
         if (parentThread is { } thread &&
             string.IsNullOrWhiteSpace(parsed.SenderEmail))
         {
-            var (name, email) = ReadSender(thread);
-            if (!string.IsNullOrWhiteSpace(email))
+            var (name, email) = ReadSenderFromThread(thread, id);
+            if (!string.IsNullOrWhiteSpace(name) || !string.IsNullOrWhiteSpace(email))
                 parsed = parsed with { SenderName = name, SenderEmail = email };
         }
 
         result.Add(parsed);
+    }
+
+    private static (string Name, string Email) ReadSenderFromThread(
+        JsonElement thread, string selectedMessageId)
+    {
+        var direct = ReadSender(thread);
+        if (direct.Name.Length > 0 || direct.Email.Length > 0)
+            return direct;
+
+        // A compact base_message can omit correspondent information even
+        // when another representation of that SAME message contains it.
+        foreach (var key in new[] { "messages", "representations" })
+        {
+            if (!thread.TryGetProperty(key, out var source) ||
+                source.ValueKind != JsonValueKind.Array)
+                continue;
+
+            foreach (var candidate in source.EnumerateArray())
+            {
+                if (candidate.ValueKind != JsonValueKind.Object)
+                    continue;
+
+                // Never use another message's sender in the same conversation.
+                if (!TryResolveMessageId(candidate, string.Empty, out var candidateId) ||
+                    !string.Equals(candidateId, selectedMessageId, StringComparison.Ordinal))
+                    continue;
+
+                var sender = ReadSender(candidate);
+                if (sender.Name.Length > 0 || sender.Email.Length > 0)
+                    return sender;
+            }
+        }
+        return (string.Empty, string.Empty);
     }
 
     private static MailRuMessageSummary ParseBaseMessage(string id, JsonElement message)
