@@ -93,7 +93,7 @@ internal sealed class RichComposeEditor
                 if (rowIndex >= parent.RowDefinitions.Count)
                     return;
                 var row = parent.RowDefinitions[rowIndex];
-                var next = Math.Clamp(row.ActualHeight + e.VerticalChange, 115, 550);
+                var next = Math.Clamp(row.ActualHeight + e.VerticalChange, 150, 550);
                 row.Height = new GridLength(next, GridUnitType.Pixel);
             };
             host.Children.Add(grip);
