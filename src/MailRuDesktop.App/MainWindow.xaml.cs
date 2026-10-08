@@ -1348,16 +1348,6 @@ public partial class MainWindow : Window
             return;
         }
 
-        var answer = MessageBox.Show(
-            this,
-            $"Удалить письмо «{message.Subject}» навсегда? Это действие нельзя отменить.",
-            "MailRu Desktop",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Warning);
-
-        if (answer != MessageBoxResult.Yes)
-            return;
-
         TrashMessageButton.IsEnabled = false;
         FolderStatusText.Text = "Окончательное удаление...";
 
