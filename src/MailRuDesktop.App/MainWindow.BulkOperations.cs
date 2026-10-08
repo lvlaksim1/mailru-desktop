@@ -21,7 +21,9 @@ public partial class MainWindow
                 checkbox = candidate;
                 break;
             }
-            source = VisualTreeHelper.GetParent(source);
+            source = source is Visual
+                ? VisualTreeHelper.GetParent(source)
+                : LogicalTreeHelper.GetParent(source);
         }
 
         if (checkbox is null)
