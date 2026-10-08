@@ -538,6 +538,7 @@ public partial class MainWindow
                 StringComparison.OrdinalIgnoreCase));
 
         if (accountEntryIndex >= 0 &&
+            _accountDragTargetDisplayIndex != _accountDragSourceDisplayIndex &&
             _accountDragTargetDisplayIndex >= 0 &&
             _accountDragTargetDisplayIndex < _accountRailDisplayItems.Count)
         {
