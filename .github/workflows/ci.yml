@@ -28,6 +28,9 @@ jobs:
       - name: Interaction regression tests (offline)
         run: dotnet run --project tests/InteractionLogicSmoke/InteractionLogicSmoke.csproj -c Release
 
+      - name: Verify window and element registry
+        run: python tools/ui_registry.py --check
+
       - name: Launch smoke test
         shell: pwsh
         run: |
