@@ -499,6 +499,7 @@ public partial class MainWindow
     <local:FirstLineConverter x:Key="FirstLineConverter"/>
     <local:ThreadCountConverter x:Key="ThreadCountConverter"/>
     <local:ThreadCountVisibilityConverter x:Key="ThreadCountVisibilityConverter"/>
+    <local:MailActivePreviewConverter x:Key="MailActivePreviewConverter"/>
 
     <Style x:Key="ModernMailRowItemStyle" TargetType="{x:Type ListBoxItem}">
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -528,6 +529,19 @@ public partial class MainWindow
                                     Property="Background"
                                     Value="{DynamicResource AppSelectionBrush}"/>
                         </Trigger>
+                        <DataTrigger Value="True">
+                            <DataTrigger.Binding>
+                                <MultiBinding Converter="{StaticResource MailActivePreviewConverter}">
+                                    <Binding Path="Id"/>
+                                    <Binding Path="ActiveId"
+                                             Source="{x:Static local:MailPreviewState.Instance}"/>
+                                </MultiBinding>
+                            </DataTrigger.Binding>
+                            <Setter TargetName="Row" Property="BorderBrush"
+                                    Value="{DynamicResource AppAccentBrush}"/>
+                            <Setter TargetName="Row" Property="BorderThickness"
+                                    Value="3,0,0,1"/>
+                        </DataTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
