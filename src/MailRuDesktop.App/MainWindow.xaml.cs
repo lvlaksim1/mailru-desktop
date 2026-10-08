@@ -89,6 +89,8 @@ public partial class MainWindow : Window
         Closed += (_, _) =>
         {
             ThemeManager.ThemeChanged -= ThemeManager_ThemeChanged;
+            CancelReaderPresentation();
+            _messageLoadCancellation?.Cancel();
             if (MessageWebView.CoreWebView2 is not null && _mailImageProxyConfigured)
                 MessageWebView.CoreWebView2.WebResourceRequested -= MailImageProxy_WebResourceRequested;
             _mailImageHttp.Dispose();
@@ -122,47 +124,10 @@ public partial class MainWindow : Window
             MessageWebView.CoreWebView2.Settings.AreDevToolsEnabled = false;
             MessageWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
             ConfigureMailImageProxy();
-            MessageWebView.NavigationStarting += (_, args) =>
-            {
-                // Only the navigation deliberately requested for the current
-                // letter can make the reader visible. Stale completions from
-                // earlier documents must never reveal the previous letter.
-                if (_readerNavigationPending)
-                {
-                    _latestReaderNavigationId = args.NavigationId;
-                    _readerNavigationPending = false;
-                    _readerWaitingForFullMessage = false;
-                }
-                MessageWebView.Visibility = Visibility.Hidden;
-            };
-            // Body and inline CSS are ready at DOMContentLoaded. Waiting for
-            // NavigationCompleted can also wait for slow external images,
-            // recreating browser-visible latency for image-heavy mail.
-            MessageWebView.CoreWebView2.DOMContentLoaded += (_, args) =>
-            {
-                if (!_readerWaitingForFullMessage &&
-                    args.NavigationId == _latestReaderNavigationId)
-                {
-                    MessageWebView.Visibility = Visibility.Visible;
-                    ReaderLoadingOverlay.Visibility = Visibility.Collapsed;
-                }
-            };
-            MessageWebView.NavigationCompleted += (_, args) =>
-            {
-                if (_readerWaitingForFullMessage ||
-                    args.NavigationId != _latestReaderNavigationId)
-                    return;
-
-                if (!args.IsSuccess)
-                {
-                    ReaderLoadingText.Text = "Не удалось отобразить содержимое письма.";
-                    DiagnosticLog.Write("reader_navigation", "WebView2 error=" + args.WebErrorStatus);
-                    return;
-                }
-
-                MessageWebView.Visibility = Visibility.Visible;
-                ReaderLoadingOverlay.Visibility = Visibility.Collapsed;
-            };
+            InitializeReaderPresentation();
+            MessageWebView.NavigationStarting += ReaderNavigationStarting;
+            MessageWebView.CoreWebView2.DOMContentLoaded += ReaderDomContentLoaded;
+            MessageWebView.NavigationCompleted += ReaderNavigationCompleted;
             _readerReady = true;
 
             ShowReaderText("Выберите письмо.");
@@ -761,8 +726,8 @@ public partial class MainWindow : Window
         // newest selected letter wait behind the previous network response.
         _messageLoadCancellation?.Cancel();
         _messageLoadCancellation = new CancellationTokenSource();
-        // Stop the old document and mask it until the final new navigation
-        // completes. No blank page or previous letter is ever shown in between.
+        // No events from a previous navigation may publish an old letter.
+        CancelReaderPresentation();
         _readerNavigationPending = false;
         _readerWaitingForFullMessage = true;
         MessageWebView.Visibility = Visibility.Hidden;
@@ -2050,6 +2015,7 @@ public partial class MainWindow : Window
             body +
             "</body></html>";
 
+        CancelReaderPresentation();
         _readerNavigationPending = true;
         _readerWaitingForFullMessage = true;
         MessageWebView.Visibility = Visibility.Hidden;
@@ -2069,6 +2035,7 @@ public partial class MainWindow : Window
         // never replace the new letter with the raw, unprepared HTML body.
         if (!_readerReady || _readerWaitingForFullMessage ||
             _readerNavigationPending ||
+            _readerStageRevealing ||
             MessageWebView.Visibility != Visibility.Visible)
             return;
 
