@@ -677,7 +677,8 @@
                                 <Border x:Name="ReaderLoadingOverlay"
                                         Visibility="Collapsed"
                                         Background="{DynamicResource AppReaderBrush}">
-                                    <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center"
+                                    <TextBlock x:Name="ReaderLoadingText"
+                                               VerticalAlignment="Center" HorizontalAlignment="Center"
                                                FontSize="{DynamicResource AppFontBodySize}"
                                                Foreground="{DynamicResource AppMutedTextBrush}"
                                                Text="Загрузка письма…"/>
