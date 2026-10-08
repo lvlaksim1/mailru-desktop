@@ -670,7 +670,17 @@
                                 CornerRadius="8"
                                 BorderBrush="{DynamicResource AppBorderBrush}"
                                 BorderThickness="1">
-                            <wv2:WebView2 x:Name="MessageWebView"/>
+                            <Grid>
+                                <wv2:WebView2 x:Name="MessageWebView"/>
+                                <Border x:Name="ReaderLoadingOverlay"
+                                        Visibility="Collapsed"
+                                        Background="{DynamicResource AppReaderBrush}">
+                                    <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center"
+                                               FontSize="{DynamicResource AppFontBodySize}"
+                                               Foreground="{DynamicResource AppMutedTextBrush}"
+                                               Text="Загрузка письма…"/>
+                                </Border>
+                            </Grid>
                         </Border>
 
                         <StackPanel x:Name="IncomingAttachmentsPanel"
