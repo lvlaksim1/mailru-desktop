@@ -1,20 +1,18 @@
-# Latest MailRu Desktop Project Manager handoff — 2026-10-09
+# Последняя передача проекта MailRu Desktop — 2026-10-09
 
-identity: project-manager
+manager: project-manager
 repository: lvlaksim1/mailru-desktop
 product authority: main
 manager-state authority: main
-latest binary: v0.3.28
-product PR: #94, merge 1d07dc2d17d4ffd2fc0cfa238e09d67032ece4f2
-verified GitHub Actions: PR CI 37847574160 PASS; main CI 37847753416 PASS; installer release 37847893518 PASS.
-download: https://github.com/lvlaksim1/mailru-desktop/releases/tag/v0.3.28
+latest binary: v0.3.29
+PR #96, merge 8f0ff0c07e59b38fd6e14edd14bebd7b74018c19
+CI PR 37850178802 PASS; main 37850342043 PASS
+Release workflow 37850493662: full and update v0.3.29 assets available at https://github.com/lvlaksim1/mailru-desktop/releases/tag/v0.3.29
 
-Owner confirmed several v0.3.27 features: section dragging works perfectly; update version checking fixed; Contacts nav removed; contact picker and collapsed Signature/Template settings good; sender/account portrait retrieval now reliable — stop photo retrieval research. Owner requested portraits scale proportionately with interface font. Also required visible outgoing sender email in detached New Mail to avoid cross-account sender changes.
+Owner feedback: v0.3.28 works, but only two of the much longer previous package are recognized. Owner reattached the prior 22-point explanation and asked for implementation. Treat its wording as actual acceptance criteria. Source code changes alone do not prove real-world UI function. Stop searching for photos of senders: Owner said retrieval works. The two refinements of avatar scaling and visible outgoing From address had been added in v0.3.28.
 
-Following annotated screen review Owner identified WebView2 body flash (blank, old letter, selected), missing inline af12.mail.ru images, color picker brightness strip failing to respond to hue/saturation, Settings folder navigation, New Mail placement, unwanted blue Send background, white captions in New Mail and chooser, template/signature selectors in detached compose, editor hover/focus outline, excess blank height of notice dialogs, excessive folder captions, order Signatures→Templates, import pre-existing Markdown for editing/copy, color section inside Appearance, copy-all diagnostics and unifying near-duplicate color settings.
+PR #96 found an actual 16x16 parent image frame clipping an avatar that had only been resized inside it; parent Border and sender column now scale. Clicking an already-selected folder while Settings is open now returns to Mail (mouse and Enter). New Mail button docks right above messages instead of left among bulk actions. New mail signature/template selectors now have visible labels. ThemeManager no longer re-applies an unchanged System theme on every application activation, avoiding needless HTML reload; reader does not expose unfinished raw HTML during a theme change and reports WebView2 failed navigation. TextPromptWindow adapts height to content and follows shared native window chrome; Color picker/contact dialogs no longer duplicate chrome hooks. Legacy shared theme color migration deterministically chooses first valid older value unless explicitly overridden by canonical color.
 
-PR #94 included all those source-level changes. New font-aware AppAvatarSize=14..24 does NOT change image retrieval. Detached composer snapshots account login and access token, shows read-only From, uses snapshots for drafts/attachments/sends/contacts. Mail reader cancels stale preparation and delays showing WebView2 until new navigation is complete, with neutral loading overlay. Inline afNN attachment references are fetched through existing access-token API and inserted only if bytes match known image signatures. Source import .md leaves original untouched until explicit Save. Caption hooks centralized via ThemeManager.AttachWindowChrome; compact dialogs and no editor hover border; 20 editable palette entries backed by 26 preserved WPF resource keys, migration for older values. XAML UI inventory now 9 windows / 1371 elements.
+New tests/WindowsUiSmoke creates real WPF windows on Windows runner, opens Settings, verifies Appearance/Palette placement and Signatures immediately before Templates, returns to Mail, opens New Mail, checks From field/choosers and absence of a forced blue button background, creates a short notice and checks height, then changes the color picker surface and confirms pixels of the right brightness strip change. All passed in CI 37850178802 and 37850342043, together with offline regression tests and source-derived registry (9 windows, 1374 elements).
 
-**Important truth:** CI/build/startup passed, but Owner has NOT yet visually verified the v0.3.28 changes on the actual machine, particularly image loading, WebView timing, titlebar color and account-switch composition. Do not assert 100% successful behavior before Owner confirmation. Do not perform unsolicited outbound email to test.
-
-**Still blocked:** Send Now for already scheduled Outbox letter, issue #77: no proof of duplicate-safe server cancellation/reuse, so controls disabled. Recipient acknowledgment/delivery and go.mail.ru search remain separate investigations. Preserve accepted sender portrait retrieval, group dragging, updater and authorization flows.
+Outstanding OWNER validation: rapid HTML letter switching, images requiring private authorization, titlebar appearance on Owner Windows, full message/template use and 22-point list as a whole. This release has not been confirmed by Owner in the actual app. Do not send unsolicited mail. Protocol debt #77 scheduled Outbox Send Now remains blocked due duplicate risk; read receipts and exact delayed delivery are not fully verified.

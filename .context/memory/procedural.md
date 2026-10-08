@@ -41,3 +41,10 @@ For HTML mail, distinguish UI navigation timing from network image loading. Prev
 If Owner asks to consolidate overly similar palette controls, keep old WPF resource keys and saved settings legible; use a canonical editable role with alias resolution, honoring explicit canonical overrides first and migrating a previously edited alias if no canonical edit exists. Current count: 20 editable controls, 26 resource names. Source-generated catalog must list all windows including new runtime-created ones (9 windows, 1371 entries).
 
 Never infer that a CI pass proves an actual Windows titlebar is dark, no mail flickers, or a private image is accessible. Record owner acceptance separately.
+
+
+## Проверка действующего интерфейса вместо только сборки (2026-10-09)
+
+Изменение исходного кода и успешный запуск программы недостаточны для приёмки требований владельца. Для v0.3.29 добавлен tests/WindowsUiSmoke: на Windows создаются реальные окна, открываются настройки и новое письмо, проверяются расположение цветовых настроек, подписи и шаблоны, адрес отправителя, высота уведомления и реальная перерисовка битовой шкалы яркости при выборе основного цвета. Операции с реальным аккаунтом и частными HTML-изображениями по-прежнему требуют подтверждения пользователя.
+
+Особые выводы: при изменении размера фотографии нужно масштабировать и вложенное Image, и внешнюю рамку Border, и колонку списка; обработчик SelectionChanged не получает повторный щелчок уже выделенной папки; автоматическая перекраска при каждой активации приложения вызывает избыточные перерисовки HTML; при объединении нескольких старых ролей цвета использовать явный общий цвет или первое допустимое старое значение, а не последнее из прохода.

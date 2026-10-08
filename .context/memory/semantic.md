@@ -19,6 +19,6 @@
 ## Stable product facts
 
 - Native Windows client: .NET 8 + WPF, protocol isolated in `MailRuDesktop.Protocol`.
-- Latest verified public release as of 2026-10-09: v0.3.28 (v0.2.0 was historical).
+- Latest verified public release as of 2026-10-09: v0.3.29 (v0.2.0 was historical).
 - Normal runtime has no artificial five-second delay; research/probe/test requests keep at least five seconds spacing.
 - CAPTCHA/reCAPTCHA/additional interactive verification stops authorization; no bypass.
