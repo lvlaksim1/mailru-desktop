@@ -111,6 +111,20 @@ try
     Expect(templates.LoadAll().Single(t => t.Name == "Русское письмо").Subject,
         "Тема письма — проверка", "Cyrillic subject roundtrip");
 
+    var escapedPath = Path.Combine(first, "Escaped.md");
+    File.WriteAllText(escapedPath,
+        "---\nsubject: \"\\u0422\\u0435\\u043C\\u0430\"\nattachments:\n---\nТело письма");
+    var legacy = templates.LoadAll().Single(item => item.Name == "Escaped");
+    Expect(legacy.Subject, "Тема", "legacy escaped subject decoded");
+    var rewritten = File.ReadAllText(escapedPath);
+    if (!rewritten.Contains("Тема", StringComparison.Ordinal) ||
+        rewritten.Contains("\\u0422", StringComparison.OrdinalIgnoreCase))
+        throw new Exception("Legacy template metadata remains escaped.");
+    if (!File.Exists(escapedPath + ".escaped-metadata.bak"))
+        throw new Exception("Escaped source file backup missing");
+    Console.WriteLine("PASS legacy escaped metadata rewritten with original backup");
+
+
     Expect(saved.Body, "Reply text", "template body survives disk roundtrip");
     if (saved.Attachments.Count != 1 || !File.Exists(saved.Attachments[0]))
         throw new Exception("Template attachment was not copied into managed folder");
@@ -118,7 +132,7 @@ try
 
     templates.ChangeDirectory(next);
     Expect(templates.DirectoryPath, Path.GetFullPath(next), "template folder is configurable");
-    Expect(templates.LoadAll().Count, 3, "template files preserved on directory change");
+    Expect(templates.LoadAll().Count, 4, "template files preserved on directory change");
     var moved = templates.LoadAll().Single(t => t.Name == "Reply");
     if (!File.Exists(moved.Attachments.Single()))
         throw new Exception("Attachment missing after template folder change");
@@ -127,7 +141,7 @@ try
         throw new Exception("Original template folder was deleted");
 
     File.WriteAllText(Path.Combine(next, "AddedManually.md"), "New text");
-    Expect(templates.LoadAll().Count, 4, "manually added file appears without restart");
+    Expect(templates.LoadAll().Count, 5, "manually added file appears without restart");
 
     var conflicting = Path.Combine(testRoot, "conflicting");
     Directory.CreateDirectory(conflicting);
