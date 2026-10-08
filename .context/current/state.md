@@ -5,7 +5,7 @@ Visibility: public
 Product authority: main
 Manager-state authority: main
 
-Latest public release: **v0.3.21**, published 2026-10-08 with full and update installers. Release workflow 37716328414: success. PR #73 merged on main as e29a23ab81697b0dd38f0f1b2d9ce38efefb8c52. PR #70 merged as eb3415ac30f81cc3426d4726b53d590d42e57b11. CI 37711634109 and release workflow 37711732617 succeeded.
+Latest public release: **v0.3.22**, published 2026-10-08 with full and update installers. Product PR #76 merge bd6ff6ff98f93a69458efc921e7c35a21e159afc, main CI 37719927017, storage 37719927127, installer workflow 37720023234: success. PR #73 merged on main as e29a23ab81697b0dd38f0f1b2d9ce38efefb8c52. PR #70 merged as eb3415ac30f81cc3426d4726b53d590d42e57b11. CI 37711634109 and release workflow 37711732617 succeeded.
 Product changes: PR #62 plus PR #63, merge commit 34e583abc232c9edc939816a92b4e08165836210.
 Release workflow 37707435464, main CI 37707321540 and repository storage check 37707321584: success.
 
@@ -122,3 +122,22 @@ ThemeManager applies all 26 resource brushes, synchronizes window titlebar and m
 Offline regression checks verify role uniqueness/count, both default sets, validation/normalization of color codes, contrast calculation, isolated storage persistence and independent reset. Windows CI, startup smoke and release passed. Owner visual confirmation of all windows/menus and color combinations is pending.
 
 No code changes were made to Owner-approved account drag/animation and splitters. Other unfinished mail features from the 12-point backlog are not included in v0.3.21.
+
+## v0.3.22 — Owner-approved mail backlog and palette interaction
+
+Two palette changes: grouped role editor in Settings is collapsed by default; color selection uses a click-to-choose 2D hue/saturation palette and vertical brightness strip instead of three RGB sliders. Hex input and the fixed 26-role per-theme contract remain.
+
+From the 12-point mail backlog:
+1. Missing sender email/name now starts automatic targeted full-message lookup on folder load, capped to 20 missing senders with 5-second gaps, always markRead=false and cancelled when switching account/folder. Parent-thread and selected-message sender fallback remain. This fixes dependence on manually opening messages but Owner live verification is still necessary.
+2. Markdown subject/attachment metadata is saved as directly readable Cyrillic UTF-8 with BOM. On reading older escaped metadata, the app migrates the metadata after closing the read stream, preserves the message body and writes a backup. Regression tests pass.
+3. Configurable per-theme semantic colors were delivered in v0.3.21; this release changes expander and picker as described.
+4-5. User-selectable attachment download directory is persisted, defaulting to Downloads; after successful single/archive save, Windows Explorer opens the containing folder. The setting also applies in the detached message viewer.
+6. Attachments and download buttons have been moved above the embedded message viewer (the detached viewer already displays attachments at top).
+7. New-mail, inline reply/forward and detached reply/forward use a shared rich editor with toolbar (bold, italic, underline, strike, lists, alignment, links, text color). It synchronizes plain text for signatures/templates and serializes formatted HTML plus plain text into outgoing requests. Automatic compilation/startup succeeded, actual formatted delivery needs Owner test.
+8. Leftmost checkbox column, Ctrl/Shift selection, Ctrl+A and multi-select count bar added; clicking the checkbox no longer automatically opens or marks read.
+9. Bulk toolbar has Trash, Archive and Read buttons, using a single array-based server move or grouped marks request, with repeat-submit protection.
+12. When viewing Trash, a permanent bulk-delete button uses /api/v1/messages/remove with explicit confirmation.
+
+**BLOCKED AND NOT DONE:** #10 and #11 immediate send of already scheduled messages. Buttons appear disabled in the Outbox bulk bar, individual preview and context menu. Official APK confirms /messages/send, /schedule and source.schedule metadata but not a validated atomic transition that cancels/resuses a scheduled item without duplicates. Unsafe conjecture must not be enabled. Issue #77 tracks controlled protocol validation. Do not announce all twelve complete.
+
+PR #76, main CI 37719927017 and Windows release workflow 37720023234 passed. Owner GUI/runtime validation of mail selection and actual HTML delivery remains pending. Account dragging/splitters were not modified.
