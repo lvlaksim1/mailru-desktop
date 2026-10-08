@@ -28,6 +28,7 @@ public partial class MainWindow
     private int _accountDragSourceDisplayIndex = -1;
     private int _accountDragTargetDisplayIndex = -1;
     private bool _accountDragActive;
+    private bool _accountPressHandled;
 
     private void InitializeAccountRailLayout()
     {
@@ -315,9 +316,11 @@ public partial class MainWindow
             container.DataContext is not AccountRailItem account)
         {
             StopAccountDragHold();
+            _accountPressHandled = false;
             return;
         }
 
+        _accountPressHandled = true;
         _accountDragCandidate = account;
         _accountDragPressPoint = e.GetPosition(AccountRailListBox);
         _accountDragStartPoint = _accountDragPressPoint;
@@ -410,28 +413,48 @@ public partial class MainWindow
 
     private int FindAccountDragTargetDisplayIndex(double y)
     {
-        var result = _accountDragSourceDisplayIndex;
+        // Compare against the ORIGINAL row centers. TranslatePoint includes the
+        // running neighbor animations, so measuring the transformed row positions
+        // creates a feedback loop: downward targets disappear or oscillate.
+        // Thresholds are the centers of the OTHER rows, never the dragged row.
+        var from = _accountDragSourceDisplayIndex;
+        if (from < 0)
+            return -1;
 
-        for (var i = 0; i < _accountRailDisplayItems.Count; i++)
+        if (TryGetUnanimatedRowMidpoint(from, out var origin) && y < origin)
         {
-            if (AccountRailListBox.ItemContainerGenerator.ContainerFromIndex(i)
-                is not ListBoxItem container)
+            for (var i = 0; i < from; i++)
             {
-                continue;
+                if (TryGetUnanimatedRowMidpoint(i, out var center) && y < center)
+                    return i;
             }
-
-            var top = container.TranslatePoint(
-                new Point(0, 0),
-                AccountRailListBox).Y;
-            var middle = top + container.ActualHeight / 2;
-
-            if (y < middle)
-                return i;
-
-            result = i;
+            return from;
         }
 
-        return result;
+        var target = from;
+        for (var i = from + 1; i < _accountRailDisplayItems.Count; i++)
+        {
+            if (TryGetUnanimatedRowMidpoint(i, out var center) && y >= center)
+                target = i;
+        }
+
+        return target;
+    }
+
+    private bool TryGetUnanimatedRowMidpoint(int index, out double midpoint)
+    {
+        midpoint = 0;
+        if (AccountRailListBox.ItemContainerGenerator.ContainerFromIndex(index)
+            is not ListBoxItem container)
+            return false;
+
+        var shiftedTop = container.TranslatePoint(new Point(0, 0), AccountRailListBox).Y;
+        var displacement = container.RenderTransform is TranslateTransform transform
+            ? transform.Y
+            : 0;
+
+        midpoint = shiftedTop - displacement + container.ActualHeight / 2;
+        return true;
     }
 
     private void AnimateAccountDragPreview(
@@ -483,35 +506,37 @@ public partial class MainWindow
     {
         _accountDragHoldTimer.Stop();
 
-        if (!_accountDragActive)
+        if (_accountDragActive)
         {
-            var clickedAccount = _accountDragCandidate;
-            _accountDragCandidate = null;
-
-            if (clickedAccount is not null)
-            {
-                if (!ReferenceEquals(
-                        AccountRailListBox.SelectedItem,
-                        clickedAccount))
-                {
-                    AccountRailListBox.SelectedItem = clickedAccount;
-                }
-                else if (string.Equals(
-                             clickedAccount.Login,
-                             _activeLogin,
-                             StringComparison.OrdinalIgnoreCase))
-                {
-                    ShowWorkspace(MailWorkspace);
-                }
-
-                e.Handled = true;
-            }
-
+            CommitAccountDrag();
+            e.Handled = true;
             return;
         }
 
-        CommitAccountDrag();
+        if (!_accountPressHandled)
+            return;
+
+        // A short ordinary click selects only the exact account pressed.
+        // A pointer movement that cancelled the long press must NOT select
+        // the neighboring row below the pointer on mouse-up.
+        _accountPressHandled = false;
+        var clickedAccount = _accountDragCandidate;
+        _accountDragCandidate = null;
         e.Handled = true;
+
+        if (clickedAccount is null)
+            return;
+
+        var released = e.GetPosition(AccountRailListBox);
+        if (Math.Abs(released.X - _accountDragPressPoint.X) > 7 ||
+            Math.Abs(released.Y - _accountDragPressPoint.Y) > 7)
+            return;
+
+        if (!ReferenceEquals(AccountRailListBox.SelectedItem, clickedAccount))
+            AccountRailListBox.SelectedItem = clickedAccount;
+        else if (string.Equals(clickedAccount.Login, _activeLogin,
+                     StringComparison.OrdinalIgnoreCase))
+            ShowWorkspace(MailWorkspace);
     }
 
     private void AccountRail_LostMouseCapture(
@@ -566,6 +591,7 @@ public partial class MainWindow
 
         ResetAccountDragVisuals();
         _accountDragActive = false;
+        _accountPressHandled = false;
         _accountDragCandidate = null;
         _draggedAccount = null;
         _draggedAccountContainer = null;
@@ -605,27 +631,18 @@ public partial class MainWindow
 
     private void ResetAccountDragVisuals()
     {
+        // Do not leave animated transforms on recycled ListBoxItem containers.
+        // Stale offsets otherwise cause the next click to hit the row underneath.
         for (var i = 0; i < _accountRailDisplayItems.Count; i++)
         {
             if (AccountRailListBox.ItemContainerGenerator.ContainerFromIndex(i)
                 is not ListBoxItem container)
-            {
                 continue;
-            }
 
             if (container.RenderTransform is TranslateTransform transform)
             {
-                transform.BeginAnimation(
-                    TranslateTransform.YProperty,
-                    new DoubleAnimation(
-                        0,
-                        TimeSpan.FromMilliseconds(150))
-                    {
-                        EasingFunction = new CubicEase
-                        {
-                            EasingMode = EasingMode.EaseOut
-                        }
-                    });
+                transform.BeginAnimation(TranslateTransform.YProperty, null);
+                transform.Y = 0;
             }
 
             container.Opacity = 1;
