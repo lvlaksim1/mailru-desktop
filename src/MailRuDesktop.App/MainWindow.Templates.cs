@@ -457,6 +457,11 @@ public partial class MainWindow
         if (_refreshingTemplateList ||
             ComposeTemplateComboBox.SelectedItem is not SavedMailTemplate template)
             return;
+        ApplyComposeTemplate(template);
+    }
+
+    private void ApplyComposeTemplate(SavedMailTemplate template)
+    {
         ComposeSubjectTextBox.Text = template.Subject;
         ComposeBodyTextBox.Text = template.Body;
         _composeInsertedSignature = null;
