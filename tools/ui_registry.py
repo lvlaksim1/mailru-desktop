@@ -198,12 +198,12 @@ def scan() -> dict:
         raise ValueError("Duplicate UI ids: " + ", ".join(duplicates[:10]))
 
     palette_text = (SOURCE / "ThemePalette.cs").read_text(encoding="utf-8-sig")
-    declared_roles = set(re.findall(r'new\\("(App\\w+Brush)"', palette_text))
+    declared_roles = set(re.findall(r'new\("(App\w+Brush)"', palette_text))
     used_roles = set()
     for file in source_files(".xaml") + source_files(".cs"):
         code = file.read_text(encoding="utf-8-sig")
         used_roles.update(re.findall(
-            r'\\{(?:DynamicResource|StaticResource)\\s+(App\\w+Brush)\\}', code))
+            r'\{(?:DynamicResource|StaticResource)\s+(App\w+Brush)\}', code))
     unresolved = sorted(used_roles - declared_roles)
     if unresolved:
         raise ValueError("Unknown palette color roles: " + ", ".join(unresolved))
