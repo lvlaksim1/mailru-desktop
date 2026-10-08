@@ -139,7 +139,10 @@ public partial class MainWindow : Window
             {
                 if (!_readerWaitingForFullMessage &&
                     args.NavigationId == _latestReaderNavigationId)
+                {
                     MessageWebView.Visibility = Visibility.Visible;
+                    ReaderLoadingOverlay.Visibility = Visibility.Collapsed;
+                }
             };
             _readerReady = true;
 
@@ -712,6 +715,7 @@ public partial class MainWindow : Window
         _readerNavigationPending = false;
         _readerWaitingForFullMessage = true;
         MessageWebView.Visibility = Visibility.Hidden;
+        ReaderLoadingOverlay.Visibility = Visibility.Visible;
         MessageWebView.CoreWebView2?.Stop();
     }
 
@@ -1984,6 +1988,7 @@ public partial class MainWindow : Window
         _readerNavigationPending = true;
         _readerWaitingForFullMessage = true;
         MessageWebView.Visibility = Visibility.Hidden;
+        ReaderLoadingOverlay.Visibility = Visibility.Visible;
         MessageWebView.NavigateToString(document);
     }
 
