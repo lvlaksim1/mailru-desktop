@@ -190,6 +190,13 @@ public partial class MessageWindow : Window
             "img{max-width:100%;height:auto;}pre{white-space:pre-wrap;}" +
             $"blockquote{{border-left:3px solid {muted};margin-left:8px;padding-left:10px;color:{muted};}}" +
             $"a{{color:{link};}}" + darkOverrides +
+            (ThemeManager.IsDarkEffective
+                ? "::-webkit-scrollbar{width:12px;height:12px;background:#1A1D22;}" +
+                  "::-webkit-scrollbar-track{background:#1A1D22;}" +
+                  "::-webkit-scrollbar-thumb{background:#3A4049;border:2px solid #1A1D22;border-radius:7px;}" +
+                  "::-webkit-scrollbar-thumb:hover{background:#49505B;}" +
+                  "::-webkit-scrollbar-button{background:#242930;height:10px;width:10px;}"
+                : string.Empty) +
             "</style></head><body>" + content + "</body></html>";
 
         MessageWebView.NavigateToString(document);
