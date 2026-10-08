@@ -120,19 +120,24 @@ def scan() -> dict:
     windows: dict[str, dict] = {}
     elements: list[dict] = []
 
+    style_sources = []
     for file in source_files(".xaml"):
         relative = file.relative_to(ROOT).as_posix()
         root = ET.parse(file).getroot()
-        if local_name(root.tag) != "Window":
-            continue
-        cls = root.attrib.get(X_NS + "Class", file.stem)
-        owner = cls.rsplit(".", 1)[-1]
-        windows[owner] = {
-            "id": owner, "source": relative, "declared_as": "XAML",
-            "geometry": attr_map(root, ATTR_LAYOUT),
-            "typography": attr_map(root, ATTR_TEXT),
-            "colors": attr_map(root, ATTR_COLOR),
-        }
+        if local_name(root.tag) == "Window":
+            cls = root.attrib.get(X_NS + "Class", file.stem)
+            owner = cls.rsplit(".", 1)[-1]
+            windows[owner] = {
+                "id": owner, "source": relative, "declared_as": "XAML",
+                "geometry": attr_map(root, ATTR_LAYOUT),
+                "typography": attr_map(root, ATTR_TEXT),
+                "colors": attr_map(root, ATTR_COLOR),
+            }
+        else:
+            # Application.xaml and every ResourceDictionary define shared
+            # colors, font sizes, styles and interactive visual states.
+            owner = "ApplicationStyles"
+            style_sources.append(relative)
         summarize_xml(relative, file.read_text(encoding="utf-8"), owner, elements)
 
     for file in source_files(".cs"):
@@ -183,14 +188,7 @@ def scan() -> dict:
                     k: v for k, v in inline.items() if k in ATTR_TEXT
                 }, "style": None, "states": None,
             })
-    # Styles are part of the interface contract even when not visual nodes.
-    style_sources = []
-    for file in source_files(".xaml"):
-        if file.name == "ThemeStyles.xaml":
-            relative = file.relative_to(ROOT).as_posix()
-            summarize_xml(relative, file.read_text(encoding="utf-8"),
-                          "ApplicationStyles", elements)
-            style_sources.append(relative)
+    # A shared resource is recorded once, along with windows and templates.
     # If source declares a Window that isn't in XAML, it is still registered.
     windows = dict(sorted(windows.items()))
     elements.sort(key=lambda e: e["id"])
@@ -199,6 +197,17 @@ def scan() -> dict:
         duplicates = sorted({x for x in ids if ids.count(x) > 1})
         raise ValueError("Duplicate UI ids: " + ", ".join(duplicates[:10]))
 
+    palette_text = (SOURCE / "ThemePalette.cs").read_text(encoding="utf-8-sig")
+    declared_roles = set(re.findall(r'new\\("(App\\w+Brush)"', palette_text))
+    used_roles = set()
+    for file in source_files(".xaml") + source_files(".cs"):
+        code = file.read_text(encoding="utf-8-sig")
+        used_roles.update(re.findall(
+            r'\\{(?:DynamicResource|StaticResource)\\s+(App\\w+Brush)\\}', code))
+    unresolved = sorted(used_roles - declared_roles)
+    if unresolved:
+        raise ValueError("Unknown palette color roles: " + ", ".join(unresolved))
+
     counts = defaultdict(int)
     for element in elements:
         counts[element["window"]] += 1
@@ -206,8 +215,13 @@ def scan() -> dict:
         row["element_count"] = counts.get(owner, 0)
 
     return {
-        "schema": 1,
+        "schema": 2,
         "generator": "tools/ui_registry.py",
+        "color_reference_audit": {
+            "declared_roles": len(declared_roles),
+            "used_roles": sorted(used_roles),
+            "unresolved_roles": unresolved,
+        },
         "source_of_truth": "Application source: XAML + WPF controls instantiated in C#",
         "rules": {
             "user_can_change_role_values": True,
