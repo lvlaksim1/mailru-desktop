@@ -55,6 +55,7 @@ public partial class MainWindow : Window
         InitializeUserContentSettings();
 
         ThemeManager.Apply(_settingsStore.LoadTheme());
+        InitializePaletteEditor();
         MessagesGrid.ItemsSource = _visibleMessages;
         ConfigureModernMailList();
         SelectThemeComboBox(ThemeManager.CurrentMode);
