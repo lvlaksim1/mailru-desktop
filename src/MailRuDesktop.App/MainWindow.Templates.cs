@@ -13,6 +13,7 @@ public partial class MainWindow
     private readonly ObservableCollection<string> _templateDraftAttachments = [];
     private readonly MarkdownTemplateStore _templateFiles = new();
     private FileSystemWatcher? _templateWatcher;
+    private bool _refreshingTemplateList;
     private string? _previewInsertedSignature;
 
     private void InitializeUserContentSettings()
@@ -71,17 +72,25 @@ public partial class MainWindow
                 pair.First.Attachments.SequenceEqual(pair.Second.Attachments)))
             return;
 
-        _mailTemplates.Clear();
-        foreach (var template in disk)
-            _mailTemplates.Add(template);
+        _refreshingTemplateList = true;
+        try
+        {
+            _mailTemplates.Clear();
+            foreach (var template in disk)
+                _mailTemplates.Add(template);
 
-        if (oldName is not null)
-            MailTemplatesListBox.SelectedItem = _mailTemplates.FirstOrDefault(
-                item => string.Equals(item.Name, oldName, StringComparison.OrdinalIgnoreCase));
+            if (oldName is not null)
+                MailTemplatesListBox.SelectedItem = _mailTemplates.FirstOrDefault(
+                    item => string.Equals(item.Name, oldName, StringComparison.OrdinalIgnoreCase));
 
-        if (selectedPreview is not null)
-            PreviewTemplateComboBox.SelectedItem = _mailTemplates.FirstOrDefault(
-                item => string.Equals(item.Name, selectedPreview, StringComparison.OrdinalIgnoreCase));
+            if (selectedPreview is not null)
+                PreviewTemplateComboBox.SelectedItem = _mailTemplates.FirstOrDefault(
+                    item => string.Equals(item.Name, selectedPreview, StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            _refreshingTemplateList = false;
+        }
     }
 
     private void SignaturesListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -301,7 +310,8 @@ public partial class MainWindow
         object sender,
         SelectionChangedEventArgs e)
     {
-        if (PreviewTemplateComboBox.SelectedItem is not SavedMailTemplate template)
+        if (_refreshingTemplateList ||
+            PreviewTemplateComboBox.SelectedItem is not SavedMailTemplate template)
             return;
 
         PreviewComposeSubjectTextBox.Text = template.Subject;
