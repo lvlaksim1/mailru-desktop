@@ -1,11 +1,9 @@
-# Следующие действия — v0.3.30 (2026-10-09)
+# Next actions — v0.3.31, 2026-10-09
 
-1. Владелец устанавливает https://github.com/lvlaksim1/mailru-desktop/releases/download/v0.3.30/MailRuDesktop_Update_v0.3.30.exe и быстро выбирает разные HTML/обычные письма. Убедиться, что видит только актуальное тело письма, без предыдущего письма или сырой разметки.
-2. Открыть ранее проблемный чек Магнита с двумя встроенными изображениями af12.mail.ru, сравнить с браузером. Если изображения отсутствуют — передать только обобщённую категорию ошибки mail_image_inline (без содержимого письма и токенов).
-3. Для медленных писем сравнить время открытия с браузером. При проблеме использовать безопасную запись mail_render_timing для разделения времени получения тела и загрузки в WebView2.
-4. В настройках шаблонов нажать «Загрузить .md»: начать выбор из указанной папки шаблонов. Загрузить действующий файл, поменять имя и сохранить: создать независимую копию и не изменять исходный шаблон/вложения.
-5. Сохранить под точно существующим названием: появится «Шаблон уже существует, будет перезаписан» с выбором Перезаписать/Отмена. Отмена не затрагивает файл, согласие перезаписывает только целевой файл.
-6. Сохранить остальные функции v0.3.29 без изменений, пока владелец не предъявит новые нарушения.
-7. Исследовать #77 только через контроль ID оригинального планового письма, официальную операцию отмены/перевода расписания и отсутствие второй отправки в первоначальный срок, включая сбои и повторные нажатия. Без этих доказательств кнопка Send Now остаётся отключена.
-8. Продолжить технические долги прочтения/доставки/альтернативного поиска отдельно, с подтверждёнными результатами, не объявляя их выполненными.
-9. Следующие изменения должны проходить Windows CI, InteractionLogicSmoke, WindowsUiSmoke, реестр окон и пробный запуск; источник личных писем нужен только при согласованном тестировании.
+1. Install published MailRuDesktop_Update_v0.3.31.exe after verifying official full/update release assets. Keep previous installation and user data.
+2. Repeat K-001.mp4 scenario: open same Magnet HTML receipt, another message, then original again. Expect neutral loading state and one stable fully laid-out result, not text followed by images/table reflow.
+3. Assess image completeness. When images exceed 3-second wait, Stop prevents late flash but may leave image missing; if essential pictures absent, report the message and only sanitized reader_visual_ready reason/elapsed-ms plus mail_image_inline outcomes, no credentials or full message JSON.
+4. Compare performance with browser and v0.3.30. If the new delay feels excessive, investigate caching and selective image readiness rather than returning to DOMContentLoaded early visibility.
+5. Preserve successful v0.3.30 loading/Save As behavior, folder selection, contacts, sender address, avatar scaling, palette. Reopen only on new reproducible defects.
+6. Continue Issue #77 only with proof of atomic existing-schedule cancellation / one-time delivery using controlled authorized test mail. Otherwise leave control disabled. Read receipts, delayed delivery and alternative search remain technical debts.
+7. Maintain CI checks including source-derived UI registry, actual WPF smoke, offline logic, startup and Mail.ru endpoint policy.

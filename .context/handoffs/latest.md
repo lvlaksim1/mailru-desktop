@@ -1,20 +1,15 @@
-# Последняя передача менеджера MailRu Desktop — v0.3.30
+# Latest handoff — MailRu Desktop v0.3.31 (2026-10-09)
 
-Дата: 2026-10-09
-manager_id: project-manager
-repository: lvlaksim1/mailru-desktop
-product authority: main; manager state authority: main
-published release: https://github.com/lvlaksim1/mailru-desktop/releases/tag/v0.3.30
-PR: #98; merge: 8b509be0592d3b3bdc4674419dc09d6ec637512f
-Windows CI PR: 37855438488 PASS; main: 37855678396 PASS; installer run: 37855812685 PASS.
-Official assets: MailRuDesktop_Update_v0.3.30.exe, MailRuDesktop_Setup_v0.3.30.exe.
+manager: project-manager; repository: lvlaksim1/mailru-desktop
+product and manager-state authority: main
+product merge: PR #100, commit 277a3dc67cac7792715accf6b2edc71193742900
+branch CI 37860604229 PASS; main CI 37860751548 PASS
+installer release workflow: 37860887859, triggered by issue #101 for v0.3.31
 
-Owner tested v0.3.29, confirmed «в остальном всё вроде бы ок», and reported six outstanding defects: persistent visual flicker, missing images in HTML (prior Magnet receipt with af12.mail.ru GIF), some letters much slower than browser, Load .md opens download rather than template folder, saving loaded template under new name modifies old file rather than making a copy, Send Now on scheduled message remains disabled. Technical debts expressly remain technical debts. Owner approved action.
+Owner provided video K-001.mp4 and demonstrated v0.3.30 flicker. Receipt text is shown first, then the pictures load and force a visible table layout change. Earlier v0.3.30 intentionally revealed HTML at DOMContentLoaded, which caused the regression; previous statement that old flicker was fixed is superseded by the new video. Owner requested an immediate update including this correction.
 
-v0.3.30: removed obsolete sequential pre-download of every HTML image before rendering; reader now receives full HTML immediately after mail body fetch and reveals at DOMContentLoaded, while images fetch separately through WebView2's resource events. Strict new MailRuInlineImageSource validator checks exact afNN.mail.ru HTTPS /cgi-bin/readmsg URL, same message, same account, numeric attachment ID and correct mode. Incoming attachment bytes fetched using existing mailbox access token and verified as an image; proxied afNN URLs supported; mailbox Cookies are never forwarded to a public proxy. Old full-message fetches are canceled on selection change. Safe stage timing recorded as mail_render_timing.
+v0.3.31 source: new MainWindow.ReaderPresentation.cs and ReaderPresentationPolicy.cs. Current WebView2 navigation is gated by revision and ID, default/loading overlay remains until images are settled. Host-originated script sets lazy HTML images eager; readiness is inspected via document.images[*].complete, in addition to NavigationCompleted. On completion, reveal once after hidden settling. On 3-second bounded deadline, stop pending WebView2 loads BEFORE publishing so late image display cannot reflow visible receipt. Safe reader_visual_ready diagnostic includes reason=complete or limited and elapsed-ms. Mail page scripts remain disabled. Unit tests cover no visibility on DOM readiness alone, full completion, timeout stopping and zero reveal before DOM. Full Windows CI passes; authenticated Owner UI test still required.
 
-Markdown import starts at TemplateFiles.DirectoryPath. Save As with unused name creates new file and independent attachment copies, without deleting source; any existing target name requires explicit warning and permission, the store refuses implicit overwrite or cross-name rename. Unit tests reproduce sample Magnet URL, account/ID validation, byte-for-byte source integrity, clone attachments, and guarded overwrite.
+Important compromise: if images cannot complete within deadline, Stop may cause missing images. Do NOT claim both zero flicker and full image fidelity without Owner testing. v0.3.30 fixes to Markdown Save As, signed-in image loading and email latency are preserved; other Owner-accepted UI remains unchanged.
 
-**Owner GUI/credential acceptance still pending:** CI cannot show real user's HTML images, first-paint flicker or exact mail timings. Request only sanitized mail_image_inline/mail_render_timing diagnostic categories if trouble persists. Do not claim these three defects conclusively fixed before user confirms.
-
-**Send Now (#77) remains blocked:** current source proves ordinary /send and /schedule creation only, not atomic change/unschedule of an existing scheduled item; ordinary resend risks duplicate. Detailed safe experiment plan: docs/protocol/scheduled-send-now-safety.md. No real mail sends made. Other unpaid debts: delayed delivery, receipt acknowledgments, unverified search routes. Accepted avatar retrieval, account drag, contact picker, updater and other v0.3.29 UI preserved.
+Outstanding: #77 Send Now scheduled Outbox remains disabled until atomic duplicate-safe transition proven; recipient read receipt, real scheduled delivery and alternate search remain technical debts.

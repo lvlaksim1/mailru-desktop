@@ -351,3 +351,12 @@ statement: 2026-10-09 владелец проверил v0.3.29 и подтве�
 source: прямые замечания и согласование владельца, PR #98, CI и workflow 37855438488/37855678396/37855812685, GitHub Release v0.3.30, docs/protocol/scheduled-send-now-safety.md.
 authority: Owner runtime for defects in v0.3.29; verified source/CI/release for v0.3.30; NOT Owner-runtime for new fixes.
 supersedes: B-043 for latest release and review priorities.
+
+
+## B-045 — v0.3.31: deferred image/layout presentation after Owner video K-001
+
+statement: On 2026-10-09 Owner supplied video K-001.mp4 showing repeatable blinking in v0.3.30: neutral Loading, HTML text/receipt visible without embedded images, then images arrived and moved the receipt layout. Owner explicitly requested an update fixing this. Root cause in source: MainWindow.InitializeReaderAsync subscribed CoreWebView2.DOMContentLoaded to immediately set MessageWebView.Visibility=Visible. v0.3.31 PR #100 replaces early reveal with MainWindow.ReaderPresentation state machine: navigation ID and revision checks exclude prior letter; waits until full navigation and document.images report ready; host-originated JavaScript sets lazy images eager; a three-second bounded deadline stops incomplete resource loading before showing, allowing a hidden rendering interval; shows ready letter only once, with fallback for deadline and diagnosis reader_visual_ready complete/limited, elapsed-ms. Mail scripts remain disabled, tokens and contents never enter diagnostics. New ReaderPresentationPolicy and offline gating tests forbid reveal solely from DOMContentLoaded. PR CI 37860604229 PASS, main CI 37860751548 PASS; merged 277a3dc67cac7792715accf6b2edc71193742900. Release workflow 37860887859 requested full/update v0.3.31 installers. Owner has NOT yet re-tested actual K-001 video scenario; CI does not prove WebView2's pixel-level result. Bounded deadline can mean some late images remain absent; avoiding late content reflow is prioritized and must be checked with Owner. Previously accepted contacts, avatar retrieval, template fixes, updater unchanged. Scheduled Send Now issue #77 still blocked.
+
+source: Owner video and explicit approval; GitHub PR #100, Actions 37860604229/37860751548, code MainWindow.ReaderPresentation.cs/ReaderPresentationPolicy.cs.
+authority: Owner runtime for v0.3.30 defect, repository/CI for v0.3.31 patch; Owner runtime acceptance pending.
+supersedes: B-044 as latest version; in particular v0.3.30 DOMContentLoaded-as-visible behavior was a regression, NOT a fix for flicker.

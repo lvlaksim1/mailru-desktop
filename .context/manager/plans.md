@@ -181,3 +181,15 @@ Latest public binary release v0.3.28, merged PR #94 (1d07dc2d17d4ffd2fc0cfa238e0
 5. Принятые функции аккаунтов, фотографий отправителей, контактов, оформления, обновлений не перерабатывать без новых замечаний.
 6. Issue #77 не включать по предположению: сначала получить точную атомарную операцию существующего задания, тестировать отказ/повтор/срок отправки без дублей; подробный план docs/protocol/scheduled-send-now-safety.md. Технический долг остаётся открытым.
 7. Прочие долги: фактическая доставка по расписанию, прочтение получателем, неподтверждённые серверные способы поиска. Следующий выпуск только с воспроизводимыми проверками. Запросы исследования не чаще, чем раз в пять секунд.
+
+
+## OVERRIDING WORK PLAN — 2026-10-09 v0.3.31
+
+Patch PR #100 merged 277a3dc67cac7792715accf6b2edc71193742900, branch Windows CI 37860604229 PASS, main CI 37860751548 PASS. Version v0.3.31 installer build requested via [BUILD_RELEASE] issue #101 / workflow 37860887859.
+
+1. Owner installs v0.3.31 and reproduces video K-001.mp4: open Magnet receipt, switch to another letter, reopen same receipt. There must be a single stable visible paint instead of HTML followed by layout-shifting images.
+2. Verify image fidelity: hidden loading may wait up to 3s after navigation for images; if still pending, Stop cancels unfinished resources before reveal, so a slow image may remain unavailable. Flag any such lost essential images; adapt selective preloading/caching only with actual reproduction, without reintroducing flash or infinite waits.
+3. If flicker still exists, gather only reader_visual_ready reason and elapsed-ms plus safe mail_image_inline results and optionally another short video; do not ask for full private body or credentials. Distinguish old-letter navigation race from image layout changes.
+4. Preserve v0.3.30 parallel auth image loading, cancellation of stale message fetches, Save As template copy and explicit overwrite confirmation. Keep Owner accepted avatar retrieval, contact picker, account drag, version checking, palettes.
+5. Issue #77 Send Now of an already-scheduled Outbox message remains disabled. Proven atomic unschedule and unique delivery required before activation. Other technical debts: actual scheduled delivery, read receipts, server search alternative.
+6. Any follow-up release requires Windows build, InteractionLogicSmoke, WindowsUiSmoke, UI registry and launch checks, plus Owner-specific WebView2 visual acceptance.

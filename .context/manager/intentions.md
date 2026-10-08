@@ -162,3 +162,9 @@ status: выпущено v0.3.30; проверка владельцем на д�
 status: ЗАБЛОКИРОВАНО, не реализовано
 
 Доказаны лишь запросы создания новой немедленной отправки и новой отложенной отправки. Не подтверждена атомарная отмена/перевод существующего задания в отправку. Составлен план испытаний в docs/protocol/scheduled-send-now-safety.md: оригинальный ID и state, команда официального клиента, отмена расписания, единственная доставка, повторные вызовы и сетевой тайм-аут. Кнопки отключены, не разрешать операцию из обычного send API. Использовать тестовый ящик только после разрешённого исследования.
+
+
+## I-026 — verify v0.3.31 single-paint email preview
+status: CI PASS; installer requested; Owner GUI acceptance pending
+
+Owner provided reproducible K-001.mp4 demonstrating v0.3.30 HTML-first and late-image layout changes. PR #100 merged an atomic visibility guard with bounded 3s image settling/Stop deadline and navigation-ID filtering. Compare the actual same letter when selecting and reselecting quickly: neither raw text, old letter nor late large images may rearrange a visible receipt. Verify completeness of embedded images: on time-out they may be deliberately abandoned, requiring follow-up optimization if this prevents full receipt viewing. Measure reader_visual_ready reason=complete/limited and elapsed-ms, without exposing email contents, cookies, full HTML or token. Do NOT mark problem closed merely because CI passes. Keep scheduled Send Now #77 blocked until duplicate-free source operation proven.
