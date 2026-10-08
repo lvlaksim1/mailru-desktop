@@ -119,6 +119,7 @@ def summarize_xml(source: str, xml: str, owner: str, output: list[dict]) -> None
 def scan() -> dict:
     windows: dict[str, dict] = {}
     elements: list[dict] = []
+    relocated_workspace_window: str | None = None
 
     style_sources = []
     for file in source_files(".xaml"):
@@ -143,6 +144,7 @@ def scan() -> dict:
     for file in source_files(".cs"):
         relative = file.relative_to(ROOT).as_posix()
         code = file.read_text(encoding="utf-8-sig")
+        active_runtime_window: str | None = None
         for match in WINDOW_CLASS.finditer(code):
             cls = match.group(1)
             if cls not in windows:
@@ -176,6 +178,33 @@ def scan() -> dict:
                     r"([^,\n;}]+)", snippet)
                 if found:
                     inline[prop] = found.group(1).strip()[:100]
+            # Every instantiated Window is a real window, even when it is
+            # created inside a MainWindow partial class rather than through
+            # its own XAML or subclass. Register that window independently.
+            if kind == "Window" and window != "AppDialog":
+                runtime_id = f"{file.stem}/window@{line}"
+                windows[runtime_id] = {
+                    "id": runtime_id, "source": relative,
+                    "declared_as": "C# runtime Window",
+                    "geometry": {
+                        k: v for k, v in inline.items() if k in ATTR_LAYOUT
+                    },
+                    "typography": {
+                        k: v for k, v in inline.items() if k in ATTR_TEXT
+                    },
+                    "colors": {
+                        k: v for k, v in inline.items() if k in ATTR_COLOR
+                    },
+                }
+                active_runtime_window = runtime_id
+                if "Content = ComposeWorkspace" in code[match.start():match.start() + 1200]:
+                    relocated_workspace_window = runtime_id
+
+            # Controls constructed after an inline window are children of
+            # that runtime window rather than phantom MainWindow elements.
+            if active_runtime_window and window != "AppDialog":
+                window = active_runtime_window
+
             elements.append({
                 "id": f"{window}/runtime/{relative}:{line}:{kind}",
                 "window": window, "source": relative, "line": line,
@@ -188,6 +217,15 @@ def scan() -> dict:
                     k: v for k, v in inline.items() if k in ATTR_TEXT
                 }, "style": None, "states": None,
             })
+    # ComposeWorkspace is declared in the MainWindow XAML namescope but
+    # reparented into an independently owned compose window at runtime.
+    # Preserve its design-time parent while recording the actual window host.
+    if relocated_workspace_window:
+        for entry in elements:
+            if (entry["source"] == "src/MailRuDesktop.App/MainWindow.xaml"
+                    and "ComposeWorkspace" in entry["id"]):
+                entry["runtime_host_window"] = relocated_workspace_window
+
     # A shared resource is recorded once, along with windows and templates.
     # If source declares a Window that isn't in XAML, it is still registered.
     windows = dict(sorted(windows.items()))
