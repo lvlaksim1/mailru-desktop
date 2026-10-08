@@ -270,6 +270,9 @@ public partial class MainWindow : Window
             return false;
         }
 
+        if (!string.Equals(_activeLogin, authorization.Login,
+                StringComparison.OrdinalIgnoreCase))
+            _selectedMailIds.Clear();
         _accessToken = authorization.AccessToken;
         _refreshToken = authorization.RefreshToken;
         _activeLogin = authorization.Login;
@@ -532,6 +535,8 @@ public partial class MainWindow : Window
         if (_loadingFolder)
             return;
 
+        if (folderId != _currentFolderId || accountSwitchGeneration is not null)
+            _selectedMailIds.Clear();
         _loadingFolder = true;
         ++_missingSenderLoadGeneration;
         RefreshFolderButton.IsEnabled = false;
@@ -1306,6 +1311,8 @@ public partial class MainWindow : Window
             return;
         }
 
+        var operationAccount = _activeLogin;
+        var operationFolder = _currentFolderId;
         MoveMessageButton.IsEnabled = false;
         TrashMessageButton.IsEnabled = false;
         FolderStatusText.Text = operationName + "...";
@@ -1324,7 +1331,15 @@ public partial class MainWindow : Window
                 return;
             }
 
-            await LoadFolderAsync(_currentFolderId);
+            if (string.Equals(_activeLogin, operationAccount, StringComparison.OrdinalIgnoreCase)
+                && _currentFolderId == operationFolder)
+            {
+                var unread = _currentMessages.Count(x => ids.Contains(x.Id) && x.Unread);
+                RemoveConfirmedMailRows(ids);
+                if (_currentFolderId == 0 && unread > 0)
+                    AdjustActiveInboxUnread(-unread);
+            }
+            FolderStatusText.Text = "Перемещено писем: " + ids.Count;
         }
         catch (Exception ex)
         {
@@ -1363,7 +1378,8 @@ public partial class MainWindow : Window
                 return;
             }
 
-            await LoadFolderAsync(_currentFolderId);
+            RemoveConfirmedMailRows([message.Id]);
+            FolderStatusText.Text = "Письмо удалено.";
         }
         catch (Exception ex)
         {
