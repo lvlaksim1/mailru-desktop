@@ -425,6 +425,7 @@ public partial class MessageWindow : Window
         var dialog = new SaveFileDialog
         {
             FileName = SanitizeFileName(attachment.DisplayName),
+            InitialDirectory = AttachmentDownloadLocation.GetDirectory(),
             Title = "Сохранить вложение"
         };
 
@@ -442,6 +443,7 @@ public partial class MessageWindow : Window
 
             await File.WriteAllBytesAsync(dialog.FileName, bytes);
             StatusText.Text = $"Вложение сохранено: {Path.GetFileName(dialog.FileName)}";
+            AttachmentDownloadLocation.OpenAfterSaving(dialog.FileName);
         }
         catch (Exception ex)
         {
