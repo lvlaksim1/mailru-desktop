@@ -80,3 +80,12 @@ status: active — v0.3.19 released; Owner runtime confirmation pending
 The Owner reported broken downward account drag and occasional selection of the row underneath a long-pressed account. v0.3.19 computes target from original row centers without animation feedback, resets completed transforms and confines short clicks to the original pressed account. Offline index regression checks passed.
 
 The Owner requested a read-receipt checkbox for new outgoing messages, schedule-send checkbox with local tomorrow 09:00 as default, and display of sender email when sender name is missing. v0.3.19 implements these in UI, payload and tolerant parser, and verifies the outgoing form through a fake HTTP handler. Test of real receipt response and actual delayed delivery was not performed; do not mark them as runtime-verified.
+
+## I-014 — v0.3.20 Owner feedback on inline composer, templates and dark controls
+status: released — Owner interactive validation pending
+
+The Owner requested: selected template/signature should work again on repeated choice; configurable folder for Markdown templates with manual file discovery; inline reply/forward close × and receipt/delayed delivery controls; darker thumb/arrows everywhere; keep modal dialog caption dark even during input; sender email when name is missing. Owner confirmed account drag and dividers are now good.
+
+The release implements these via PR #70 and CI 37711634109 with offline file and parsing checks; installer release workflow 37711732617 succeeded. ChangeDirectory copies existing templates and attachments into the selected folder without overwriting existing files, persists the setting, rebinds watcher, and preserves old folder. Reply/forward schedule defaults to tomorrow 09:00 and sends through existing Mail.ru scheduling protocol. Receipt request is optional. Sender fallback draws from parent thread and selected full message.
+
+Next: real-user visual and behavior check, including WPF scrollbars, prompts, list sender, repeated choices, and controlled mail receipt/delivery tests. Do not infer successful recipient acknowledgment from sending a receipt request.
