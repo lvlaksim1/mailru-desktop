@@ -115,9 +115,16 @@ public sealed record MailRuOutgoingMessage(
 
 public sealed record MailRuCommandResult(bool Success, string RawResponse);
 
-public sealed class MailRuProtocolException : Exception
+public class MailRuProtocolException : Exception
 {
     public MailRuProtocolException(string message) : base(message) { }
+}
+
+/// <summary>Authentication was denied; no credentials or response content are logged.</summary>
+public sealed class MailRuAuthorizationException : MailRuProtocolException
+{
+    public MailRuAuthorizationException(int status) :
+        base($"Mail.ru отверг авторизацию (код {status}).") { }
 }
 
 public sealed partial class MailRuClient : IDisposable
@@ -530,6 +537,7 @@ public sealed partial class MailRuClient : IDisposable
         using var response = await SendSerializedAsync(request, cancellationToken).ConfigureAwait(false);
         var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
+        ValidateAuthorizationResponse(response, payload);
         if (!response.IsSuccessStatusCode)
             throw new MailRuProtocolException($"Thread status request failed with HTTP {(int)response.StatusCode}.");
 
@@ -558,6 +566,7 @@ public sealed partial class MailRuClient : IDisposable
         using var response = await SendSerializedAsync(request, cancellationToken).ConfigureAwait(false);
         var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
+        ValidateAuthorizationResponse(response, payload);
         if (!response.IsSuccessStatusCode)
             throw new MailRuProtocolException($"Full-message request failed with HTTP {(int)response.StatusCode}.");
 
@@ -1002,6 +1011,42 @@ public sealed partial class MailRuClient : IDisposable
         finally
         {
             _requestGate.Release();
+        }
+    }
+
+    private static void ValidateAuthorizationResponse(HttpResponseMessage response, string payload)
+    {
+        var httpStatus = (int)response.StatusCode;
+        if (httpStatus is 401 or 403)
+            throw new MailRuAuthorizationException(httpStatus);
+
+        // The AJ endpoint may return HTTP 200 while reporting a failed token
+        // inside JSON, e.g. {"status":403,"email":"","body":"token"}.
+        // Treat this as authorization failure, not an empty mailbox snapshot.
+        if (string.IsNullOrWhiteSpace(payload) || payload[0] != '{')
+            return;
+
+        try
+        {
+            using var doc = JsonDocument.Parse(payload);
+            var root = doc.RootElement;
+            if (root.ValueKind != JsonValueKind.Object ||
+                !root.TryGetProperty("status", out var status))
+                return;
+
+            int? code = status.ValueKind switch
+            {
+                JsonValueKind.Number when status.TryGetInt32(out var n) => n,
+                JsonValueKind.String when int.TryParse(status.GetString(), out var n) => n,
+                _ => null
+            };
+
+            if (code is 401 or 403)
+                throw new MailRuAuthorizationException(code.Value);
+        }
+        catch (JsonException)
+        {
+            // Malformed responses are handled by the normal parsing path.
         }
     }
 
