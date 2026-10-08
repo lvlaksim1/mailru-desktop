@@ -32,7 +32,9 @@ public partial class MainWindow : Window
     private bool _updatingAccountSelection;
     private bool _readerReady;
     private bool _readerWaitingForFullMessage;
+    private bool _readerNavigationPending;
     private ulong _latestReaderNavigationId;
+    private CancellationTokenSource? _inlineImagePreparation;
     private long _messageLoadGeneration;
     private MailRuFullMessage? _currentFullMessage;
     private string? _currentPreparedHtml;
@@ -122,7 +124,15 @@ public partial class MainWindow : Window
             ConfigureMailImageProxy();
             MessageWebView.NavigationStarting += (_, args) =>
             {
-                _latestReaderNavigationId = args.NavigationId;
+                // Only the navigation deliberately requested for the current
+                // letter can make the reader visible. Stale completions from
+                // earlier documents must never reveal the previous letter.
+                if (_readerNavigationPending)
+                {
+                    _latestReaderNavigationId = args.NavigationId;
+                    _readerNavigationPending = false;
+                    _readerWaitingForFullMessage = false;
+                }
                 MessageWebView.Visibility = Visibility.Hidden;
             };
             MessageWebView.NavigationCompleted += (_, args) =>
@@ -694,9 +704,15 @@ public partial class MainWindow : Window
         DownloadAllAttachmentsButton.Visibility = Visibility.Collapsed;
         _currentFullMessage = null;
         _currentPreparedHtml = null;
-        // Never display the interim unformatted snippet before final rendering.
+        _inlineImagePreparation?.Cancel();
+        _inlineImagePreparation?.Dispose();
+        _inlineImagePreparation = new CancellationTokenSource();
+        // Stop the old document and mask it until the final new navigation
+        // completes. No blank page or previous letter is ever shown in between.
+        _readerNavigationPending = false;
         _readerWaitingForFullMessage = true;
         MessageWebView.Visibility = Visibility.Hidden;
+        MessageWebView.CoreWebView2?.Stop();
     }
 
     private void UpdateSelectedMessageHeader(MailRuMessageSummary message)
@@ -770,7 +786,9 @@ public partial class MainWindow : Window
 
             if (!string.IsNullOrWhiteSpace(full.Html))
             {
-                var preparedHtml = await PrepareMailHtmlAsync(full.Html);
+                var preparedHtml = await PrepareMailHtmlAsync(
+                    full.Html, full.Id, _activeLogin, _accessToken!,
+                    _inlineImagePreparation?.Token ?? CancellationToken.None);
                 if (generation != _messageLoadGeneration ||
                     !string.Equals(_activePreviewMailId, message.Id, StringComparison.Ordinal))
                     return;
@@ -788,6 +806,10 @@ public partial class MainWindow : Window
                 _readerWaitingForFullMessage = false;
                 ShowReaderText(message.Snippet);
             }
+        }
+        catch (OperationCanceledException) when (generation != _messageLoadGeneration)
+        {
+            return;
         }
         catch (Exception ex)
         {
@@ -1959,6 +1981,9 @@ public partial class MainWindow : Window
             body +
             "</body></html>";
 
+        _readerNavigationPending = true;
+        _readerWaitingForFullMessage = true;
+        MessageWebView.Visibility = Visibility.Hidden;
         MessageWebView.NavigateToString(document);
     }
 
@@ -1979,11 +2004,10 @@ public partial class MainWindow : Window
             else
                 ShowReaderText(_currentFullMessage.Text);
         }
-        else
+        else if (!_readerWaitingForFullMessage &&
+                 ActivePreviewMessage is not MailRuMessageSummary)
         {
-            ShowReaderText(ActivePreviewMessage is MailRuMessageSummary message
-                ? message.Snippet
-                : "Выберите письмо.");
+            ShowReaderText("Выберите письмо.");
         }
     }
 
@@ -1999,21 +2023,8 @@ public partial class MainWindow : Window
         ThemeManager.Apply(mode);
         _settingsStore.SaveTheme(mode);
 
-        if (_currentFullMessage is not null)
-        {
-            if (!string.IsNullOrWhiteSpace(_currentPreparedHtml))
-                ShowReaderHtml(_currentPreparedHtml);
-            else if (!string.IsNullOrWhiteSpace(_currentFullMessage.Html))
-                ShowReaderHtml(_currentFullMessage.Html);
-            else
-                ShowReaderText(_currentFullMessage.Text);
-        }
-        else
-        {
-            ShowReaderText(ActivePreviewMessage is MailRuMessageSummary message
-                ? message.Snippet
-                : "Выберите письмо.");
-        }
+        // ThemeChanged is the only place that re-renders a ready document.
+        // Never put an interim snippet into the viewer while a mail loads.
     }
 
     private void SelectThemeComboBox(AppThemeMode mode)
