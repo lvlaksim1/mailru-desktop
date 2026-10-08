@@ -1,6 +1,6 @@
 # Next actions
 
-1. Validate the published v0.3.22 update on the Owner's Windows machine; GitHub Release includes both installers.
+1. Validate the published v0.3.23 update on the Owner's Windows machine; GitHub Release includes both installers.
 2. Validate saved window state, size, position, preview divider and message-column widths after restart.
 3. Validate darker scrollbars and real sender/account avatar photos, with initials fallback when no photo exists, without increasing row height.
 4. Validate account reordering exactly as specified by Owner, including hold-to-detach timing, smooth neighbor movement, release-to-place and persisted order.
@@ -22,15 +22,19 @@
 18. Owner verifies email fallback on mailbox rows that initially lack names, before/after selecting full mail.
 19. Owner verifies receipt and scheduled send controls in inline reply/forward, not only New Mail. Validate server acceptance and delivery separately.
 
-20. Owner installs v0.3.22 and visually inspects all 26 palette roles in dark and light settings, including dialog windows, lists, buttons, focus state, date picker and both scrollbar orientations.
+20. Owner installs v0.3.23 and visually inspects all 26 palette roles in dark and light settings, including dialog windows, lists, buttons, focus state, date picker and both scrollbar orientations.
 21. Owner edits a role, confirms immediate update across affected elements, restart persistence, per-role and entire theme reset, independent dark/light profiles, and Windows-driven system theme.
 22. Check contrast warnings: low contrast must be reported, but never silently corrected. Review original appearance of images, logos and contact avatars.
 23. Resume separately agreed 12-point mail backlog after the palette system has been visually validated; do not conflate its unimplemented items with the completed color-system release.
 
-24. Owner installs v0.3.22 and validates collapsible palette and direct click-to-choose color field in both themes.
+24. Owner installs v0.3.23 and validates collapsible palette and direct click-to-choose color field in both themes.
 25. Verify senders populate without opening a message, including blank subjects; auto enrichment is capped at 20 and has 5-second intervals without changing read marks.
 26. Open legacy and new Markdown templates in Windows Notepad: Cyrillic metadata readable, body and attachments preserved, old escaped file backed up once.
 27. Verify configured download directory, Explorer opening after successful downloads and attachments appearing above the message.
 28. Send a controlled rich-formatted test message from new-mail, inline reply and detached reply, checking actual HTML receipt and legacy template/signature compatibility.
 29. Test checkbox/Ctrl/Shift/Ctrl+A selection and grouped archive, trash, read and permanent trash deletion, including confirmation and prevention of duplicate operations.
 30. **Issue #77 remains blocked**: investigate and validate the exact duplicate-free server operation to immediately send already scheduled mail. Only then enable Outbox controls in bulk bar, message view and context menu.
+
+31. Owner installs v0.3.23 and opens each previously saved mailbox that formerly showed HTTP200 + JSON status=403 token. Verify that it either refreshes credentials and loads mail or identifies only that account as requiring fresh sign-in. A server-revoked refresh token cannot be bypassed.
+32. Owner confirms other authorized accounts remain accessible and their unread counters, tokens and last selected account are unchanged when one token expires.
+33. If failures persist, collect an anonymized per-account result (account label and whether refresh succeeded), HTTP/status code and diagnostic reason only; do not send access_token, refresh_token, cookies, passwords or auth.json.
