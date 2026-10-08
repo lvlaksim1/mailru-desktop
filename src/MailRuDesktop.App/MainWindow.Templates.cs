@@ -2,6 +2,8 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using Microsoft.Win32;
 
 namespace MailRuDesktop.App;
@@ -11,7 +13,11 @@ public partial class MainWindow
     private readonly ObservableCollection<SavedSignature> _signatures = [];
     private readonly ObservableCollection<SavedMailTemplate> _mailTemplates = [];
     private readonly ObservableCollection<string> _templateDraftAttachments = [];
-    private readonly MarkdownTemplateStore _templateFiles = new();
+    private MarkdownTemplateStore? _templateFiles;
+    private MarkdownTemplateStore TemplateFiles =>
+        _templateFiles ??= new MarkdownTemplateStore(_settingsStore.LoadTemplateDirectory());
+    private SavedSignature? _signatureAtDropdownOpen;
+    private SavedMailTemplate? _templateAtDropdownOpen;
     private FileSystemWatcher? _templateWatcher;
     private bool _refreshingTemplateList;
     private string? _previewInsertedSignature;
@@ -22,7 +28,8 @@ public partial class MainWindow
         foreach (var signature in _settingsStore.LoadSignatures())
             _signatures.Add(signature);
 
-        _templateFiles.ImportLegacyOnce(_settingsStore.LoadMailTemplates());
+        TemplateDirectoryTextBox.Text = TemplateFiles.DirectoryPath;
+        TemplateFiles.ImportLegacyOnce(_settingsStore.LoadMailTemplates());
         RefreshTemplatesFromDisk();
 
         SignaturesListBox.ItemsSource = _signatures;
@@ -32,13 +39,64 @@ public partial class MainWindow
         PreviewSignatureComboBox.ItemsSource = _signatures;
         PreviewTemplateComboBox.ItemsSource = _mailTemplates;
 
-        _templateWatcher = new FileSystemWatcher(_templateFiles.DirectoryPath, "*.md");
+        StartTemplateWatcher();
+        Closed += (_, _) => _templateWatcher?.Dispose();
+    }
+
+    private void StartTemplateWatcher()
+    {
+        if (_templateWatcher is not null)
+        {
+            _templateWatcher.EnableRaisingEvents = false;
+            _templateWatcher.Changed -= TemplatesChangedOnDisk;
+            _templateWatcher.Created -= TemplatesChangedOnDisk;
+            _templateWatcher.Deleted -= TemplatesChangedOnDisk;
+            _templateWatcher.Renamed -= TemplatesRenamedOnDisk;
+            _templateWatcher.Dispose();
+        }
+
+        _templateWatcher = new FileSystemWatcher(TemplateFiles.DirectoryPath, "*.md");
         _templateWatcher.Changed += TemplatesChangedOnDisk;
         _templateWatcher.Created += TemplatesChangedOnDisk;
         _templateWatcher.Deleted += TemplatesChangedOnDisk;
         _templateWatcher.Renamed += TemplatesRenamedOnDisk;
         _templateWatcher.EnableRaisingEvents = true;
-        Closed += (_, _) => _templateWatcher?.Dispose();
+    }
+
+    private void BrowseTemplateDirectoryButton_Click(object sender, RoutedEventArgs e)
+    {
+        var picker = new OpenFolderDialog
+        {
+            Title = "Выберите папку для шаблонов",
+            InitialDirectory = TemplateFiles.DirectoryPath
+        };
+        if (picker.ShowDialog(this) == true)
+        {
+            TemplateDirectoryTextBox.Text = picker.FolderName;
+            ApplyTemplateDirectory();
+        }
+    }
+
+    private void ApplyTemplateDirectoryButton_Click(object sender, RoutedEventArgs e) =>
+        ApplyTemplateDirectory();
+
+    private void ApplyTemplateDirectory()
+    {
+        try
+        {
+            TemplateFiles.ChangeDirectory(TemplateDirectoryTextBox.Text);
+            _settingsStore.SaveTemplateDirectory(TemplateFiles.DirectoryPath);
+            TemplateDirectoryTextBox.Text = TemplateFiles.DirectoryPath;
+            StartTemplateWatcher();
+            RefreshTemplatesFromDisk();
+            TemplateDirectoryStatusText.Text = "Папка шаблонов сохранена.";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            TemplateDirectoryStatusText.Text = "Не удалось изменить папку.";
+            AppDialog.Info(this, "Папка шаблонов", ex.Message);
+            TemplateDirectoryTextBox.Text = TemplateFiles.DirectoryPath;
+        }
     }
 
     private void TemplatesChangedOnDisk(object sender, FileSystemEventArgs e) =>
@@ -47,14 +105,17 @@ public partial class MainWindow
     private void TemplatesRenamedOnDisk(object sender, RenamedEventArgs e) =>
         Dispatcher.BeginInvoke(new Action(() => RefreshTemplatesFromDisk()));
 
-    private void PreviewTemplateComboBox_DropDownOpened(object sender, EventArgs e) =>
+    private void PreviewTemplateComboBox_DropDownOpened(object sender, EventArgs e)
+    {
         RefreshTemplatesFromDisk();
+        _templateAtDropdownOpen = PreviewTemplateComboBox.SelectedItem as SavedMailTemplate;
+    }
 
     private void OpenTemplatesFolderButton_Click(object sender, RoutedEventArgs e)
     {
         System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
         {
-            FileName = _templateFiles.DirectoryPath,
+            FileName = TemplateFiles.DirectoryPath,
             UseShellExecute = true
         });
     }
@@ -63,7 +124,7 @@ public partial class MainWindow
     {
         var oldName = selectName ?? (MailTemplatesListBox.SelectedItem as SavedMailTemplate)?.Name;
         var selectedPreview = (PreviewTemplateComboBox.SelectedItem as SavedMailTemplate)?.Name;
-        var disk = _templateFiles.LoadAll();
+        var disk = TemplateFiles.LoadAll();
         if (_mailTemplates.Count == disk.Count &&
             _mailTemplates.Zip(disk).All(pair =>
                 pair.First.Name == pair.Second.Name &&
@@ -212,7 +273,7 @@ public partial class MainWindow
 
         try
         {
-            var saved = _templateFiles.Save(replacement, previousName);
+            var saved = TemplateFiles.Save(replacement, previousName);
             RefreshTemplatesFromDisk(saved.Name);
             MailTemplatesListBox.SelectedItem = _mailTemplates.FirstOrDefault(
                 item => string.Equals(item.Name, saved.Name, StringComparison.OrdinalIgnoreCase));
@@ -234,7 +295,7 @@ public partial class MainWindow
 
         try
         {
-            _templateFiles.Delete(template.Name);
+            TemplateFiles.Delete(template.Name);
             RefreshTemplatesFromDisk();
             TemplateNameTextBox.Clear();
             TemplateSubjectTextBox.Clear();
@@ -276,22 +337,61 @@ public partial class MainWindow
             _templateDraftAttachments.Remove(path);
     }
 
-    private void PreviewSignatureComboBox_SelectionChanged(
-        object sender,
-        SelectionChangedEventArgs e)
+    private void PreviewSignatureComboBox_DropDownOpened(object sender, EventArgs e) =>
+        _signatureAtDropdownOpen = PreviewSignatureComboBox.SelectedItem as SavedSignature;
+
+    private void PreviewTemplateComboBox_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        if (PreviewSignatureComboBox.SelectedItem is not SavedSignature signature ||
-            string.IsNullOrWhiteSpace(signature.Body))
-        {
+        if (GetClickedComboItem(PreviewTemplateComboBox, e.OriginalSource) is { } clicked &&
+            ReferenceEquals(clicked.DataContext, _templateAtDropdownOpen) &&
+            clicked.DataContext is SavedMailTemplate template)
+            ApplyTemplate(template);
+    }
+
+    private void PreviewSignatureComboBox_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (GetClickedComboItem(PreviewSignatureComboBox, e.OriginalSource) is { } clicked &&
+            ReferenceEquals(clicked.DataContext, _signatureAtDropdownOpen) &&
+            clicked.DataContext is SavedSignature signature)
+            ApplySignature(signature, repeat: true);
+    }
+
+    private void PreviewSignatureComboBox_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter && PreviewSignatureComboBox.IsDropDownOpen &&
+            ReferenceEquals(PreviewSignatureComboBox.SelectedItem, _signatureAtDropdownOpen) &&
+            _signatureAtDropdownOpen is not null)
+            ApplySignature(_signatureAtDropdownOpen, repeat: true);
+    }
+
+    private void PreviewTemplateComboBox_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter && PreviewTemplateComboBox.IsDropDownOpen &&
+            ReferenceEquals(PreviewTemplateComboBox.SelectedItem, _templateAtDropdownOpen) &&
+            _templateAtDropdownOpen is not null)
+            ApplyTemplate(_templateAtDropdownOpen);
+    }
+
+    private static ComboBoxItem? GetClickedComboItem(ComboBox combo, object source) =>
+        source is DependencyObject element
+            ? ItemsControl.ContainerFromElement(combo, element) as ComboBoxItem
+            : null;
+
+    private void PreviewSignatureComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (PreviewSignatureComboBox.SelectedItem is SavedSignature signature)
+            ApplySignature(signature);
+    }
+
+    private void ApplySignature(SavedSignature signature, bool repeat = false)
+    {
+        if (string.IsNullOrWhiteSpace(signature.Body))
             return;
-        }
 
         var body = PreviewComposeBodyTextBox.Text;
-
-        if (!string.IsNullOrWhiteSpace(_previewInsertedSignature) &&
-            body.EndsWith(
-                _previewInsertedSignature,
-                StringComparison.Ordinal))
+        if (!repeat &&
+            !string.IsNullOrWhiteSpace(_previewInsertedSignature) &&
+            body.EndsWith(_previewInsertedSignature, StringComparison.Ordinal))
         {
             body = body[..^_previewInsertedSignature.Length].TrimEnd();
         }
@@ -300,24 +400,22 @@ public partial class MainWindow
             body.TrimEnd() +
             (body.TrimEnd().Length == 0 ? string.Empty : Environment.NewLine + Environment.NewLine) +
             signature.Body;
-
         _previewInsertedSignature = signature.Body;
-        PreviewComposeBodyTextBox.CaretIndex =
-            PreviewComposeBodyTextBox.Text.Length;
+        PreviewComposeBodyTextBox.CaretIndex = PreviewComposeBodyTextBox.Text.Length;
     }
 
-    private void PreviewTemplateComboBox_SelectionChanged(
-        object sender,
-        SelectionChangedEventArgs e)
+    private void PreviewTemplateComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (_refreshingTemplateList ||
-            PreviewTemplateComboBox.SelectedItem is not SavedMailTemplate template)
-            return;
+        if (!_refreshingTemplateList &&
+            PreviewTemplateComboBox.SelectedItem is SavedMailTemplate template)
+            ApplyTemplate(template);
+    }
 
+    private void ApplyTemplate(SavedMailTemplate template)
+    {
         PreviewComposeSubjectTextBox.Text = template.Subject;
         PreviewComposeBodyTextBox.Text = template.Body;
         _previewInsertedSignature = null;
-
         _previewAttachmentPaths.Clear();
 
         var missing = 0;
@@ -325,21 +423,14 @@ public partial class MainWindow
         {
             if (File.Exists(path))
             {
-                if (!_previewAttachmentPaths.Contains(
-                        path,
-                        StringComparer.OrdinalIgnoreCase))
-                {
+                if (!_previewAttachmentPaths.Contains(path, StringComparer.OrdinalIgnoreCase))
                     _previewAttachmentPaths.Add(path);
-                }
             }
             else
-            {
                 missing++;
-            }
         }
 
         RefreshPreviewAttachments();
-
         PreviewComposeStatusText.Text = missing == 0
             ? $"Применён шаблон «{template.Name}»."
             : $"Применён шаблон «{template.Name}». Недоступных вложений: {missing}.";
