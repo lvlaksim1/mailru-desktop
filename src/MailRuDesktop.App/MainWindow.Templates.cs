@@ -270,7 +270,26 @@ public partial class MainWindow
             return;
         }
 
-        var previousName = (MailTemplatesListBox.SelectedItem as SavedMailTemplate)?.Name;
+        // The name in the editor determines the target file. A changed name
+        // creates a new independent template, never renames/deletes the old one.
+        // Even overwriting the currently selected file requires confirmation.
+        bool existing;
+        try
+        {
+            existing = TemplateFiles.Exists(name);
+        }
+        catch (ArgumentException ex)
+        {
+            AppDialog.Info(this, "Некорректное название шаблона", ex.Message);
+            return;
+        }
+
+        if (existing && !AppDialog.Confirm(
+                this, "Перезапись шаблона",
+                $"Шаблон с названием «{name}» уже существует и будет перезаписан. Продолжить?",
+                "Перезаписать", "Отмена"))
+            return;
+
         var replacement = new SavedMailTemplate
         {
             Name = name,
@@ -281,7 +300,8 @@ public partial class MainWindow
 
         try
         {
-            var saved = TemplateFiles.Save(replacement, previousName);
+            var saved = TemplateFiles.Save(replacement,
+                previousName: existing ? name : null);
             RefreshTemplatesFromDisk(saved.Name);
             MailTemplatesListBox.SelectedItem = _mailTemplates.FirstOrDefault(
                 item => string.Equals(item.Name, saved.Name, StringComparison.OrdinalIgnoreCase));
@@ -351,6 +371,7 @@ public partial class MainWindow
         {
             Title = "Загрузить готовый шаблон для редактирования",
             Filter = "Шаблоны Markdown (*.md)|*.md",
+            InitialDirectory = TemplateFiles.DirectoryPath,
             CheckFileExists = true
         };
         if (picker.ShowDialog(this) != true)
