@@ -130,9 +130,10 @@ public partial class MainWindow
             await ArchiveMessageFromPreviewAsync(message);
     }
 
-    private async Task ArchiveMessageFromPreviewAsync(MailRuMessageSummary message)
+    private async Task ArchiveMessageFromPreviewAsync(MailRuMessageSummary clicked)
     {
-        if (string.IsNullOrWhiteSpace(_accessToken))
+        var targets = ResolveActionMessages();
+        if (targets.Count == 0)
             return;
 
         var folders = (FolderListBox.ItemsSource as IEnumerable<MailRuFolderSummary>)?.ToArray()
@@ -142,33 +143,8 @@ public partial class MainWindow
             folder.Name.Equals("Архив", StringComparison.CurrentCultureIgnoreCase) ||
             folder.Id == 500010);
 
-        try
-        {
-            var result = await _mailRu.MoveMessagesAsync(
-                _accessToken,
-                new[] { message.Id },
-                archive?.Id ?? 500010);
-
-            ResponseTextBox.Text = result.RawResponse;
-            if (!result.Success)
-            {
-                FolderStatusText.Text = "Mail.ru отклонил перенос в архив.";
-                return;
-            }
-
-            if (_currentFolderId == 0 && message.Unread)
-                AdjustActiveInboxUnread(-1);
-
-            _currentMessages.RemoveAll(item => item.Id == message.Id);
-            ApplyFilters();
-            ClearSelectedMessage();
-            FolderStatusText.Text = "Письмо перемещено в архив.";
-        }
-        catch (Exception ex)
-        {
-            FolderStatusText.Text = "Ошибка перемещения в архив.";
-            DiagnosticLog.Write("message_archive", ex.GetType().Name + ": " + ex.Message);
-        }
+        await ExecuteBulkMoveAsync(targets, archive?.Id ?? 500010,
+            "Перемещение в архив");
     }
 
     private void AdjustActiveInboxUnread(long delta)
