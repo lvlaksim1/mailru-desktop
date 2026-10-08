@@ -143,6 +143,8 @@ public partial class MainWindow
             string.IsNullOrWhiteSpace(_activeLogin))
             return;
 
+        var runAccount = _activeLogin;
+        var runFolder = _currentFolderId;
         _bulkOperationInProgress = true;
         UpdateBulkToolbar();
         try
@@ -155,6 +157,9 @@ public partial class MainWindow
                 FolderStatusText.Text = "Сервер отклонил групповую отметку.";
                 return;
             }
+            if (!string.Equals(_activeLogin, runAccount, StringComparison.OrdinalIgnoreCase)
+                || _currentFolderId != runFolder)
+                return;
             var changed = selected.Where(item => item.Unread).ToArray();
             foreach (var item in changed)
                 ReplaceMessage(item, item with { Unread = false });
