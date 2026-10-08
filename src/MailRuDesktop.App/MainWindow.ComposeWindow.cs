@@ -124,11 +124,11 @@ public partial class MainWindow
                 HorizontalAlignment = HorizontalAlignment.Right,
                 Margin = new Thickness(0, 10, 0, 0)
             };
-            var pick = new Button { Content = "Выбрать", Padding = new Thickness(15, 7) };
+            var pick = new Button { Content = "Выбрать", Padding = new Thickness(15, 7, 15, 7) };
             var cancel = new Button
             {
                 Content = "Отмена",
-                Padding = new Thickness(15, 7),
+                Padding = new Thickness(15, 7, 15, 7),
                 Margin = new Thickness(8, 0, 0, 0)
             };
             buttons.Children.Add(pick);
