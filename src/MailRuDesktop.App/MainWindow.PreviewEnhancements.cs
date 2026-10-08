@@ -22,35 +22,20 @@ public partial class MainWindow
             return;
 
         _previewEnhancementsInitialized = true;
-        MessagesGrid.SelectionChanged += PreviewMessagesGrid_SelectionChanged;
+        // Preview is no longer coupled to the checkbox selection state.
         MessageWebView.NavigationCompleted += PreviewMessageWebView_NavigationCompleted;
     }
 
-    private void PreviewMessagesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void UpdatePreviewSelectionFields(MailRuMessageSummary message)
     {
-        if (_suppressMessageSelectionChanged)
-            return;
-
         PreviewComposePanel.Visibility = Visibility.Collapsed;
         PreviewComposeStatusText.Text = string.Empty;
-
-        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message)
-        {
-            SelectedSenderNameText.Text = string.Empty;
-            SelectedToText.Text = string.Empty;
-            return;
-        }
-
         SelectedSenderNameText.Text = message.SenderName;
         SelectedSenderText.Text = string.IsNullOrWhiteSpace(message.SenderEmail)
             ? message.SenderDisplay
             : message.SenderEmail;
         SelectedToText.Text = string.Empty;
-
-        if (message.Unread)
-            _previewAutoReadMessageId = message.Id;
-        else if (!string.Equals(_previewAutoReadMessageId, message.Id, StringComparison.Ordinal))
-            _previewAutoReadMessageId = null;
+        _previewAutoReadMessageId = message.Unread ? message.Id : null;
     }
 
     private void PreviewMessageWebView_NavigationCompleted(
@@ -58,7 +43,7 @@ public partial class MainWindow
         CoreWebView2NavigationCompletedEventArgs e)
     {
         if (_currentFullMessage is not null &&
-            MessagesGrid.SelectedItem is MailRuMessageSummary selected &&
+            ActivePreviewMessage is MailRuMessageSummary selected &&
             string.Equals(_currentFullMessage.Id, selected.Id, StringComparison.Ordinal))
         {
             SelectedSenderNameText.Text = _currentFullMessage.FromName;
@@ -141,7 +126,7 @@ public partial class MainWindow
 
     private async void PreviewArchiveButton_Click(object sender, RoutedEventArgs e)
     {
-        if (MessagesGrid.SelectedItem is MailRuMessageSummary message)
+        if (ActivePreviewMessage is MailRuMessageSummary message)
             await ArchiveMessageFromPreviewAsync(message);
     }
 
@@ -211,7 +196,7 @@ public partial class MainWindow
 
     private void PreviewReplyButton_Click(object sender, RoutedEventArgs e)
     {
-        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message)
+        if (ActivePreviewMessage is not MailRuMessageSummary message)
             return;
 
         _previewComposeMode = PreviewComposeMode.Reply;
@@ -233,7 +218,7 @@ public partial class MainWindow
 
     private void PreviewForwardButton_Click(object sender, RoutedEventArgs e)
     {
-        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message)
+        if (ActivePreviewMessage is not MailRuMessageSummary message)
             return;
 
         _previewComposeMode = PreviewComposeMode.Forward;
@@ -346,7 +331,7 @@ public partial class MainWindow
     private async void PreviewSendComposeButton_Click(object sender, RoutedEventArgs e)
     {
         PreviewComposeStatusText.SetResourceReference(TextBlock.ForegroundProperty, "AppMutedTextBrush");
-        if (MessagesGrid.SelectedItem is not MailRuMessageSummary message)
+        if (ActivePreviewMessage is not MailRuMessageSummary message)
             return;
 
         if (string.IsNullOrWhiteSpace(PreviewComposeToTextBox.Text))
