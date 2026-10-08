@@ -379,10 +379,14 @@
                     </Grid>
 
                     <StackPanel Grid.Row="1" Margin="0,0,0,6">
-                        <WrapPanel VerticalAlignment="Center">
-                            <Button x:Name="MainComposeButton" Padding="12,5" Margin="0,0,10,4"
+                        <DockPanel LastChildFill="True" VerticalAlignment="Center">
+                            <!-- New Mail belongs at the upper right of the message list,
+                                 independent of selection actions that may wrap. -->
+                            <Button x:Name="MainComposeButton" DockPanel.Dock="Right"
+                                    Padding="12,5" Margin="10,0,0,4"
                                     FontWeight="SemiBold" Click="ShowComposeButton_Click"
                                     Content="✎  Новое письмо"/>
+                            <WrapPanel VerticalAlignment="Center">
                             <Button x:Name="BulkTrashButton" Padding="10,5" Margin="0,0,5,4"
                                     Click="BulkTrashButton_Click" Content="В корзину"/>
                             <Button x:Name="BulkArchiveButton" Padding="10,5" Margin="0,0,5,4"
@@ -400,7 +404,8 @@
                                        VerticalAlignment="Center"
                                        Foreground="{DynamicResource AppMutedTextBrush}"
                                        Text="Выбрано: 0"/>
-                        </WrapPanel>
+                            </WrapPanel>
+                        </DockPanel>
                         <Grid Visibility="Collapsed">
                             <TextBox x:Name="FilterSenderTextBox"/>
                             <TextBox x:Name="FilterSubjectTextBox"/>
