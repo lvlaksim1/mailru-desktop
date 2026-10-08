@@ -10,9 +10,9 @@
 
 ## Current product baseline
 
-Latest public GitHub Release: v0.3.17.
+Latest public GitHub Release: v0.3.18, published on 2026-10-08.
 
-Current product code on main: merged PR #62, intended v0.3.18, merge commit 3593e4689c813b4c587518cba4c424742de2f621. Main CI and repository-storage-policy checks passed. The v0.3.18 release package is still pending.
+Current product code on main: merged PR #62 and PR #63. Main CI 37707321540 and release workflow 37707435464 passed; full and update installers are published.
 
 The merged v0.3.18 bundle covers:
 - window/maximized state and layout-width persistence;
@@ -29,9 +29,9 @@ The merged v0.3.18 bundle covers:
 
 ## Immediate plan
 
-1. Publish v0.3.18 from the already merged and green product code.
-2. Owner validates window state, divider and column persistence, scrollbar appearance, compact icons, account dragging and saved order, account sections, preview/reply layout, signatures and templates.
-3. Fix defects established by Owner runtime evidence before expanding unrelated protocol functionality.
+1. Owner installs published v0.3.18 and validates in real Windows runtime.
+2. Owner validates window state, divider and column persistence, scrollbar appearance, real sender/account avatar portraits with initials fallback, account dragging and saved order, account sections, preview/reply layout, signatures, and manually managed Markdown template files including attachments and legacy migration.
+3. Fix defects established by Owner runtime evidence before expanding unrelated protocol functionality. The avatar URL is static APK evidence until its live image behavior is verified.
 
 ## Later plan
 
@@ -43,3 +43,7 @@ The merged v0.3.18 bundle covers:
 6. Search suggestions and separate investigation of go.mail.ru HTTP 520.
 7. Snooze, color tags, filters, aliases/collectors, cloud operations and other mapped mechanisms.
 8. Dedicated validation of delayed-send send_date and compose-session message-id semantics.
+
+## File-template and avatar release note
+
+The template source of truth is the top-level .md files in %LOCALAPPDATA%/MailRuDesktop/Templates. The app watches the folder and also refreshes when Settings/template dropdown opens. Selected local attachments are copied into Templates/_attachments and referenced from optional Markdown metadata; inserting a template replaces its subject/body/attachments without confirmation. Legacy settings.json templates are migrated once. Photo URLs use official-client evidence for filin.mail.ru/pic?email; failed/missing images should reveal the initials underneath. Preserve these constraints in future modifications.
