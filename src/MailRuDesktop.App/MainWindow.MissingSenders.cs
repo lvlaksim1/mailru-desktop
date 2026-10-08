@@ -16,11 +16,11 @@ public partial class MainWindow
         var missing = messages
             .Where(message => string.IsNullOrWhiteSpace(message.SenderEmail) &&
                               string.IsNullOrWhiteSpace(message.SenderName))
-            .Take(4).ToArray();
+            .Take(1).ToArray();
 
         // A few missing correspondents can be populated before first paint.
         // Never hold the whole folder open for a large queue of slow requests.
-        if (missing.Length is 0 or > 3)
+        if (missing.Length == 0)
             return;
 
         using var timeBudget = new CancellationTokenSource(TimeSpan.FromSeconds(3));
@@ -98,7 +98,7 @@ public partial class MainWindow
 
             if (index > 0)
             {
-                await Task.Delay(TimeSpan.FromMilliseconds(1200));
+                await Task.Delay(TimeSpan.FromSeconds(5));
                 if (Stale()) return;
             }
 
