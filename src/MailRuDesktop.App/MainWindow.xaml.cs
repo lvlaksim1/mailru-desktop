@@ -1266,31 +1266,30 @@ public partial class MainWindow : Window
 
     private async void MoveMessageButton_Click(object sender, RoutedEventArgs e)
     {
-        if (ActivePreviewMessage is not MailRuMessageSummary message ||
-            MoveFolderComboBox.SelectedItem is not MailRuFolderSummary folder)
+        if (MoveFolderComboBox.SelectedItem is not MailRuFolderSummary folder)
         {
-            FolderStatusText.Text = "Выберите письмо и папку назначения.";
+            FolderStatusText.Text = "Выберите папку назначения.";
             return;
         }
 
-        await MoveMessagesAsync([message.Id], folder.Id, $"Перемещение в «{folder.Name}»");
+        var targets = ResolveActionMessages();
+        if (targets.Count == 0) return;
+        await MoveMessagesAsync(targets.Select(m => m.Id).ToArray(),
+            folder.Id, $"Перемещение в «{folder.Name}»");
     }
 
     private async void TrashMessageButton_Click(object sender, RoutedEventArgs e)
     {
-        if (ActivePreviewMessage is not MailRuMessageSummary message)
-        {
-            FolderStatusText.Text = "Выберите письмо.";
-            return;
-        }
-
+        var targets = ResolveActionMessages();
+        if (targets.Count == 0) return;
         if (_currentFolderId == 500002)
         {
             FolderStatusText.Text = "Письмо уже находится в Корзине.";
             return;
         }
 
-        await MoveMessagesAsync([message.Id], 500002, "Перемещение в корзину");
+        await MoveMessagesAsync(targets.Select(m => m.Id).ToArray(),
+            500002, "Перемещение в корзину");
     }
 
     private async Task MoveMessagesAsync(
