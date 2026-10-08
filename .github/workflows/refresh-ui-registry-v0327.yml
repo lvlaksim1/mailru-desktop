@@ -1,0 +1,31 @@
+name: Temporary v0.3.27 UI registry regeneration
+on:
+  push:
+    branches:
+      - fix/v0.3.27-update-check-fallback
+    paths:
+      - .github/workflows/refresh-ui-registry-v0327.yml
+permissions:
+  contents: write
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/v0.3.27-update-check-fallback
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generate exact interface registry
+        run: python tools/ui_registry.py --write
+      - name: Commit generated registry to repair branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/ui-registry.json
+          if ! git diff --cached --quiet; then
+            git commit -m "docs: update UI registry for updater controls"
+            git push origin HEAD:fix/v0.3.27-update-check-fallback
+          fi
