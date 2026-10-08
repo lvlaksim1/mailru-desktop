@@ -1867,13 +1867,7 @@ public partial class MainWindow : Window
             $"blockquote {{ border-left: 3px solid {muted}; margin-left: 8px; padding-left: 10px; color: {muted}; }}" +
             $"a {{ color: {link}; text-decoration: none; }}" +
             darkMailOverrides +
-            (ThemeManager.IsDarkEffective
-                ? "::-webkit-scrollbar { width: 12px; height: 12px; background: #1A1D22; }" +
-                  "::-webkit-scrollbar-track { background: #1A1D22; }" +
-                  "::-webkit-scrollbar-thumb { background: #3A4049; border: 2px solid #1A1D22; border-radius: 7px; }" +
-                  "::-webkit-scrollbar-thumb:hover { background: #49505B; }" +
-                  "::-webkit-scrollbar-button { background: #242930; height: 10px; width: 10px; }"
-                : string.Empty) +
+            ThemeManager.ReaderScrollbarCss +
             "</style></head><body>" +
             body +
             "</body></html>";
