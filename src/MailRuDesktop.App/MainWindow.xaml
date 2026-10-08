@@ -25,7 +25,7 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Border Grid.Column="0"
-                        Width="16" Height="16"
+                        Width="{DynamicResource AppAvatarSize}" Height="{DynamicResource AppAvatarSize}"
                         CornerRadius="8"
                         VerticalAlignment="Center"
                         Background="{DynamicResource AppControlHoverBrush}">
@@ -35,7 +35,7 @@
                                    FontSize="{DynamicResource AppFontTinySize}"
                                    FontWeight="SemiBold"
                                    Text="{Binding IconText}"/>
-                        <Image Width="16" Height="16" Stretch="UniformToFill"
+                        <Image Width="{DynamicResource AppAvatarSize}" Height="{DynamicResource AppAvatarSize}" Stretch="UniformToFill"
                                Source="{Binding AvatarUrl}"/>
                     </Grid>
                 </Border>
