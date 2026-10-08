@@ -251,3 +251,12 @@ statement: GitHub Release v0.3.18 was published 2026-10-08 with full and in-plac
 source: direct Owner directives in conversation on 2026-10-08; merged PR #63; main CI 37707321540; release workflow 37707435464; GitHub Release v0.3.18; docs/markdown-templates.md.
 authority: owner-directive + verified-repository + verified-ci (not verified Owner runtime)
 supersedes: B-030 regarding release pending and initials-only icons
+
+
+## B-032 — v0.3.19 fixes account drag and outgoing compose requests
+
+statement: GitHub Release v0.3.19 was published 2026-10-08 with both installers from PR #67. Main CI 37709503446 (build, launch and offline regression checks), repository-storage policy 37709503443, and release workflow 37709585421 passed. The account drag target now uses original row centers rather than animation-shifted positions, and prevents undesired short-click selection after a long-press. New compose adds checkbox-controlled read-receipt request serialized as POST receipt=true; the boolean receipt parameter was confirmed in TornadoSendParamsImpl in the official APK. The existing scheduled send has tomorrow at 09:00 as UI default and remains on the existing /api/v1/messages/schedule route. If sender name is empty or missing, the email is displayed; parser now accepts array/object/string sender forms. Offline protocol imitation covered form serialization; no live read-receipt or delayed-delivery validation has been completed.
+
+source: Owner defect report and feature directives; PR #67 merged commit 3640b7e56e8059777d878d9f67f4f8d6bf01c32a; workflow 37709503446; release workflow 37709585421; official APK decompilation (TornadoSendParamsImpl.java).
+authority: owner-directive + verified-repository + verified-ci + static-official-client (NOT live delivery validation)
+supersedes: I-009 and prior current views wherever they imply v0.3.18 is the latest release.
