@@ -1,6 +1,6 @@
 # Next actions
 
-1. Validate the published v0.3.20 update on the Owner's Windows machine; GitHub Release includes both installers.
+1. Validate the published v0.3.21 update on the Owner's Windows machine; GitHub Release includes both installers.
 2. Validate saved window state, size, position, preview divider and message-column widths after restart.
 3. Validate darker scrollbars and real sender/account avatar photos, with initials fallback when no photo exists, without increasing row height.
 4. Validate account reordering exactly as specified by Owner, including hold-to-detach timing, smooth neighbor movement, release-to-place and persisted order.
@@ -21,3 +21,8 @@
 17. Owner validates titlebar color on account-section title prompt while text field is focused.
 18. Owner verifies email fallback on mailbox rows that initially lack names, before/after selecting full mail.
 19. Owner verifies receipt and scheduled send controls in inline reply/forward, not only New Mail. Validate server acceptance and delivery separately.
+
+20. Owner installs v0.3.21 and visually inspects all 26 palette roles in dark and light settings, including dialog windows, lists, buttons, focus state, date picker and both scrollbar orientations.
+21. Owner edits a role, confirms immediate update across affected elements, restart persistence, per-role and entire theme reset, independent dark/light profiles, and Windows-driven system theme.
+22. Check contrast warnings: low contrast must be reported, but never silently corrected. Review original appearance of images, logos and contact avatars.
+23. Resume separately agreed 12-point mail backlog after the palette system has been visually validated; do not conflate its unimplemented items with the completed color-system release.
