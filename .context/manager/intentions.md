@@ -103,3 +103,10 @@ status: active — v0.3.22 delivered; send-now (#10–11) remains blocked on ver
 A full v0.3.22 release has shipped the palette-collapse/new color-picker enhancements and the tested code for sender enrichment, legible Markdown, selectable attachment download directory, automatic Explorer opening, top-of-letter attachments, formatted HTML editor in all compose views, multi-select Ctrl/Shift/checkbox, bulk move/archive/read, and permanent deletion in Trash. Offline/CI testing succeeded; Owner GUI and real HTML reception confirmation pending.
 
 The open, highest-risk remaining subtask is issue #77: safe immediate sending of a message already scheduled to send later. The application currently shows disabled "Отправить сейчас" controls when in Outbox; enabling a method that creates an additional outgoing mail instead of reusing/cancelling the existing schedule is unacceptable. Research with controlled test messages, original scheduled IDs, protocol responses and post-send state verification must precede implementation. The complete 12-point backlog remains open until this condition is met and Owner signs off.
+
+## I-017 — verify independent auto-refresh for saved Mail.ru accounts
+status: released v0.3.23, Owner runtime confirmation pending
+
+Prevent "Авторизация активна" when the Mail.ru API rejects a saved token with HTTP 200 and embedded JSON status 403. Recognize the rejection, try account-specific refresh if available, validate fresh token against the folder endpoint, then save only successful replacement. Never delete other accounts, alter their credentials, overwrite LastLogin during inactive account checks, or log secrets. If refresh unavailable or rejected, show clearly which account requires new login. The v0.3.23 implementation and offline Windows checks are complete, but live Owner account validation remains to be done.
+
+Issue #77 for previously scheduled outgoing mail remains separate and unresolved; do not claim all 12 backlog features complete.
