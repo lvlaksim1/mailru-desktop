@@ -1,6 +1,6 @@
 # Next actions
 
-1. Validate the published v0.3.19 update on the Owner's Windows machine; GitHub Release includes both installers.
+1. Validate the published v0.3.20 update on the Owner's Windows machine; GitHub Release includes both installers.
 2. Validate saved window state, size, position, preview divider and message-column widths after restart.
 3. Validate darker scrollbars and real sender/account avatar photos, with initials fallback when no photo exists, without increasing row height.
 4. Validate account reordering exactly as specified by Owner, including hold-to-detach timing, smooth neighbor movement, release-to-place and persisted order.
@@ -14,3 +14,10 @@
 11. Owner tests read-receipt request on new outgoing mail against a consenting test recipient. Request is protocol-confirmed, but end-to-end receipt behavior is not independently verified.
 12. Owner checks new-compose default tomorrow 09:00, scheduling checkbox gating, future-time validation and delivery outcome of scheduled messages. Do not claim delivery on successful scheduling alone.
 13. Owner confirms missing sender names are replaced with sender email in mailbox list across accounts.
+
+14. Owner visually checks horizontal/vertical thumb and arrow darkness across all WPF scroll containers and both embedded mail readers.
+15. Owner checks same-value template/signature re-selection (mouse and keyboard) in inline reply, and × closes it.
+16. Owner selects a custom template directory, restarts, adds a .md file manually, edits/renames files and confirms watcher, attachment continuity and backups.
+17. Owner validates titlebar color on account-section title prompt while text field is focused.
+18. Owner verifies email fallback on mailbox rows that initially lack names, before/after selecting full mail.
+19. Owner verifies receipt and scheduled send controls in inline reply/forward, not only New Mail. Validate server acceptance and delivery separately.

@@ -10,7 +10,7 @@
 
 ## Current product baseline
 
-Latest public GitHub Release: v0.3.19, published on 2026-10-08.
+Latest public GitHub Release: v0.3.20, published on 2026-10-08.
 
 Current product code on main: merged PR #62 and PR #63. Main CI 37707321540 and release workflow 37707435464 passed; full and update installers are published.
 
@@ -56,3 +56,13 @@ The template source of truth is the top-level .md files in %LOCALAPPDATA%/MailRu
 3. Confirm the schedule option is unchecked by default but its date is locally tomorrow at 09:00, refreshed when reopening New Mail; verify exact /schedule server handling and later delivery with an explicitly authorized test recipient.
 4. Verify sender fallback with absent names in both array/object variants and across multiple accounts.
 5. Preserve all previously released OAuth, Markdown templates, avatars and auth-profile constraints.
+
+## v0.3.20 immediate verification plan
+
+1. Owner installs update and tests dark vertical/horizontal scrollbars in lists, settings and mail viewer.
+2. Owner tests selected same signature/template twice with mouse and Enter, and top-right × in inline reply/forward.
+3. Owner selects custom template path, saves, reopens program, adds/renames Markdown files manually and verifies no data loss, attachments and directory-watcher refresh.
+4. Owner checks the section-name dialog caption remains dark after focus on its text field.
+5. Owner checks initially empty sender rows; select an affected message so full FromEmail populates row and verify parent thread fallback where present.
+6. Owner checks receipt and scheduled send both in inline reply/forward and standalone compose; test with authorized recipient and observe real server acceptance/delivery.
+7. Preserve existing account drag and splitter behavior that Owner positively confirmed. Fix actual runtime defects before unrelated API expansion.
