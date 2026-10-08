@@ -56,9 +56,10 @@ internal sealed class PaletteColorPickerWindow : Window
         Title = "Выбор цвета — " + roleName;
         SelectedHex = hex;
         Width = 390;
-        Height = 370;
+        Height = 468;
         MinWidth = 390;
-        ResizeMode = ResizeMode.NoResize;
+        MinHeight = 430;
+        ResizeMode = ResizeMode.CanResize;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         ShowInTaskbar = false;
         SetResourceReference(BackgroundProperty, "AppDialogBrush");
@@ -167,7 +168,12 @@ internal sealed class PaletteColorPickerWindow : Window
         buttons.Children.Add(apply);
         buttons.Children.Add(cancel);
         root.Children.Add(buttons);
-        Content = root;
+        Content = new ScrollViewer
+        {
+            Content = root,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
+        };
 
         _hexBox.TextChanged += (_, _) =>
         {
