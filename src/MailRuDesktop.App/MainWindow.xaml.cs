@@ -59,6 +59,7 @@ public partial class MainWindow : Window
         ThemeManager.Apply(_settingsStore.LoadTheme());
         InitializePaletteEditor();
         MessagesGrid.ItemsSource = _visibleMessages;
+        InitializeLiveFolderCounters();
         ConfigureModernMailList();
         MessagesGrid.PreviewMouseLeftButtonDown += BulkRowCheckBox_PreviewMouseLeftButtonDown;
         MessagesGrid.PreviewMouseLeftButtonDown += MailPreviewRow_PreviewMouseLeftButtonDown;
@@ -537,7 +538,10 @@ public partial class MainWindow : Window
             return;
 
         if (folderId != _currentFolderId || accountSwitchGeneration is not null)
+        {
             _selectedMailIds.Clear();
+            _checkboxRangeAnchorId = null;
+        }
         _loadingFolder = true;
         ++_missingSenderLoadGeneration;
         RefreshFolderButton.IsEnabled = false;
@@ -574,25 +578,7 @@ public partial class MainWindow : Window
             UpdateTrashButtonMode();
 
             if (snapshot.Folders.Count > 0)
-            {
-                _updatingFolderSelection = true;
-                try
-                {
-                    FolderListBox.ItemsSource = snapshot.Folders;
-                    MoveFolderComboBox.ItemsSource = snapshot.Folders;
-
-                    FolderListBox.SelectedItem =
-                        snapshot.Folders.FirstOrDefault(folder => folder.Id == _currentFolderId);
-
-                    MoveFolderComboBox.SelectedItem =
-                        snapshot.Folders.FirstOrDefault(folder => folder.Id == 500002) ??
-                        snapshot.Folders.FirstOrDefault(folder => folder.Id != _currentFolderId);
-                }
-                finally
-                {
-                    _updatingFolderSelection = false;
-                }
-            }
+                ReplaceFolderSummaries(snapshot.Folders);
 
             UpdateBulkToolbar();
 
@@ -995,6 +981,10 @@ public partial class MainWindow : Window
     {
         var selectedId = _activePreviewMailId;
 
+        if (original.Unread != updated.Unread)
+            ChangeFolderUnreadCount(original.FolderId ?? _currentFolderId,
+                updated.Unread ? 1 : -1);
+
         var currentIndex = _currentMessages.FindIndex(item => item.Id == original.Id);
         if (currentIndex >= 0)
             _currentMessages[currentIndex] = updated;
@@ -1327,6 +1317,8 @@ public partial class MainWindow : Window
                 && _currentFolderId == operationFolder)
             {
                 var unread = _currentMessages.Count(x => ids.Contains(x.Id) && x.Unread);
+                if (unread > 0)
+                    ChangeFolderUnreadCount(destinationFolderId, unread);
                 RemoveConfirmedMailRows(ids);
                 if (_currentFolderId == 0 && unread > 0)
                     AdjustActiveInboxUnread(-unread);
