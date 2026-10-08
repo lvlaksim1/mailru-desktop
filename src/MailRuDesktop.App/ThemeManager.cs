@@ -18,10 +18,15 @@ internal static class ThemeManager
     public static bool IsDarkEffective { get; private set; }
     public static event EventHandler? ThemeChanged;
 
-    public static string ReaderBackgroundHtml => IsDarkEffective ? "#17191D" : "#FFFFFF";
-    public static string ReaderForegroundHtml => IsDarkEffective ? "#F4F6F8" : "#202124";
-    public static string ReaderMutedHtml => IsDarkEffective ? "#AAB2BD" : "#70757A";
-    public static string ReaderLinkHtml => IsDarkEffective ? "#6CB6FF" : "#0B57D0";
+    private static IReadOnlyDictionary<string, string> _currentColors =
+        ThemePalette.Defaults(dark: true);
+
+    public static string GetHex(string key) => _currentColors[key];
+
+    public static string ReaderBackgroundHtml => GetHex("AppReaderBrush");
+    public static string ReaderForegroundHtml => GetHex("AppTextBrush");
+    public static string ReaderMutedHtml => GetHex("AppMutedTextBrush");
+    public static string ReaderLinkHtml => GetHex("AppLinkBrush");
 
     public static void Initialize()
     {
@@ -64,46 +69,14 @@ internal static class ThemeManager
             _ => IsSystemDark()
         };
 
+        // All 26 resources are bound by an immutable role catalog. A user can
+        // change only each role's hexadecimal value, never its mapped controls.
         var resources = Application.Current.Resources;
+        _currentColors = ThemePalette.Merge(IsDarkEffective,
+            new AppSettingsStore().LoadPaletteOverrides(IsDarkEffective));
 
-        if (IsDarkEffective)
-        {
-            SetBrush(resources, "AppWindowBrush", "#17191D");
-            SetBrush(resources, "AppPanelBrush", "#1E2228");
-            SetBrush(resources, "AppControlBrush", "#252A31");
-            SetBrush(resources, "AppControlHoverBrush", "#303640");
-            SetBrush(resources, "AppControlPressedBrush", "#39414C");
-            SetBrush(resources, "AppTextBrush", "#F4F6F8");
-            SetBrush(resources, "AppMutedTextBrush", "#AAB2BD");
-            SetBrush(resources, "AppDisabledTextBrush", "#727B87");
-            SetBrush(resources, "AppBorderBrush", "#353B45");
-            SetBrush(resources, "AppSelectionBrush", "#263E5F");
-            SetBrush(resources, "AppSelectionTextBrush", "#FFFFFF");
-            SetBrush(resources, "AppAccentBrush", "#5AA7FF");
-            SetBrush(resources, "AppAccentTextBrush", "#FFFFFF");
-            SetBrush(resources, "AppScrollTrackBrush", "#1A1D22");
-            SetBrush(resources, "AppScrollThumbBrush", "#3A4049");
-            SetBrush(resources, "AppScrollArrowBrush", "#5F6874");
-        }
-        else
-        {
-            SetBrush(resources, "AppWindowBrush", "#FFFFFF");
-            SetBrush(resources, "AppPanelBrush", "#FFFFFF");
-            SetBrush(resources, "AppControlBrush", "#FFFFFF");
-            SetBrush(resources, "AppControlHoverBrush", "#F3F5F7");
-            SetBrush(resources, "AppControlPressedBrush", "#E8EBEF");
-            SetBrush(resources, "AppTextBrush", "#202124");
-            SetBrush(resources, "AppMutedTextBrush", "#70757A");
-            SetBrush(resources, "AppDisabledTextBrush", "#9AA0A6");
-            SetBrush(resources, "AppBorderBrush", "#D6DCE5");
-            SetBrush(resources, "AppSelectionBrush", "#DCEBFA");
-            SetBrush(resources, "AppSelectionTextBrush", "#202124");
-            SetBrush(resources, "AppAccentBrush", "#0D6EFD");
-            SetBrush(resources, "AppAccentTextBrush", "#FFFFFF");
-            SetBrush(resources, "AppScrollTrackBrush", "#F2F4F7");
-            SetBrush(resources, "AppScrollThumbBrush", "#AEB6C2");
-            SetBrush(resources, "AppScrollArrowBrush", "#7B8490");
-        }
+        foreach (var role in ThemePalette.Roles)
+            SetBrush(resources, role.Key, _currentColors[role.Key]);
 
         ApplySystemBrushAliases(resources);
 
@@ -132,7 +105,7 @@ internal static class ThemeManager
         // theme even when they do not yet have an explicit MailRu style.
         var window = (Brush)resources["AppWindowBrush"];
         var panel = (Brush)resources["AppPanelBrush"];
-        var control = (Brush)resources["AppControlBrush"];
+        var control = (Brush)resources["AppInputBrush"];
         var text = (Brush)resources["AppTextBrush"];
         var muted = (Brush)resources["AppDisabledTextBrush"];
         var border = (Brush)resources["AppBorderBrush"];
@@ -196,14 +169,9 @@ internal static class ThemeManager
                     Marshal.SizeOf<int>());
             }
 
-            // Windows 11 otherwise renders the dark caption almost black.
-            // Use a deliberately softer dark gray requested by the owner.
-            var caption = IsDarkEffective
-                ? ToColorRef(0x1E, 0x22, 0x28)
-                : ToColorRef(0xF3, 0xF3, 0xF3);
-            var text = IsDarkEffective
-                ? ToColorRef(0xF2, 0xF2, 0xF2)
-                : ToColorRef(0x20, 0x21, 0x24);
+            // Native titlebars are part of the same user-customizable palette.
+            var caption = ToColorRef(GetHex("AppDialogBrush"));
+            var text = ToColorRef(GetHex("AppTextBrush"));
 
             DwmSetWindowAttribute(
                 handle,
@@ -222,8 +190,13 @@ internal static class ThemeManager
         }
     }
 
-    private static int ToColorRef(byte r, byte g, byte b) =>
-        r | (g << 8) | (b << 16);
+    private static int ToColorRef(string hex)
+    {
+        var r = Convert.ToInt32(hex.Substring(1, 2), 16);
+        var g = Convert.ToInt32(hex.Substring(3, 2), 16);
+        var b = Convert.ToInt32(hex.Substring(5, 2), 16);
+        return r | (g << 8) | (b << 16);
+    }
 
     [DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(
