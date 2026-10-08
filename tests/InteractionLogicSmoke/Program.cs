@@ -321,6 +321,39 @@ finally
         Directory.Delete(isolatedAuthFolder, recursive: true);
 }
 
+Expect(string.Join(",", MailTargetResolver.Resolve(["A", "B"], "C")),
+    "A,B", "checked letters have priority over active preview");
+Expect(string.Join(",", MailTargetResolver.Resolve(Array.Empty<string>(), "C")),
+    "C", "active preview is fallback when no checkbox is checked");
+Expect(MailTargetResolver.Resolve(Array.Empty<string>(), null).Length,
+    0, "no checked or active letter produces no targets");
+Expect(string.Join(",", MailTargetResolver.Resolve(["A", "A"], "C")),
+    "A", "duplicate checked ids are never sent twice");
+
+var fontRoles = ThemeTypography.Resolve(ThemeTypography.DefaultSize);
+Expect(fontRoles.Count, 9, "nine fixed typography roles");
+Expect(fontRoles["AppFontBodySize"], 12.0, "default font size is 12");
+Expect(ThemeTypography.Normalize(1), 10, "font size minimum is enforced");
+Expect(ThemeTypography.Normalize(99), 18, "font size maximum is enforced");
+Expect(ThemeTypography.Resolve(16)["AppFontHeadingSize"], 24.0,
+    "headings scale together with body text");
+
+var isolatedFontSettings = Path.Combine(Path.GetTempPath(),
+    "MailRuFont-" + Guid.NewGuid().ToString("N"));
+try
+{
+    var store = new AppSettingsStore(isolatedFontSettings);
+    Expect(store.LoadInterfaceFontSize(), 12, "default persisted font size");
+    store.SaveInterfaceFontSize(16);
+    Expect(new AppSettingsStore(isolatedFontSettings).LoadInterfaceFontSize(),
+        16, "font size survives app restart");
+}
+finally
+{
+    if (Directory.Exists(isolatedFontSettings))
+        Directory.Delete(isolatedFontSettings, recursive: true);
+}
+
 Console.WriteLine("All interaction logic tests passed.");
 
 sealed class RecordingHandler : HttpMessageHandler
