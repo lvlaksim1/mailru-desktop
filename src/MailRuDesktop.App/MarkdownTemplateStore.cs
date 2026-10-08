@@ -179,6 +179,11 @@ internal sealed class MarkdownTemplateStore
         File.WriteAllText(marker, "The settings.json templates were imported. Markdown files are now authoritative.\n");
     }
 
+    public bool Exists(string name) => File.Exists(ResolvePath(name));
+
+    // previousName grants overwrite permission only for this exact target.
+    // It never renames or deletes a different template. The UI confirms
+    // before explicitly granting this permission.
     public SavedMailTemplate Save(SavedMailTemplate template, string? previousName)
     {
         ArgumentNullException.ThrowIfNull(template);
@@ -188,6 +193,8 @@ internal sealed class MarkdownTemplateStore
         var sameFile = previous is not null &&
                        string.Equals(target, previous, StringComparison.OrdinalIgnoreCase);
 
+        if (previous is not null && !sameFile)
+            throw new IOException("Сохранение под новым именем не должно изменять исходный шаблон.");
         if (File.Exists(target) && !sameFile)
             throw new IOException($"Шаблон с названием «{name}» уже существует.");
 
@@ -209,11 +216,15 @@ internal sealed class MarkdownTemplateStore
             var managedRoot = Path.GetFullPath(Path.Combine(DirectoryPath, "_attachments"))
                               + Path.DirectorySeparatorChar;
             var full = Path.GetFullPath(absolute);
-            if (full.StartsWith(managedRoot, StringComparison.OrdinalIgnoreCase))
+            if (full.StartsWith(managedRoot, StringComparison.OrdinalIgnoreCase) &&
+                full.StartsWith(Path.GetFullPath(attachmentRoot) +
+                    Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
             {
                 attachments.Add(Path.GetRelativePath(DirectoryPath, full).Replace('\\', '/'));
                 continue;
             }
+            // A copy under a new template name gets independent attachment
+            // copies, not references into the source template's folder.
 
             Directory.CreateDirectory(attachmentRoot);
             var fileName = Path.GetFileName(full);
@@ -242,8 +253,6 @@ internal sealed class MarkdownTemplateStore
         {
             File.WriteAllText(temp, output.ToString(), new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
             File.Move(temp, target, sameFile);
-            if (previous is not null && !sameFile && File.Exists(previous))
-                File.Delete(previous);
         }
         finally
         {
