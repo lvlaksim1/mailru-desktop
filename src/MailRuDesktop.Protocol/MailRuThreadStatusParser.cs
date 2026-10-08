@@ -312,7 +312,7 @@ public static class MailRuThreadStatusParser
             baseMessage.ValueKind == JsonValueKind.Object &&
             TryResolveMessageId(baseMessage, threadId, out var baseMessageId))
         {
-            AddParsedMessage(baseMessageId, baseMessage, result, seenIds);
+            AddParsedMessage(baseMessageId, baseMessage, result, seenIds, thread);
             return;
         }
 
@@ -327,7 +327,7 @@ public static class MailRuThreadStatusParser
                     continue;
                 }
 
-                AddParsedMessage(messageId, message, result, seenIds);
+                AddParsedMessage(messageId, message, result, seenIds, thread);
                 return;
             }
         }
@@ -339,7 +339,7 @@ public static class MailRuThreadStatusParser
             if (representation is not null &&
                 TryResolveMessageId(representation.Value, threadId, out var representationId))
             {
-                AddParsedMessage(representationId, representation.Value, result, seenIds);
+                AddParsedMessage(representationId, representation.Value, result, seenIds, thread);
                 return;
             }
         }
@@ -409,12 +409,22 @@ public static class MailRuThreadStatusParser
         string id,
         JsonElement message,
         List<MailRuMessageSummary> result,
-        HashSet<string> seenIds)
+        HashSet<string> seenIds,
+        JsonElement? parentThread = null)
     {
         if (!seenIds.Add(id))
             return;
 
-        result.Add(ParseBaseMessage(id, message));
+        var parsed = ParseBaseMessage(id, message);
+        if (parentThread is { } thread &&
+            string.IsNullOrWhiteSpace(parsed.SenderEmail))
+        {
+            var (name, email) = ReadSender(thread);
+            if (!string.IsNullOrWhiteSpace(email))
+                parsed = parsed with { SenderName = name, SenderEmail = email };
+        }
+
+        result.Add(parsed);
     }
 
     private static MailRuMessageSummary ParseBaseMessage(string id, JsonElement message)
