@@ -561,6 +561,7 @@ public partial class MainWindow : Window
             ApplyFilters();
             ScheduleMissingSenderResolution();
             UpdateTrashButtonMode();
+            UpdateBulkToolbar();
 
             if (snapshot.Folders.Count > 0)
             {
@@ -651,6 +652,7 @@ public partial class MainWindow : Window
 
     private async void MessagesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        UpdateBulkToolbar();
         if (_suppressMessageSelectionChanged)
             return;
 
