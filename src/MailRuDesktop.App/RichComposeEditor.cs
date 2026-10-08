@@ -2,6 +2,7 @@ using System.Net;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -28,7 +29,7 @@ internal sealed class RichComposeEditor
         SyncFromPlain();
     }
 
-    public static RichComposeEditor Attach(TextBox plain, Window owner)
+    public static RichComposeEditor Attach(TextBox plain, Window owner, bool resizable = false)
     {
         if (plain.Parent is not Grid parent)
             throw new InvalidOperationException("Mail body needs a grid container.");
@@ -36,6 +37,8 @@ internal sealed class RichComposeEditor
         var host = new Grid { Margin = plain.Margin };
         host.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         host.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        if (resizable)
+            host.RowDefinitions.Add(new RowDefinition { Height = new GridLength(9) });
 
         Grid.SetRow(host, Grid.GetRow(plain));
         Grid.SetColumn(host, Grid.GetColumn(plain));
@@ -56,12 +59,45 @@ internal sealed class RichComposeEditor
         rich.SetResourceReference(Control.ForegroundProperty, "AppTextBrush");
         rich.SetResourceReference(Control.BorderBrushProperty, "AppBorderBrush");
         rich.Document.PagePadding = new Thickness(0);
+        // Normal Enter creates a paragraph. All paragraphs, including ones
+        // inserted through the keyboard, must have zero outside spacing.
+        var paragraphStyle = new Style(typeof(Paragraph));
+        paragraphStyle.Setters.Add(new Setter(Block.MarginProperty, new Thickness(0)));
+        rich.Document.Resources[typeof(Paragraph)] = paragraphStyle;
+        foreach (var paragraph in rich.Document.Blocks.OfType<Paragraph>())
+            paragraph.Margin = new Thickness(0);
 
         var editor = new RichComposeEditor(plain, rich);
         editor.CreateToolbar(toolbar, owner);
         host.Children.Add(toolbar);
         Grid.SetRow(rich, 1);
         host.Children.Add(rich);
+
+        if (resizable)
+        {
+            // Resize the actual editor Grid row instead of moving or overlaying
+            // the reply toolbar and the existing send/attachment controls.
+            var grip = new Thumb
+            {
+                Height = 8,
+                Cursor = Cursors.SizeNS,
+                ToolTip = "Изменить высоту области текста",
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            grip.SetResourceReference(Control.BackgroundProperty, "AppBorderBrush");
+            Grid.SetRow(grip, 2);
+            grip.DragDelta += (_, e) =>
+            {
+                var rowIndex = Grid.GetRow(plain);
+                if (rowIndex >= parent.RowDefinitions.Count)
+                    return;
+                var row = parent.RowDefinitions[rowIndex];
+                var next = Math.Clamp(row.ActualHeight + e.VerticalChange, 115, 550);
+                row.Height = new GridLength(next, GridUnitType.Pixel);
+            };
+            host.Children.Add(grip);
+        }
 
         plain.Visibility = Visibility.Collapsed;
         parent.Children.Add(host);
@@ -164,7 +200,10 @@ internal sealed class RichComposeEditor
         try
         {
             _rich.Document.Blocks.Clear();
-            _rich.Document.Blocks.Add(new Paragraph(new Run(_plain.Text ?? "")));
+            _rich.Document.Blocks.Add(new Paragraph(new Run(_plain.Text ?? ""))
+            {
+                Margin = new Thickness(0)
+            });
         }
         finally { _syncing = false; }
     }
@@ -195,7 +234,7 @@ internal sealed class RichComposeEditor
                         TextAlignment.Justify => "justify",
                         _ => "left"
                     };
-                    output.Append("<p style=\"margin:0 0 7px;text-align:")
+                    output.Append("<p style=\"margin:0;line-height:normal;text-align:")
                         .Append(align).Append(";\">");
                     RenderInlines(paragraph.Inlines, output);
                     output.Append("</p>");
