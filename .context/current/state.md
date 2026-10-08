@@ -5,7 +5,7 @@ Visibility: public
 Product authority: main
 Manager-state authority: main
 
-Latest public release: **v0.3.18**, published 2026-10-08 with full and update installers.
+Latest public release: **v0.3.19**, published 2026-10-08 with full and update installers.
 Product changes: PR #62 plus PR #63, merge commit 34e583abc232c9edc939816a92b4e08165836210.
 Release workflow 37707435464, main CI 37707321540 and repository storage check 37707321584: success.
 
@@ -81,3 +81,14 @@ v0.3.18 is published. CI and release packaging passed. Owner runtime/visual veri
 - Normal application runtime has no mandatory five-second delay.
 - Do not collapse known Mail.ru response variants into one assumed schema.
 - Keep folder last_modified behavior unchanged unless explicitly authorized.
+
+## v0.3.19 release — account drag and outgoing mail
+
+PR #67 merged as product commit 3640b7e56e8059777d878d9f67f4f8d6bf01c32a. Main CI 37709503446, storage policy 37709503443 and release workflow 37709585421 completed successfully. Installer version is 0.3.19.
+
+- Account dragging now calculates destination from unanimated row centers. Downward/upward destination computation is deterministic; neighbor transforms do not feed back into hit geometry. Short click is tied to the original pressed row; release after pointer drift does not switch to an unintended account. Animated transforms are cleared when committing the drag.
+- New-mail compose has a read receipt request checkbox, backed by the official client's boolean POST parameter receipt. With checkbox enabled, receipt=true is sent; unchecked leaves the previous wire payload unchanged.
+- The existing scheduled send checkbox now has tomorrow (local current date + one day) at 09:00 as its default, date/time controls gated by the checkbox, refreshed on new compose entry and reset after success. The existing /messages/schedule endpoint is retained.
+- Sender display shows the email address when the name is absent/whitespace. Thread response parser now tolerates array, object and string variants for correspondents.from/direct from.
+- Offline deterministic regression checks were added to CI for bidirectional target calculation, sender fallback and outgoing receipt/scheduling parameter serialization. They send no real mail.
+- Release/build/test evidence is NOT live proof that Mail.ru honors read receipt requests or scheduled delivery, nor a substitute for Owner's hands-on dragging validation.
