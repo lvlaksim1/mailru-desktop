@@ -248,9 +248,9 @@ using (var client = new MailRuClient(httpClient: http))
 
 foreach (var (httpCode, payload, label) in new[]
 {
-    (HttpStatusCode.OK, "{\\"status\\":403,\\"email\\":\\"\\",\\"htmlencoded\\":true,\\"body\\":\\"token\\"}", "JSON 403 inside HTTP 200"),
-    (HttpStatusCode.Forbidden, "{\\"status\\":403,\\"body\\":\\"token\\"}", "HTTP 403 authorization rejection"),
-    (HttpStatusCode.OK, "{\\"status\\":\\"401\\",\\"body\\":\\"token\\"}", "string status 401 inside HTTP 200")
+    (HttpStatusCode.OK, "{\"status\":403,\"email\":\"\",\"htmlencoded\":true,\"body\":\"token\"}", "JSON 403 inside HTTP 200"),
+    (HttpStatusCode.Forbidden, "{\"status\":403,\"body\":\"token\"}", "HTTP 403 authorization rejection"),
+    (HttpStatusCode.OK, "{\"status\":\"401\",\"body\":\"token\"}", "string status 401 inside HTTP 200")
 })
 {
     using var handler = new TokenEnvelopeHandler(httpCode, payload);
@@ -263,12 +263,12 @@ foreach (var (httpCode, payload, label) in new[]
 }
 
 using (var handler = new TokenEnvelopeHandler(HttpStatusCode.OK,
-    "{\\"status\\":200,\\"body\\":{\\"folders_content\\":[]}}"))
+    "{\"status\":200,\"body\":{\"folders_content\":[]}}"))
 using (var http = new HttpClient(handler))
 using (var client = new MailRuClient(httpClient: http))
 {
     var result = await client.GetFolderThreadsAsync("valid-token", 0);
-    Expect(result.Contains("\\"status\\":200", StringComparison.Ordinal), true,
+    Expect(result.Contains("\"status\":200", StringComparison.Ordinal), true,
         "successful folder response remains unchanged");
 }
 
