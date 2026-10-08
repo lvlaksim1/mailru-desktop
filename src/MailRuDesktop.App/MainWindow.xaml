@@ -346,16 +346,38 @@
                                 Content="↻"/>
                     </Grid>
 
-                    <Grid Grid.Row="1" Visibility="Collapsed">
-                        <TextBox x:Name="FilterSenderTextBox"/>
-                        <TextBox x:Name="FilterSubjectTextBox"/>
-                        <CheckBox x:Name="FilterAttachmentsCheckBox"/>
-                        <DatePicker x:Name="FilterFromDatePicker"/>
-                        <DatePicker x:Name="FilterToDatePicker"/>
-                    </Grid>
+                    <StackPanel Grid.Row="1" Margin="0,0,0,6">
+                        <WrapPanel VerticalAlignment="Center">
+                            <Button x:Name="BulkTrashButton" Padding="10,5" Margin="0,0,5,4"
+                                    Click="BulkTrashButton_Click" Content="В корзину"/>
+                            <Button x:Name="BulkArchiveButton" Padding="10,5" Margin="0,0,5,4"
+                                    Click="BulkArchiveButton_Click" Content="В архив"/>
+                            <Button x:Name="BulkReadButton" Padding="10,5" Margin="0,0,5,4"
+                                    Click="BulkReadButton_Click" Content="Прочитано"/>
+                            <Button x:Name="BulkDeletePermanentlyButton" Padding="10,5" Margin="0,0,5,4"
+                                    Visibility="Collapsed" Foreground="{DynamicResource AppDangerBrush}"
+                                    Click="BulkDeletePermanentlyButton_Click" Content="Удалить из корзины"/>
+                            <Button x:Name="BulkSendNowButton" Padding="10,5" Margin="0,0,5,4"
+                                    Visibility="Collapsed" IsEnabled="False"
+                                    ToolTip="Требуется подтверждённый серверный способ отправить отложенное письмо без дублирования"
+                                    Content="Отправить сейчас"/>
+                            <TextBlock x:Name="BulkSelectedCountText" Margin="6,0,0,4"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource AppMutedTextBrush}"
+                                       Text="Выбрано: 0"/>
+                        </WrapPanel>
+                        <Grid Visibility="Collapsed">
+                            <TextBox x:Name="FilterSenderTextBox"/>
+                            <TextBox x:Name="FilterSubjectTextBox"/>
+                            <CheckBox x:Name="FilterAttachmentsCheckBox"/>
+                            <DatePicker x:Name="FilterFromDatePicker"/>
+                            <DatePicker x:Name="FilterToDatePicker"/>
+                        </Grid>
+                    </StackPanel>
 
                     <ListBox x:Name="MessagesGrid"
-                             Grid.Row="2"
+                             Grid.Row="2" SelectionMode="Extended"
+                             PreviewKeyDown="MessagesGrid_PreviewKeyDown"
                              BorderThickness="0"
                              Background="Transparent"
                              ItemContainerStyle="{StaticResource MailCardItemStyle}"
