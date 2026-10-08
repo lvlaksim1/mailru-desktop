@@ -117,3 +117,10 @@ status: released v0.3.24; visual validation and issue #77 pending
 v0.3.24 addresses Owner WPF palette footer clipping, dark date picker, lost selection on MailRuMessageSummary replacement, bulk folder reloading, abnormal paragraph spacing, inline/detached reply resize and permanent Trash deletion confirmation. Initial sender parser examines corresponding-message representations before separate full-message queries. Owner visual confirmation remains necessary; do not impose long sequential waits when summary metadata is absent.
 
 Issue #77 remains open. Disabled Outbox "Отправить сейчас" cannot be enabled before the server's original scheduled-mail transition is confirmed duplicate-free. Prior account token 403 issue is closed based on Owner explicit success report.
+
+## I-019 — verify systematized WPF UI, mailbox target semantics and finish scheduled send-now
+status: v0.3.25 built and published; Owner runtime acceptance and scheduled send-now outstanding
+
+Central invariant is Owner-specified checked-first target resolution, active preview as fallback and user notification when neither exists; selection checkboxes and active preview are independent, Shift range works and no Ctrl-dependent selection. The UI registry must include windows and every documented control/style with geometry, states, 26 immutable semantic color roles and nine relative font-size roles; new UI edits must regenerate the schema 2 registry and pass CI. Live unread counters must be revised only using confirmed user actions or explicit server field values, not missing-as-zero placeholders.
+
+v0.3.25 passed build/startup/logic and published with installer; Owner GUI still needed, especially row click/Shift, independent preview, dynamic counters, font changes, and navigation palette. First-paint missing sender support is partial. The original send-now for existing scheduled messages remains NOT IMPLEMENTED, issue #77, until atomic scheduling semantics are proven under a controlled test account without duplicate delivery.

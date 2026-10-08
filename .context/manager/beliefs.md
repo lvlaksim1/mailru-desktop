@@ -297,3 +297,12 @@ statement: Owner explicitly confirmed after v0.3.23 "всё починилось
 
 source: Owner confirmation/screenshots on 2026-10-08; PR #83, CI 37771307863, release 37771458709, issue #77.
 authority: Owner-runtime-verified for auth; repository/CI-verified for new GUI fixes.
+
+## B-038 — Owner-defined checked-first mail target and canonical interface registry
+
+statement: Owner required that for any applicable mail action all checked letters are targets when at least one checkbox is marked; otherwise the active-preview letter is the one target; with neither, notify the user. Opening any mail must never clear checks. Shift-click marks a range; Ctrl-based selection is unnecessary. Owner also required cataloging ALL windows as well as all constituent controls, including their parent, geometry, color role, typography, and behavior, enforced at build time. These are direct Owner decisions, not optional proposals.
+
+v0.3.25 PR #86 merged at 2f25612777b30a15c9f3c1d979d1758ad9b6b5cb and public update/full installer release workflow 37789849920 PASSED. Checked-first MailTargetResolver, separate MailPreviewState/checked ID set and row click handlers, Shift ranges, context-menu/toolbar shared action targets, periodic explicit-only folder counter reconciliation, all-window UI registry generator schema 2, 7 windows and 1349 UI/style elements, role key checks for 26 palette roles, semantic hover/focus colors and persisted font size slider 10–18 were implemented. CI 37789612268 passed, Owner live use of v0.3.25 not yet confirmed. Existing scheduled Outbox send-now UI still disabled: APK source.schedule field alone does not prove safe duplicate-free send now (#77).
+
+source: Owner project-manager requirements after v0.3.24; PR #86, main CI 37789612268, release 37789849920, docs/ui-registry.json and UI sources.
+authority: owner directives + verified-repository + verified-ci; no Owner v0.3.25 GUI confirmation.

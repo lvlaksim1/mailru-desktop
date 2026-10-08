@@ -10,7 +10,7 @@
 
 ## Current product baseline
 
-Latest public GitHub Release: v0.3.24, published on 2026-10-08.
+Latest public GitHub Release: v0.3.25, published on 2026-10-08.
 
 Current product code on main: merged PR #62 and PR #63. Main CI 37707321540 and release workflow 37707435464 passed; full and update installers are published.
 
@@ -102,3 +102,13 @@ The template source of truth is the top-level .md files in %LOCALAPPDATA%/MailRu
 4. Investigate remaining first-paint missing senders only if Owner still sees staged loading after same-message smart-thread representation fix. Prefer finding an existing batch payload; do not delay initial folder paint for 20 sequential full-message requests at 5-second intervals.
 5. Maintain issue #77, duplicate-free atomic server transition of a scheduled Outbox message to immediate sending. Disabled buttons/context entry do NOT satisfy original feature request. Prove semantics with authorized test account and post-request schedule state verification before enabling.
 6. Preserve Owner-approved account dragging and pane splitters and confirmed rich-format sending. If needed, publish further fixes with conservative labels and explicit Owner runtime test requirements.
+
+## v0.3.25 acceptance and subsequent work
+
+1. Published v0.3.25 (PR #86, main CI 37789612268, storage 37789612042, installer 37789849920). Owner tests independent active preview (accent outline) and checked selection (checkboxes); checkboxes have precedence for toolbar, preview and context actions, otherwise one open mail, otherwise display a non-destructive explanatory message. Ctrl selection is removed; Shift-click selects a contiguous visible checkbox range; double-click opens a detached reader.
+2. Validate dynamic unread counts per folder after confirmed reads, archives, moves and deletes, plus explicit-only server reconciliation every 90 seconds; NEVER interpret absent JSON field as unread=0. Verify no full list reload or loss of selection.
+3. Validate semantic theme colors including left navigation hover, light/dark picker, shared dialog styles; test persisted 10–18 logical-pixel font slider across navigation, lists, settings and dialogs, accounting for DPI and avoiding clipped labels. Incoming HTML's author formatting must be preserved.
+4. Keep docs/ui-registry.json schema 2 as source-generated authority: 7 windows, 1349 element/style/resource declarations, XAML + runtime WPF, App.xaml + ThemeStyles.xaml; 26 known fixed color roles. CI python tools/ui_registry.py --check must pass; when editing UI first run python tools/ui_registry.py --write. Unknown role references are errors. Do not use an ongoing bot or unnecessary binary artifacts.
+5. Recheck Owner's remaining slow sender: compact summaries may not contain correspondents; one full-message prefetch (3s bounded) before first paint may help, subsequent background fetches remain paced >=5 seconds. Do not claim 100% sender-first-paint solved absent Owner evidence and verified batch protocol.
+6. Continue issue #77. Investigate and validate the EXISTING scheduled message's safe transition to send-now in a controlled test mailbox; ensure original queued schedule is cancelled or reused transactionally and no second message can be sent later. Until server action is verified, all Send Now controls remain disabled. Do not substitute composing and sending another email.
+7. Preserve owner-confirmed account authentication fix v0.3.23, rich formatting, account drag animation, splitters, signature/Markdown template handling and other accepted functionality.

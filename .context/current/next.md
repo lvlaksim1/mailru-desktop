@@ -44,3 +44,11 @@
 36. Select multiple mail items and use Read/Archive/Trash/Delete; verify only those rows update and the surrounding list does not flash or reload. Verify no confirmation for permanent deletion from Trash.
 37. Check initial sender names for blank-subject messages. If still staged, investigate actual anonymized smart-thread JSON representations and a safe group source without excessive requests.
 38. Research issue #77 and prove a duplicate-free atomic server send-now transition for scheduled Outbox messages before enabling bulk, preview and context-menu actions.
+
+39. Owner installs v0.3.25 after public release and verifies independent active preview and checked-message action targets: checked boxes take priority; without checks use the currently open preview; neither state yields an informative dialog.
+40. Test ordinary row clicks do not clear checked boxes; Shift-click range checks consecutive visible rows; Ctrl selection is disabled; right-click archive/trash respects existing checkboxes. Double-click still opens detached message viewer.
+41. Test live folder unread counters: after read, archive, move and permanent removal update only affected folder rows, and periodically reconcile explicitly present server counts (90 seconds). Missing data MUST NOT be interpreted as zero.
+42. Test settings font slider 10–18 and reset across current/new windows, mail rows, dialog headings and default layout without truncation; received message HTML must retain sender formatting. Check navbar hover no longer turns light cyan and respects semantic colors.
+43. Inspect docs/ui-registry.json (schema 2): seven windows, application shared resources, generated templates and coded controls are inventoried; every known color role reference is checked in CI; regenerate catalog when changing any UI.
+44. Check initial sender fallback, including remaining known late sender; bounded one-message/three-second first-paint prefetch remains a partial mitigation, with later background reads when data are absent.
+45. Continue issue #77: send-now for an EXISTING scheduled Outbox letter remains disabled pending controlled proof of cancel/reuse semantics without a duplicate.
