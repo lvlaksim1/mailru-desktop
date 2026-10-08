@@ -547,6 +547,37 @@ public partial class MainWindow : Window
             await LoadFolderAsync(folder.Id);
     }
 
+    // SelectionChanged is not raised when clicking the already-selected
+    // folder. That must still leave Settings and return to the mailbox.
+    private void FolderListBox_PreviewMouseLeftButtonUp(
+        object sender, MouseButtonEventArgs e)
+    {
+        if (SettingsWorkspace.Visibility != Visibility.Visible ||
+            e.OriginalSource is not DependencyObject source)
+            return;
+
+        var item = ItemsControl.ContainerFromElement(FolderListBox, source)
+            as ListBoxItem;
+        if (item?.DataContext is not MailRuFolderSummary folder)
+            return;
+
+        ShowWorkspace(MailWorkspace);
+        if (folder.Id != _currentFolderId && !_loadingFolder)
+            _ = LoadFolderAsync(folder.Id);
+    }
+
+    private void FolderListBox_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter ||
+            SettingsWorkspace.Visibility != Visibility.Visible ||
+            FolderListBox.SelectedItem is not MailRuFolderSummary folder)
+            return;
+        ShowWorkspace(MailWorkspace);
+        if (folder.Id != _currentFolderId && !_loadingFolder)
+            _ = LoadFolderAsync(folder.Id);
+        e.Handled = true;
+    }
+
     private async Task LoadFolderAsync(int folderId, long? accountSwitchGeneration = null)
     {
         bool IsStaleAccountSwitch() =>
