@@ -2,6 +2,7 @@ using System.IO;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace MailRuDesktop.App;
 
@@ -85,6 +86,34 @@ internal sealed class MarkdownTemplateStore
                     FileShare.ReadWrite | FileShare.Delete);
                 using var reader = new StreamReader(stream, Encoding.UTF8, true);
                 var content = reader.ReadToEnd();
+                var readable = UpgradeEscapedMetadata(content);
+                if (!string.Equals(content, readable, StringComparison.Ordinal))
+                {
+                    try
+                    {
+                        var backup = path + ".escaped-metadata.bak";
+                        if (!File.Exists(backup))
+                            File.Copy(path, backup, overwrite: false);
+                        var tmp = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+                        try
+                        {
+                            File.WriteAllText(tmp, readable,
+                                new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+                            File.Move(tmp, path, overwrite: true);
+                        }
+                        finally
+                        {
+                            if (File.Exists(tmp)) File.Delete(tmp);
+                        }
+                        content = readable;
+                    }
+                    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                    {
+                        DiagnosticLog.Write("template_encoding_upgrade",
+                            $"{Path.GetFileName(path)}: {ex.Message}");
+                    }
+                }
+
                 results.Add(Parse(Path.GetFileNameWithoutExtension(path), content));
             }
             catch (IOException ex)
@@ -282,6 +311,40 @@ internal sealed class MarkdownTemplateStore
             Body = body,
             Attachments = attachments
         };
+    }
+
+    private static string UpgradeEscapedMetadata(string text)
+    {
+        var normalized = text.Replace("\r\n", "\n");
+        if (!normalized.StartsWith("---\n", StringComparison.Ordinal))
+            return text;
+
+        var end = normalized.IndexOf("\n---\n", 4, StringComparison.Ordinal);
+        if (end < 0)
+            return text;
+
+        var front = normalized[4..end];
+        if (!Regex.IsMatch(front, @"\\u[0-9A-Fa-f]{4}"))
+            return text;
+
+        var lines = front.Split('\n');
+        for (var i = 0; i < lines.Length; i++)
+        {
+            var line = lines[i];
+            var subject = line.StartsWith("subject:", StringComparison.OrdinalIgnoreCase);
+            var attachment = line.TrimStart().StartsWith("- ", StringComparison.Ordinal);
+            if (!subject && !attachment)
+                continue;
+
+            var prefixEnd = subject ? line.IndexOf(':') + 1 : line.IndexOf("- ", StringComparison.Ordinal) + 2;
+            var prefix = line[..prefixEnd];
+            var value = line[prefixEnd..].Trim();
+            if (value.StartsWith('"') && Regex.IsMatch(value, @"\\u[0-9A-Fa-f]{4}"))
+                lines[i] = prefix + " " +
+                    JsonSerializer.Serialize(DecodeScalar(value), ReadableRussian);
+        }
+
+        return "---\n" + string.Join("\n", lines) + normalized[end..];
     }
 
     private static string DecodeScalar(string value)
