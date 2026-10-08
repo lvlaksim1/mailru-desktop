@@ -135,6 +135,18 @@ public partial class MainWindow : Window
                 }
                 MessageWebView.Visibility = Visibility.Hidden;
             };
+            // Body and inline CSS are ready at DOMContentLoaded. Waiting for
+            // NavigationCompleted can also wait for slow external images,
+            // recreating browser-visible latency for image-heavy mail.
+            MessageWebView.CoreWebView2.DOMContentLoaded += (_, args) =>
+            {
+                if (!_readerWaitingForFullMessage &&
+                    args.NavigationId == _latestReaderNavigationId)
+                {
+                    MessageWebView.Visibility = Visibility.Visible;
+                    ReaderLoadingOverlay.Visibility = Visibility.Collapsed;
+                }
+            };
             MessageWebView.NavigationCompleted += (_, args) =>
             {
                 if (_readerWaitingForFullMessage ||
@@ -785,6 +797,7 @@ public partial class MainWindow : Window
             return;
 
         var generation = ++_messageLoadGeneration;
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         _currentFullMessage = null;
         _currentPreparedHtml = null;
         IncomingAttachmentsListBox.ItemsSource = null;
@@ -802,6 +815,7 @@ public partial class MainWindow : Window
                 return;
             }
 
+            var fetchElapsed = stopwatch.ElapsedMilliseconds;
             _currentFullMessage = full;
             IncomingAttachmentsListBox.ItemsSource = full.Attachments;
             IncomingAttachmentsPanel.Visibility =
@@ -829,15 +843,11 @@ public partial class MainWindow : Window
 
             if (!string.IsNullOrWhiteSpace(full.Html))
             {
-                var preparedHtml = await PrepareMailHtmlAsync(
-                    full.Html, full.Id, _activeLogin, _accessToken!,
-                    _inlineImagePreparation?.Token ?? CancellationToken.None);
-                if (generation != _messageLoadGeneration ||
-                    !string.Equals(_activePreviewMailId, message.Id, StringComparison.Ordinal))
-                    return;
-                _currentPreparedHtml = preparedHtml;
+                // Images load independently from the WebView2 resource handler.
+                // Never serialize image requests ahead of rendering the body.
+                _currentPreparedHtml = full.Html;
                 _readerWaitingForFullMessage = false;
-                ShowReaderHtml(_currentPreparedHtml);
+                ShowReaderHtml(full.Html);
             }
             else if (!string.IsNullOrWhiteSpace(full.Text))
             {
@@ -849,6 +859,10 @@ public partial class MainWindow : Window
                 _readerWaitingForFullMessage = false;
                 ShowReaderText(message.Snippet);
             }
+            DiagnosticLog.Write("mail_render_timing",
+                $"id-length={message.Id.Length}; fetch-ms={fetchElapsed}; " +
+                $"body-ready-ms={stopwatch.ElapsedMilliseconds}; html={full.Html.Length}; " +
+                $"attachment-count={full.Attachments.Count}");
         }
         catch (OperationCanceledException) when (generation != _messageLoadGeneration)
         {
