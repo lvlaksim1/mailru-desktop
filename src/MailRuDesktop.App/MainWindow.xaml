@@ -376,7 +376,7 @@
                     </StackPanel>
 
                     <ListBox x:Name="MessagesGrid"
-                             Grid.Row="2" SelectionMode="Extended"
+                             Grid.Row="2" SelectionMode="Multiple"
                              PreviewKeyDown="MessagesGrid_PreviewKeyDown"
                              BorderThickness="0"
                              Background="Transparent"
