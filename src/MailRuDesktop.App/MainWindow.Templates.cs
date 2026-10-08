@@ -28,7 +28,7 @@ public partial class MainWindow
         foreach (var signature in _settingsStore.LoadSignatures())
             _signatures.Add(signature);
 
-        TemplateDirectoryTextBox.Text = TemplateFiles.DirectoryPath;
+        TemplateDirectoryText.Text = TemplateFiles.DirectoryPath;
         TemplateFiles.ImportLegacyOnce(_settingsStore.LoadMailTemplates());
         RefreshTemplatesFromDisk();
 
@@ -72,21 +72,18 @@ public partial class MainWindow
         };
         if (picker.ShowDialog(this) == true)
         {
-            TemplateDirectoryTextBox.Text = picker.FolderName;
+            TemplateDirectoryText.Text = picker.FolderName;
             ApplyTemplateDirectory();
         }
     }
-
-    private void ApplyTemplateDirectoryButton_Click(object sender, RoutedEventArgs e) =>
-        ApplyTemplateDirectory();
 
     private void ApplyTemplateDirectory()
     {
         try
         {
-            TemplateFiles.ChangeDirectory(TemplateDirectoryTextBox.Text);
+            TemplateFiles.ChangeDirectory(TemplateDirectoryText.Text);
             _settingsStore.SaveTemplateDirectory(TemplateFiles.DirectoryPath);
-            TemplateDirectoryTextBox.Text = TemplateFiles.DirectoryPath;
+            TemplateDirectoryText.Text = TemplateFiles.DirectoryPath;
             StartTemplateWatcher();
             RefreshTemplatesFromDisk();
             TemplateDirectoryStatusText.Text = "Папка шаблонов сохранена.";
@@ -95,7 +92,7 @@ public partial class MainWindow
         {
             TemplateDirectoryStatusText.Text = "Не удалось изменить папку.";
             AppDialog.Info(this, "Папка шаблонов", ex.Message);
-            TemplateDirectoryTextBox.Text = TemplateFiles.DirectoryPath;
+            TemplateDirectoryText.Text = TemplateFiles.DirectoryPath;
         }
     }
 

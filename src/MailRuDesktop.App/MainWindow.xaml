@@ -275,10 +275,7 @@
                             Content="✎  Новое письмо"/>
                 </StackPanel>
 
-                <StackPanel Grid.Row="1" Margin="0,0,0,10">
-                    <Button Style="{StaticResource NavButtonStyle}" Click="ShowMailButton_Click" Content="✉  Почта"/>
-                    <Button Style="{StaticResource NavButtonStyle}" Click="ShowContactsButton_Click" Content="♙  Контакты"/>
-                </StackPanel>
+                <!-- Mail remains the default workspace; choose contacts in compose. -->
 
                 <Grid Grid.Row="2">
                     <Grid.RowDefinitions>
@@ -868,9 +865,11 @@
                         </Grid.RowDefinitions>
                         <TextBlock FontSize="{DynamicResource AppFontHeroSize}" FontWeight="SemiBold" Text="Новое письмо"/>
                         <Grid Grid.Row="1" Margin="0,16,0,8">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="70"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="70"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                             <TextBlock VerticalAlignment="Center" Text="Кому"/>
                             <TextBox x:Name="ComposeToTextBox" Grid.Column="1" Padding="8"/>
+                            <Button Grid.Column="2" Margin="8,0,0,0" Padding="12,6"
+                                    Click="ChooseComposeContactButton_Click" Content="Из контактов…"/>
                         </Grid>
                         <Grid Grid.Row="2" Margin="0,0,0,8">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="70"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
@@ -1036,7 +1035,7 @@
                             </StackPanel>
                         </Expander>
 
-                        <GroupBox Margin="0,16,0,0" Header="Подписи">
+                        <Expander Margin="0,16,0,0" Header="Подписи" IsExpanded="False">
                             <Grid Margin="12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="220"/>
@@ -1074,18 +1073,18 @@
                                     </WrapPanel>
                                 </Grid>
                             </Grid>
-                        </GroupBox>
+                        </Expander>
 
-                                                <GroupBox Margin="0,16,0,0" Header="Папка скачивания вложений">
+                        <GroupBox Margin="0,16,0,0" Header="Папка скачивания вложений">
                             <StackPanel Margin="12">
                                 <TextBlock Margin="0,0,0,5" Text="Загруженные файлы и архивы вложений"/>
-                                <TextBox x:Name="AttachmentDownloadDirectoryTextBox" Padding="7"/>
-                                <WrapPanel Margin="0,7,0,0">
-                                    <Button Content="Обзор..." Margin="0,0,8,0" Padding="12,6"
-                                            Click="BrowseDownloadDirectoryButton_Click"/>
-                                    <Button Content="Применить" Padding="12,6"
-                                            Click="ApplyDownloadDirectoryButton_Click"/>
-                                </WrapPanel>
+                                <DockPanel Margin="0,5,0,0" LastChildFill="True">
+                                    <Button DockPanel.Dock="Left" Content="Обзор…" Margin="0,0,9,0"
+                                            Padding="12,6" Click="BrowseDownloadDirectoryButton_Click"/>
+                                    <TextBlock x:Name="AttachmentDownloadDirectoryText"
+                                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                               ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                                </DockPanel>
                                 <TextBlock x:Name="AttachmentDirectoryStatusText"
                                            Margin="0,7,0,0" TextWrapping="Wrap"
                                            Foreground="{DynamicResource AppMutedTextBrush}"
@@ -1096,20 +1095,20 @@
 <GroupBox Margin="0,16,0,0" Header="Папка шаблонов">
                             <StackPanel Margin="12">
                                 <TextBlock Margin="0,0,0,5" Text="Расположение файлов .md и вложений"/>
-                                <TextBox x:Name="TemplateDirectoryTextBox" Padding="7"/>
-                                <WrapPanel Margin="0,7,0,0">
-                                    <Button Padding="12,6" Margin="0,0,7,0" Content="Обзор..."
-                                            Click="BrowseTemplateDirectoryButton_Click"/>
-                                    <Button Padding="12,6" Content="Применить папку"
-                                            Click="ApplyTemplateDirectoryButton_Click"/>
-                                </WrapPanel>
+                                <DockPanel Margin="0,5,0,0" LastChildFill="True">
+                                    <Button DockPanel.Dock="Left" Padding="12,6" Margin="0,0,9,0"
+                                            Content="Обзор…" Click="BrowseTemplateDirectoryButton_Click"/>
+                                    <TextBlock x:Name="TemplateDirectoryText" VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"
+                                               ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                                </DockPanel>
                                 <TextBlock x:Name="TemplateDirectoryStatusText" Margin="0,6,0,0"
                                            TextWrapping="Wrap" Foreground="{DynamicResource AppMutedTextBrush}"
                                            Text="При смене папки имеющиеся шаблоны и вложения копируются; исходная папка сохраняется."/>
                             </StackPanel>
                         </GroupBox>
 
-                        <GroupBox Margin="0,16,0,0" Header="Шаблоны">
+                        <Expander Margin="0,16,0,0" Header="Шаблоны" IsExpanded="False">
                             <Grid Margin="12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="220"/>
@@ -1153,7 +1152,7 @@
                                     </WrapPanel>
                                 </Grid>
                             </Grid>
-                        </GroupBox>
+                        </Expander>
 
                         <GroupBox Margin="0,16,0,0" Header="Обновление">
                             <StackPanel Margin="12">

@@ -20,8 +20,9 @@ public partial class MainWindow
         Interval = TimeSpan.FromMilliseconds(275)
     };
 
-    private AccountRailItem? _accountDragCandidate;
+    private object? _accountDragCandidate;
     private AccountRailItem? _draggedAccount;
+    private AccountSectionItem? _draggedSection;
     private ListBoxItem? _draggedAccountContainer;
     private Point _accountDragPressPoint;
     private Point _accountDragStartPoint;
@@ -220,6 +221,12 @@ public partial class MainWindow
         if ((sender as FrameworkElement)?.DataContext is not AccountSectionItem section)
             return;
 
+        ToggleAccountSection(section);
+        e.Handled = true;
+    }
+
+    private void ToggleAccountSection(AccountSectionItem section)
+    {
         var entry = _accountRailLayout.FirstOrDefault(item =>
             item.Kind.Equals("section", StringComparison.OrdinalIgnoreCase) &&
             string.Equals(item.Id, section.Id, StringComparison.Ordinal));
@@ -230,7 +237,6 @@ public partial class MainWindow
         entry.IsCollapsed = !entry.IsCollapsed;
         SaveAccountRailLayout();
         RefreshAccountRailLayout(_activeLogin);
-        e.Handled = true;
     }
 
     private bool RenameAccountSection(AccountSectionItem section)
@@ -313,7 +319,8 @@ public partial class MainWindow
             ItemsControl.ContainerFromElement(
                 AccountRailListBox,
                 source) is not ListBoxItem container ||
-            container.DataContext is not AccountRailItem account)
+            (container.DataContext is not AccountRailItem &&
+             container.DataContext is not AccountSectionItem { IsCollapsed: true }))
         {
             StopAccountDragHold();
             _accountPressHandled = false;
@@ -321,7 +328,7 @@ public partial class MainWindow
         }
 
         _accountPressHandled = true;
-        _accountDragCandidate = account;
+        _accountDragCandidate = container.DataContext;
         _accountDragPressPoint = e.GetPosition(AccountRailListBox);
         _accountDragStartPoint = _accountDragPressPoint;
 
@@ -359,10 +366,11 @@ public partial class MainWindow
             return;
         }
 
-        _draggedAccount = _accountDragCandidate;
+        _draggedAccount = _accountDragCandidate as AccountRailItem;
+        _draggedSection = _accountDragCandidate as AccountSectionItem;
         _draggedAccountContainer = container;
         _accountDragSourceDisplayIndex =
-            _accountRailDisplayItems.IndexOf(_draggedAccount);
+            _accountRailDisplayItems.IndexOf(_accountDragCandidate);
         _accountDragTargetDisplayIndex = _accountDragSourceDisplayIndex;
         _accountDragStartPoint = now;
         _accountDragActive = true;
@@ -385,7 +393,7 @@ public partial class MainWindow
         MouseEventArgs e)
     {
         if (!_accountDragActive ||
-            _draggedAccount is null ||
+            (_draggedAccount is null && _draggedSection is null) ||
             _draggedAccountContainer is null ||
             Mouse.LeftButton != MouseButtonState.Pressed)
         {
@@ -398,7 +406,9 @@ public partial class MainWindow
         if (_draggedAccountContainer.RenderTransform is TranslateTransform dragTransform)
             dragTransform.Y = deltaY;
 
-        var target = FindAccountDragTargetDisplayIndex(position.Y);
+        var target = _draggedSection is null
+            ? FindAccountDragTargetDisplayIndex(position.Y)
+            : FindSectionDragTargetDisplayIndex(position.Y);
         if (target == _accountDragTargetDisplayIndex)
             return;
 
@@ -421,6 +431,26 @@ public partial class MainWindow
         }
 
         return AccountDragMath.FindTarget(_accountDragSourceDisplayIndex, y, rowCenters);
+    }
+
+    private int FindSectionDragTargetDisplayIndex(double y)
+    {
+        // Only headings are valid insertion boundaries: never split a section
+        // from its accounts, regardless of whether other headings are expanded.
+        var closest = _accountDragSourceDisplayIndex;
+        var distance = double.MaxValue;
+        for (var i = 0; i < _accountRailDisplayItems.Count; i++)
+        {
+            if (_accountRailDisplayItems[i] is not AccountSectionItem ||
+                !TryGetUnanimatedRowMidpoint(i, out var midpoint))
+                continue;
+            var current = Math.Abs(midpoint - y);
+            if (current >= distance)
+                continue;
+            distance = current;
+            closest = i;
+        }
+        return closest;
     }
 
     private bool TryGetUnanimatedRowMidpoint(int index, out double midpoint)
@@ -502,17 +532,24 @@ public partial class MainWindow
         // A pointer movement that cancelled the long press must NOT select
         // the neighboring row below the pointer on mouse-up.
         _accountPressHandled = false;
-        var clickedAccount = _accountDragCandidate;
+        var clickedAccount = _accountDragCandidate as AccountRailItem;
+        var clickedSection = _accountDragCandidate as AccountSectionItem;
         _accountDragCandidate = null;
         e.Handled = true;
 
-        if (clickedAccount is null)
+        if (clickedAccount is null && clickedSection is null)
             return;
 
         var released = e.GetPosition(AccountRailListBox);
         if (Math.Abs(released.X - _accountDragPressPoint.X) > 7 ||
             Math.Abs(released.Y - _accountDragPressPoint.Y) > 7)
             return;
+
+        if (clickedSection is not null)
+        {
+            ToggleAccountSection(clickedSection);
+            return;
+        }
 
         if (!ReferenceEquals(AccountRailListBox.SelectedItem, clickedAccount))
             AccountRailListBox.SelectedItem = clickedAccount;
@@ -531,12 +568,18 @@ public partial class MainWindow
 
     private void CommitAccountDrag()
     {
-        if (!_accountDragActive || _draggedAccount is null)
+        if (!_accountDragActive || (_draggedAccount is null && _draggedSection is null))
         {
             StopAccountDragHold();
             return;
         }
 
+        if (_draggedSection is not null)
+        {
+            CommitSectionDrag(_draggedSection);
+        }
+        else if (_draggedAccount is not null)
+        {
         var accountEntryIndex = _accountRailLayout.FindIndex(entry =>
             entry.Kind.Equals("account", StringComparison.OrdinalIgnoreCase) &&
             string.Equals(
@@ -570,12 +613,14 @@ public partial class MainWindow
             _accountRailLayout.Insert(targetLayoutIndex, movingEntry);
             SaveAccountRailLayout();
         }
+        }
 
         ResetAccountDragVisuals();
         _accountDragActive = false;
         _accountPressHandled = false;
         _accountDragCandidate = null;
         _draggedAccount = null;
+        _draggedSection = null;
         _draggedAccountContainer = null;
         _accountDragSourceDisplayIndex = -1;
         _accountDragTargetDisplayIndex = -1;
@@ -584,6 +629,44 @@ public partial class MainWindow
             AccountRailListBox.ReleaseMouseCapture();
 
         RefreshAccountRailLayout(_activeLogin);
+    }
+
+    private void CommitSectionDrag(AccountSectionItem section)
+    {
+        if (_accountDragTargetDisplayIndex == _accountDragSourceDisplayIndex ||
+            _accountDragTargetDisplayIndex < 0 ||
+            _accountDragTargetDisplayIndex >= _accountRailDisplayItems.Count ||
+            _accountRailDisplayItems[_accountDragTargetDisplayIndex] is not AccountSectionItem target ||
+            string.Equals(section.Id, target.Id, StringComparison.Ordinal))
+            return;
+
+        var sourceIndex = ResolveLayoutIndex(section);
+        if (sourceIndex < 0)
+            return;
+        var end = sourceIndex + 1;
+        while (end < _accountRailLayout.Count &&
+               !_accountRailLayout[end].Kind.Equals("section", StringComparison.OrdinalIgnoreCase))
+            end++;
+
+        var movingBlock = _accountRailLayout.GetRange(sourceIndex, end - sourceIndex);
+        _accountRailLayout.RemoveRange(sourceIndex, movingBlock.Count);
+        var targetIndex = _accountRailLayout.FindIndex(entry =>
+            entry.Kind.Equals("section", StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(entry.Id, target.Id, StringComparison.Ordinal));
+        if (targetIndex < 0)
+            return;
+
+        if (_accountDragTargetDisplayIndex > _accountDragSourceDisplayIndex)
+        {
+            // Dropping downward means after the entire destination section.
+            targetIndex++;
+            while (targetIndex < _accountRailLayout.Count &&
+                   !_accountRailLayout[targetIndex].Kind.Equals("section", StringComparison.OrdinalIgnoreCase))
+                targetIndex++;
+        }
+
+        _accountRailLayout.InsertRange(targetIndex, movingBlock);
+        SaveAccountRailLayout();
     }
 
     private int ResolveLayoutIndex(object item)

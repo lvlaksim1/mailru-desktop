@@ -37,7 +37,7 @@ internal static class AttachmentDownloadLocation
 public partial class MainWindow
 {
     private void InitializeDownloadDirectorySettings() =>
-        AttachmentDownloadDirectoryTextBox.Text = _settingsStore.LoadAttachmentDownloadDirectory();
+        AttachmentDownloadDirectoryText.Text = _settingsStore.LoadAttachmentDownloadDirectory();
 
     private void BrowseDownloadDirectoryButton_Click(object sender, RoutedEventArgs e)
     {
@@ -48,19 +48,16 @@ public partial class MainWindow
         };
         if (picker.ShowDialog(this) != true)
             return;
-        AttachmentDownloadDirectoryTextBox.Text = picker.FolderName;
+        AttachmentDownloadDirectoryText.Text = picker.FolderName;
         SaveDownloadDirectory();
     }
-
-    private void ApplyDownloadDirectoryButton_Click(object sender, RoutedEventArgs e) =>
-        SaveDownloadDirectory();
 
     private void SaveDownloadDirectory()
     {
         try
         {
-            _settingsStore.SaveAttachmentDownloadDirectory(AttachmentDownloadDirectoryTextBox.Text);
-            AttachmentDownloadDirectoryTextBox.Text = _settingsStore.LoadAttachmentDownloadDirectory();
+            _settingsStore.SaveAttachmentDownloadDirectory(AttachmentDownloadDirectoryText.Text);
+            AttachmentDownloadDirectoryText.Text = _settingsStore.LoadAttachmentDownloadDirectory();
             AttachmentDirectoryStatusText.Text = "Папка скачивания сохранена.";
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
