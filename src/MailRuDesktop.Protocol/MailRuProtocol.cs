@@ -37,6 +37,7 @@ public static class MailRuEndpointCatalog
         new("messages.schedule", "POST", "aj-https.mail.ru", "/api/v1/messages/schedule", EndpointEvidence.VerifiedLocal, "Server-side scheduled send"),
         new("attachments.readmsg", "GET", "af.attachmail.ru", "/cgi-bin/readmsg", EndpointEvidence.VerifiedLocal, "Download incoming attachment"),
         new("images.proxy", "GET", "proxy.imgsmail.ru", "/", EndpointEvidence.ExternalConfirmed, "Signed image proxy URLs observed in live Mail.ru message HTML"),
+        new("contacts.avatar", "GET", "filin.mail.ru", "/pic", EndpointEvidence.StaticOfficialClient, "Public contact avatars: URL found in official APK strings; live photo rendering pending validation"),
         new("messages.remove", "POST", "aj-https.mail.ru", "/api/v1/messages/remove", EndpointEvidence.VerifiedLocal, "Permanent message removal"),
         new("messages.search", "GET", "aj-https.mail.ru", "/api/v1/messages/search", EndpointEvidence.VerifiedLocal, "Server-side message search"),
         new("messages.search.new", "GET", "go.mail.ru", "/api/v1/go/search/emails", EndpointEvidence.StaticOfficialClient, "New server-side message search"),
