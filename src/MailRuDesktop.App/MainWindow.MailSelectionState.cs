@@ -93,6 +93,9 @@ public partial class MainWindow
     {
         var removed = new HashSet<string>(ids, StringComparer.Ordinal);
         var oldFocused = _activePreviewMailId;
+        var unread = _currentMessages.Count(item => removed.Contains(item.Id) && item.Unread);
+        if (unread > 0)
+            ChangeFolderUnreadCount(_currentFolderId, -unread);
         _suppressMessageSelectionChanged = true;
         try
         {
