@@ -332,6 +332,24 @@ Expect(string.Join(",", MailTargetResolver.Resolve(["A", "A"], "C")),
 
 var fontRoles = ThemeTypography.Resolve(ThemeTypography.DefaultSize);
 Expect(fontRoles.Count, 9, "nine fixed typography roles");
+Expect(ThemeTypography.AvatarSize(12), 16.0, "default sender icon follows text size");
+Expect(ThemeTypography.AvatarSize(18), 24.0, "sender icon grows with interface text");
+Expect(ThemeTypography.AvatarSize(10), 14.0, "sender icon minimum is readable");
+Expect(ThemePalette.EditableRoles.Count, 20, "similar color roles have merged settings");
+var mergedColors = ThemePalette.Merge(false,
+    new Dictionary<string, string> { ["AppPanelBrush"] = "#ABCDEF" });
+Expect(mergedColors["AppWindowBrush"], "#ABCDEF",
+    "legacy panel override is migrated to shared background color");
+Expect(mergedColors["AppDialogBrush"], "#ABCDEF",
+    "all merged dialog backgrounds follow the shared color");
+var explicitColors = ThemePalette.Merge(false,
+    new Dictionary<string, string>
+    {
+        ["AppWindowBrush"] = "#135724",
+        ["AppPanelBrush"] = "#ABCDEF"
+    });
+Expect(explicitColors["AppPanelBrush"], "#135724",
+    "explicit canonical background takes priority over older per-panel value");
 Expect(fontRoles["AppFontBodySize"], 12.0, "default font size is 12");
 Expect(ThemeTypography.Normalize(1), 10, "font size minimum is enforced");
 Expect(ThemeTypography.Normalize(99), 18, "font size maximum is enforced");
