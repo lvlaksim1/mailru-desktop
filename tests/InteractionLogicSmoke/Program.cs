@@ -367,7 +367,7 @@ Expect(counts[0], 5L, "nonzero folder count");
 Expect(counts[500002], 0L, "explicit server zero is a valid folder count");
 Expect(counts.ContainsKey(500010), false, "missing field must never reset known count");
 Expect(MailRuExplicitFolderCounts.Read(
-    "{\\"body\\":{\\"folders_content\\":[{\\"id\\":0}]}}").Count,
+    """{"body":{"folders_content":[{"id":0}]}}""").Count,
     0, "compact folder response without folder metadata preserves counters");
 
 Console.WriteLine("All interaction logic tests passed.");
