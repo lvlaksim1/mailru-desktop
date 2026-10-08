@@ -6726,7 +6726,7 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[6]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]",
       "location": {},
       "name": null,
       "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]",
@@ -6744,12 +6744,12 @@
       "color_roles_and_values": {
         "Background": "{DynamicResource AppWindowBrush}"
       },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[6]/Border[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Border[0]",
       "location": {
         "Padding": "4,10,4,5"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[6]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -6761,10 +6761,10 @@
       "color_roles_and_values": {
         "Foreground": "{DynamicResource AppMutedTextBrush}"
       },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[6]/Border[0]/TextBlock[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Border[0]/TextBlock[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[6]/Border[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Border[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -6777,7 +6777,7 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]",
       "location": {},
       "name": null,
       "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]",
@@ -6793,12 +6793,12 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]",
       "location": {
         "Height": "42"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -6810,7 +6810,7 @@
       "color_roles_and_values": {
         "Background": "{DynamicResource AppControlBrush}"
       },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Border[8]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Border[8]",
       "location": {
         "Grid.Column": "7",
         "Height": "22",
@@ -6822,7 +6822,7 @@
         "Visibility": "{Binding Id, Converter={StaticResource ThreadCountVisibilityConverter}}"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -6832,13 +6832,13 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Border[8]/TextBlock[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Border[8]/TextBlock[0]",
       "location": {
         "HorizontalAlignment": "Center",
         "VerticalAlignment": "Center"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Border[8]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Border[8]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -6850,7 +6850,7 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/BulkSelectCheckBox",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/BulkSelectCheckBox",
       "location": {
         "Grid.Column": "0",
         "Height": "16",
@@ -6859,7 +6859,7 @@
         "Width": "16"
       },
       "name": "BulkSelectCheckBox",
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -6871,7 +6871,7 @@
       "color_roles_and_values": {
         "Background": "Transparent"
       },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/FlagActionButton",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/FlagActionButton",
       "location": {
         "Grid.Column": "3",
         "Height": "40",
@@ -6879,7 +6879,7 @@
         "Width": "26"
       },
       "name": "FlagActionButton",
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -6889,10 +6889,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/FlagActionButton/TextBlock[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/FlagActionButton/TextBlock[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/FlagActionButton",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/FlagActionButton",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -6904,10 +6904,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/FlagActionButton/TextBlock[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/FlagActionButton/TextBlock[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -6917,10 +6917,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": {
         "Key": "",
@@ -6933,10 +6933,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]/Setter[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]/Setter[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -6946,10 +6946,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]/Setter[1]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]/Setter[1]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -6959,10 +6959,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]/Style.Triggers[2]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]/Style.Triggers[2]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -6972,10 +6972,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]/Style.Triggers[2]/DataTrigger[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]/Style.Triggers[2]/DataTrigger[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]/Style.Triggers[2]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]/Style.Triggers[2]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": {
         "Value": "True"
@@ -6987,10 +6987,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]/Style.Triggers[2]/DataTrigger[0]/Setter[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]/Style.Triggers[2]/DataTrigger[0]/Setter[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]/Style.Triggers[2]/DataTrigger[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]/Style.Triggers[2]/DataTrigger[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7000,10 +7000,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]/Style.Triggers[2]/DataTrigger[0]/Setter[1]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]/Style.Triggers[2]/DataTrigger[0]/Setter[1]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]/Style.Triggers[2]/DataTrigger[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/FlagActionButton/TextBlock[0]/TextBlock.Style[0]/Style[0]/Style.Triggers[2]/DataTrigger[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7013,10 +7013,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7026,12 +7026,12 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[0]",
       "location": {
         "Width": "30"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7041,12 +7041,12 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[10]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[10]",
       "location": {
         "Width": "4"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7056,13 +7056,13 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[11]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[11]",
       "location": {
         "MinWidth": "90",
         "Width": "{Binding Sender, Source={x:Static local:MailColumnLayout.Instance}, Mode=TwoWay}"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7072,12 +7072,12 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[12]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[12]",
       "location": {
         "Width": "4"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7087,13 +7087,13 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[13]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[13]",
       "location": {
         "MinWidth": "140",
         "Width": "{Binding Subject, Source={x:Static local:MailColumnLayout.Instance}, Mode=TwoWay}"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7103,13 +7103,13 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[1]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[1]",
       "location": {
         "MinWidth": "44",
         "Width": "{Binding Time, Source={x:Static local:MailColumnLayout.Instance}, Mode=TwoWay}"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7119,12 +7119,12 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[2]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[2]",
       "location": {
         "Width": "4"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7134,13 +7134,13 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[3]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[3]",
       "location": {
         "MinWidth": "24",
         "Width": "{Binding Flag, Source={x:Static local:MailColumnLayout.Instance}, Mode=TwoWay}"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7150,12 +7150,12 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[4]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[4]",
       "location": {
         "Width": "4"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7165,13 +7165,13 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[5]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[5]",
       "location": {
         "MinWidth": "24",
         "Width": "{Binding Unread, Source={x:Static local:MailColumnLayout.Instance}, Mode=TwoWay}"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7181,12 +7181,12 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[6]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[6]",
       "location": {
         "Width": "4"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7196,13 +7196,13 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[7]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[7]",
       "location": {
         "MinWidth": "26",
         "Width": "{Binding ThreadCount, Source={x:Static local:MailColumnLayout.Instance}, Mode=TwoWay}"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7212,12 +7212,12 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[8]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[8]",
       "location": {
         "Width": "4"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7227,13 +7227,13 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[9]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[9]",
       "location": {
         "MinWidth": "24",
         "Width": "{Binding Attachment, Source={x:Static local:MailColumnLayout.Instance}, Mode=TwoWay}"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid.ColumnDefinitions[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7245,7 +7245,7 @@
       "color_roles_and_values": {
         "Background": "Transparent"
       },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/GridSplitter[11]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/GridSplitter[11]",
       "location": {
         "Grid.Column": "10",
         "HorizontalAlignment": "Stretch",
@@ -7253,7 +7253,7 @@
         "Width": "4"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7265,7 +7265,7 @@
       "color_roles_and_values": {
         "Background": "Transparent"
       },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/GridSplitter[13]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/GridSplitter[13]",
       "location": {
         "Grid.Column": "12",
         "HorizontalAlignment": "Stretch",
@@ -7273,7 +7273,7 @@
         "Width": "4"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7285,7 +7285,7 @@
       "color_roles_and_values": {
         "Background": "Transparent"
       },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/GridSplitter[3]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/GridSplitter[3]",
       "location": {
         "Grid.Column": "2",
         "HorizontalAlignment": "Stretch",
@@ -7293,7 +7293,7 @@
         "Width": "4"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7305,7 +7305,7 @@
       "color_roles_and_values": {
         "Background": "Transparent"
       },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/GridSplitter[5]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/GridSplitter[5]",
       "location": {
         "Grid.Column": "4",
         "HorizontalAlignment": "Stretch",
@@ -7313,7 +7313,7 @@
         "Width": "4"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7325,7 +7325,7 @@
       "color_roles_and_values": {
         "Background": "Transparent"
       },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/GridSplitter[7]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/GridSplitter[7]",
       "location": {
         "Grid.Column": "6",
         "HorizontalAlignment": "Stretch",
@@ -7333,7 +7333,7 @@
         "Width": "4"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7345,7 +7345,7 @@
       "color_roles_and_values": {
         "Background": "Transparent"
       },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/GridSplitter[9]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/GridSplitter[9]",
       "location": {
         "Grid.Column": "8",
         "HorizontalAlignment": "Stretch",
@@ -7353,7 +7353,7 @@
         "Width": "4"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7363,14 +7363,14 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid[12]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid[12]",
       "location": {
         "Grid.Column": "11",
         "Margin": "5,0,8,0",
         "VerticalAlignment": "Center"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7382,14 +7382,14 @@
       "color_roles_and_values": {
         "Background": "{DynamicResource AppControlHoverBrush}"
       },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid[12]/Border[1]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid[12]/Border[1]",
       "location": {
         "Height": "16",
         "VerticalAlignment": "Center",
         "Width": "16"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid[12]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid[12]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7399,10 +7399,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid[12]/Border[1]/Grid[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid[12]/Border[1]/Grid[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid[12]/Border[1]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid[12]/Border[1]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7412,13 +7412,13 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid[12]/Border[1]/Grid[0]/Image[1]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid[12]/Border[1]/Grid[0]/Image[1]",
       "location": {
         "Height": "16",
         "Width": "16"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid[12]/Border[1]/Grid[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid[12]/Border[1]/Grid[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7428,13 +7428,13 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid[12]/Border[1]/Grid[0]/TextBlock[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid[12]/Border[1]/Grid[0]/TextBlock[0]",
       "location": {
         "HorizontalAlignment": "Center",
         "VerticalAlignment": "Center"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid[12]/Border[1]/Grid[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid[12]/Border[1]/Grid[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7447,10 +7447,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid[12]/Grid.ColumnDefinitions[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid[12]/Grid.ColumnDefinitions[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid[12]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid[12]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7460,12 +7460,12 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid[12]/Grid.ColumnDefinitions[0]/ColumnDefinition[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid[12]/Grid.ColumnDefinitions[0]/ColumnDefinition[0]",
       "location": {
         "Width": "18"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid[12]/Grid.ColumnDefinitions[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid[12]/Grid.ColumnDefinitions[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7475,12 +7475,12 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid[12]/Grid.ColumnDefinitions[0]/ColumnDefinition[1]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid[12]/Grid.ColumnDefinitions[0]/ColumnDefinition[1]",
       "location": {
         "Width": "*"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid[12]/Grid.ColumnDefinitions[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid[12]/Grid.ColumnDefinitions[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7490,14 +7490,14 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid[12]/TextBlock[2]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid[12]/TextBlock[2]",
       "location": {
         "Grid.Column": "1",
         "Margin": "5,0,0,0",
         "VerticalAlignment": "Center"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Grid[12]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Grid[12]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7509,7 +7509,7 @@
       "color_roles_and_values": {
         "Background": "Transparent"
       },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/ModernUnreadActionButton",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/ModernUnreadActionButton",
       "location": {
         "Grid.Column": "5",
         "Height": "40",
@@ -7517,7 +7517,7 @@
         "Width": "24"
       },
       "name": "ModernUnreadActionButton",
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7527,13 +7527,13 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/ModernUnreadActionButton/Ellipse[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/ModernUnreadActionButton/Ellipse[0]",
       "location": {
         "Height": "8",
         "Width": "8"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/ModernUnreadActionButton",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/ModernUnreadActionButton",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7543,10 +7543,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/ModernUnreadActionButton/Ellipse[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/ModernUnreadActionButton/Ellipse[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7556,10 +7556,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": {
         "Key": "",
@@ -7572,10 +7572,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]/Setter[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]/Setter[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7585,10 +7585,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]/Setter[1]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]/Setter[1]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7598,10 +7598,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]/Style.Triggers[2]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]/Style.Triggers[2]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7611,10 +7611,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]/Style.Triggers[2]/DataTrigger[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]/Style.Triggers[2]/DataTrigger[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]/Style.Triggers[2]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]/Style.Triggers[2]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": {
         "Value": "True"
@@ -7626,10 +7626,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]/Style.Triggers[2]/DataTrigger[0]/Setter[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]/Style.Triggers[2]/DataTrigger[0]/Setter[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]/Style.Triggers[2]/DataTrigger[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]/Style.Triggers[2]/DataTrigger[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7639,10 +7639,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]/Style.Triggers[2]/DataTrigger[0]/Setter[1]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]/Style.Triggers[2]/DataTrigger[0]/Setter[1]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]/Style.Triggers[2]/DataTrigger[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/ModernUnreadActionButton/Ellipse[0]/Ellipse.Style[0]/Style[0]/Style.Triggers[2]/DataTrigger[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7654,7 +7654,7 @@
       "color_roles_and_values": {
         "Stroke": "{DynamicResource AppMutedTextBrush}"
       },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/Path[10]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/Path[10]",
       "location": {
         "Grid.Column": "9",
         "Height": "14",
@@ -7664,7 +7664,7 @@
         "Width": "14"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7674,14 +7674,14 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/TextBlock[14]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/TextBlock[14]",
       "location": {
         "Grid.Column": "13",
         "Margin": "7,0,8,0",
         "VerticalAlignment": "Center"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7691,10 +7691,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/TextBlock[14]/Run[1]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/TextBlock[14]/Run[1]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/TextBlock[14]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/TextBlock[14]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7704,10 +7704,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/TextBlock[14]/Run[2]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/TextBlock[14]/Run[2]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/TextBlock[14]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/TextBlock[14]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7719,10 +7719,10 @@
       "color_roles_and_values": {
         "Foreground": "{DynamicResource AppMutedTextBrush}"
       },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/TextBlock[14]/Run[3]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/TextBlock[14]/Run[3]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/TextBlock[14]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/TextBlock[14]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7732,10 +7732,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/TextBlock[14]/TextBlock.Style[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/TextBlock[14]/TextBlock.Style[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/TextBlock[14]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/TextBlock[14]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7745,10 +7745,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/TextBlock[14]/TextBlock.Style[0]/Style[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/TextBlock[14]/TextBlock.Style[0]/Style[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/TextBlock[14]/TextBlock.Style[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/TextBlock[14]/TextBlock.Style[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": {
         "Key": "",
@@ -7761,10 +7761,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/TextBlock[14]/TextBlock.Style[0]/Style[0]/Setter[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/TextBlock[14]/TextBlock.Style[0]/Style[0]/Setter[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/TextBlock[14]/TextBlock.Style[0]/Style[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/TextBlock[14]/TextBlock.Style[0]/Style[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7774,10 +7774,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/TextBlock[14]/TextBlock.Style[0]/Style[0]/Style.Triggers[1]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/TextBlock[14]/TextBlock.Style[0]/Style[0]/Style.Triggers[1]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/TextBlock[14]/TextBlock.Style[0]/Style[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/TextBlock[14]/TextBlock.Style[0]/Style[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7787,10 +7787,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/TextBlock[14]/TextBlock.Style[0]/Style[0]/Style.Triggers[1]/DataTrigger[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/TextBlock[14]/TextBlock.Style[0]/Style[0]/Style.Triggers[1]/DataTrigger[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/TextBlock[14]/TextBlock.Style[0]/Style[0]/Style.Triggers[1]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/TextBlock[14]/TextBlock.Style[0]/Style[0]/Style.Triggers[1]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": {
         "Value": "True"
@@ -7802,10 +7802,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/TextBlock[14]/TextBlock.Style[0]/Style[0]/Style.Triggers[1]/DataTrigger[0]/Setter[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/TextBlock[14]/TextBlock.Style[0]/Style[0]/Style.Triggers[1]/DataTrigger[0]/Setter[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/TextBlock[14]/TextBlock.Style[0]/Style[0]/Style.Triggers[1]/DataTrigger[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/TextBlock[14]/TextBlock.Style[0]/Style[0]/Style.Triggers[1]/DataTrigger[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7817,7 +7817,7 @@
       "color_roles_and_values": {
         "Foreground": "{DynamicResource AppMutedTextBrush}"
       },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]/TextBlock[2]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]/TextBlock[2]",
       "location": {
         "Grid.Column": "1",
         "HorizontalAlignment": "Right",
@@ -7825,7 +7825,7 @@
         "VerticalAlignment": "Center"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[7]/Grid[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/DataTemplate[8]/Grid[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7848,6 +7848,19 @@
     },
     {
       "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/MailActivePreviewConverter[5]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
+      "states": null,
+      "style": "MailActivePreviewConverter",
+      "type": "MailActivePreviewConverter",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
       "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/MailTimeConverter[1]",
       "location": {},
       "name": null,
@@ -7861,7 +7874,7 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]",
       "location": {},
       "name": null,
       "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]",
@@ -7877,10 +7890,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]/Setter[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7890,10 +7903,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]/Setter[1]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[1]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7903,10 +7916,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]/Setter[2]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[2]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7916,10 +7929,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]/Setter[3]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[3]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7929,10 +7942,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]/Setter[4]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[4]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7942,10 +7955,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]/Setter[5]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7955,10 +7968,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]/Setter[5]/Setter.Value[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]/Setter[5]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7968,10 +7981,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]/Setter[5]/Setter.Value[0]/ControlTemplate[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]/Setter[5]/Setter.Value[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": {
         "Key": "",
@@ -7984,10 +7997,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]/Setter[5]/Setter.Value[0]/ControlTemplate[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -7997,10 +8010,103 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]/Trigger[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]/DataTrigger[2]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]",
+      "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
+      "states": {
+        "Value": "True"
+      },
+      "style": null,
+      "type": "DataTrigger",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]/DataTrigger[2]/DataTrigger.Binding[0]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]/DataTrigger[2]",
+      "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
+      "states": null,
+      "style": null,
+      "type": "DataTrigger.Binding",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]/DataTrigger[2]/DataTrigger.Binding[0]/MultiBinding[0]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]/DataTrigger[2]/DataTrigger.Binding[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
+      "states": null,
+      "style": null,
+      "type": "MultiBinding",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]/DataTrigger[2]/DataTrigger.Binding[0]/MultiBinding[0]/Binding[0]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]/DataTrigger[2]/DataTrigger.Binding[0]/MultiBinding[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
+      "states": null,
+      "style": null,
+      "type": "Binding",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]/DataTrigger[2]/DataTrigger.Binding[0]/MultiBinding[0]/Binding[1]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]/DataTrigger[2]/DataTrigger.Binding[0]/MultiBinding[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
+      "states": null,
+      "style": null,
+      "type": "Binding",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]/DataTrigger[2]/Setter[1]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]/DataTrigger[2]",
+      "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
+      "states": null,
+      "style": null,
+      "type": "Setter",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]/DataTrigger[2]/Setter[2]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]/DataTrigger[2]",
+      "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
+      "states": null,
+      "style": null,
+      "type": "Setter",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]/Trigger[0]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": {
         "Property": "IsMouseOver",
@@ -8013,10 +8119,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]/Trigger[0]/Setter[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]/Trigger[0]/Setter[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]/Trigger[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]/Trigger[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -8026,10 +8132,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]/Trigger[1]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]/Trigger[1]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": {
         "Property": "IsSelected",
@@ -8042,10 +8148,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]/Trigger[1]/Setter[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]/Trigger[1]/Setter[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]/Trigger[1]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/ControlTemplate.Triggers[1]/Trigger[1]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -8058,12 +8164,12 @@
         "Background": "Transparent",
         "BorderBrush": "{DynamicResource AppBorderBrush}"
       },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/Row",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/Row",
       "location": {
         "Padding": "2,0"
       },
       "name": "Row",
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]/Setter[5]/Setter.Value[0]/ControlTemplate[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -8073,12 +8179,12 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/Row/ContentPresenter[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/Row/ContentPresenter[0]",
       "location": {
         "HorizontalAlignment": "Stretch"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[5]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/Row",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196/ResourceDictionary[0]/Style[6]/Setter[5]/Setter.Value[0]/ControlTemplate[0]/Row",
       "source": "src/MailRuDesktop.App/MainWindow.ModernMailList.cs#generated-xaml:16196",
       "states": null,
       "style": null,
@@ -19487,7 +19593,7 @@
         "Foreground": "{DynamicResource AppTextBrush}"
       },
       "declared_as": "XAML",
-      "element_count": 736,
+      "element_count": 744,
       "geometry": {
         "Height": "900",
         "MinHeight": "720",
