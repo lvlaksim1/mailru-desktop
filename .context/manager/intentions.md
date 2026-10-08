@@ -81,7 +81,7 @@ The Owner reported broken downward account drag and occasional selection of the 
 
 The Owner requested a read-receipt checkbox for new outgoing messages, schedule-send checkbox with local tomorrow 09:00 as default, and display of sender email when sender name is missing. v0.3.19 implements these in UI, payload and tolerant parser, and verifies the outgoing form through a fake HTTP handler. Test of real receipt response and actual delayed delivery was not performed; do not mark them as runtime-verified.
 
-## I-014 — v0.3.20 Owner feedback on inline composer, templates and dark controls
+## I-014 — v0.3.21 Owner feedback on inline composer, templates and dark controls
 status: released — Owner interactive validation pending
 
 The Owner requested: selected template/signature should work again on repeated choice; configurable folder for Markdown templates with manual file discovery; inline reply/forward close × and receipt/delayed delivery controls; darker thumb/arrows everywhere; keep modal dialog caption dark even during input; sender email when name is missing. Owner confirmed account drag and dividers are now good.
@@ -89,3 +89,10 @@ The Owner requested: selected template/signature should work again on repeated c
 The release implements these via PR #70 and CI 37711634109 with offline file and parsing checks; installer release workflow 37711732617 succeeded. ChangeDirectory copies existing templates and attachments into the selected folder without overwriting existing files, persists the setting, rebinds watcher, and preserves old folder. Reply/forward schedule defaults to tomorrow 09:00 and sends through existing Mail.ru scheduling protocol. Receipt request is optional. Sender fallback draws from parent thread and selected full message.
 
 Next: real-user visual and behavior check, including WPF scrollbars, prompts, list sender, repeated choices, and controlled mail receipt/delivery tests. Do not infer successful recipient acknowledgment from sending a receipt request.
+
+## I-015 — enforce the immutable palette element-to-role contract
+status: active — code released v0.3.21; user visual gate pending
+
+The Owner requires that every theme have a complete named/presented default set of color roles and that users may edit colors but cannot reassign the fixed collection of UI elements governed by each role. The Product Manager selected 26 roles. Maintain the canonical ThemePalette.Roles registry, separate persisted dark/light dictionaries and system-theme switching. All new widgets must use a corresponding named dynamic resource instead of inventing literal element colors.
+
+v0.3.21 implements grouped color settings, swatches/descriptions, RGB/hex input, individual and whole-theme reset and live propagation for the active theme, with nonblocking accessibility contrast alerts. The release passed automated checks; Owner in-app/visual testing remains open. Preserve account dragging and pane splitter behavior.

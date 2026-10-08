@@ -5,7 +5,7 @@ Visibility: public
 Product authority: main
 Manager-state authority: main
 
-Latest public release: **v0.3.20**, published 2026-10-08 with full and update installers. PR #70 merged as eb3415ac30f81cc3426d4726b53d590d42e57b11. CI 37711634109 and release workflow 37711732617 succeeded.
+Latest public release: **v0.3.21**, published 2026-10-08 with full and update installers. Release workflow 37716328414: success. PR #73 merged on main as e29a23ab81697b0dd38f0f1b2d9ce38efefb8c52. PR #70 merged as eb3415ac30f81cc3426d4726b53d590d42e57b11. CI 37711634109 and release workflow 37711732617 succeeded.
 Product changes: PR #62 plus PR #63, merge commit 34e583abc232c9edc939816a92b4e08165836210.
 Release workflow 37707435464, main CI 37707321540 and repository storage check 37707321584: success.
 
@@ -110,3 +110,15 @@ Addressed eight new feedback items:
 CI tests for thread-only sender and file-backed template migration, attachments, manual file discovery, and conflict protection passed on Windows. Automated tests + successful launch are not equivalent to Owner UI confirmation or successful real scheduled delivery/read receipts.
 
 Release: v0.3.20 with full and in-place update installers. Both installer artifacts were verified on GitHub.
+
+## v0.3.21 — fixed role-based interface palette
+
+The Owner approved a complete taxonomy, not arbitrary per-widget colors. Implemented exactly 26 semantic color roles in ThemePalette.Roles, with immutable key→element responsibility, names, descriptions and separate default dark/light colors. The Owner can edit only values, not the element mapping.
+
+Settings → «Цвета элементов интерфейса»: grouped list of all 26 roles, color previews and descriptions, text input #RRGGBB, RGB chooser, per-role reset, per-theme reset with confirmation, contrast warnings without forced correction, immediate live application of the active theme. Independent persisted DarkPalette and LightPalette in settings.json; the system theme selects the appropriate one for current Windows mode.
+
+ThemeManager applies all 26 resource brushes, synchronizes window titlebar and message viewer with effective roles. Existing WPF styles, dialog windows, context menus, input focus, stars/pins, destructive actions, mail sending success/error indicators, and embedded HTML scrollbars have been mapped to role resources. Images, contact portraits and logos are not recolored.
+
+Offline regression checks verify role uniqueness/count, both default sets, validation/normalization of color codes, contrast calculation, isolated storage persistence and independent reset. Windows CI, startup smoke and release passed. Owner visual confirmation of all windows/menus and color combinations is pending.
+
+No code changes were made to Owner-approved account drag/animation and splitters. Other unfinished mail features from the 12-point backlog are not included in v0.3.21.

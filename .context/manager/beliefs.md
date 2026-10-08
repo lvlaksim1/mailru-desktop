@@ -268,3 +268,11 @@ statement: The Owner provided screenshots and reported a blank sender row despit
 source: Owner messages and screenshots 2026-10-08; GitHub PR #70; main commit eb3415ac30f81cc3426d4726b53d590d42e57b11; CI 37711634109; release 37711732617.
 authority: owner-directive + verified-repository + verified-ci (not Owner runtime verified)
 supersedes: B-032 only where v0.3.19 was described as latest published version.
+
+## B-034 — Owner-approved 26-role editable semantic color architecture
+
+statement: On 2026-10-08 the Owner explicitly specified a thorough cleanup of all UI element colors with independent value editing in settings and immutable mapping of element groups to color roles. Approved response established exactly 26 semantic roles for each dark/light theme, with a system theme that chooses the currently effective Windows light/dark set. Implemented in PR #73, release v0.3.21, published 2026-10-08. ThemePalette.Roles is the canonical catalog and defaults. User can edit only #RRGGBB values via settings color table/RGB chooser, preview and explanatory role membership; role mapping is uneditable. Colors persist independently per effective theme, are applied dynamically through ThemeManager/WPF/HTML, and can be restored individually or together. Contrast warnings do not override user choices. UI illustrations and mail content images are exempt from recoloring. Offline 26-role and independent-theme persistence/regression tests, Windows build/startup and installer release passed. Owner visual/UI runtime testing remains pending. Account drag and splitters are deliberately unchanged.
+
+source: Owner's explicit requirement in chat 2026-10-08; merged PR #73; main product merge e29a23ab81697b0dd38f0f1b2d9ce38efefb8c52; release workflow 37716328414; docs/theme-palette.md.
+authority: owner-directive + verified-repository + verified-ci (not Owner visual runtime confirmed)
+supersedes: no other requirements; v0.3.21 replaces v0.3.20 as latest public release.

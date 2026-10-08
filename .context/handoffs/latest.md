@@ -1,6 +1,6 @@
 # Latest handoff
 
-Latest public release: v0.3.20, published with full and update installers on 2026-10-08.
+Latest public release: v0.3.21, published with full and update installers on 2026-10-08.
 
 Current merged product baseline: PR #62 and PR #63, main CI passed, release workflow 37707435464 succeeded.
 
@@ -34,3 +34,13 @@ PR #70 merged as eb3415ac30f81cc3426d4726b53d590d42e57b11; CI 37711634109, stora
 Implemented: choose and persist template directory; copy templates/attachments without collision/overwrite; restart watcher; repeat selected signature/template on mouse/Enter; inline reply ×; dark modal native caption correction; fully custom WPF scrollbar thumbs/arrows plus both WebView reader CSS; parent-thread and full-message sender-email fallback; receipt and scheduled-send controls in inline reply/forward with tomorrow 09:00 default.
 
 Regression tests include manual Markdown addition, directory change, attachment continuity/conflict rejection and parent-thread sender. Runtime UI and mail delivery validation still pending. No network spam; keep >=5 sec research/test request spacing. No IMAP/SMTP/app-passwords.
+
+## v0.3.21 handoff — semantic palette project
+
+Owner confirmed exact design contract: user controls separate color values, not which widgets belong to each role; developer owns all sets and role combinations. Approved 26-color role model (6 backgrounds, 4 interaction, 5 text, 3 accent/selection, 3 scrolling, 3 statuses, 2 marks). The system theme must use the matching light/dark palette; no third contradictory palette.
+
+Merged PR #73 commit e29a23ab81697b0dd38f0f1b2d9ce38efefb8c52. v0.3.21 full/update installers published and release workflow 37716328414 succeeded. Windows CI and offline regression tests passed.
+
+Technical contract: ThemePalette.Roles = 26 immutable semantic roles; ThemeManager.Apply writes all dynamic WPF brush keys, native caption, message viewer and scrollbar colors. DarkPalette/LightPalette stored separately in settings.json; color entries accept only #RRGGBB. Settings contains grouped role descriptions/swatches, RGB picker, role/theme reset and accessibility warnings; light/dark editor selection is independent from current Windows system mode. Backgrounds, inputs, dialogs, marks and message send state colors share semantic roles; original pictures and brand marks must remain intact. Documentation: docs/theme-palette.md.
+
+Owner runtime/visual verification pending. Keep previously approved account drag and splitters unchanged. Other 12-task backlog remains separate and unfinished.
