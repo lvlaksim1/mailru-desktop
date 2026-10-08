@@ -14,6 +14,6 @@ internal static class ReaderPresentationPolicy
         domReady && (imagesSettled || deadlineReached);
 
     public static bool ShouldStopLoading(
-        bool domReady, bool resourcesFinished, bool deadlineReached) =>
+        bool domReady, bool imagesSettled, bool deadlineReached) =>
         domReady && !imagesSettled && deadlineReached;
 }
