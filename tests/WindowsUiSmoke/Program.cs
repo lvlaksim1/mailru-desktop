@@ -76,7 +76,7 @@ internal static class Program
                 new object[] { mail, "Тест", "Короткое сообщение" }) as Window;
             Check(notice is not null, "short notification is created");
             ((StackPanel)notice!.Tag).Children.Add(new Button { Content = "Понятно",
-                Padding = new Thickness(14, 7) });
+                Padding = new Thickness(14, 7, 14, 7) });
             notice.Show();
             notice.UpdateLayout();
             Check(notice.SizeToContent == SizeToContent.Height,
