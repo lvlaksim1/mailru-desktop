@@ -872,7 +872,9 @@
                                 <TextBlock Margin="0,8,0,0" Foreground="{DynamicResource AppMutedTextBrush}" Text="При первом запуске используется тёмная тема."/>
                             </StackPanel>
                         </GroupBox>
-                        <GroupBox Margin="0,16,0,0" Header="Цвета элементов интерфейса">
+                        <Expander Margin="0,16,0,0" IsExpanded="False" Header="Цвета элементов интерфейса"
+                                  Foreground="{DynamicResource AppTextBrush}"
+                                  Background="{DynamicResource AppPanelBrush}">
                             <StackPanel Margin="12">
                                 <TextBlock TextWrapping="Wrap" Margin="0,0,0,10"
                                            Text="Все элементы распределены по 26 фиксированным цветовым ролям. Можно изменять оттенки, но не назначение цветов элементам."/>
@@ -950,7 +952,7 @@
                                         Click="PaletteResetThemeButton_Click"
                                         Content="Восстановить стандартные цвета выбранной темы"/>
                             </StackPanel>
-                        </GroupBox>
+                        </Expander>
 
                         <GroupBox Margin="0,16,0,0" Header="Подписи">
                             <Grid Margin="12">
