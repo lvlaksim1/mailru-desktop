@@ -137,12 +137,19 @@ public partial class MainWindow : Window
             };
             MessageWebView.NavigationCompleted += (_, args) =>
             {
-                if (!_readerWaitingForFullMessage &&
-                    args.NavigationId == _latestReaderNavigationId)
+                if (_readerWaitingForFullMessage ||
+                    args.NavigationId != _latestReaderNavigationId)
+                    return;
+
+                if (!args.IsSuccess)
                 {
-                    MessageWebView.Visibility = Visibility.Visible;
-                    ReaderLoadingOverlay.Visibility = Visibility.Collapsed;
+                    ReaderLoadingText.Text = "Не удалось отобразить содержимое письма.";
+                    DiagnosticLog.Write("reader_navigation", "WebView2 error=" + args.WebErrorStatus);
+                    return;
                 }
+
+                MessageWebView.Visibility = Visibility.Visible;
+                ReaderLoadingOverlay.Visibility = Visibility.Collapsed;
             };
             _readerReady = true;
 
@@ -547,6 +554,37 @@ public partial class MainWindow : Window
             await LoadFolderAsync(folder.Id);
     }
 
+    // SelectionChanged is not raised when clicking the already-selected
+    // folder. That must still leave Settings and return to the mailbox.
+    private void FolderListBox_PreviewMouseLeftButtonUp(
+        object sender, MouseButtonEventArgs e)
+    {
+        if (SettingsWorkspace.Visibility != Visibility.Visible ||
+            e.OriginalSource is not DependencyObject source)
+            return;
+
+        var item = ItemsControl.ContainerFromElement(FolderListBox, source)
+            as ListBoxItem;
+        if (item?.DataContext is not MailRuFolderSummary folder)
+            return;
+
+        ShowWorkspace(MailWorkspace);
+        if (folder.Id != _currentFolderId && !_loadingFolder)
+            _ = LoadFolderAsync(folder.Id);
+    }
+
+    private void FolderListBox_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter ||
+            SettingsWorkspace.Visibility != Visibility.Visible ||
+            FolderListBox.SelectedItem is not MailRuFolderSummary folder)
+            return;
+        ShowWorkspace(MailWorkspace);
+        if (folder.Id != _currentFolderId && !_loadingFolder)
+            _ = LoadFolderAsync(folder.Id);
+        e.Handled = true;
+    }
+
     private async Task LoadFolderAsync(int folderId, long? accountSwitchGeneration = null)
     {
         bool IsStaleAccountSwitch() =>
@@ -716,6 +754,7 @@ public partial class MainWindow : Window
         _readerWaitingForFullMessage = true;
         MessageWebView.Visibility = Visibility.Hidden;
         ReaderLoadingOverlay.Visibility = Visibility.Visible;
+        ReaderLoadingText.Text = "Загрузка письма…";
         MessageWebView.CoreWebView2?.Stop();
     }
 
@@ -1999,6 +2038,13 @@ public partial class MainWindow : Window
             Dispatcher.BeginInvoke(() => ThemeManager_ThemeChanged(sender, e));
             return;
         }
+
+        // A theme update while images or navigation are still pending must
+        // never replace the new letter with the raw, unprepared HTML body.
+        if (!_readerReady || _readerWaitingForFullMessage ||
+            _readerNavigationPending ||
+            MessageWebView.Visibility != Visibility.Visible)
+            return;
 
         if (_currentFullMessage is not null)
         {

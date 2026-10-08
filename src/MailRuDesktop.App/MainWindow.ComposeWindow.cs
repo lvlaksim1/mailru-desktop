@@ -191,13 +191,7 @@ public partial class MainWindow
                     args.Handled = true;
                 }
             };
-            dialog.SourceInitialized += (_, _) => ThemeManager.RefreshWindowChrome(dialog);
-            dialog.Loaded += (_, _) =>
-            {
-                ThemeManager.RefreshWindowChrome(dialog);
-                search.Focus();
-            };
-            dialog.Activated += (_, _) => ThemeManager.RefreshWindowChrome(dialog);
+            dialog.Loaded += (_, _) => search.Focus();
             dialog.ShowDialog();
             ComposeToTextBox.Focus();
         }

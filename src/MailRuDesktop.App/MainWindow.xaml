@@ -290,7 +290,9 @@
                              BorderThickness="0"
                              Background="Transparent"
                              DisplayMemberPath="DisplayName"
-                             SelectionChanged="FolderListBox_SelectionChanged"/>
+                             SelectionChanged="FolderListBox_SelectionChanged"
+                              PreviewMouseLeftButtonUp="FolderListBox_PreviewMouseLeftButtonUp"
+                              PreviewKeyDown="FolderListBox_PreviewKeyDown"/>
 
                     <Expander x:Name="FolderManageExpander"
                               Grid.Row="2"
@@ -377,10 +379,14 @@
                     </Grid>
 
                     <StackPanel Grid.Row="1" Margin="0,0,0,6">
-                        <WrapPanel VerticalAlignment="Center">
-                            <Button x:Name="MainComposeButton" Padding="12,5" Margin="0,0,10,4"
+                        <DockPanel LastChildFill="True" VerticalAlignment="Center">
+                            <!-- New Mail belongs at the upper right of the message list,
+                                 independent of selection actions that may wrap. -->
+                            <Button x:Name="MainComposeButton" DockPanel.Dock="Right"
+                                    Padding="12,5" Margin="10,0,0,4"
                                     FontWeight="SemiBold" Click="ShowComposeButton_Click"
                                     Content="✎  Новое письмо"/>
+                            <WrapPanel VerticalAlignment="Center">
                             <Button x:Name="BulkTrashButton" Padding="10,5" Margin="0,0,5,4"
                                     Click="BulkTrashButton_Click" Content="В корзину"/>
                             <Button x:Name="BulkArchiveButton" Padding="10,5" Margin="0,0,5,4"
@@ -398,7 +404,8 @@
                                        VerticalAlignment="Center"
                                        Foreground="{DynamicResource AppMutedTextBrush}"
                                        Text="Выбрано: 0"/>
-                        </WrapPanel>
+                            </WrapPanel>
+                        </DockPanel>
                         <Grid Visibility="Collapsed">
                             <TextBox x:Name="FilterSenderTextBox"/>
                             <TextBox x:Name="FilterSubjectTextBox"/>
@@ -675,7 +682,8 @@
                                 <Border x:Name="ReaderLoadingOverlay"
                                         Visibility="Collapsed"
                                         Background="{DynamicResource AppReaderBrush}">
-                                    <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center"
+                                    <TextBlock x:Name="ReaderLoadingText"
+                                               VerticalAlignment="Center" HorizontalAlignment="Center"
                                                FontSize="{DynamicResource AppFontBodySize}"
                                                Foreground="{DynamicResource AppMutedTextBrush}"
                                                Text="Загрузка письма…"/>
@@ -894,12 +902,16 @@
                         </Grid>
                         <StackPanel Grid.Row="4" Margin="70,0,0,8">
                             <WrapPanel Margin="0,0,0,8">
+                                <TextBlock Text="Подпись:" VerticalAlignment="Center"
+                                           Margin="0,0,6,0"/>
                                 <ComboBox x:Name="ComposeSignatureComboBox" Width="205" Margin="0,0,8,0"
                                           DisplayMemberPath="Name" SelectionChanged="ComposeSignatureComboBox_SelectionChanged"
                                           DropDownOpened="ComposeSignatureComboBox_DropDownOpened"
                                           PreviewMouseLeftButtonUp="ComposeSignatureComboBox_PreviewMouseLeftButtonUp"
                                           PreviewKeyDown="ComposeSignatureComboBox_PreviewKeyDown"
                                           ToolTip="Добавить подпись" />
+                                <TextBlock Text="Шаблон:" VerticalAlignment="Center"
+                                           Margin="2,0,6,0"/>
                                 <ComboBox x:Name="ComposeTemplateComboBox" Width="235"
                                           DisplayMemberPath="Name" SelectionChanged="ComposeTemplateComboBox_SelectionChanged"
                                           DropDownOpened="ComposeTemplateComboBox_DropDownOpened"
