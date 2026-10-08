@@ -275,7 +275,7 @@
                             <WrapPanel>
                                 <Button Padding="8,5" Margin="0,0,4,4" Click="CreateFolderButton_Click" Content="Создать"/>
                                 <Button Padding="8,5" Margin="0,0,4,4" Click="RenameFolderButton_Click" Content="Переименовать"/>
-                                <Button Padding="8,5" Margin="0,0,4,4" Click="DeleteFolderButton_Click" Content="Удалить"/>
+                                <Button Padding="8,5" Margin="0,0,4,4" Click="DeleteFolderButton_Click" Foreground="{DynamicResource AppDangerBrush}" Content="Удалить"/>
                                 <Button Padding="8,5" Margin="0,0,4,4" Click="ClearFolderButton_Click" Content="Очистить"/>
                             </WrapPanel>
                         </StackPanel>
@@ -986,7 +986,7 @@
                                     <WrapPanel Grid.Row="2">
                                         <Button Padding="10,6" Margin="0,0,6,0" Click="NewSignatureButton_Click" Content="Новая"/>
                                         <Button Padding="10,6" Margin="0,0,6,0" Click="SaveSignatureButton_Click" Content="Сохранить"/>
-                                        <Button Padding="10,6" Click="DeleteSignatureButton_Click" Content="Удалить"/>
+                                        <Button Padding="10,6" Click="DeleteSignatureButton_Click" Foreground="{DynamicResource AppDangerBrush}" Content="Удалить"/>
                                     </WrapPanel>
                                 </Grid>
                             </Grid>
@@ -1047,7 +1047,7 @@
                                     <WrapPanel Grid.Row="5" Margin="0,7,0,0">
                                         <Button Padding="10,6" Margin="0,0,6,0" Click="NewMailTemplateButton_Click" Content="Новый"/>
                                         <Button Padding="10,6" Margin="0,0,6,0" Click="SaveMailTemplateButton_Click" Content="Сохранить"/>
-                                        <Button Padding="10,6" Margin="0,0,6,0" Click="DeleteMailTemplateButton_Click" Content="Удалить"/>
+                                        <Button Padding="10,6" Margin="0,0,6,0" Click="DeleteMailTemplateButton_Click" Foreground="{DynamicResource AppDangerBrush}" Content="Удалить"/>
                                         <Button Padding="10,6" Click="OpenTemplatesFolderButton_Click" Content="Открыть папку шаблонов"/>
                                     </WrapPanel>
                                 </Grid>
