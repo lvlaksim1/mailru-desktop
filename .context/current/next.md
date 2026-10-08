@@ -1,54 +1,14 @@
-# Next actions
+# Next actions — 2026-10-08
 
-1. Validate the published v0.3.23 update on the Owner's Windows machine; GitHub Release includes both installers.
-2. Validate saved window state, size, position, preview divider and message-column widths after restart.
-3. Validate darker scrollbars and real sender/account avatar photos, with initials fallback when no photo exists, without increasing row height.
-4. Validate account reordering exactly as specified by Owner, including hold-to-detach timing, smooth neighbor movement, release-to-place and persisted order.
-5. Validate account sections, their right-side arrow, saved state and safe section deletion.
-6. Validate preview/reply control positions and reply editor placement.
-7. Validate named signatures and Markdown file templates: manually add/modify/rename/delete .md files, inspect list refresh, subject/body, saved copies of attachments, legacy migration, and insertion without confirmation.
-8. Preserve the v0.3.17 persistent isolated authorization-profile architecture unless new runtime evidence identifies a defect.
-9. After v0.3.19 validation, resume staged protocol expansion and delayed-send/search work.
-
-10. Owner tests account dragging from first to last and last to first, including crossing section headings; ensure a long hold without movement never selects an adjacent account or reorders the row.
-11. Owner tests read-receipt request on new outgoing mail against a consenting test recipient. Request is protocol-confirmed, but end-to-end receipt behavior is not independently verified.
-12. Owner checks new-compose default tomorrow 09:00, scheduling checkbox gating, future-time validation and delivery outcome of scheduled messages. Do not claim delivery on successful scheduling alone.
-13. Owner confirms missing sender names are replaced with sender email in mailbox list across accounts.
-
-14. Owner visually checks horizontal/vertical thumb and arrow darkness across all WPF scroll containers and both embedded mail readers.
-15. Owner checks same-value template/signature re-selection (mouse and keyboard) in inline reply, and × closes it.
-16. Owner selects a custom template directory, restarts, adds a .md file manually, edits/renames files and confirms watcher, attachment continuity and backups.
-17. Owner validates titlebar color on account-section title prompt while text field is focused.
-18. Owner verifies email fallback on mailbox rows that initially lack names, before/after selecting full mail.
-19. Owner verifies receipt and scheduled send controls in inline reply/forward, not only New Mail. Validate server acceptance and delivery separately.
-
-20. Owner installs v0.3.23 and visually inspects all 26 palette roles in dark and light settings, including dialog windows, lists, buttons, focus state, date picker and both scrollbar orientations.
-21. Owner edits a role, confirms immediate update across affected elements, restart persistence, per-role and entire theme reset, independent dark/light profiles, and Windows-driven system theme.
-22. Check contrast warnings: low contrast must be reported, but never silently corrected. Review original appearance of images, logos and contact avatars.
-23. Resume separately agreed 12-point mail backlog after the palette system has been visually validated; do not conflate its unimplemented items with the completed color-system release.
-
-24. Owner installs v0.3.23 and validates collapsible palette and direct click-to-choose color field in both themes.
-25. Verify senders populate without opening a message, including blank subjects; auto enrichment is capped at 20 and has 5-second intervals without changing read marks.
-26. Open legacy and new Markdown templates in Windows Notepad: Cyrillic metadata readable, body and attachments preserved, old escaped file backed up once.
-27. Verify configured download directory, Explorer opening after successful downloads and attachments appearing above the message.
-28. Send a controlled rich-formatted test message from new-mail, inline reply and detached reply, checking actual HTML receipt and legacy template/signature compatibility.
-29. Test checkbox/Ctrl/Shift/Ctrl+A selection and grouped archive, trash, read and permanent trash deletion, including confirmation and prevention of duplicate operations.
-30. **Issue #77 remains blocked**: investigate and validate the exact duplicate-free server operation to immediately send already scheduled mail. Only then enable Outbox controls in bulk bar, message view and context menu.
-
-31. Owner installs v0.3.23 and opens each previously saved mailbox that formerly showed HTTP200 + JSON status=403 token. Verify that it either refreshes credentials and loads mail or identifies only that account as requiring fresh sign-in. A server-revoked refresh token cannot be bypassed.
-32. Owner confirms other authorized accounts remain accessible and their unread counters, tokens and last selected account are unchanged when one token expires.
-33. If failures persist, collect an anonymized per-account result (account label and whether refresh succeeded), HTTP/status code and diagnostic reason only; do not send access_token, refresh_token, cookies, passwords or auth.json.
-
-34. Owner installs v0.3.24 and verifies the color picker footer actions are visible, the dark DatePicker popup remains dark, and new-line spacing/resizing in both reply editors.
-35. Repeatedly check several messages using the leftmost checkbox, allowing missing-sender background lookups to complete; all selected IDs should stay checked without scrolling reset.
-36. Select multiple mail items and use Read/Archive/Trash/Delete; verify only those rows update and the surrounding list does not flash or reload. Verify no confirmation for permanent deletion from Trash.
-37. Check initial sender names for blank-subject messages. If still staged, investigate actual anonymized smart-thread JSON representations and a safe group source without excessive requests.
-38. Research issue #77 and prove a duplicate-free atomic server send-now transition for scheduled Outbox messages before enabling bulk, preview and context-menu actions.
-
-39. Owner installs v0.3.25 after public release and verifies independent active preview and checked-message action targets: checked boxes take priority; without checks use the currently open preview; neither state yields an informative dialog.
-40. Test ordinary row clicks do not clear checked boxes; Shift-click range checks consecutive visible rows; Ctrl selection is disabled; right-click archive/trash respects existing checkboxes. Double-click still opens detached message viewer.
-41. Test live folder unread counters: after read, archive, move and permanent removal update only affected folder rows, and periodically reconcile explicitly present server counts (90 seconds). Missing data MUST NOT be interpreted as zero.
-42. Test settings font slider 10–18 and reset across current/new windows, mail rows, dialog headings and default layout without truncation; received message HTML must retain sender formatting. Check navbar hover no longer turns light cyan and respects semantic colors.
-43. Inspect docs/ui-registry.json (schema 2): seven windows, application shared resources, generated templates and coded controls are inventoried; every known color role reference is checked in CI; regenerate catalog when changing any UI.
-44. Check initial sender fallback, including remaining known late sender; bounded one-message/three-second first-paint prefetch remains a partial mitigation, with later background reads when data are absent.
-45. Continue issue #77: send-now for an EXISTING scheduled Outbox letter remains disabled pending controlled proof of cancel/reuse semantics without a duplicate.
+1. Owner installs published MailRuDesktop_Update_v0.3.26.exe and confirms the nine new changes on Windows; CI is not a substitute for real UI acceptance.
+2. Verify no unformatted initial body, only final HTML/plain mail; confirm no regression in previously verified sender without a subject.
+3. Drag collapsed sections after ~275 ms across other sections; ensure expanded sections are immovable, no orphan accounts, correct animations and persistence after restart.
+4. Check New Mail opens in its own window; main mail remains available; rich formatting, attachments, drafts and schedule work. Search/select Mail.ru contacts in New Mail only, not in reply/forward.
+5. Verify the Mail/Contacts entries are absent; Settings opens and second click returns to mailbox.
+6. Verify both directory settings show Browse + plain-text path with immediate application and preserve template watcher, attachments and migrations.
+7. Verify signature/template editing panels are initially collapsed and can be independently expanded.
+8. Check button press states in both themes against editable AppControlPressedBrush («Фон нажатой кнопки»), including any remaining pink widgets.
+9. Test switching the active account while detached compose is open; correct sender/credential binding if necessary before proclaiming multi-account compose safe.
+10. Keep docs/ui-registry.json authoritative and regenerated for every UI edit: currently nine windows and 1354 elements, including dynamically created windows; CI check remains required.
+11. Continue scheduled Outbox Send Now #77 only after duplicate-free server semantics are demonstrated with disposable authorized test messages; otherwise leave disabled.
+12. Preserve previously Owner-accepted behavior, OAuth isolation, safe test pacing, old Windows compatibility and release/update policy.

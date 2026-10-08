@@ -20,3 +20,8 @@ For large APKs, retain a focused decompiled network corpus plus targeted single-
 - Always preserve and restore pre-existing reversible state such as flagged/pinned rather than assuming the initial value.
 - A server denial from the wrong lifecycle state is evidence about operation semantics, not proof that the endpoint itself is broken.
 - Keep at least five seconds between every network request in the probe.
+
+
+## Procedure — include dynamically constructed windows in UI registry (2026-10-08)
+
+A source-derived catalogue that records `new Window` as an element of MainWindow but does not register it as a distinct window violates the all-window inventory. Count every runtime-created Window as an independent window, associate subsequently created controls with its runtime window and annotate any XAML subtree reparented at runtime (e.g. ComposeWorkspace) with `runtime_host_window`. Verify the generator itself as well as the checked-in generated file; passing `--check` on an incomplete generator is not evidence of complete inventory. Corrected in PR #91, after v0.3.26 code release.

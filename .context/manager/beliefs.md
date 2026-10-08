@@ -306,3 +306,12 @@ v0.3.25 PR #86 merged at 2f25612777b30a15c9f3c1d979d1758ad9b6b5cb and public upd
 
 source: Owner project-manager requirements after v0.3.24; PR #86, main CI 37789612268, release 37789849920, docs/ui-registry.json and UI sources.
 authority: owner directives + verified-repository + verified-ci; no Owner v0.3.25 GUI confirmation.
+
+
+## B-039 — Owner acceptance and v0.3.26 release
+
+statement: On 2026-10-08 Owner confirmed blank-subject sender resolution and all other v0.3.25 improvements, then directed nine new modifications: final-only formatted message display; collapsed-section 275 ms drag moving all child accounts; remove Mail and Contacts navigation; choose recipients from server contacts in detached New Mail only; compact immediate-apply directory selectors; collapsed Signatures/Templates; adjustable pressed-button background. PR #89 merged as a1ed3b9bbba67aa29bb38b88f499e038f3709f53. Windows CI 37797350430 and main CI 37797743640 passed; release run 37797787312 published v0.3.26 full and update installers. Existing AppControlPressedBrush among 26 roles is used rather than inventing a 27th. Follow-up PR #91 merged b084203c916d70b3ecfb5c3eec1d28481dea43f3; CI 37798726121 passed; UI registry now covers nine windows, 1354 elements and runtime compose hosting. No post-release user GUI validation yet; detached compose remains tied to MainWindow active account context, so switching accounts with an open compose window requires explicit user testing. Outbox send-now issue #77 remains blocked.
+
+source: Owner direct instructions and confirmations, PRs #89/#91, workflows 37797350430/37797743640/37797787312/37798726121.
+authority: Owner-runtime for old fixes + owner-directive + verified-repository/CI/release for new code, not Owner-runtime for v0.3.26.
+supersedes: B-038 as the latest published release and seven-window registry, and the blank-subject sender pending status.

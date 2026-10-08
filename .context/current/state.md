@@ -5,7 +5,7 @@ Visibility: public
 Product authority: main
 Manager-state authority: main
 
-Latest public release: **v0.3.25**, published 2026-10-08 with full and update installers; PR #83 merged as e89c5ed2ef426e3def7957663b17254c66f44892; CI 37771307863 and installer workflow 37771458709; release workflow 37768430779 success, main CI 37768224358 and storage policy 37768224319 success. Product PR #76 merge bd6ff6ff98f93a69458efc921e7c35a21e159afc, main CI 37719927017, storage 37719927127, installer workflow 37720023234: success. PR #73 merged on main as e29a23ab81697b0dd38f0f1b2d9ce38efefb8c52. PR #70 merged as eb3415ac30f81cc3426d4726b53d590d42e57b11. CI 37711634109 and release workflow 37711732617 succeeded.
+Latest public release: **v0.3.26**, published 2026-10-08 with full and update installers; PR #83 merged as e89c5ed2ef426e3def7957663b17254c66f44892; CI 37771307863 and installer workflow 37771458709; release workflow 37768430779 success, main CI 37768224358 and storage policy 37768224319 success. Product PR #76 merge bd6ff6ff98f93a69458efc921e7c35a21e159afc, main CI 37719927017, storage 37719927127, installer workflow 37720023234: success. PR #73 merged on main as e29a23ab81697b0dd38f0f1b2d9ce38efefb8c52. PR #70 merged as eb3415ac30f81cc3426d4726b53d590d42e57b11. CI 37711634109 and release workflow 37711732617 succeeded.
 Product changes: PR #62 plus PR #63, merge commit 34e583abc232c9edc939816a92b4e08165836210.
 Release workflow 37707435464, main CI 37707321540 and repository storage check 37707321584: success.
 
@@ -188,3 +188,8 @@ Colors of left navigation, including Mail button hover/press/focus, are bound to
 Color-picker oversized blank area reduced. Initial sender uses same-message compact representations, then bounded first missing-sender full request with up to 3-second wait (only one request), and still uses paced >=5-second background enrichment for remaining truly absent metadata.
 
 CI build/smoke/offline logic tests 37789612268 and storage policy 37789612042 passed; release workflow 37789849920 passed; both v0.3.25 installer binaries published 2026-10-08. Owner Windows GUI validation pending. Outbox scheduled send-now (#77) remains BLOCKED due no proven atomic cancel/reuse and no duplicate-free server test. Do not claim 14-point request fully closed.
+
+
+## v0.3.26 verified publication and Owner feedback
+
+Owner confirmed blank-subject sender now correct and remaining v0.3.25 features work. Nine new requirements were implemented in PR #89 (merge a1ed3b9bbba67aa29bb38b88f499e038f3709f53), CI 37797350430 / main 37797743640 PASS, and installers released in workflow 37797787312. Message reader suppresses interim snippet navigation, account sections move only while collapsed with their accounts, Mail/Contacts navigation entries are removed, separate New Mail window reuses existing compose editor and includes server contact picker, file/folder setting choices are compact and immediate, signature/template editors collapse, pressed-button color is an explicitly named existing role. Owner's hands-on acceptance is pending. Registry-only PR #91 merged b084203c916d70b3ecfb5c3eec1d28481dea43f3; 9 windows, 1354 elements, 26 color roles, CI 37798726121 PASS. Product binary remains v0.3.26. Scheduled Outbox Send Now #77 remains blocked.

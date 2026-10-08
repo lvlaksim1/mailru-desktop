@@ -124,3 +124,9 @@ status: v0.3.25 built and published; Owner runtime acceptance and scheduled send
 Central invariant is Owner-specified checked-first target resolution, active preview as fallback and user notification when neither exists; selection checkboxes and active preview are independent, Shift range works and no Ctrl-dependent selection. The UI registry must include windows and every documented control/style with geometry, states, 26 immutable semantic color roles and nine relative font-size roles; new UI edits must regenerate the schema 2 registry and pass CI. Live unread counters must be revised only using confirmed user actions or explicit server field values, not missing-as-zero placeholders.
 
 v0.3.25 passed build/startup/logic and published with installer; Owner GUI still needed, especially row click/Shift, independent preview, dynamic counters, font changes, and navigation palette. First-paint missing sender support is partial. The original send-now for existing scheduled messages remains NOT IMPLEMENTED, issue #77, until atomic scheduling semantics are proven under a controlled test account without duplicate delivery.
+
+
+## I-020 — finish Owner acceptance of v0.3.26
+status: active — code published and CI passed; new interactions not yet Owner-runtime confirmed
+
+The nine Owner-authorized v0.3.26 changes are released; verify formatting-first reader, collapsed-only moving sections as account blocks, detached New Mail and contact picker, compact auto-applied folder selectors, collapsed signature/template editors and pressed-color role. PR #91 subsequently repaired runtime-window inventory to nine windows without changing the installer. Preserve previously Owner-confirmed features and avoid claiming visual/mouse validation from CI. Verify sender identity when changing active account while composing in the separate window. Keep scheduled Outbox send-now #77 blocked until a duplicate-free server transition is proven.

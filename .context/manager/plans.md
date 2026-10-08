@@ -112,3 +112,16 @@ The template source of truth is the top-level .md files in %LOCALAPPDATA%/MailRu
 5. Recheck Owner's remaining slow sender: compact summaries may not contain correspondents; one full-message prefetch (3s bounded) before first paint may help, subsequent background fetches remain paced >=5 seconds. Do not claim 100% sender-first-paint solved absent Owner evidence and verified batch protocol.
 6. Continue issue #77. Investigate and validate the EXISTING scheduled message's safe transition to send-now in a controlled test mailbox; ensure original queued schedule is cancelled or reused transactionally and no second message can be sent later. Until server action is verified, all Send Now controls remain disabled. Do not substitute composing and sending another email.
 7. Preserve owner-confirmed account authentication fix v0.3.23, rich formatting, account drag animation, splitters, signature/Markdown template handling and other accepted functionality.
+
+
+## CURRENT OVERRIDING PLAN — 2026-10-08, v0.3.26
+
+Published Windows release v0.3.26 (PR #89 / CI 37797743640 / installer 37797787312). Registry-only PR #91 corrected runtime Window coverage (9 windows, 1354 elements, 26 immutable color roles), CI 37798726121 PASS. Older version references above are historical, not latest-state assertions.
+
+1. Owner installs the v0.3.26 update and checks first visible message is fully formatted, without interim snippet.
+2. Verify collapsed account sections move after ~275 ms and retain child accounts, expanded sections do not move; reorder persists and individual account dragging/splitters remain correct.
+3. Check no Mail/Contacts navigation, Settings toggles to mail, and New Mail opens separately. Check attachments, rich editor, draft, schedule, and server contacts only in new-mail chooser.
+4. Check folder picker is Browse + plain path with immediate save and preserved template migration/watcher. Check Signatures/Templates collapsed and button pressed-color selection in both themes.
+5. Especially verify composing across active-account changes does not use an unexpected sender; do not claim this case safe without evidence.
+6. Preserve existing checked-first mail actions, OAuth credential isolation, per-account authorization profile and accepted rich HTML. Keep issue #77 send-now disabled; validate only with disposable test messages and no duplicates before enabling.
+7. Future UI edits must regenerate/check docs/ui-registry.json, including every programmatically created Window and runtime-hosted XAML subtree. No IMAP/SMTP/app passwords; 5-second spacing for research/test HTTP calls.
