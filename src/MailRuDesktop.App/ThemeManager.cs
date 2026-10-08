@@ -28,6 +28,25 @@ internal static class ThemeManager
     public static string ReaderMutedHtml => GetHex("AppMutedTextBrush");
     public static string ReaderLinkHtml => GetHex("AppLinkBrush");
 
+    public static string ReaderScrollbarCss
+    {
+        get
+        {
+            var track = GetHex("AppScrollTrackBrush");
+            var thumb = GetHex("AppScrollThumbBrush");
+            var arrow = GetHex("AppScrollArrowBrush");
+            var up = $"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 8L6 4L10 8' stroke='%23{arrow[1..]}' stroke-width='1.5' fill='none'/%3E%3C/svg%3E";
+            var down = $"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 4L6 8L10 4' stroke='%23{arrow[1..]}' stroke-width='1.5' fill='none'/%3E%3C/svg%3E";
+            return $"::-webkit-scrollbar{{width:12px;height:12px;background:{track};}}" +
+                   $"::-webkit-scrollbar-track{{background:{track};}}" +
+                   $"::-webkit-scrollbar-thumb{{background:{thumb};border:2px solid {track};border-radius:7px;}}" +
+                   "::-webkit-scrollbar-thumb:hover{filter:brightness(1.2);}" +
+                   $"::-webkit-scrollbar-button{{background-color:{track};height:12px;width:12px;}}" +
+                   $"::-webkit-scrollbar-button:vertical:decrement{{background-image:url(\"{up}\");background-size:10px 10px;background-position:center;background-repeat:no-repeat;}}" +
+                   $"::-webkit-scrollbar-button:vertical:increment{{background-image:url(\"{down}\");background-size:10px 10px;background-position:center;background-repeat:no-repeat;}}";
+        }
+    }
+
     public static void Initialize()
     {
         if (_initialized)
