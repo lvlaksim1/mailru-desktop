@@ -45,6 +45,7 @@ public partial class MainWindow
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             Content = ComposeWorkspace
         };
+        ThemeManager.AttachWindowChrome(window);
         window.SetResourceReference(BackgroundProperty, "AppWindowBrush");
         window.SetResourceReference(ForegroundProperty, "AppTextBrush");
         window.Closed += (_, _) =>
@@ -115,6 +116,7 @@ public partial class MainWindow
                 MinHeight = 320,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner
             };
+            ThemeManager.AttachWindowChrome(dialog);
             dialog.SetResourceReference(BackgroundProperty, "AppDialogBrush");
             dialog.SetResourceReference(ForegroundProperty, "AppTextBrush");
 
