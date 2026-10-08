@@ -14,11 +14,11 @@ public partial class MainWindow
     private bool _mailImageProxyConfigured;
 
     private static readonly Regex ProxyImageUrlRegex = new(
-        @"https://proxy\.imgsmail\.ru/[^\s\""'<>()]+",
+        @"https://(?:proxy\.imgsmail\.ru|af\d+\.mail\.ru)/[^\s\""'<>()]+",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     private async Task<string> PrepareMailHtmlAsync(
-        string html,
+        string html, string messageId, string? accountLogin, string accessToken,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(html))
@@ -48,7 +48,8 @@ public partial class MainWindow
 
             var decodedUrl = WebUtility.HtmlDecode(encodedUrl);
             if (!Uri.TryCreate(decodedUrl, UriKind.Absolute, out var uri) ||
-                !uri.Host.Equals("proxy.imgsmail.ru", StringComparison.OrdinalIgnoreCase))
+                !(uri.Host.Equals("proxy.imgsmail.ru", StringComparison.OrdinalIgnoreCase) ||
+                  IsMailAttachmentHost(uri.Host)))
             {
                 failed++;
                 continue;
@@ -56,9 +57,17 @@ public partial class MainWindow
 
             try
             {
-                var dataUri = await DownloadProxyImageAsDataUriAsync(
-                    uri,
-                    cancellationToken);
+                var attachmentUri = uri.Host.Equals("proxy.imgsmail.ru",
+                        StringComparison.OrdinalIgnoreCase) &&
+                    Uri.TryCreate(TryDecodeProxyOriginalUrl(uri), UriKind.Absolute, out var original)
+                    ? original
+                    : uri;
+
+                var dataUri = IsMailAttachmentHost(attachmentUri.Host)
+                    ? await DownloadMailboxInlineImageAsync(
+                        attachmentUri, messageId, accountLogin, accessToken,
+                        cancellationToken)
+                    : await DownloadProxyImageAsDataUriAsync(uri, cancellationToken);
 
                 if (dataUri is null)
                 {
@@ -83,9 +92,57 @@ public partial class MainWindow
 
         DiagnosticLog.Write(
             "mail_image_prepare",
-            $"proxy-images-found={matches.Length}; inlined={inlined}; failed={failed}");
+            $"inline-image-urls={matches.Length}; inlined={inlined}; failed={failed}");
 
         return prepared;
+    }
+
+    private static bool IsMailAttachmentHost(string host) =>
+        Regex.IsMatch(host, @"^af\d+\.mail\.ru$", RegexOptions.IgnoreCase);
+
+    private async Task<string?> DownloadMailboxInlineImageAsync(
+        Uri uri, string messageId, string? accountLogin, string accessToken,
+        CancellationToken cancellationToken)
+    {
+        if (!IsMailAttachmentHost(uri.Host) ||
+            uri.Scheme != Uri.UriSchemeHttps ||
+            !uri.AbsolutePath.Equals("/cgi-bin/readmsg", StringComparison.OrdinalIgnoreCase) ||
+            string.IsNullOrWhiteSpace(accessToken))
+            return null;
+
+        var query = uri.Query.TrimStart('?').Split('&')
+            .Select(pair => pair.Split('=', 2))
+            .Where(pair => pair.Length == 2)
+            .ToDictionary(pair => pair[0], pair => Uri.UnescapeDataString(pair[1]),
+                StringComparer.OrdinalIgnoreCase);
+        if (!query.TryGetValue("id", out var reference) ||
+            !query.TryGetValue("mode", out var mode) ||
+            !mode.Equals("attachment", StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        var segments = reference.Split(';');
+        if (segments.Length < 2 ||
+            !segments[0].Equals(messageId, StringComparison.Ordinal) ||
+            segments.Skip(1).Any(segment => segment.Length == 0 ||
+                segment.Any(ch => !char.IsAsciiDigit(ch))))
+            return null;
+        if (query.TryGetValue("email", out var email) &&
+            !string.Equals(email, accountLogin, StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        var attachmentId = string.Join(';', segments.Skip(1));
+        var bytes = await _mailRu.DownloadIncomingAttachmentAsync(
+            accessToken, messageId, attachmentId, cancellationToken);
+        if (bytes.Length == 0 || bytes.Length > 8 * 1024 * 1024)
+            return null;
+
+        // A mail server sometimes returns an HTML sign-in page as HTTP 200.
+        // Only accept bytes with an actual recognized image signature.
+        var contentType = SniffImageContentType(bytes);
+        if (!IsImageContentType(contentType))
+            return null;
+
+        return $"data:{contentType};base64,{Convert.ToBase64String(bytes)}";
     }
 
     private async Task<string?> DownloadProxyImageAsDataUriAsync(

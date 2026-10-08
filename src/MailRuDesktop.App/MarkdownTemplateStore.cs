@@ -72,6 +72,25 @@ internal sealed class MarkdownTemplateStore
         DirectoryPath = next;
     }
 
+    // Import for editing must not modify an arbitrary source directory:
+    // unlike LoadAll(), this reads exactly one file in memory and keeps
+    // the original untouched until the user explicitly saves a template.
+    public SavedMailTemplate ReadExternalFile(string path)
+    {
+        var full = Path.GetFullPath(path);
+        if (!File.Exists(full) ||
+            !Path.GetExtension(full).Equals(".md", StringComparison.OrdinalIgnoreCase))
+            throw new IOException("Файл шаблона .md не найден.");
+
+        var parent = Path.GetDirectoryName(full);
+        if (!string.Equals(parent, DirectoryPath, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Шаблон находится вне выбранной папки.");
+
+        var original = File.ReadAllText(full, Encoding.UTF8);
+        return Parse(Path.GetFileNameWithoutExtension(full),
+            UpgradeEscapedMetadata(original));
+    }
+
     public IReadOnlyList<SavedMailTemplate> LoadAll()
     {
         Directory.CreateDirectory(DirectoryPath);

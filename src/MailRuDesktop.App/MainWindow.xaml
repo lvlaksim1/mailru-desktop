@@ -20,12 +20,12 @@
         <DataTemplate DataType="{x:Type local:AccountRailItem}">
             <Grid ToolTip="{Binding ToolTipText}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="18"/>
+                    <ColumnDefinition Width="28"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Border Grid.Column="0"
-                        Width="16" Height="16"
+                        Width="{DynamicResource AppAvatarSize}" Height="{DynamicResource AppAvatarSize}"
                         CornerRadius="8"
                         VerticalAlignment="Center"
                         Background="{DynamicResource AppControlHoverBrush}">
@@ -35,7 +35,7 @@
                                    FontSize="{DynamicResource AppFontTinySize}"
                                    FontWeight="SemiBold"
                                    Text="{Binding IconText}"/>
-                        <Image Width="16" Height="16" Stretch="UniformToFill"
+                        <Image Width="{DynamicResource AppAvatarSize}" Height="{DynamicResource AppAvatarSize}" Stretch="UniformToFill"
                                Source="{Binding AvatarUrl}"/>
                     </Grid>
                 </Border>
@@ -268,11 +268,6 @@
 
                 <StackPanel Grid.Row="0">
                     <TextBlock Text="MailRu Desktop" Margin="4,2,4,12" FontSize="{DynamicResource AppFontHeadingSize}" FontWeight="SemiBold"/>
-                    <Button Style="{StaticResource NavButtonStyle}"
-                            Margin="0,0,0,10"
-                            FontWeight="SemiBold"
-                            Click="ShowComposeButton_Click"
-                            Content="✎  Новое письмо"/>
                 </StackPanel>
 
                 <!-- Mail remains the default workspace; choose contacts in compose. -->
@@ -383,6 +378,9 @@
 
                     <StackPanel Grid.Row="1" Margin="0,0,0,6">
                         <WrapPanel VerticalAlignment="Center">
+                            <Button x:Name="MainComposeButton" Padding="12,5" Margin="0,0,10,4"
+                                    FontWeight="SemiBold" Click="ShowComposeButton_Click"
+                                    Content="✎  Новое письмо"/>
                             <Button x:Name="BulkTrashButton" Padding="10,5" Margin="0,0,5,4"
                                     Click="BulkTrashButton_Click" Content="В корзину"/>
                             <Button x:Name="BulkArchiveButton" Padding="10,5" Margin="0,0,5,4"
@@ -672,7 +670,17 @@
                                 CornerRadius="8"
                                 BorderBrush="{DynamicResource AppBorderBrush}"
                                 BorderThickness="1">
-                            <wv2:WebView2 x:Name="MessageWebView"/>
+                            <Grid>
+                                <wv2:WebView2 x:Name="MessageWebView"/>
+                                <Border x:Name="ReaderLoadingOverlay"
+                                        Visibility="Collapsed"
+                                        Background="{DynamicResource AppReaderBrush}">
+                                    <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center"
+                                               FontSize="{DynamicResource AppFontBodySize}"
+                                               Foreground="{DynamicResource AppMutedTextBrush}"
+                                               Text="Загрузка письма…"/>
+                                </Border>
+                            </Grid>
                         </Border>
 
                         <StackPanel x:Name="IncomingAttachmentsPanel"
@@ -859,24 +867,46 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <TextBlock FontSize="{DynamicResource AppFontHeroSize}" FontWeight="SemiBold" Text="Новое письмо"/>
-                        <Grid Grid.Row="1" Margin="0,16,0,8">
+                        <Grid Grid.Row="1" Margin="0,12,0,8">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="70"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <TextBlock VerticalAlignment="Center" Text="От"/>
+                            <TextBox x:Name="ComposeFromTextBox" Grid.Column="1" Padding="8"
+                                     IsReadOnly="True"
+                                     ToolTip="Аккаунт отправителя закрепляется при создании письма"/>
+                        </Grid>
+                        <Grid Grid.Row="2" Margin="0,16,0,8">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="70"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                             <TextBlock VerticalAlignment="Center" Text="Кому"/>
                             <TextBox x:Name="ComposeToTextBox" Grid.Column="1" Padding="8"/>
                             <Button Grid.Column="2" Margin="8,0,0,0" Padding="12,6"
                                     Click="ChooseComposeContactButton_Click" Content="Из контактов…"/>
                         </Grid>
-                        <Grid Grid.Row="2" Margin="0,0,0,8">
+                        <Grid Grid.Row="3" Margin="0,0,0,8">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="70"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <TextBlock VerticalAlignment="Center" Text="Тема"/>
                             <TextBox x:Name="ComposeSubjectTextBox" Grid.Column="1" Padding="8"/>
                         </Grid>
-                        <StackPanel Grid.Row="3" Margin="70,0,0,8">
+                        <StackPanel Grid.Row="4" Margin="70,0,0,8">
+                            <WrapPanel Margin="0,0,0,8">
+                                <ComboBox x:Name="ComposeSignatureComboBox" Width="205" Margin="0,0,8,0"
+                                          DisplayMemberPath="Name" SelectionChanged="ComposeSignatureComboBox_SelectionChanged"
+                                          DropDownOpened="ComposeSignatureComboBox_DropDownOpened"
+                                          PreviewMouseLeftButtonUp="ComposeSignatureComboBox_PreviewMouseLeftButtonUp"
+                                          PreviewKeyDown="ComposeSignatureComboBox_PreviewKeyDown"
+                                          ToolTip="Добавить подпись" />
+                                <ComboBox x:Name="ComposeTemplateComboBox" Width="235"
+                                          DisplayMemberPath="Name" SelectionChanged="ComposeTemplateComboBox_SelectionChanged"
+                                          DropDownOpened="ComposeTemplateComboBox_DropDownOpened"
+                                          PreviewMouseLeftButtonUp="ComposeTemplateComboBox_PreviewMouseLeftButtonUp"
+                                          PreviewKeyDown="ComposeTemplateComboBox_PreviewKeyDown"
+                                          ToolTip="Заполнить из шаблона"/>
+                            </WrapPanel>
                             <StackPanel Orientation="Horizontal">
                                 <Button x:Name="AttachButton" Padding="12,6" Click="AttachButton_Click" Content="Вложить файл"/>
                                 <TextBlock x:Name="AttachmentSummaryText" Margin="10,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource AppMutedTextBrush}" Text="Вложений нет"/>
@@ -892,8 +922,8 @@
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                         </StackPanel>
-                        <TextBox x:Name="ComposeBodyTextBox" Grid.Row="4" Margin="70,0,0,10" MinHeight="320" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
-                        <StackPanel Grid.Row="5" Margin="70,0,0,10">
+                        <TextBox x:Name="ComposeBodyTextBox" Grid.Row="5" Margin="70,0,0,10" MinHeight="320" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+                        <StackPanel Grid.Row="6" Margin="70,0,0,10">
                             <CheckBox x:Name="RequestReadReceiptCheckBox"
                                       Margin="0,0,0,8"
                                       Content="Запрос подтверждения прочтения письма"/>
@@ -910,9 +940,9 @@
                                          IsEnabled="{Binding IsChecked, ElementName=ScheduleSendCheckBox}"/>
                             </WrapPanel>
                         </StackPanel>
-                        <Grid Grid.Row="6" Margin="70,0,0,0">
+                        <Grid Grid.Row="7" Margin="70,0,0,0">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                            <Button x:Name="SendButton" Padding="20,9" Margin="0,0,6,0" Background="{DynamicResource AppAccentBrush}" Foreground="{DynamicResource AppAccentTextBrush}" Click="SendButton_Click" Content="Отправить"/>
+                            <Button x:Name="SendButton" Padding="20,9" Margin="0,0,6,0" Click="SendButton_Click" Content="Отправить"/>
                             <Button x:Name="SaveDraftButton" Grid.Column="1" Padding="16,9" Click="SaveDraftButton_Click" Content="Сохранить черновик"/>
                             <TextBlock x:Name="ComposeStatusText" Grid.Column="2" Margin="12,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource AppMutedTextBrush}"/>
                         </Grid>
@@ -951,14 +981,12 @@
                                 <TextBlock Margin="0,7,0,0" Foreground="{DynamicResource AppMutedTextBrush}"
                                            TextWrapping="Wrap"
                                            Text="Размер заголовков, подписей и обычного текста изменяется согласованно. Форматирование полученных писем не меняется."/>
-                            </StackPanel>
-                        </GroupBox>
                         <Expander Margin="0,16,0,0" IsExpanded="False" Header="Цвета элементов интерфейса"
                                   Foreground="{DynamicResource AppTextBrush}"
                                   Background="{DynamicResource AppPanelBrush}">
                             <StackPanel Margin="12">
                                 <TextBlock TextWrapping="Wrap" Margin="0,0,0,10"
-                                           Text="Все элементы распределены по 26 фиксированным цветовым ролям. Можно изменять оттенки, но не назначение цветов элементам."/>
+                                           Text="Похожие цвета объединены в общие настройки. Изменённый цвет применяется ко всем связанным элементам."/>
                                 <WrapPanel Margin="0,0,0,8" VerticalAlignment="Center">
                                     <TextBlock Text="Редактировать тему:" VerticalAlignment="Center" Margin="0,0,9,0"/>
                                     <ComboBox x:Name="PaletteThemeComboBox" Width="160"
@@ -1035,6 +1063,8 @@
                             </StackPanel>
                         </Expander>
 
+                            </StackPanel>
+                        </GroupBox>
                         <Expander Margin="0,16,0,0" Header="Подписи" IsExpanded="False">
                             <Grid Margin="12">
                                 <Grid.ColumnDefinitions>
@@ -1075,39 +1105,6 @@
                             </Grid>
                         </Expander>
 
-                        <GroupBox Margin="0,16,0,0" Header="Папка скачивания вложений">
-                            <StackPanel Margin="12">
-                                <TextBlock Margin="0,0,0,5" Text="Загруженные файлы и архивы вложений"/>
-                                <DockPanel Margin="0,5,0,0" LastChildFill="True">
-                                    <Button DockPanel.Dock="Left" Content="Обзор…" Margin="0,0,9,0"
-                                            Padding="12,6" Click="BrowseDownloadDirectoryButton_Click"/>
-                                    <TextBlock x:Name="AttachmentDownloadDirectoryText"
-                                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
-                                               ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
-                                </DockPanel>
-                                <TextBlock x:Name="AttachmentDirectoryStatusText"
-                                           Margin="0,7,0,0" TextWrapping="Wrap"
-                                           Foreground="{DynamicResource AppMutedTextBrush}"
-                                           Text="После скачивания откроется выбранная папка."/>
-                            </StackPanel>
-                        </GroupBox>
-
-<GroupBox Margin="0,16,0,0" Header="Папка шаблонов">
-                            <StackPanel Margin="12">
-                                <TextBlock Margin="0,0,0,5" Text="Расположение файлов .md и вложений"/>
-                                <DockPanel Margin="0,5,0,0" LastChildFill="True">
-                                    <Button DockPanel.Dock="Left" Padding="12,6" Margin="0,0,9,0"
-                                            Content="Обзор…" Click="BrowseTemplateDirectoryButton_Click"/>
-                                    <TextBlock x:Name="TemplateDirectoryText" VerticalAlignment="Center"
-                                               TextTrimming="CharacterEllipsis"
-                                               ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
-                                </DockPanel>
-                                <TextBlock x:Name="TemplateDirectoryStatusText" Margin="0,6,0,0"
-                                           TextWrapping="Wrap" Foreground="{DynamicResource AppMutedTextBrush}"
-                                           Text="При смене папки имеющиеся шаблоны и вложения копируются; исходная папка сохраняется."/>
-                            </StackPanel>
-                        </GroupBox>
-
                         <Expander Margin="0,16,0,0" Header="Шаблоны" IsExpanded="False">
                             <Grid Margin="12">
                                 <Grid.ColumnDefinitions>
@@ -1145,6 +1142,7 @@
                                              Grid.Row="4"
                                              MinHeight="70"/>
                                     <WrapPanel Grid.Row="5" Margin="0,7,0,0">
+                                        <Button Padding="10,6" Margin="0,0,6,0" Click="ImportMailTemplateButton_Click" Content="Загрузить .md"/>
                                         <Button Padding="10,6" Margin="0,0,6,0" Click="NewMailTemplateButton_Click" Content="Новый"/>
                                         <Button Padding="10,6" Margin="0,0,6,0" Click="SaveMailTemplateButton_Click" Content="Сохранить"/>
                                         <Button Padding="10,6" Margin="0,0,6,0" Click="DeleteMailTemplateButton_Click" Foreground="{DynamicResource AppDangerBrush}" Content="Удалить"/>
@@ -1153,6 +1151,34 @@
                                 </Grid>
                             </Grid>
                         </Expander>
+
+                        <GroupBox Margin="0,16,0,0" Header="Папка скачивания вложений">
+                            <StackPanel Margin="12">
+                                <TextBlock Margin="0,0,0,5" Text="Загруженные файлы и архивы вложений"/>
+                                <DockPanel Margin="0,5,0,0" LastChildFill="True">
+                                    <Button DockPanel.Dock="Left" Content="Обзор…" Margin="0,0,9,0"
+                                            Padding="12,6" Click="BrowseDownloadDirectoryButton_Click"/>
+                                    <TextBlock x:Name="AttachmentDownloadDirectoryText"
+                                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                               ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                                </DockPanel>
+                                <TextBlock x:Name="AttachmentDirectoryStatusText" Visibility="Collapsed"/>
+                            </StackPanel>
+                        </GroupBox>
+
+<GroupBox Margin="0,16,0,0" Header="Папка шаблонов">
+                            <StackPanel Margin="12">
+                                <TextBlock Margin="0,0,0,5" Text="Расположение файлов .md и вложений"/>
+                                <DockPanel Margin="0,5,0,0" LastChildFill="True">
+                                    <Button DockPanel.Dock="Left" Padding="12,6" Margin="0,0,9,0"
+                                            Content="Обзор…" Click="BrowseTemplateDirectoryButton_Click"/>
+                                    <TextBlock x:Name="TemplateDirectoryText" VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"
+                                               ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                                </DockPanel>
+                                <TextBlock x:Name="TemplateDirectoryStatusText" Visibility="Collapsed"/>
+                            </StackPanel>
+                        </GroupBox>
 
                         <GroupBox Margin="0,16,0,0" Header="Обновление">
                             <StackPanel Margin="12">
@@ -1180,7 +1206,15 @@
                             </StackPanel>
                         </GroupBox>
                         <Expander Margin="0,16,0,0" Header="Для разработчика · диагностика протокола" IsExpanded="False">
-                            <TextBox x:Name="ResponseTextBox" Height="220" Margin="0,8,0,0" FontFamily="Consolas" FontSize="{DynamicResource AppFontBodySize}" AcceptsReturn="True" AcceptsTab="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" IsReadOnly="True" TextWrapping="NoWrap"/>
+                            <StackPanel>
+                                <Button Content="Копировать всё" HorizontalAlignment="Left" Margin="0,8,0,0"
+                                        Padding="12,5" Click="CopyDiagnosticsButton_Click"/>
+                                <TextBox x:Name="ResponseTextBox" Height="220" Margin="0,8,0,0"
+                                         FontFamily="Consolas" FontSize="{DynamicResource AppFontBodySize}"
+                                         AcceptsReturn="True" AcceptsTab="True"
+                                         HorizontalScrollBarVisibility="Auto"
+                                         VerticalScrollBarVisibility="Auto" IsReadOnly="True" TextWrapping="NoWrap"/>
+                            </StackPanel>
                         </Expander>
                     </StackPanel>
                 </ScrollViewer>

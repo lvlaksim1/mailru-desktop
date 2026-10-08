@@ -198,6 +198,8 @@ internal sealed class PaletteColorPickerWindow : Window
     {
         _hue = Math.Clamp(at.X / (SurfaceWidth - 1), 0, 1) * 360;
         _saturation = 1 - Math.Clamp(at.Y / (SurfaceHeight - 1), 0, 1);
+        // Hue/saturation affects the whole brightness strip, not only the swatch.
+        RenderPalette();
         UpdateSelection(writeHex: true);
     }
 

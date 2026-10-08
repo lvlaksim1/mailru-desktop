@@ -32,7 +32,9 @@ public partial class MainWindow : Window
     private bool _updatingAccountSelection;
     private bool _readerReady;
     private bool _readerWaitingForFullMessage;
+    private bool _readerNavigationPending;
     private ulong _latestReaderNavigationId;
+    private CancellationTokenSource? _inlineImagePreparation;
     private long _messageLoadGeneration;
     private MailRuFullMessage? _currentFullMessage;
     private string? _currentPreparedHtml;
@@ -122,14 +124,25 @@ public partial class MainWindow : Window
             ConfigureMailImageProxy();
             MessageWebView.NavigationStarting += (_, args) =>
             {
-                _latestReaderNavigationId = args.NavigationId;
+                // Only the navigation deliberately requested for the current
+                // letter can make the reader visible. Stale completions from
+                // earlier documents must never reveal the previous letter.
+                if (_readerNavigationPending)
+                {
+                    _latestReaderNavigationId = args.NavigationId;
+                    _readerNavigationPending = false;
+                    _readerWaitingForFullMessage = false;
+                }
                 MessageWebView.Visibility = Visibility.Hidden;
             };
             MessageWebView.NavigationCompleted += (_, args) =>
             {
                 if (!_readerWaitingForFullMessage &&
                     args.NavigationId == _latestReaderNavigationId)
+                {
                     MessageWebView.Visibility = Visibility.Visible;
+                    ReaderLoadingOverlay.Visibility = Visibility.Collapsed;
+                }
             };
             _readerReady = true;
 
@@ -524,13 +537,14 @@ public partial class MainWindow : Window
     {
         if (_updatingFolderSelection ||
             _loadingFolder ||
-            FolderListBox.SelectedItem is not MailRuFolderSummary folder ||
-            folder.Id == _currentFolderId)
-        {
+            FolderListBox.SelectedItem is not MailRuFolderSummary folder)
             return;
-        }
 
-        await LoadFolderAsync(folder.Id);
+        if (SettingsWorkspace.Visibility == Visibility.Visible)
+            ShowWorkspace(MailWorkspace);
+
+        if (folder.Id != _currentFolderId)
+            await LoadFolderAsync(folder.Id);
     }
 
     private async Task LoadFolderAsync(int folderId, long? accountSwitchGeneration = null)
@@ -693,9 +707,16 @@ public partial class MainWindow : Window
         DownloadAllAttachmentsButton.Visibility = Visibility.Collapsed;
         _currentFullMessage = null;
         _currentPreparedHtml = null;
-        // Never display the interim unformatted snippet before final rendering.
+        _inlineImagePreparation?.Cancel();
+        _inlineImagePreparation?.Dispose();
+        _inlineImagePreparation = new CancellationTokenSource();
+        // Stop the old document and mask it until the final new navigation
+        // completes. No blank page or previous letter is ever shown in between.
+        _readerNavigationPending = false;
         _readerWaitingForFullMessage = true;
         MessageWebView.Visibility = Visibility.Hidden;
+        ReaderLoadingOverlay.Visibility = Visibility.Visible;
+        MessageWebView.CoreWebView2?.Stop();
     }
 
     private void UpdateSelectedMessageHeader(MailRuMessageSummary message)
@@ -769,7 +790,9 @@ public partial class MainWindow : Window
 
             if (!string.IsNullOrWhiteSpace(full.Html))
             {
-                var preparedHtml = await PrepareMailHtmlAsync(full.Html);
+                var preparedHtml = await PrepareMailHtmlAsync(
+                    full.Html, full.Id, _activeLogin, _accessToken!,
+                    _inlineImagePreparation?.Token ?? CancellationToken.None);
                 if (generation != _messageLoadGeneration ||
                     !string.Equals(_activePreviewMailId, message.Id, StringComparison.Ordinal))
                     return;
@@ -787,6 +810,10 @@ public partial class MainWindow : Window
                 _readerWaitingForFullMessage = false;
                 ShowReaderText(message.Snippet);
             }
+        }
+        catch (OperationCanceledException) when (generation != _messageLoadGeneration)
+        {
+            return;
         }
         catch (Exception ex)
         {
@@ -1618,13 +1645,22 @@ public partial class MainWindow : Window
         RefreshComposeAttachments();
     }
 
+    private bool TryGetComposeSender(out string login, out string token)
+    {
+        login = _composeSenderLogin ?? string.Empty;
+        token = _composeSenderToken ?? string.Empty;
+        if (_composeWindow is not null &&
+            !string.IsNullOrWhiteSpace(login) && !string.IsNullOrWhiteSpace(token))
+            return true;
+
+        ComposeStatusText.Text = "Укажите авторизованный аккаунт отправителя.";
+        return false;
+    }
+
     private async void SaveDraftButton_Click(object sender, RoutedEventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(_accessToken) || string.IsNullOrWhiteSpace(_activeLogin))
-        {
-            ComposeStatusText.Text = "Для черновика нужен access_token.";
+        if (!TryGetComposeSender(out var senderLogin, out var senderToken))
             return;
-        }
 
         SaveDraftButton.IsEnabled = false;
         AttachButton.IsEnabled = false;
@@ -1642,15 +1678,15 @@ public partial class MainWindow : Window
 
                 await using var stream = File.OpenRead(path);
                 attachmentIds.Add(await _mailRu.UploadAttachmentAsync(
-                    _accessToken,
+                    senderToken,
                     stream,
                     Path.GetFileName(path),
                     messageId));
             }
 
             var result = await _mailRu.SaveDraftAsync(
-                _accessToken,
-                _activeLogin,
+                senderToken,
+                senderLogin,
                 new MailRuOutgoingMessage(
                     To: ComposeToTextBox.Text.Trim(),
                     Subject: ComposeSubjectTextBox.Text,
@@ -1679,12 +1715,8 @@ public partial class MainWindow : Window
     private async void SendButton_Click(object sender, RoutedEventArgs e)
     {
         ComposeStatusText.SetResourceReference(TextBlock.ForegroundProperty, "AppMutedTextBrush");
-        if (string.IsNullOrWhiteSpace(_accessToken))
-        {
-            ComposeStatusText.Text =
-                "Для отправки нужен access_token. Выполните обычный вход Mail.ru.";
+        if (!TryGetComposeSender(out var senderLogin, out var senderToken))
             return;
-        }
 
         var recipient = ComposeToTextBox.Text.Trim();
         if (recipient.Length == 0)
@@ -1751,7 +1783,7 @@ public partial class MainWindow : Window
 
                 await using var stream = File.OpenRead(path);
                 var attachId = await _mailRu.UploadAttachmentAsync(
-                    _accessToken,
+                    senderToken,
                     stream,
                     Path.GetFileName(path),
                     messageId);
@@ -1762,7 +1794,7 @@ public partial class MainWindow : Window
             ComposeStatusText.Text = "Отправка...";
 
             var result = await _mailRu.SendMessageAsync(
-                _accessToken,
+                senderToken,
                 new MailRuOutgoingMessage(
                     To: recipient,
                     Subject: ComposeSubjectTextBox.Text,
@@ -1790,6 +1822,7 @@ public partial class MainWindow : Window
             ComposeToTextBox.Clear();
             ComposeSubjectTextBox.Clear();
             ComposeBodyTextBox.Clear();
+            ResetComposeTemplateSelectors();
             _attachmentPaths.Clear();
             RefreshComposeAttachments();
             RequestReadReceiptCheckBox.IsChecked = false;
@@ -1952,6 +1985,10 @@ public partial class MainWindow : Window
             body +
             "</body></html>";
 
+        _readerNavigationPending = true;
+        _readerWaitingForFullMessage = true;
+        MessageWebView.Visibility = Visibility.Hidden;
+        ReaderLoadingOverlay.Visibility = Visibility.Visible;
         MessageWebView.NavigateToString(document);
     }
 
@@ -1972,11 +2009,10 @@ public partial class MainWindow : Window
             else
                 ShowReaderText(_currentFullMessage.Text);
         }
-        else
+        else if (!_readerWaitingForFullMessage &&
+                 ActivePreviewMessage is not MailRuMessageSummary)
         {
-            ShowReaderText(ActivePreviewMessage is MailRuMessageSummary message
-                ? message.Snippet
-                : "Выберите письмо.");
+            ShowReaderText("Выберите письмо.");
         }
     }
 
@@ -1992,21 +2028,8 @@ public partial class MainWindow : Window
         ThemeManager.Apply(mode);
         _settingsStore.SaveTheme(mode);
 
-        if (_currentFullMessage is not null)
-        {
-            if (!string.IsNullOrWhiteSpace(_currentPreparedHtml))
-                ShowReaderHtml(_currentPreparedHtml);
-            else if (!string.IsNullOrWhiteSpace(_currentFullMessage.Html))
-                ShowReaderHtml(_currentFullMessage.Html);
-            else
-                ShowReaderText(_currentFullMessage.Text);
-        }
-        else
-        {
-            ShowReaderText(ActivePreviewMessage is MailRuMessageSummary message
-                ? message.Snippet
-                : "Выберите письмо.");
-        }
+        // ThemeChanged is the only place that re-renders a ready document.
+        // Never put an interim snippet into the viewer while a mail loads.
     }
 
     private void SelectThemeComboBox(AppThemeMode mode)
@@ -2029,6 +2052,18 @@ public partial class MainWindow : Window
 
     private void ShowComposeButton_Click(object sender, RoutedEventArgs e) =>
         ShowComposeWindow();
+
+    private void CopyDiagnosticsButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Clipboard.SetText(ResponseTextBox.Text ?? string.Empty);
+        }
+        catch (Exception ex)
+        {
+            AppDialog.Info(this, "Диагностика", "Не удалось скопировать: " + ex.Message);
+        }
+    }
 
     private void ShowSettingsButton_Click(object sender, RoutedEventArgs e)
     {

@@ -7,6 +7,10 @@ namespace MailRuDesktop.App;
 public partial class MainWindow
 {
     private Window? _composeWindow;
+    // An outgoing letter must never silently change its sender when the
+    // selected mailbox in the main window changes.
+    private string? _composeSenderLogin;
+    private string? _composeSenderToken;
 
     // Keep the existing compose controls and rich-editor state in a separate
     // owned window. Do not duplicate the send, draft or attachment logic.
@@ -24,6 +28,9 @@ public partial class MainWindow
         if (ComposeWorkspace.Parent is not Panel originalParent)
             throw new InvalidOperationException("Compose workspace has no panel parent.");
 
+        _composeSenderLogin = _activeLogin;
+        _composeSenderToken = _accessToken;
+        ComposeFromTextBox.Text = _composeSenderLogin ?? "Не выбран аккаунт";
         originalParent.Children.Remove(ComposeWorkspace);
         ComposeWorkspace.Visibility = Visibility.Visible;
         var window = new Window
@@ -38,6 +45,7 @@ public partial class MainWindow
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             Content = ComposeWorkspace
         };
+        ThemeManager.AttachWindowChrome(window);
         window.SetResourceReference(BackgroundProperty, "AppWindowBrush");
         window.SetResourceReference(ForegroundProperty, "AppTextBrush");
         window.Closed += (_, _) =>
@@ -46,6 +54,8 @@ public partial class MainWindow
             ComposeWorkspace.Visibility = Visibility.Collapsed;
             originalParent.Children.Add(ComposeWorkspace);
             _composeWindow = null;
+            _composeSenderLogin = null;
+            _composeSenderToken = null;
         };
 
         _composeWindow = window;
@@ -56,6 +66,7 @@ public partial class MainWindow
         }
         RefreshComposeAttachments();
         window.Show();
+        ThemeManager.RefreshWindowChrome(window);
         ComposeToTextBox.Focus();
     }
 
@@ -63,8 +74,8 @@ public partial class MainWindow
 
     private async void ChooseComposeContactButton_Click(object sender, RoutedEventArgs e)
     {
-        var token = _accessToken;
-        var login = _activeLogin;
+        var token = _composeSenderToken;
+        var login = _composeSenderLogin;
         if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(login))
         {
             AppDialog.Info(_composeWindow ?? this, "Контакты",
@@ -76,9 +87,9 @@ public partial class MainWindow
         try
         {
             var contacts = await _mailRu.GetAddressBookAsync(token, login);
-            if (!string.Equals(login, _activeLogin, StringComparison.OrdinalIgnoreCase) ||
-                token != _accessToken || _composeWindow is null)
-                return; // Do not mix contacts after an account change or window close.
+            if (!string.Equals(login, _composeSenderLogin, StringComparison.OrdinalIgnoreCase) ||
+                token != _composeSenderToken || _composeWindow is null)
+                return; // The chooser belongs to the sender shown in New Mail.
 
             var choices = contacts.Where(c => !string.IsNullOrWhiteSpace(c.Email))
                 .Select(c => new ContactChoice(
@@ -105,6 +116,7 @@ public partial class MainWindow
                 MinHeight = 320,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner
             };
+            ThemeManager.AttachWindowChrome(dialog);
             dialog.SetResourceReference(BackgroundProperty, "AppDialogBrush");
             dialog.SetResourceReference(ForegroundProperty, "AppTextBrush");
 
@@ -179,7 +191,13 @@ public partial class MainWindow
                     args.Handled = true;
                 }
             };
-            dialog.Loaded += (_, _) => search.Focus();
+            dialog.SourceInitialized += (_, _) => ThemeManager.RefreshWindowChrome(dialog);
+            dialog.Loaded += (_, _) =>
+            {
+                ThemeManager.RefreshWindowChrome(dialog);
+                search.Focus();
+            };
+            dialog.Activated += (_, _) => ThemeManager.RefreshWindowChrome(dialog);
             dialog.ShowDialog();
             ComposeToTextBox.Focus();
         }

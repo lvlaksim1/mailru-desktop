@@ -21,6 +21,7 @@ public partial class MainWindow
     private FileSystemWatcher? _templateWatcher;
     private bool _refreshingTemplateList;
     private string? _previewInsertedSignature;
+    private string? _composeInsertedSignature;
 
     private void InitializeUserContentSettings()
     {
@@ -38,6 +39,8 @@ public partial class MainWindow
 
         PreviewSignatureComboBox.ItemsSource = _signatures;
         PreviewTemplateComboBox.ItemsSource = _mailTemplates;
+        ComposeSignatureComboBox.ItemsSource = _signatures;
+        ComposeTemplateComboBox.ItemsSource = _mailTemplates;
 
         StartTemplateWatcher();
         Closed += (_, _) => _templateWatcher?.Dispose();
@@ -121,6 +124,7 @@ public partial class MainWindow
     {
         var oldName = selectName ?? (MailTemplatesListBox.SelectedItem as SavedMailTemplate)?.Name;
         var selectedPreview = (PreviewTemplateComboBox.SelectedItem as SavedMailTemplate)?.Name;
+        var selectedCompose = (ComposeTemplateComboBox.SelectedItem as SavedMailTemplate)?.Name;
         var disk = TemplateFiles.LoadAll();
         if (_mailTemplates.Count == disk.Count &&
             _mailTemplates.Zip(disk).All(pair =>
@@ -144,6 +148,9 @@ public partial class MainWindow
             if (selectedPreview is not null)
                 PreviewTemplateComboBox.SelectedItem = _mailTemplates.FirstOrDefault(
                     item => string.Equals(item.Name, selectedPreview, StringComparison.OrdinalIgnoreCase));
+            if (selectedCompose is not null)
+                ComposeTemplateComboBox.SelectedItem = _mailTemplates.FirstOrDefault(
+                    item => string.Equals(item.Name, selectedCompose, StringComparison.OrdinalIgnoreCase));
         }
         finally
         {
@@ -200,6 +207,8 @@ public partial class MainWindow
         SignaturesListBox.SelectedItem = replacement;
         PreviewSignatureComboBox.ItemsSource = null;
         PreviewSignatureComboBox.ItemsSource = _signatures;
+        ComposeSignatureComboBox.ItemsSource = null;
+        ComposeSignatureComboBox.ItemsSource = _signatures;
     }
 
     private void DeleteSignatureButton_Click(object sender, RoutedEventArgs e)
@@ -224,6 +233,8 @@ public partial class MainWindow
 
         PreviewSignatureComboBox.ItemsSource = null;
         PreviewSignatureComboBox.ItemsSource = _signatures;
+        ComposeSignatureComboBox.ItemsSource = null;
+        ComposeSignatureComboBox.ItemsSource = _signatures;
     }
 
     private void MailTemplatesListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -332,6 +343,148 @@ public partial class MainWindow
     {
         if (TemplateAttachmentsListBox.SelectedItem is string path)
             _templateDraftAttachments.Remove(path);
+    }
+
+    private void ImportMailTemplateButton_Click(object sender, RoutedEventArgs e)
+    {
+        var picker = new OpenFileDialog
+        {
+            Title = "Загрузить готовый шаблон для редактирования",
+            Filter = "Шаблоны Markdown (*.md)|*.md",
+            CheckFileExists = true
+        };
+        if (picker.ShowDialog(this) != true)
+            return;
+
+        try
+        {
+            var path = Path.GetFullPath(picker.FileName);
+            var source = new MarkdownTemplateStore(Path.GetDirectoryName(path));
+            var name = Path.GetFileNameWithoutExtension(path);
+            var template = source.ReadExternalFile(path);
+
+            var managed = string.Equals(
+                Path.GetDirectoryName(path),
+                TemplateFiles.DirectoryPath,
+                StringComparison.OrdinalIgnoreCase);
+            var selected = managed
+                ? _mailTemplates.FirstOrDefault(item =>
+                    string.Equals(item.Name, name, StringComparison.OrdinalIgnoreCase))
+                : null;
+            MailTemplatesListBox.SelectedItem = selected;
+            TemplateNameTextBox.Text = managed ? template.Name : template.Name + " — копия";
+            TemplateSubjectTextBox.Text = template.Subject;
+            TemplateBodyTextBox.Text = template.Body;
+            _templateDraftAttachments.Clear();
+            foreach (var attachment in template.Attachments)
+                _templateDraftAttachments.Add(attachment);
+            TemplateNameTextBox.Focus();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException
+                                         or ArgumentException)
+        {
+            AppDialog.Info(this, "Шаблоны", "Не удалось загрузить файл: " + ex.Message);
+        }
+    }
+
+    private SavedSignature? _composeSignatureAtOpen;
+    private SavedMailTemplate? _composeTemplateAtOpen;
+
+    private void ComposeSignatureComboBox_DropDownOpened(object sender, EventArgs e) =>
+        _composeSignatureAtOpen = ComposeSignatureComboBox.SelectedItem as SavedSignature;
+
+    private void ComposeTemplateComboBox_DropDownOpened(object sender, EventArgs e)
+    {
+        RefreshTemplatesFromDisk();
+        _composeTemplateAtOpen = ComposeTemplateComboBox.SelectedItem as SavedMailTemplate;
+    }
+
+    private void ComposeSignatureComboBox_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (GetClickedComboItem(ComposeSignatureComboBox, e.OriginalSource) is { } clicked &&
+            ReferenceEquals(clicked.DataContext, _composeSignatureAtOpen) &&
+            clicked.DataContext is SavedSignature signature)
+            ApplyComposeSignature(signature, true);
+    }
+
+    private void ComposeTemplateComboBox_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (GetClickedComboItem(ComposeTemplateComboBox, e.OriginalSource) is { } clicked &&
+            ReferenceEquals(clicked.DataContext, _composeTemplateAtOpen) &&
+            clicked.DataContext is SavedMailTemplate template)
+            ApplyComposeTemplate(template);
+    }
+
+    private void ComposeSignatureComboBox_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter && ComposeSignatureComboBox.IsDropDownOpen &&
+            ReferenceEquals(ComposeSignatureComboBox.SelectedItem, _composeSignatureAtOpen) &&
+            _composeSignatureAtOpen is not null)
+            ApplyComposeSignature(_composeSignatureAtOpen, true);
+    }
+
+    private void ComposeTemplateComboBox_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter && ComposeTemplateComboBox.IsDropDownOpen &&
+            ReferenceEquals(ComposeTemplateComboBox.SelectedItem, _composeTemplateAtOpen) &&
+            _composeTemplateAtOpen is not null)
+            ApplyComposeTemplate(_composeTemplateAtOpen);
+    }
+
+    private void ComposeSignatureComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (ComposeSignatureComboBox.SelectedItem is not SavedSignature signature ||
+            string.IsNullOrWhiteSpace(signature.Body))
+            return;
+        ApplyComposeSignature(signature, false);
+    }
+
+    private void ApplyComposeSignature(SavedSignature signature, bool repeat)
+    {
+        var body = ComposeBodyTextBox.Text;
+        if (!repeat && !string.IsNullOrWhiteSpace(_composeInsertedSignature) &&
+            body.EndsWith(_composeInsertedSignature, StringComparison.Ordinal))
+            body = body[..^_composeInsertedSignature.Length].TrimEnd();
+        ComposeBodyTextBox.Text = body.TrimEnd() +
+            (body.TrimEnd().Length == 0 ? "" : Environment.NewLine + Environment.NewLine) +
+            signature.Body;
+        _composeInsertedSignature = signature.Body;
+        ComposeBodyTextBox.CaretIndex = ComposeBodyTextBox.Text.Length;
+    }
+
+    private void ComposeTemplateComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_refreshingTemplateList ||
+            ComposeTemplateComboBox.SelectedItem is not SavedMailTemplate template)
+            return;
+        ApplyComposeTemplate(template);
+    }
+
+    private void ApplyComposeTemplate(SavedMailTemplate template)
+    {
+        ComposeSubjectTextBox.Text = template.Subject;
+        ComposeBodyTextBox.Text = template.Body;
+        _composeInsertedSignature = null;
+        _attachmentPaths.Clear();
+        var missing = 0;
+        foreach (var path in template.Attachments)
+        {
+            if (!File.Exists(path))
+                missing++;
+            else if (!_attachmentPaths.Contains(path, StringComparer.OrdinalIgnoreCase))
+                _attachmentPaths.Add(path);
+        }
+        RefreshComposeAttachments();
+        ComposeStatusText.Text = missing == 0
+            ? $"Применён шаблон «{template.Name}»."
+            : $"Применён шаблон «{template.Name}». Недоступных вложений: {missing}.";
+    }
+
+    private void ResetComposeTemplateSelectors()
+    {
+        _composeInsertedSignature = null;
+        ComposeSignatureComboBox.SelectedItem = null;
+        ComposeTemplateComboBox.SelectedItem = null;
     }
 
     private void PreviewSignatureComboBox_DropDownOpened(object sender, EventArgs e) =>

@@ -70,7 +70,6 @@ internal static class AppDialog
             Title = title,
             Width = 460,
             SizeToContent = SizeToContent.Height,
-            MinHeight = 190,
             MaxHeight = 560,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             ResizeMode = ResizeMode.NoResize,
@@ -161,6 +160,7 @@ internal static class AppDialog
         root.Child = grid;
         window.Content = root;
         window.Tag = buttons;
+        ThemeManager.AttachWindowChrome(window);
         return window;
     }
 
