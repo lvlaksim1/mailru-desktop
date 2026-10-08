@@ -110,3 +110,10 @@ status: released v0.3.23, Owner runtime confirmation pending
 Prevent "Авторизация активна" when the Mail.ru API rejects a saved token with HTTP 200 and embedded JSON status 403. Recognize the rejection, try account-specific refresh if available, validate fresh token against the folder endpoint, then save only successful replacement. Never delete other accounts, alter their credentials, overwrite LastLogin during inactive account checks, or log secrets. If refresh unavailable or rejected, show clearly which account requires new login. The v0.3.23 implementation and offline Windows checks are complete, but live Owner account validation remains to be done.
 
 Issue #77 for previously scheduled outgoing mail remains separate and unresolved; do not claim all 12 backlog features complete.
+
+## I-018 — verify GUI regression fixes and finish scheduled Outbox action
+status: released v0.3.24; visual validation and issue #77 pending
+
+v0.3.24 addresses Owner WPF palette footer clipping, dark date picker, lost selection on MailRuMessageSummary replacement, bulk folder reloading, abnormal paragraph spacing, inline/detached reply resize and permanent Trash deletion confirmation. Initial sender parser examines corresponding-message representations before separate full-message queries. Owner visual confirmation remains necessary; do not impose long sequential waits when summary metadata is absent.
+
+Issue #77 remains open. Disabled Outbox "Отправить сейчас" cannot be enabled before the server's original scheduled-mail transition is confirmed duplicate-free. Prior account token 403 issue is closed based on Owner explicit success report.

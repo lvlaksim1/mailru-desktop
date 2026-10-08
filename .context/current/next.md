@@ -38,3 +38,9 @@
 31. Owner installs v0.3.23 and opens each previously saved mailbox that formerly showed HTTP200 + JSON status=403 token. Verify that it either refreshes credentials and loads mail or identifies only that account as requiring fresh sign-in. A server-revoked refresh token cannot be bypassed.
 32. Owner confirms other authorized accounts remain accessible and their unread counters, tokens and last selected account are unchanged when one token expires.
 33. If failures persist, collect an anonymized per-account result (account label and whether refresh succeeded), HTTP/status code and diagnostic reason only; do not send access_token, refresh_token, cookies, passwords or auth.json.
+
+34. Owner installs v0.3.24 and verifies the color picker footer actions are visible, the dark DatePicker popup remains dark, and new-line spacing/resizing in both reply editors.
+35. Repeatedly check several messages using the leftmost checkbox, allowing missing-sender background lookups to complete; all selected IDs should stay checked without scrolling reset.
+36. Select multiple mail items and use Read/Archive/Trash/Delete; verify only those rows update and the surrounding list does not flash or reload. Verify no confirmation for permanent deletion from Trash.
+37. Check initial sender names for blank-subject messages. If still staged, investigate actual anonymized smart-thread JSON representations and a safe group source without excessive requests.
+38. Research issue #77 and prove a duplicate-free atomic server send-now transition for scheduled Outbox messages before enabling bulk, preview and context-menu actions.

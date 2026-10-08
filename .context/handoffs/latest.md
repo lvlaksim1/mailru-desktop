@@ -1,6 +1,6 @@
 # Latest handoff
 
-Latest public release: v0.3.23, published with full and update installers on 2026-10-08.
+Latest public release: v0.3.24, published with full and update installers on 2026-10-08.
 
 Current merged product baseline: PR #62 and PR #63, main CI passed, release workflow 37707435464 succeeded.
 
@@ -64,3 +64,13 @@ PR #80 merged to main as afdf7572953e79c6860bf6fb1a2c5fb93fea544a. CI 3776822435
 The protocol now recognizes internal JSON status 401/403 and throws a distinct token-rejection exception without writing credentials to logs. Active account refresh retries mailbox read and saves only proven working credentials; unread-counter checks use independent credentials and refresh tokens per account, preserving LastLogin and other logins. Rejected or missing refresh tokens require login to the affected account only, preserving auth.json. No live test using Owner accounts has been run.
 
 Next: Owner Windows runtime check for previously broken accounts and account independence. Do not claim server-issued tokens can always be refreshed. The scheduled Outbox "Отправить сейчас" feature remains blocked until validated duplicate-safe semantics, issue #77. Other 12-point list UI improvements remain intact.
+
+## v0.3.24 handoff — Owner interface regression corrections
+
+Owner confirmed v0.3.23 previously failing saved Mail.ru accounts now work. CLOSE original 403 token incident.
+
+Owner resumed previous GUI defect list. PR #83 merged e89c5ed2ef426e3def7957663b17254c66f44892, CI 37771307863 / storage 37771307948 / release 37771458709: success. Both installers published as v0.3.24.
+
+Implemented: resizable scrollable palette picker; explicit dark/light DatePicker.CalendarStyle; zero WPF and HTML paragraph spacing; draggable inline/detached reply editor height; selected messages tracked by stable IDs across replacement; bulk operations locally remove or mark only confirmed affected rows, with account/folder stale-result guards; Trash deletion without confirmation; initial thread parser reads matching-message representations for missing senders, including missing subject.
+
+Owner visual validation required. Do not overclaim missing sender no longer stages in all cases: some compact API responses lack all sender data, requiring a full-message query. Rich-format sent messages were already validated by Owner. Scheduled Outbox send-now + context menu remains blocked under issue #77 until verified duplicate-free server action. Approved account drag and splitters untouched.

@@ -5,7 +5,7 @@ Visibility: public
 Product authority: main
 Manager-state authority: main
 
-Latest public release: **v0.3.23**, published 2026-10-08 with full and update installers; release workflow 37768430779 success, main CI 37768224358 and storage policy 37768224319 success. Product PR #76 merge bd6ff6ff98f93a69458efc921e7c35a21e159afc, main CI 37719927017, storage 37719927127, installer workflow 37720023234: success. PR #73 merged on main as e29a23ab81697b0dd38f0f1b2d9ce38efefb8c52. PR #70 merged as eb3415ac30f81cc3426d4726b53d590d42e57b11. CI 37711634109 and release workflow 37711732617 succeeded.
+Latest public release: **v0.3.24**, published 2026-10-08 with full and update installers; PR #83 merged as e89c5ed2ef426e3def7957663b17254c66f44892; CI 37771307863 and installer workflow 37771458709; release workflow 37768430779 success, main CI 37768224358 and storage policy 37768224319 success. Product PR #76 merge bd6ff6ff98f93a69458efc921e7c35a21e159afc, main CI 37719927017, storage 37719927127, installer workflow 37720023234: success. PR #73 merged on main as e29a23ab81697b0dd38f0f1b2d9ce38efefb8c52. PR #70 merged as eb3415ac30f81cc3426d4726b53d590d42e57b11. CI 37711634109 and release workflow 37711732617 succeeded.
 Product changes: PR #62 plus PR #63, merge commit 34e583abc232c9edc939816a92b4e08165836210.
 Release workflow 37707435464, main CI 37707321540 and repository storage check 37707321584: success.
 
@@ -154,3 +154,23 @@ PR #80 merged as afdf7572953e79c6860bf6fb1a2c5fb93fea544a. MailRuProtocol now th
 Offline Windows regressions cover HTTP200/JSON403, HTTP403, JSON string 401, normal response and two-account encrypted credential persistence/isolation. Build, smoke, storage policy and release passed. Actual Owner mailbox tokens are NOT accessible in CI, so runtime recovery must be Owner tested; some server-invalid refresh credentials may still require interactive sign-in. Do not erase auth.json or require all accounts to sign in again.
 
 Outstanding "Отправить сейчас" for queued mail stays blocked on server-protocol validation (issue #77); other v0.3.22 Owner runtime items remain.
+
+## Owner validation of saved-account recovery
+
+Owner explicitly confirmed after installing v0.3.23: "всё починилось!" The original HTTP200/JSON403 token and multiaccount login issue is therefore CLOSED by Owner runtime verification.
+
+## v0.3.24 — fixes for Owner-reported GUI regressions
+
+Owner reported: palette buttons clipped, delayed-send datepicker calendar white in dark theme, checkboxes losing selection when background row data changes, batch actions visibly reloading the entire message list, excessive Enter paragraph spacing in formatted composer, inability to resize reply editing area, and unwanted confirmation when permanently removing mail from Trash. Owner already confirmed rich-formatted delivery succeeded and other v0.3.22 enhancements worked.
+
+PR #83 delivered:
+- Resizable/scrollable color picker with accessible action buttons;
+- explicitly themed DatePicker popup CalendarStyle;
+- zero paragraph margins in WPF rich editor and sent HTML;
+- draggable reply editor lower boundary in inline and detached windows;
+- stable selected message ID set, retained across row replacements, with removal only for actual removed records;
+- batch mark-read, archive, Trash and permanent deletion update only impacted rows, no full folder reload; stale account/folder completion guard;
+- no permanent-delete confirmation;
+- parse original smart-thread JSON's additional representations of the *same* message for missing correspondent data, including blank-subject letters, before resorting to extra full-message lookup.
+
+Windows CI and offline regression, including blank-subject corresponding-message sender parsing, succeeded, release published. Owner GUI runtime verification is still pending for v0.3.24. Some mail summaries truly omit all sender data and need full message; eliminating ALL staged lookups is NOT yet verified. Do not claim this is fully solved without Owner testing. Scheduled Outbox send-now (#10–11) is still blocked by issue #77, no verified duplicate-free server transition.
