@@ -663,9 +663,10 @@ public partial class MainWindow : Window
 
     private async void MessagesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        UpdateBulkToolbar();
         if (_suppressMessageSelectionChanged)
             return;
+        RememberSelectedMailIds();
+        UpdateBulkToolbar();
 
         if (MessagesGrid.SelectedItem is not MailRuMessageSummary message)
         {
@@ -1017,10 +1018,11 @@ public partial class MainWindow : Window
             if (visibleIndex >= 0)
                 _visibleMessages[visibleIndex] = updated;
 
-            MessagesGrid.Items.Refresh();
-
-            if (string.Equals(selectedId, updated.Id, StringComparison.Ordinal))
-                MessagesGrid.SelectedItem = updated;
+            // Only a pinned state change needs reordering. Refreshing all
+            // items for sender/read-state changes destroyed multi-selection.
+            if (original.Pinned != updated.Pinned)
+                MessagesGrid.Items.Refresh();
+            RestoreSelectedMailIds();
         }
         finally
         {
@@ -1168,11 +1170,7 @@ public partial class MainWindow : Window
             foreach (var message in list)
                 _visibleMessages.Add(message);
 
-            if (!string.IsNullOrWhiteSpace(selectedId))
-            {
-                MessagesGrid.SelectedItem = _visibleMessages.FirstOrDefault(item =>
-                    string.Equals(item.Id, selectedId, StringComparison.Ordinal));
-            }
+            RestoreSelectedMailIds();
         }
         finally
         {
