@@ -872,6 +872,86 @@
                                 <TextBlock Margin="0,8,0,0" Foreground="{DynamicResource AppMutedTextBrush}" Text="При первом запуске используется тёмная тема."/>
                             </StackPanel>
                         </GroupBox>
+                        <GroupBox Margin="0,16,0,0" Header="Цвета элементов интерфейса">
+                            <StackPanel Margin="12">
+                                <TextBlock TextWrapping="Wrap" Margin="0,0,0,10"
+                                           Text="Все элементы распределены по 26 фиксированным цветовым ролям. Можно изменять оттенки, но не назначение цветов элементам."/>
+                                <WrapPanel Margin="0,0,0,8" VerticalAlignment="Center">
+                                    <TextBlock Text="Редактировать тему:" VerticalAlignment="Center" Margin="0,0,9,0"/>
+                                    <ComboBox x:Name="PaletteThemeComboBox" Width="160"
+                                              SelectionChanged="PaletteThemeComboBox_SelectionChanged">
+                                        <ComboBoxItem Content="Тёмная"/>
+                                        <ComboBoxItem Content="Светлая"/>
+                                    </ComboBox>
+                                    <TextBlock Margin="13,0,0,0" VerticalAlignment="Center"
+                                               Foreground="{DynamicResource AppMutedTextBrush}"
+                                               Text="Системная тема использует набор Windows."/>
+                                </WrapPanel>
+                                <TextBlock x:Name="PaletteRoleCountText" Margin="0,0,0,5"
+                                           Foreground="{DynamicResource AppMutedTextBrush}"/>
+                                <ItemsControl x:Name="PaletteRoleItemsControl">
+                                    <ItemsControl.GroupStyle>
+                                        <GroupStyle>
+                                            <GroupStyle.HeaderTemplate>
+                                                <DataTemplate>
+                                                    <Border Background="{DynamicResource AppPanelBrush}"
+                                                            Margin="0,12,0,3" Padding="7,5"
+                                                            CornerRadius="3">
+                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </GroupStyle.HeaderTemplate>
+                                        </GroupStyle>
+                                    </ItemsControl.GroupStyle>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border BorderBrush="{DynamicResource AppBorderBrush}"
+                                                    BorderThickness="0,0,0,1" Padding="4,7">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="34"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="92"/>
+                                                        <ColumnDefinition Width="82"/>
+                                                        <ColumnDefinition Width="36"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Border Width="26" Height="26" VerticalAlignment="Center"
+                                                            HorizontalAlignment="Left" Background="{Binding Swatch}"
+                                                            BorderBrush="{DynamicResource AppBorderBrush}"
+                                                            BorderThickness="1" CornerRadius="4"/>
+                                                    <StackPanel Grid.Column="1" Margin="4,0,8,0">
+                                                        <TextBlock FontWeight="SemiBold" Text="{Binding Label}"/>
+                                                        <TextBlock Foreground="{DynamicResource AppMutedTextBrush}"
+                                                                   FontSize="11" TextWrapping="Wrap"
+                                                                   Text="{Binding AppliesTo}"/>
+                                                    </StackPanel>
+                                                    <TextBox Grid.Column="2" Margin="0,0,6,0"
+                                                             VerticalAlignment="Center" Padding="5"
+                                                             MaxLength="7" Text="{Binding Hex, Mode=OneWay}"
+                                                             TextChanged="PaletteHexTextBox_TextChanged"
+                                                             ToolTip="Цвет в формате #RRGGBB"/>
+                                                    <Button Grid.Column="3" Margin="0,0,5,0"
+                                                            VerticalAlignment="Center" Padding="7,5"
+                                                            Tag="{Binding}" Click="PalettePickColorButton_Click"
+                                                            Content="Выбрать"/>
+                                                    <Button Grid.Column="4" VerticalAlignment="Center"
+                                                            Padding="5" Tag="{Binding}"
+                                                            ToolTip="Восстановить стандартный цвет этой роли"
+                                                            Click="PaletteResetRoleButton_Click" Content="↺"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <TextBlock x:Name="PaletteContrastText" Margin="0,12,0,9"
+                                           Foreground="{DynamicResource AppWarningBrush}"
+                                           TextWrapping="Wrap"/>
+                                <Button HorizontalAlignment="Left" Padding="12,7"
+                                        Click="PaletteResetThemeButton_Click"
+                                        Content="Восстановить стандартные цвета выбранной темы"/>
+                            </StackPanel>
+                        </GroupBox>
+
                         <GroupBox Margin="0,16,0,0" Header="Подписи">
                             <Grid Margin="12">
                                 <Grid.ColumnDefinitions>
