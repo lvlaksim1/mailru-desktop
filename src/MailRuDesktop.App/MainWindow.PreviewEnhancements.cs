@@ -345,6 +345,7 @@ public partial class MainWindow
 
     private async void PreviewSendComposeButton_Click(object sender, RoutedEventArgs e)
     {
+        PreviewComposeStatusText.SetResourceReference(TextBlock.ForegroundProperty, "AppMutedTextBrush");
         if (MessagesGrid.SelectedItem is not MailRuMessageSummary message)
             return;
 
@@ -399,12 +400,14 @@ public partial class MainWindow
             ResponseTextBox.Text = result.RawResponse;
             if (!result.Success)
             {
+                PreviewComposeStatusText.SetResourceReference(TextBlock.ForegroundProperty, "AppDangerBrush");
                 PreviewComposeStatusText.Text = scheduledFor is null
                     ? "Mail.ru отклонил отправку."
                     : "Mail.ru отклонил отложенную отправку.";
                 return;
             }
 
+            PreviewComposeStatusText.SetResourceReference(TextBlock.ForegroundProperty, "AppSuccessBrush");
             PreviewComposeStatusText.Text = scheduledFor is null
                 ? "Отправлено."
                 : $"Запланировано на {scheduledFor.Value.LocalDateTime:dd.MM.yyyy HH:mm}.";
@@ -415,6 +418,7 @@ public partial class MainWindow
         }
         catch (Exception ex)
         {
+            PreviewComposeStatusText.SetResourceReference(TextBlock.ForegroundProperty, "AppDangerBrush");
             PreviewComposeStatusText.Text = ex.Message;
             DiagnosticLog.Write("preview_send", ex.GetType().Name + ": " + ex.Message);
         }

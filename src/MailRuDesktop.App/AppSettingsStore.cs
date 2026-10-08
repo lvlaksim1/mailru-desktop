@@ -75,9 +75,10 @@ internal sealed class AppSettingsStore
     private readonly string _path;
     private readonly object _sync = new();
 
-    public AppSettingsStore()
+    // Optional directory is used only by isolated offline regression tests.
+    public AppSettingsStore(string? directoryOverride = null)
     {
-        var directory = Path.Combine(
+        var directory = directoryOverride ?? Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "MailRuDesktop");
         Directory.CreateDirectory(directory);
@@ -98,6 +99,57 @@ internal sealed class AppSettingsStore
         {
             var state = LoadStateCore();
             state.Theme = mode.ToString();
+            SaveStateCore(state);
+        }
+    }
+
+    public Dictionary<string, string> LoadPaletteOverrides(bool dark)
+    {
+        var state = LoadState();
+        var stored = dark ? state.DarkPalette : state.LightPalette;
+        return new Dictionary<string, string>(
+            ThemePalette.Merge(dark, stored), StringComparer.Ordinal);
+    }
+
+    public void SavePaletteOverride(bool dark, string key, string hex)
+    {
+        if (!ThemePalette.Roles.Any(role => role.Key == key) ||
+            !ThemePalette.TryNormalize(hex, out var normalized))
+            throw new ArgumentException("Недопустимый цвет или цветовая роль.");
+
+        lock (_sync)
+        {
+            var state = LoadStateCore();
+            var current = dark
+                ? state.DarkPalette ?? new Dictionary<string, string>()
+                : state.LightPalette ?? new Dictionary<string, string>();
+            current[key] = normalized;
+            if (dark)
+                state.DarkPalette = current;
+            else
+                state.LightPalette = current;
+            SaveStateCore(state);
+        }
+    }
+
+    public void ResetPaletteOverride(bool dark, string? key = null)
+    {
+        if (key is not null && !ThemePalette.Roles.Any(role => role.Key == key))
+            throw new ArgumentException("Неизвестная цветовая роль.");
+
+        lock (_sync)
+        {
+            var state = LoadStateCore();
+            var current = dark ? state.DarkPalette : state.LightPalette;
+            if (key is null)
+            {
+                if (dark) state.DarkPalette = null;
+                else state.LightPalette = null;
+            }
+            else if (current is not null)
+            {
+                current.Remove(key);
+            }
             SaveStateCore(state);
         }
     }
@@ -262,6 +314,8 @@ internal sealed class AppSettingsStore
     private sealed class SettingsState
     {
         public string Theme { get; set; } = AppThemeMode.Dark.ToString();
+        public Dictionary<string, string>? DarkPalette { get; set; }
+        public Dictionary<string, string>? LightPalette { get; set; }
         public UserInterfaceState? UserInterface { get; set; }
         public List<AccountRailLayoutEntryState>? AccountRailLayout { get; set; }
         public List<SavedSignature>? Signatures { get; set; }

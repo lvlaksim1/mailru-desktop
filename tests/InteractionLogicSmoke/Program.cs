@@ -130,6 +130,72 @@ finally
         Directory.Delete(testRoot, recursive: true);
 }
 
+var roles = ThemePalette.Roles;
+Expect(roles.Count, 26, "exactly 26 fixed color roles");
+Expect(roles.Select(r => r.Key).Distinct(StringComparer.Ordinal).Count(), 26,
+    "every role has a unique stable identifier");
+foreach (var dark in new[] { false, true })
+{
+    var defaults = ThemePalette.Defaults(dark);
+    Expect(defaults.Count, 26, "theme defaults cover every role");
+    foreach (var (_, hex) in defaults)
+        if (!ThemePalette.TryNormalize(hex, out var normalized) || normalized != hex)
+            throw new Exception("Invalid default HEX color " + hex);
+}
+Expect(ThemePalette.TryNormalize("#ffcc00", out var normalizedYellow), true,
+    "hex input accepted");
+Expect(normalizedYellow, "#FFCC00", "hex color normalized");
+Expect(ThemePalette.TryNormalize("#12345Z", out _), false,
+    "invalid hex color rejected");
+Expect(ThemePalette.TryNormalize("#11223344", out _), false,
+    "transparency not accepted in semantic palette");
+
+var changedLight = ThemePalette.Merge(false,
+    new Dictionary<string, string>
+    {
+        ["AppWindowBrush"] = "#123456",
+        ["ArbitraryOtherElement"] = "#ABCDEF",
+        ["AppTextBrush"] = "not a color"
+    });
+Expect(changedLight.Count, 26, "unknown roles not introduced by saved overrides");
+Expect(changedLight["AppWindowBrush"], "#123456", "valid override applied");
+Expect(changedLight["AppTextBrush"], ThemePalette.Defaults(false)["AppTextBrush"],
+    "invalid override ignored");
+Expect(ThemePalette.Contrast("#FFFFFF", "#000000") > 20, true,
+    "contrast calculation supports high contrast text");
+Expect(ThemePalette.Contrast("#777777", "#777777"), 1.0,
+    "identical colors contrast 1:1");
+
+var isolatedPaletteFolder = Path.Combine(Path.GetTempPath(),
+    "MailRuPalette-" + Guid.NewGuid().ToString("N"));
+try
+{
+    var settings = new AppSettingsStore(isolatedPaletteFolder);
+    Expect(settings.LoadPaletteOverrides(true)["AppWindowBrush"],
+        ThemePalette.Defaults(true)["AppWindowBrush"], "new dark palette uses defaults");
+    settings.SavePaletteOverride(true, "AppWindowBrush", "#123456");
+    settings.SavePaletteOverride(false, "AppWindowBrush", "#ABCDEF");
+    var reloaded = new AppSettingsStore(isolatedPaletteFolder);
+    Expect(reloaded.LoadPaletteOverrides(true)["AppWindowBrush"], "#123456",
+        "dark palette saved and reloaded");
+    Expect(reloaded.LoadPaletteOverrides(false)["AppWindowBrush"], "#ABCDEF",
+        "light palette saved independently and reloaded");
+    reloaded.ResetPaletteOverride(true, "AppWindowBrush");
+    Expect(reloaded.LoadPaletteOverrides(true)["AppWindowBrush"],
+        ThemePalette.Defaults(true)["AppWindowBrush"],
+        "one dark role reset without affecting light palette");
+    Expect(reloaded.LoadPaletteOverrides(false)["AppWindowBrush"], "#ABCDEF",
+        "light palette is unaffected by dark reset");
+    reloaded.ResetPaletteOverride(false);
+    Expect(reloaded.LoadPaletteOverrides(false)["AppWindowBrush"],
+        ThemePalette.Defaults(false)["AppWindowBrush"], "whole light theme reset");
+}
+finally
+{
+    if (Directory.Exists(isolatedPaletteFolder))
+        Directory.Delete(isolatedPaletteFolder, recursive: true);
+}
+
 Console.WriteLine("All interaction logic tests passed.");
 
 sealed class RecordingHandler : HttpMessageHandler

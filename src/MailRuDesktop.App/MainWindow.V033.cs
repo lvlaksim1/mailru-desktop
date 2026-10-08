@@ -504,7 +504,7 @@ public partial class MainWindow
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding Flagged}" Value="True">
                                         <Setter Property="Text" Value="★"/>
-                                        <Setter Property="Foreground" Value="#FFD54A"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource AppStarBrush}"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
@@ -554,8 +554,8 @@ public partial class MainWindow
                                 <Setter Property="Fill" Value="Transparent"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding Pinned}" Value="True">
-                                        <Setter Property="Stroke" Value="#E5484D"/>
-                                        <Setter Property="Fill" Value="#E5484D"/>
+                                        <Setter Property="Stroke" Value="{DynamicResource AppPinBrush}"/>
+                                        <Setter Property="Fill" Value="{DynamicResource AppPinBrush}"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>

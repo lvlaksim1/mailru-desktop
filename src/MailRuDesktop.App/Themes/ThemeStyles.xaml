@@ -25,21 +25,31 @@
     </Style>
 
     <Style TargetType="{x:Type TextBox}">
-        <Setter Property="Background" Value="{DynamicResource AppControlBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource AppInputBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}"/>
         <Setter Property="CaretBrush" Value="{DynamicResource AppTextBrush}"/>
         <Setter Property="SelectionBrush" Value="{DynamicResource AppSelectionBrush}"/>
         <Setter Property="SelectionTextBrush" Value="{DynamicResource AppSelectionTextBrush}"/>
+        <Style.Triggers>
+            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                <Setter Property="BorderBrush" Value="{DynamicResource AppFocusBrush}"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <Style TargetType="{x:Type PasswordBox}">
-        <Setter Property="Background" Value="{DynamicResource AppControlBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource AppInputBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}"/>
         <Setter Property="CaretBrush" Value="{DynamicResource AppTextBrush}"/>
         <Setter Property="SelectionBrush" Value="{DynamicResource AppSelectionBrush}"/>
         <Setter Property="SelectionTextBrush" Value="{DynamicResource AppSelectionTextBrush}"/>
+        <Style.Triggers>
+            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                <Setter Property="BorderBrush" Value="{DynamicResource AppFocusBrush}"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <Style TargetType="{x:Type Button}">
@@ -633,7 +643,7 @@
 
     <Style TargetType="{x:Type ContextMenu}">
         <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
-        <Setter Property="Background" Value="{DynamicResource AppPanelBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource AppDialogBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}"/>
     </Style>
 

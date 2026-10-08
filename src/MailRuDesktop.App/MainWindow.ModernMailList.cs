@@ -595,7 +595,7 @@ public partial class MainWindow
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding Flagged}" Value="True">
                                     <Setter Property="Text" Value="★"/>
-                                    <Setter Property="Foreground" Value="#FFD54A"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource AppStarBrush}"/>
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>

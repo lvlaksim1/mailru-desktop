@@ -77,7 +77,7 @@ internal static class AppDialog
             WindowStyle = WindowStyle.None,
             ShowInTaskbar = false
         };
-        window.SetResourceReference(Window.BackgroundProperty, "AppWindowBrush");
+        window.SetResourceReference(Window.BackgroundProperty, "AppDialogBrush");
         window.SetResourceReference(Window.ForegroundProperty, "AppTextBrush");
 
         var root = new Border
@@ -87,7 +87,7 @@ internal static class AppDialog
             CornerRadius = new CornerRadius(8)
         };
         root.SetResourceReference(Border.BorderBrushProperty, "AppBorderBrush");
-        root.SetResourceReference(Border.BackgroundProperty, "AppPanelBrush");
+        root.SetResourceReference(Border.BackgroundProperty, "AppDialogBrush");
 
         var grid = new Grid();
         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });

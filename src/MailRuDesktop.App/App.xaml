@@ -10,13 +10,23 @@
 
             <!-- Theme palette. ThemeManager replaces these resources atomically. -->
             <SolidColorBrush x:Key="AppWindowBrush" Color="#FFFFFF"/>
-            <SolidColorBrush x:Key="AppPanelBrush" Color="#FFFFFF"/>
-            <SolidColorBrush x:Key="AppControlBrush" Color="#FFFFFF"/>
-            <SolidColorBrush x:Key="AppControlHoverBrush" Color="#F3F5F7"/>
-            <SolidColorBrush x:Key="AppControlPressedBrush" Color="#E8EBEF"/>
+            <SolidColorBrush x:Key="AppDialogBrush" Color="#FFFFFF"/>
+            <SolidColorBrush x:Key="AppReaderBrush" Color="#FFFFFF"/>
+            <SolidColorBrush x:Key="AppInputBrush" Color="#FFFFFF"/>
+            <SolidColorBrush x:Key="AppFocusBrush" Color="#1769BC"/>
+            <SolidColorBrush x:Key="AppLinkBrush" Color="#0B57D0"/>
+            <SolidColorBrush x:Key="AppSuccessBrush" Color="#18794E"/>
+            <SolidColorBrush x:Key="AppWarningBrush" Color="#946200"/>
+            <SolidColorBrush x:Key="AppDangerBrush" Color="#C62832"/>
+            <SolidColorBrush x:Key="AppStarBrush" Color="#D49E00"/>
+            <SolidColorBrush x:Key="AppPinBrush" Color="#C62832"/>
+            <SolidColorBrush x:Key="AppPanelBrush" Color="#F7F9FC"/>
+            <SolidColorBrush x:Key="AppControlBrush" Color="#F3F5F7"/>
+            <SolidColorBrush x:Key="AppControlHoverBrush" Color="#E8EFF8"/>
+            <SolidColorBrush x:Key="AppControlPressedBrush" Color="#D8E5F4"/>
             <SolidColorBrush x:Key="AppTextBrush" Color="#202124"/>
-            <SolidColorBrush x:Key="AppMutedTextBrush" Color="#70757A"/>
-            <SolidColorBrush x:Key="AppDisabledTextBrush" Color="#9AA0A6"/>
+            <SolidColorBrush x:Key="AppMutedTextBrush" Color="#616B78"/>
+            <SolidColorBrush x:Key="AppDisabledTextBrush" Color="#7A8491"/>
             <SolidColorBrush x:Key="AppBorderBrush" Color="#D6DCE5"/>
             <SolidColorBrush x:Key="AppSelectionBrush" Color="#DCEBFA"/>
             <SolidColorBrush x:Key="AppSelectionTextBrush" Color="#202124"/>

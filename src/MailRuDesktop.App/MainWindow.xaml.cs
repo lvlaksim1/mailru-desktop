@@ -55,6 +55,7 @@ public partial class MainWindow : Window
         InitializeUserContentSettings();
 
         ThemeManager.Apply(_settingsStore.LoadTheme());
+        InitializePaletteEditor();
         MessagesGrid.ItemsSource = _visibleMessages;
         ConfigureModernMailList();
         SelectThemeComboBox(ThemeManager.CurrentMode);
@@ -1640,6 +1641,7 @@ public partial class MainWindow : Window
 
     private async void SendButton_Click(object sender, RoutedEventArgs e)
     {
+        ComposeStatusText.SetResourceReference(TextBlock.ForegroundProperty, "AppMutedTextBrush");
         if (string.IsNullOrWhiteSpace(_accessToken))
         {
             ComposeStatusText.Text =
@@ -1737,6 +1739,7 @@ public partial class MainWindow : Window
 
             if (!result.Success)
             {
+                ComposeStatusText.SetResourceReference(TextBlock.ForegroundProperty, "AppDangerBrush");
                 ComposeStatusText.Text = scheduledFor is null
                     ? "Mail.ru отклонил отправку."
                     : "Mail.ru отклонил отложенную отправку.";
@@ -1756,6 +1759,7 @@ public partial class MainWindow : Window
             ScheduleDatePicker.SelectedDate = DateTime.Today.AddDays(1);
             ScheduleTimeTextBox.Text = "09:00";
 
+            ComposeStatusText.SetResourceReference(TextBlock.ForegroundProperty, "AppSuccessBrush");
             if (scheduledFor is null)
             {
                 ComposeStatusText.Text = "Отправлено.";
@@ -1768,6 +1772,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            ComposeStatusText.SetResourceReference(TextBlock.ForegroundProperty, "AppDangerBrush");
             ComposeStatusText.Text = ex.Message;
             DiagnosticLog.Write("send", ex.GetType().Name + ": " + ex.Message);
         }
@@ -1866,13 +1871,7 @@ public partial class MainWindow : Window
             $"blockquote {{ border-left: 3px solid {muted}; margin-left: 8px; padding-left: 10px; color: {muted}; }}" +
             $"a {{ color: {link}; text-decoration: none; }}" +
             darkMailOverrides +
-            (ThemeManager.IsDarkEffective
-                ? "::-webkit-scrollbar { width: 12px; height: 12px; background: #1A1D22; }" +
-                  "::-webkit-scrollbar-track { background: #1A1D22; }" +
-                  "::-webkit-scrollbar-thumb { background: #3A4049; border: 2px solid #1A1D22; border-radius: 7px; }" +
-                  "::-webkit-scrollbar-thumb:hover { background: #49505B; }" +
-                  "::-webkit-scrollbar-button { background: #242930; height: 10px; width: 10px; }"
-                : string.Empty) +
+            ThemeManager.ReaderScrollbarCss +
             "</style></head><body>" +
             body +
             "</body></html>";

@@ -50,7 +50,7 @@ internal sealed class MailRuVerificationWindow : Window
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         ShowInTaskbar = false;
 
-        SetResourceReference(BackgroundProperty, "AppWindowBrush");
+        SetResourceReference(BackgroundProperty, "AppDialogBrush");
         SetResourceReference(ForegroundProperty, "AppTextBrush");
 
         Content = BuildContent();
