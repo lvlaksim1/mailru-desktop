@@ -538,7 +538,7 @@ public partial class MainWindow
         <Border Padding="4,10,4,5"
                 Background="{DynamicResource AppWindowBrush}">
             <TextBlock Text="{Binding Name}"
-                       FontSize="12"
+                       FontSize="{DynamicResource AppFontBodySize}"
                        FontWeight="SemiBold"
                        Foreground="{DynamicResource AppMutedTextBrush}"/>
         </Border>
@@ -600,7 +600,7 @@ public partial class MainWindow
                     Background="Transparent"
                     BorderThickness="0"
                     ToolTip="Флажок">
-                <TextBlock FontSize="16">
+                <TextBlock FontSize="{DynamicResource AppFontEmphasisSize}">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
                             <Setter Property="Text" Value="☆"/>
@@ -678,7 +678,7 @@ public partial class MainWindow
                     Visibility="{Binding Id, Converter={StaticResource ThreadCountVisibilityConverter}}">
                 <TextBlock HorizontalAlignment="Center"
                            VerticalAlignment="Center"
-                           FontSize="10"
+                           FontSize="{DynamicResource AppFontTinySize}"
                            Text="{Binding Id, Converter={StaticResource ThreadCountConverter}}"/>
             </Border>
 
@@ -728,7 +728,7 @@ public partial class MainWindow
                     <Grid>
                     <TextBlock HorizontalAlignment="Center"
                                VerticalAlignment="Center"
-                               FontSize="8"
+                               FontSize="{DynamicResource AppFontTinySize}"
                                FontWeight="SemiBold"
                                Text="{Binding SenderInitials}"/>
                     <Image Width="16" Height="16" Stretch="UniformToFill"
