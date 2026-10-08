@@ -218,15 +218,18 @@ public partial class MainWindow : Window
             item.Status = "Проверка входящих...";
             try
             {
-                var raw = await _mailRu.GetFolderThreadsAsync(
-                    authorization.AccessToken,
-                    0,
-                    offset: 0,
-                    limit: 1);
+                var raw = await LoadUnreadWithAccountRefreshAsync(authorization);
 
                 var snapshot = MailRuThreadStatusParser.Parse(raw, 0);
                 item.Unread = snapshot.MessagesUnread ?? item.Unread ?? 0;
                 item.Status = $"Непрочитанных: {item.Unread}";
+            }
+            catch (MailRuAuthorizationException)
+            {
+                // An expired token is different from a transient network error.
+                // Preserve the unread counter but mark ONLY this account invalid.
+                item.Status = "Требуется повторный вход";
+                DiagnosticLog.Write("account_auth_rejected", item.Login);
             }
             catch (Exception ex)
             {
@@ -612,11 +615,16 @@ public partial class MainWindow : Window
             SelectedSubjectText.Text = "Не удалось загрузить почту";
             SelectedSenderText.Text = ex.Message;
             ResponseTextBox.Text = ex.ToString();
-            UpdateAccountRailState(status: "Ошибка загрузки");
+            var tokenDenied = ex is MailRuAuthorizationException;
+            UpdateAccountRailState(status: tokenDenied
+                ? "Требуется повторный вход"
+                : "Ошибка загрузки");
             DiagnosticLog.Write("folder_load", ex.GetType().Name + ": " + ex.Message);
 
             if (!string.IsNullOrWhiteSpace(_activeLogin))
-                AuthStatusText.Text = "Сохранённая авторизация требует проверки";
+                AuthStatusText.Text = tokenDenied
+                    ? "Mail.ru отклонил токен этого аккаунта · требуется повторный вход"
+                    : "Не удалось проверить сохранённую авторизацию";
         }
         finally
         {
@@ -1801,30 +1809,68 @@ public partial class MainWindow : Window
         {
             return await LoadFolderRawAsync(folderId);
         }
-        catch (MailRuProtocolException ex) when (
-            IsAuthorizationFailure(ex) &&
+        catch (MailRuAuthorizationException) when (
             !string.IsNullOrWhiteSpace(_refreshToken) &&
             !string.IsNullOrWhiteSpace(_activeLogin))
         {
-            AuthStatusText.Text = "Обновляем авторизацию...";
+            var account = _activeLogin!;
+            var oldAccess = _accessToken!;
+            var savedRefresh = _refreshToken!;
+            AuthStatusText.Text = "Сервер отклонил токен · обновляем авторизацию...";
 
-            var refreshed = await _mailRu.RefreshAccessTokenAsync(_refreshToken);
+            var refreshed = await _mailRu.RefreshAccessTokenAsync(savedRefresh);
             if (!refreshed.Success || string.IsNullOrWhiteSpace(refreshed.AccessToken))
-                throw;
+                throw new MailRuAuthorizationException(403);
 
-            _accessToken = refreshed.AccessToken;
-            _refreshToken = refreshed.RefreshToken ?? _refreshToken;
-            SaveAuthorization(_activeLogin);
-            AuthStatusText.Text = "Авторизация обновлена";
-            DiagnosticLog.Write("auth_refresh", "access_token refreshed successfully");
+            // First prove the new token really opens this mailbox. Invalid
+            // replacement credentials must NEVER overwrite saved authorization.
+            var raw = await _mailRu.GetFolderThreadsAsync(refreshed.AccessToken, folderId);
 
-            return await LoadFolderRawAsync(folderId);
+            if (string.Equals(_activeLogin, account, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(_accessToken, oldAccess, StringComparison.Ordinal))
+            {
+                _accessToken = refreshed.AccessToken;
+                _refreshToken = refreshed.RefreshToken ?? savedRefresh;
+                _authStore.UpdateTokens(account, _accessToken, _refreshToken);
+                AuthStatusText.Text = "Авторизация проверена и обновлена";
+                DiagnosticLog.Write("auth_refresh", account + ": refreshed and verified");
+            }
+            return raw;
         }
     }
 
-    private static bool IsAuthorizationFailure(MailRuProtocolException ex) =>
-        ex.Message.Contains("HTTP 401", StringComparison.OrdinalIgnoreCase) ||
-        ex.Message.Contains("HTTP 403", StringComparison.OrdinalIgnoreCase);
+    private async Task<string> LoadUnreadWithAccountRefreshAsync(RestoredAuthorization account)
+    {
+        try
+        {
+            return await _mailRu.GetFolderThreadsAsync(
+                account.AccessToken!, 0, offset: 0, limit: 1);
+        }
+        catch (MailRuAuthorizationException) when (
+            !string.IsNullOrWhiteSpace(account.RefreshToken))
+        {
+            var refreshed = await _mailRu.RefreshAccessTokenAsync(account.RefreshToken);
+            if (!refreshed.Success || string.IsNullOrWhiteSpace(refreshed.AccessToken))
+                throw new MailRuAuthorizationException(403);
+
+            var raw = await _mailRu.GetFolderThreadsAsync(
+                refreshed.AccessToken, 0, offset: 0, limit: 1);
+
+            // No changes to LastLogin or other accounts. Refresh the active
+            // runtime only when it still uses this exact stale token.
+            _authStore.UpdateTokens(account.Login, refreshed.AccessToken,
+                refreshed.RefreshToken ?? account.RefreshToken);
+            if (string.Equals(_activeLogin, account.Login, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(_accessToken, account.AccessToken, StringComparison.Ordinal))
+            {
+                _accessToken = refreshed.AccessToken;
+                _refreshToken = refreshed.RefreshToken ?? account.RefreshToken;
+            }
+
+            DiagnosticLog.Write("auth_refresh", account.Login + ": counter token updated");
+            return raw;
+        }
+    }
 
     private async Task<string> LoadFolderRawAsync(int folderId)
     {
