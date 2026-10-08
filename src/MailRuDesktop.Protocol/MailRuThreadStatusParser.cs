@@ -34,8 +34,8 @@ public sealed record MailRuMessageSummary(
 {
     public string SenderDisplay =>
         !string.IsNullOrWhiteSpace(SenderName)
-            ? SenderName
-            : SenderEmail;
+            ? SenderName.Trim()
+            : SenderEmail.Trim();
 
     public string? AvatarUrl => MailRuAvatarUrls.ForEmail(SenderEmail);
 
@@ -456,23 +456,46 @@ public static class MailRuThreadStatusParser
 
     private static (string Name, string Email) ReadSender(JsonElement element)
     {
-        if (!element.TryGetProperty("correspondents", out var correspondents) ||
-            correspondents.ValueKind != JsonValueKind.Object ||
-            !correspondents.TryGetProperty("from", out var from) ||
-            from.ValueKind != JsonValueKind.Array)
+        // Mail.ru returns the sender both as correspondents.from[] and
+        // as a single correspondent object/string in some response variants.
+        // Never assume "name" is present: email is the visible fallback.
+        if (element.ValueKind != JsonValueKind.Object)
+            return (string.Empty, string.Empty);
+
+        if (element.TryGetProperty("correspondents", out var correspondents) &&
+            correspondents.ValueKind == JsonValueKind.Object &&
+            correspondents.TryGetProperty("from", out var nestedFrom))
         {
+            var sender = ReadSenderValue(nestedFrom);
+            if (sender.Name.Length > 0 || sender.Email.Length > 0)
+                return sender;
+        }
+
+        return element.TryGetProperty("from", out var directFrom)
+            ? ReadSenderValue(directFrom)
+            : (string.Empty, string.Empty);
+    }
+
+    private static (string Name, string Email) ReadSenderValue(JsonElement from)
+    {
+        if (from.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var sender in from.EnumerateArray())
+            {
+                var found = ReadSenderValue(sender);
+                if (found.Name.Length > 0 || found.Email.Length > 0)
+                    return found;
+            }
             return (string.Empty, string.Empty);
         }
 
-        foreach (var sender in from.EnumerateArray())
-        {
-            if (sender.ValueKind != JsonValueKind.Object)
-                continue;
+        if (from.ValueKind == JsonValueKind.Object)
+            return (
+                Decode(ReadString(from, "name") ?? "").Trim(),
+                Decode(ReadString(from, "email") ?? "").Trim());
 
-            var name = Decode(ReadString(sender, "name") ?? string.Empty);
-            var email = Decode(ReadString(sender, "email") ?? string.Empty);
-            return (name, email);
-        }
+        if (from.ValueKind == JsonValueKind.String)
+            return (string.Empty, Decode(from.GetString() ?? "").Trim());
 
         return (string.Empty, string.Empty);
     }
