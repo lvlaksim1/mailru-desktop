@@ -390,18 +390,62 @@ public partial class MainWindow
         }
     }
 
-    private void ComposeSignatureComboBox_DropDownOpened(object sender, EventArgs e) { }
+    private SavedSignature? _composeSignatureAtOpen;
+    private SavedMailTemplate? _composeTemplateAtOpen;
 
-    private void ComposeTemplateComboBox_DropDownOpened(object sender, EventArgs e) =>
+    private void ComposeSignatureComboBox_DropDownOpened(object sender, EventArgs e) =>
+        _composeSignatureAtOpen = ComposeSignatureComboBox.SelectedItem as SavedSignature;
+
+    private void ComposeTemplateComboBox_DropDownOpened(object sender, EventArgs e)
+    {
         RefreshTemplatesFromDisk();
+        _composeTemplateAtOpen = ComposeTemplateComboBox.SelectedItem as SavedMailTemplate;
+    }
+
+    private void ComposeSignatureComboBox_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (GetClickedComboItem(ComposeSignatureComboBox, e.OriginalSource) is { } clicked &&
+            ReferenceEquals(clicked.DataContext, _composeSignatureAtOpen) &&
+            clicked.DataContext is SavedSignature signature)
+            ApplyComposeSignature(signature, true);
+    }
+
+    private void ComposeTemplateComboBox_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (GetClickedComboItem(ComposeTemplateComboBox, e.OriginalSource) is { } clicked &&
+            ReferenceEquals(clicked.DataContext, _composeTemplateAtOpen) &&
+            clicked.DataContext is SavedMailTemplate template)
+            ApplyComposeTemplate(template);
+    }
+
+    private void ComposeSignatureComboBox_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter && ComposeSignatureComboBox.IsDropDownOpen &&
+            ReferenceEquals(ComposeSignatureComboBox.SelectedItem, _composeSignatureAtOpen) &&
+            _composeSignatureAtOpen is not null)
+            ApplyComposeSignature(_composeSignatureAtOpen, true);
+    }
+
+    private void ComposeTemplateComboBox_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter && ComposeTemplateComboBox.IsDropDownOpen &&
+            ReferenceEquals(ComposeTemplateComboBox.SelectedItem, _composeTemplateAtOpen) &&
+            _composeTemplateAtOpen is not null)
+            ApplyComposeTemplate(_composeTemplateAtOpen);
+    }
 
     private void ComposeSignatureComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (ComposeSignatureComboBox.SelectedItem is not SavedSignature signature ||
             string.IsNullOrWhiteSpace(signature.Body))
             return;
+        ApplyComposeSignature(signature, false);
+    }
+
+    private void ApplyComposeSignature(SavedSignature signature, bool repeat)
+    {
         var body = ComposeBodyTextBox.Text;
-        if (!string.IsNullOrWhiteSpace(_composeInsertedSignature) &&
+        if (!repeat && !string.IsNullOrWhiteSpace(_composeInsertedSignature) &&
             body.EndsWith(_composeInsertedSignature, StringComparison.Ordinal))
             body = body[..^_composeInsertedSignature.Length].TrimEnd();
         ComposeBodyTextBox.Text = body.TrimEnd() +
