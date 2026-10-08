@@ -70,10 +70,10 @@ public partial class MainWindow
         {
             var colors = _settingsStore.LoadPaletteOverrides(_editingDarkPalette);
             _paletteRows.Clear();
-            foreach (var role in ThemePalette.Roles)
+            foreach (var role in ThemePalette.EditableRoles)
                 _paletteRows.Add(new ThemePaletteRow(role, colors[role.Key]));
 
-            PaletteRoleCountText.Text = $"{ThemePalette.Roles.Count} фиксированных цветовых ролей.";
+            PaletteRoleCountText.Text = $"{ThemePalette.EditableRoles.Count} общих настроек цветов.";
             UpdatePaletteContrastStatus(colors);
         }
         finally
