@@ -13,7 +13,9 @@ internal sealed class PushGroupRegistryStore
 {
     internal sealed record Group(
         string Id, string[] Accounts, DateTimeOffset ConfirmedUtc,
-        string State = "CONFIRMED", string RecipientId = SharedGooglePushIdentityStore.PrimaryRecipientId);
+        string State = "CONFIRMED",
+        string RecipientId = SharedGooglePushIdentityStore.PrimaryRecipientId,
+        bool? ReceiveEnabled = null);
     internal sealed record Registry(
         bool ReceiveEnabled, Group[] Groups, bool LegacyImported = false);
 
@@ -95,7 +97,8 @@ internal sealed class PushGroupRegistryStore
             StringComparer.OrdinalIgnoreCase)).ToArray();
         if (confirmed.Length == 0) return prior;
         var group = new Group(groupId ?? Guid.NewGuid().ToString("N"), confirmed,
-            DateTimeOffset.UtcNow, "CONFIRMED", recipientId);
+            DateTimeOffset.UtcNow, "CONFIRMED", recipientId,
+            prior.ReceiveEnabled);
         // A second batch may replace earlier server-side registrations;
         // until real events arrive for those groups, never present their
         // continuing delivery as verified.
@@ -138,6 +141,28 @@ internal sealed class PushGroupRegistryStore
                     ? group with { State = "EVENT_SEEN" } : group).ToArray()
         };
     }
+
+    internal static Registry SetGroupReceiving(Registry prior, string groupId, bool enabled)
+    {
+        if (!prior.Groups.Any(g => g.Id == groupId))
+            throw new ArgumentException("Group not found.", nameof(groupId));
+        // Materialize legacy null flags before changing the global intent so
+        // unrelated groups retain their previous per-group receiving choice.
+        var groups = prior.Groups.Select(g => g with {
+            ReceiveEnabled = g.Id == groupId
+                ? enabled : g.ReceiveEnabled ?? prior.ReceiveEnabled
+        }).ToArray();
+        return prior with {
+            ReceiveEnabled = groups.Any(g => g.ReceiveEnabled == true),
+            Groups = groups
+        };
+    }
+
+    internal static Registry SetAllReceiving(Registry prior, bool enabled) =>
+        prior with {
+            ReceiveEnabled = enabled,
+            Groups = prior.Groups.Select(g => g with { ReceiveEnabled = enabled }).ToArray()
+        };
 
     internal static Registry RemoveAccounts(Registry prior, IEnumerable<string> removed)
     {
