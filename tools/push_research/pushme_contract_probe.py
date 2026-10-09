@@ -57,7 +57,7 @@ class PushMeSubscription:
             "badge": {"status": True, "mode": "unread"},
         }
         root = {
-            "account": self.account,
+            "account": self.account.lower(),
             "application": APPLICATION,
             "platform": FIREBASE_WIRE_PLATFORM,
             "token": self.google_sender_token,
@@ -129,6 +129,7 @@ def self_test() -> None:
     assert d[0]["settings"]["badge"] == {"status": True, "mode": "unread"}
     assert d[0]["settings"]["capabilities"] == {}
     assert d[0]["account"] == "probe@example.invalid"
+    assert PushMeSubscription(**{**fake.__dict__, "account": "PROBE@EXAMPLE.INVALID"}).prepare()["account"] == "probe@example.invalid"
     assert d[0]["token"] != d[0]["access_token"]
     assert evaluate_reply('{"error":{"code":0},"validate_result":[{"account":"probe@example.invalid","is_valid":true}]}', fake.account) == "ACCOUNT_ACCEPTED"
     assert evaluate_reply('{"error":{"code":0},"validate_result":[{"account":"probe@example.invalid","is_valid":false}]}', fake.account) == "ACCOUNT_REJECTED"
