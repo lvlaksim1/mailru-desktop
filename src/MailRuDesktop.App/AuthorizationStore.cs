@@ -223,7 +223,7 @@ internal sealed class AuthorizationStore
         public DateTimeOffset SavedAtUtc { get; set; }
     }
 
-    private static class Dpapi
+    internal static class Dpapi
     {
         private const uint CryptProtectUiForbidden = 0x1;
 
