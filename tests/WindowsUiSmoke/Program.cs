@@ -54,6 +54,22 @@ internal static class Program
                 "Windows popup notification setting is visible and independent");
             Check(Require<TextBlock>(mail, "BackgroundPushStatusText").IsVisible,
                 "Persistent push per-account connection state is visible");
+            var pushLog = Require<TextBox>(mail, "PushDiagnosticsLogTextBox");
+            Check(pushLog.IsReadOnly && pushLog.IsVisible,
+                "read-only Google PushMe diagnostic journal visible in Settings");
+            foreach (var name in new[]
+                     {
+                         "RefreshPushDiagnosticsButton",
+                         "CopyPushDiagnosticsButton",
+                         "SavePushDiagnosticsButton",
+                         "ClearPushDiagnosticsButton"
+                     })
+                Check(Require<Button>(mail, name).IsVisible,
+                    "push diagnostics action exists: " + name);
+            var refreshPushLog = Require<Button>(mail, "RefreshPushDiagnosticsButton");
+            refreshPushLog.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent, refreshPushLog));
+            Check(pushLog.Text.Contains("Google / PushMe", StringComparison.Ordinal),
+                "diagnostic viewer refreshes without making network calls");
             var pushSettings = Require<Button>(mail, "OpenPushProbeButton");
             Check(pushSettings.IsVisible, "Native push experiment is accessible in Settings");
             pushSettings.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent, pushSettings));
