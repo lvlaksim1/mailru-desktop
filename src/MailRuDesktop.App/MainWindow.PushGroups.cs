@@ -255,6 +255,30 @@ public partial class MainWindow
         finally { _groupChangeGate.Release(); }
     }
 
+    // One real message proves that the selected group still delivers after
+    // additional PushMe batches; it does not prove all its mailboxes delivered.
+    private async Task RecordPushDeliveryAsync(string login)
+    {
+        await _groupChangeGate.WaitAsync();
+        try
+        {
+            var registry = _pushGroups.Load();
+            var updated = PushGroupRegistryStore.MarkObservedMail(registry, login);
+            if (!updated.Groups.Select(g => g.State).SequenceEqual(
+                    registry.Groups.Select(g => g.State)))
+            {
+                _pushGroups.Save(updated);
+                _pushManagerWindow?.UpdateView();
+                PushDiagnostics.Record("PUSHME", "GROUP_DELIVERY_OBSERVED");
+            }
+        }
+        catch (Exception error)
+        {
+            PushDiagnostics.Failure("GROUP_DELIVERY_RECORD", error);
+        }
+        finally { _groupChangeGate.Release(); }
+    }
+
     private void OpenPushGroupManagerButton_Click(object sender, RoutedEventArgs e)
     {
         if (_pushManagerWindow is { IsVisible: true })
