@@ -251,8 +251,26 @@ using (var manager = new MailRuPushBackgroundService(
             Path.Combine(secretRoot, "google-push-receiver.dat"));
         Expect(protectedContent.Contains(original.RegistrationToken, StringComparison.Ordinal),
             false, "Google token never stored as plaintext");
+        var secondaryStore = new SharedGooglePushIdentityStore(
+            secretRoot, "abcdef012345");
+        var alternate = new SharedGooglePushIdentityStore.State(
+            303, 404, "FAKE_SECONDARY_GOOGLE_TOKEN", ["second@example.invalid"],
+            SharedGooglePushIdentityStore.GeneratePushMeCommonId());
+        secondaryStore.Save(alternate);
+        Expect(SharedGooglePushIdentityStore.ListRecipientIds(secretRoot)
+            .SequenceEqual(["primary", "abcdef012345"]), true,
+            "both independent, protected Google slots are discoverable");
+        Expect(secondaryStore.Load()!.DeviceId, (ulong)303,
+            "second Google slot retains independent device identity");
+        Expect(store.Load()!.DeviceId, (ulong)101,
+            "creating another Google slot cannot change legacy primary identity");
         store.Delete();
         Expect(store.Load(), null, "server-confirmed unsubscribe removes protected identity");
+        Expect(secondaryStore.Load()!.RegistrationToken, alternate.RegistrationToken,
+            "removing one Google slot preserves every other sender token");
+        secondaryStore.Delete();
+        Expect(SharedGooglePushIdentityStore.ListRecipientIds(secretRoot).Length, 0,
+            "all slots are released without leftover index records");
     }
     finally
     {
@@ -273,6 +291,13 @@ using (var manager = new MailRuPushBackgroundService(
         "next batch adds a group without rewriting the previous accepted group");
     Expect(withSecond.Groups[0].State, "RECHECK_REQUIRED",
         "a second PushMe batch cannot be assumed to preserve first group's delivery");
+    var independent = PushGroupRegistryStore.Register(
+        registered, ["g20@example.invalid"], ["g20@example.invalid"],
+        recipientId: "abcdef012345");
+    Expect(independent.Groups[0].State, "CONFIRMED",
+        "another Google recipient cannot mark the primary group replaced");
+    Expect(independent.Groups[1].RecipientId, "abcdef012345",
+        "PushMe group retains its assigned independent Google recipient");
     var afterObservedMail = PushGroupRegistryStore.MarkObservedMail(
         withSecond, "G1@example.invalid");
     Expect(afterObservedMail.Groups[0].State, "EVENT_SEEN",
