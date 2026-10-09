@@ -41,6 +41,7 @@ wants = {
     "Lru/mail/util/push/pusher/PushMeSDKPusherTransport;": {"unsubscribeAppByDeviceId"},
     "Lcom/vk/commonid/CommonIdProvider;": {"getCommonIdGenerated", "getCommonId", "generate", "create"},
     "Lcom/vk/commonid/CommonIdProvider$Companion;": {"getCommonIdGenerated", "getCommonIdGenerated$default", "getCommonId", "generate", "create"},
+    "Lcom/vk/commonid/CommonIdPrefs;": {"getCommonId", "saveCommonId", "get", "set", "write", "read"},
 }
 results: dict[str, list[str]] = {}
 scanned = 0
@@ -62,7 +63,12 @@ with zipfile.ZipFile(archive) as outer:
                     if clsname not in wants:
                         continue
                     for method in cls.get_methods():
-                        if method.get_name() not in wants[clsname]:
+                        mname = method.get_name()
+                        if mname not in wants[clsname] and not (
+                            clsname.startswith("Lcom/vk/commonid/") and
+                            ("commonid" in mname.lower() or "generat" in mname.lower()
+                             or "uuid" in mname.lower() or "android" in mname.lower()
+                             or mname == "<init>")):
                             continue
                         code = method.get_code()
                         if code is None:
@@ -77,7 +83,7 @@ with zipfile.ZipFile(archive) as outer:
                         lines.extend(["~~~", ""])
                         key = clsname + "." + method.get_name()
                         results.setdefault(key, []).append("\n".join(lines))
-        if len(results) >= 11:
+        if len(results) >= 22:
             break
 
 required = [
