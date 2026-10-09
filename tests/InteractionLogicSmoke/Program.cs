@@ -36,6 +36,29 @@ Expect(diagnosticReport.Contains("account@example.invalid"), false,
     "push diagnostics never contain mailbox addresses");
 Expect(diagnosticReport.Contains("SECRET-TOKEN"), false,
     "push diagnostics reject unsafe arbitrary codes");
+PushDiagnostics.RecordAccount("PUSHME", "ACCOUNT_UNSUBSCRIBE_START",
+    "member19@example.invalid", "0123456789abcdef", 7, 19, "opabc123");
+PushDiagnostics.RecordAccount("PUSHME", "ACCOUNT_UNSUBSCRIBE_OK",
+    "member19@example.invalid", "0123456789abcdef", 7, 19, "opabc123");
+var completeAccountReport = PushDiagnostics.Report();
+Expect(completeAccountReport.Contains("account=member19@example.invalid"), true,
+    "detailed local PushMe log shows which exact account was processed");
+Expect(completeAccountReport.Contains("item=7/19"), true,
+    "account operation records its index within the batch");
+Expect(completeAccountReport.Contains("group=0123456789abcdef"), true,
+    "account operation records the stable group identifier");
+Expect(completeAccountReport.Contains("op=opabc123"), true,
+    "subscription START and OK share one operation identifier");
+var sanitizedAccountReport = PushDiagnostics.Report(redactAccounts: true);
+Expect(sanitizedAccountReport.Contains("member19@example.invalid"), false,
+    "anonymized export never contains the account address");
+Expect(sanitizedAccountReport.Contains("ACCOUNT_001"), true,
+    "anonymized export preserves consistent pseudonym for events");
+Expect(sanitizedAccountReport.Contains("item=7/19"), true,
+    "anonymization retains batch index and outcome correlation");
+Expect(sanitizedAccountReport.Contains("PRIVATE_SECRET"), false,
+    "full and anonymized report never contains exception text or tokens");
+
 Expect(PushDiagnostics.SafeServerReason(
     "Invalid access token for mail@example.invalid: abcdefghijklmnopqrstuvwxyz123456"),
     "INVALID_ACCESS_TOKEN",
