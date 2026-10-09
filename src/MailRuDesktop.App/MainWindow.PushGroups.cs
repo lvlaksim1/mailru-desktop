@@ -189,7 +189,8 @@ public partial class MainWindow
                 registry.ReceiveEnabled)
                 StartMcsListening(); // Reopen MCS, NEVER resubscribe in PushMe.
             return "PushMe принял " + result.Accepted.Count + " из " +
-                accounts.Count + ". Группа сохранена; существующие группы не затронуты.";
+                accounts.Count + ". Группа сохранена. Внимание: новая партия может " +
+                "заменить предыдущую на сервере; проверьте доставку старых групп.";
         }
         finally { _groupChangeGate.Release(); }
     }
