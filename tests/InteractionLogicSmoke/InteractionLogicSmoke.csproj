@@ -19,5 +19,6 @@
     <Compile Include="../../src/MailRuDesktop.App/ReaderShellScripts.cs" Link="ReaderShellScripts.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/AppSettingsStore.cs" Link="AppSettingsStore.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/AuthorizationStore.cs" Link="AuthorizationStore.cs"/>
+    <Compile Include="../../src/MailRuDesktop.App/MailRuPushProbe.cs" Link="MailRuPushProbe.cs"/>
   </ItemGroup>
 </Project>
