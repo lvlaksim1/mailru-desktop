@@ -270,9 +270,13 @@ internal sealed class MailRuPushBackgroundService : IDisposable
                     ? 0 : Math.Min(failures + 1, 5);
                 var delay = RetryDelay(failures);
                 PushDiagnostics.Record("WORKER", "RETRY_DELAY_SECONDS", (int)delay.TotalSeconds);
+                var pushMeRejected = PushDiagnostics.LastFailure.StartsWith(
+                    "PUSHME_RESPONSE_REJECTED:", StringComparison.Ordinal);
                 foreach (var account in current.Keys)
                     _onStatus(account,
-                        "Соединение прервано. Повтор через " +
+                        (pushMeRejected
+                            ? "PushMe отклонил регистрацию. Повтор попытки через "
+                            : "Соединение прервано. Повтор через ") +
                         (int)delay.TotalSeconds + " секунд.");
                 await Task.Delay(delay, cancellationToken);
             }
