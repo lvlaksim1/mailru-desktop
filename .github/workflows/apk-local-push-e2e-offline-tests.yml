@@ -27,3 +27,5 @@ jobs:
         run: python tools/push_research/pushme_contract_probe.py
       - name: Check locally runnable end-to-end runner without credentials
         run: python tools/push_research/local_mailru_event_probe.py --self-test
+      - name: Test complete simulated Google-to-Mail.ru pipeline and privacy
+        run: python -m unittest discover -s tools/push_research -p 'test_local_probe.py' -v
