@@ -32,8 +32,8 @@ report = [
 classes_seen = set()
 with zipfile.ZipFile(io.BytesIO(blob)) as outer:
     names = sorted((n for n in outer.namelist() if n.endswith(".apk")),
-                   key=lambda v:(not ("base" in v or "master" in v), len(v)))
-    for apkname in names[:2]:
+                   key=lambda v:(not ("base" in v.lower() or "master" in v.lower()), len(v)))
+    for apkname in names[:3]:
         with zipfile.ZipFile(io.BytesIO(outer.read(apkname))) as apk:
             for dexname in sorted(n for n in apk.namelist() if n.startswith("classes") and n.endswith(".dex")):
                 dex=DEX(apk.read(dexname))
