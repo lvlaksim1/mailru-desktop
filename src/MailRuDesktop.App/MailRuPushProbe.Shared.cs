@@ -337,8 +337,15 @@ internal sealed partial class MailRuPushProbe
     internal static Dictionary<string, string> BuildAccountUnsubscribeFields(
         string account, string pushMeCommonId)
     {
+        // New registrations must always use an APK-shaped CommonId.
+        // Only removal of subscriptions from old Windows versions may use
+        // the historical mailru-windows-* value.
+        var isLegacyCleanup = System.Text.RegularExpressions.Regex.IsMatch(
+            pushMeCommonId, "^mailru-windows-[0-9a-f]{1,16}$",
+            System.Text.RegularExpressions.RegexOptions.CultureInvariant);
         if (string.IsNullOrWhiteSpace(account) ||
-            !SharedGooglePushIdentityStore.IsValidPushMeCommonId(pushMeCommonId))
+            (!SharedGooglePushIdentityStore.IsValidPushMeCommonId(pushMeCommonId) &&
+             !isLegacyCleanup))
             throw new ArgumentException("Invalid account or PushMe CommonId.");
         return new(StringComparer.Ordinal)
         {
