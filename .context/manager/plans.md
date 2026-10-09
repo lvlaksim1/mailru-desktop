@@ -285,3 +285,9 @@ GitHub Actions 37872182332 SUCCESS, SHA-256 APK проверен, 93 файла,
 ## Update 09.10.2026: TLS-certificate correction shipped as v0.3.34
 
 Observations: user screenshot shows full Google path PASS, Mail.ru subscription network failure, token cleanup unconfirmed. Verified original APK AltProd hostname's chain failure from GitHub Actions 37881120525 and 37881273739. Exact original Prod https://push-me.mail.ru TLS PASS and empty/no-account POST /api/v2/set_settings HTTP200; no claim of authenticated subscription. Updated main MailRuPushProbe.cs to use Prod in subscription and own-token cleanup, added safe DNS/TLS/connection/HTTP status messages, cataloged Prod, verified logic in offline CI 37881506882 SUCCESS. Official release 37881628473 SUCCESS and v0.3.34 full/update links issued. Next: user installs update, reruns integrated consent-based check; if ACCOUNT_ACCEPTED send control letter, verify real event4; if not, classify failure using safe on-screen statuses. After real event4 test durability, reconnect and multiaccount.
+
+## План 09.10.2026 — приёмка общего получателя v0.3.36
+
+Реализация и выпуск закончены: один TLS MCS поток + одна DPAPI идентичность Google + пакетный PushMe V2 с собственным OAuth для каждого ящика; строгая маршрутизация по полю account и защита от повторов. CI 37923954067 и релиз 37924183045 SUCCESS. Владелец получает обновление v0.3.36 по штатному установщику.
+
+Следующий шаг — проверка событий на нескольких авторизованных аккаунтах и устойчивости единого канала, включая повторный запуск приложения, обновление OAuth и изменение списка. При удалении аккаунта текущая безопасная, но потенциально затратная схема — отзыв общего токена и переподписка остальных; не заменять её адресным отзывом без прямого подтверждения исходного SDK и безопасного живого опыта. Отсутствие повторов или потерь после длительного разрыва не объявлять доказанным до пользовательской проверки.
