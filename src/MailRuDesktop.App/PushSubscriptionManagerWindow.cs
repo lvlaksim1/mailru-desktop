@@ -314,10 +314,12 @@ internal sealed class PushSubscriptionManagerWindow : Window
             _readGroups().Groups.Length == 0;
         _registerGroupButton.IsEnabled = !_busy && hasGoogle && count > 0;
         _deleteGroupButton.IsEnabled = !_busy && _groups.SelectedItem is GroupEntry;
+        // The persisted receiving intent, not merely an instantaneous network
+        // status, controls Start/Stop. A user must be able to press Stop even
+        // while the worker reports ERROR and awaits its reconnect delay.
+        var receiveEnabled = _readGroups().ReceiveEnabled;
         _startMcsButton.IsEnabled = !_busy && hasGoogle &&
-            _readGroups().Groups.Length > 0 &&
-            _mcsState() is not ("Подключён" or "Подключается" or "Переподключается");
-        _stopMcsButton.IsEnabled = !_busy &&
-            (_mcsState() is "Подключён" or "Подключается" or "Переподключается");
+            _readGroups().Groups.Length > 0 && !receiveEnabled;
+        _stopMcsButton.IsEnabled = !_busy && receiveEnabled;
     }
 }
