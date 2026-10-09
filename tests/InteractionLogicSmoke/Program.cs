@@ -9,6 +9,47 @@ static void Expect<T>(T actual, T expected, string label)
     Console.WriteLine("PASS " + label);
 }
 
+// Original Android-app push protocol: all tests are offline and use fake tokens.
+var pushRequest = MailRuPushProbe.BuildSubscription(
+    "TEST@EXAMPLE.INVALID", "NOT_A_REAL_OAUTH", "NOT_A_REAL_GOOGLE_TOKEN",
+    12345, "fresh-trial-only");
+using (var pushJson = System.Text.Json.JsonDocument.Parse(
+    System.Text.Json.JsonSerializer.Serialize(new[] { pushRequest })))
+{
+    var samplePush = pushJson.RootElement[0];
+    Expect(samplePush.GetProperty("account").GetString(), "test@example.invalid",
+        "PushMe account normalized to lower case");
+    Expect(samplePush.GetProperty("application").GetString(), "mail", "PushMe application");
+    Expect(samplePush.GetProperty("platform").GetString(), "android", "PushMe original FCM wire platform");
+    Expect(samplePush.GetProperty("status").GetInt32(), 0, "PushMe enabled status");
+    Expect(samplePush.GetProperty("settings").GetProperty("capabilities")
+        .GetProperty("can_mail").GetProperty("Filter").GetProperty("Folder")
+        .GetProperty("enabled").GetBoolean(), false, "PushMe all folders not excluded");
+    Expect(samplePush.GetProperty("settings").GetProperty("client")
+        .GetProperty("name").GetString(), "ru.mail.mailapp", "PushMe original package name");
+    if (!samplePush.GetProperty("settings").GetProperty("client_time_zone")
+            .GetString()!.StartsWith("GMT", StringComparison.Ordinal))
+        throw new Exception("PushMe local timezone does not use original SDK GMT prefix");
+}
+Expect(MailRuPushProbe.ClassifySubscription(
+    """{"error":{"code":0},"validate_result":[{"account":"test@example.invalid","is_valid":true}]}""",
+    "test@example.invalid"), "ACCOUNT_ACCEPTED", "PushMe validated matching account");
+Expect(MailRuPushProbe.ClassifySubscription(
+    """{"error":{"code":0}}""", "test@example.invalid"),
+    "Сервер не подтвердил выбранный аккаунт",
+    "PushMe HTTP OK without account confirmation must not be accepted");
+Expect(PushWire.GetUnsigned(PushWire.VarintField(7, 123456789), 7),
+    123456789UL, "protobuf integer round-trip");
+var source = PushWire.Append(
+    PushWire.TextField(5, "ru.mail.mailapp"),
+    PushWire.BytesField(7, PushWire.Append(PushWire.TextField(1, "event"), PushWire.TextField(2, "4"))));
+Expect(PushWire.IsMailNewMessage(source), true, "Mail.ru event=4 matches original package");
+Expect(PushWire.IsMailNewMessage(PushWire.Append(
+    PushWire.TextField(5, "unrelated.package"),
+    PushWire.BytesField(7, PushWire.Append(PushWire.TextField(1, "event"), PushWire.TextField(2, "4"))))),
+    false, "ignore other package event=4");
+
+
 double?[] centers = [20, 60, 100, 140];
 Expect(AccountDragMath.FindTarget(1, 60, centers), 1, "stationary hold");
 Expect(AccountDragMath.FindTarget(1, 90, centers), 1, "down before next midpoint");
