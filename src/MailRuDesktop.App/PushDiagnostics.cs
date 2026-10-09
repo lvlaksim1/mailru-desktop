@@ -230,7 +230,7 @@ internal static class PushDiagnostics
     {
         var aliases = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         return Regex.Replace(report,
-            @"(?i)\b[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b",
+            @"(?<=\baccount=)[^\s]+",
             match =>
             {
                 if (!aliases.TryGetValue(match.Value, out var number))
