@@ -15,7 +15,7 @@ internal sealed class PushGroupRegistryStore
         string Id, string[] Accounts, DateTimeOffset ConfirmedUtc,
         string State = "CONFIRMED");
     internal sealed record Registry(
-        bool ReceiveEnabled, Group[] Groups);
+        bool ReceiveEnabled, Group[] Groups, bool LegacyImported = false);
 
     private readonly string _path;
     internal PushGroupRegistryStore(string? directoryOverride = null)
@@ -89,7 +89,10 @@ internal sealed class PushGroupRegistryStore
             StringComparer.OrdinalIgnoreCase)).ToArray();
         if (confirmed.Length == 0) return prior;
         var group = new Group(Guid.NewGuid().ToString("N"), confirmed, DateTimeOffset.UtcNow);
-        return prior with { Groups = prior.Groups.Append(group).ToArray() };
+        return prior with {
+            Groups = prior.Groups.Append(group).ToArray(),
+            LegacyImported = true
+        };
     }
 
     /// <summary>
@@ -99,13 +102,17 @@ internal sealed class PushGroupRegistryStore
     /// </summary>
     internal Registry ImportLegacy(Registry prior, IEnumerable<string> existing)
     {
+        // Run migration once only. Otherwise an unconfirmed write-ahead
+        // network batch could be imported as a falsely confirmed group.
+        if (prior.LegacyImported) return prior;
         var untracked = Ungrouped(existing, prior);
-        if (untracked.Length == 0) return prior;
+        if (untracked.Length == 0) return prior with { LegacyImported = true };
         var result = prior with
         {
             Groups = prior.Groups.Append(
                 new Group(Guid.NewGuid().ToString("N"), untracked,
-                    DateTimeOffset.UtcNow, "IMPORTED")).ToArray()
+                    DateTimeOffset.UtcNow, "IMPORTED")).ToArray(),
+            LegacyImported = true
         };
         Save(result);
         return result;
