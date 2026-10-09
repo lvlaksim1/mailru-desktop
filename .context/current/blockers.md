@@ -57,3 +57,6 @@ v0.3.41 MCS LoginResponse version41/tag3 locally rejected. Its nested error.code
 
 ## 09.10.2026 — ожидание одиночного фактического испытания v0.3.43
 Source-confirmed APK mismatch investigation did not resolve shared 32-account PushMe API499 INVALID_FORMAT. To isolate variables, v0.3.43 disables shared registration and restores formerly working v0.3.35 one-account test. CI proves offline wire/UI, not live delivery. Need user observation ACCOUNT_ACCEPTED / new-mail event / Windows balloon. Single account receiver runs maximum three minutes and uses temporary token, not common identity. Normal automatic push is unavailable in this diagnostic build by design; preserve user setting for later versions. Do not infer shared error499 outcome from this isolated test.
+
+## 09.10.2026 — PushMe 19-account result pending
+One account proven works. 32 returned PushMe 499 INVALID_FORMAT. Web Mail.ru limit20 reported by owner, but PushMe cap unknown. Need one regular manual test in v0.3.44 on exactly 19 with unchanged shared schema to confirm or reject size hypothesis. Do not claim CI means registration succeeds. Subsequent stop cleanup of 19 selected accounts can take ~2 minutes due >=5 sec network pacing.
