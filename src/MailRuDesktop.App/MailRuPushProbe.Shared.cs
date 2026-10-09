@@ -138,7 +138,7 @@ internal sealed partial class MailRuPushProbe
                 onStatus(login, "Подписка подтверждена. Постоянный приём уведомлений включён.");
             if (accepted.Count < accounts.Count)
                 ReportAll("Часть почтовых аккаунтов требует повторной подписки.");
-
+        }
         }
         finally
         {
