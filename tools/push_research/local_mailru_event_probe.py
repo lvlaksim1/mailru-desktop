@@ -215,6 +215,27 @@ def subscribe_mailru(
     return result
 
 
+def remove_only_own_token(google_token: str) -> None:
+    """Release only the newly created trial subscription, never another device."""
+    data = urllib.parse.urlencode({
+        "token": google_token, "application": "mail"
+    }).encode("utf-8")
+    req = urllib.request.Request(
+        SERVER + "/api/v2/unsubscribe_by_token", data=data,
+        headers={"Content-Type": "application/x-www-form-urlencoded",
+                 "User-Agent": USER_AGENT},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=20) as reply:
+            body = reply.read(65536)
+        parsed = json.loads(body)
+        code = parsed.get("error", {}).get("code")
+        print("research_pushme_token_cleanup=" + ("CONFIRMED" if code == 0 else "NOT_CONFIRMED"))
+    except (urllib.error.URLError, OSError, json.JSONDecodeError, ValueError):
+        print("research_pushme_token_cleanup=NOT_CONFIRMED")
+
+
 def mcs_receive(sock: ssl.SSLSocket, seconds: int) -> bool:
     """Observe only event category, never disclose message body or metadata."""
     deadline = time.monotonic() + seconds
@@ -293,13 +314,19 @@ def run(live: bool, subscribe: bool, login: str | None, seconds: int) -> None:
     time.sleep(5)
     with mcs_start(device_id, secret) as session:
         time.sleep(5)
-        result = subscribe_mailru(oauth, login, receiver_token, device_id)
-        if result != "ACCOUNT_ACCEPTED":
-            # SDK can treat code==0 and no validation as OK; we prefer certainty.
-            raise SystemExit("No explicit validated account subscription; stopping")
-        print("Send a test message to your own selected mailbox on another device.")
-        print("No message subject/sender/body will be printed or persisted.")
-        mcs_receive(session, seconds)
+        try:
+            result = subscribe_mailru(oauth, login, receiver_token, device_id)
+            if result != "ACCOUNT_ACCEPTED":
+                # SDK can treat code==0 and no validation as OK; we prefer certainty.
+                raise SystemExit("No explicit validated account subscription; stopping")
+            print("Send a test message to your own selected mailbox on another device.")
+            print("No message subject/sender/body will be printed or persisted.")
+            mcs_receive(session, seconds)
+        finally:
+            # Always release precisely this trial token even on timeouts and
+            # interrupted delivery checks. The real phone has another token.
+            time.sleep(5)
+            remove_only_own_token(receiver_token)
 
 
 def main() -> None:
