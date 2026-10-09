@@ -276,7 +276,18 @@ internal sealed partial class MailRuPushProbe
                 return new(accepted, "ответ сервера не соответствует PushMe SDK");
             PushDiagnostics.Record("PUSHME", "SERVER_API_CODE", codeValue);
             if (codeValue != 0)
-                return new(accepted, "ошибка сервера, код " + codeValue);
+            {
+                // Exact original APK model has error.message. Do not log the
+                // arbitrary original text, only its strict safe vocabulary.
+                string? message = null;
+                if (error.TryGetProperty("message", out var reason) &&
+                    reason.ValueKind == JsonValueKind.String)
+                    message = reason.GetString();
+                var safe = PushDiagnostics.SafeServerReason(message);
+                PushDiagnostics.Record("PUSHME", "SERVER_REASON_" + safe);
+                return new(accepted, "ошибка сервера, код " + codeValue +
+                    ", причина " + safe);
+            }
             if (!root.TryGetProperty("validate_result", out var validation) ||
                 validation.ValueKind == JsonValueKind.Null)
                 return new(accepted, null);
