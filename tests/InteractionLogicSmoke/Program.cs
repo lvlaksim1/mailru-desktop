@@ -22,6 +22,14 @@ Expect(diagnosticReport.Contains("count_or_code=403"), true,
     "push report records numeric HTTP code");
 Expect(diagnosticReport.Contains("MCS_READ_MCS_END_OF_STREAM"), true,
     "push report records safe exception kind without its message");
+PushDiagnostics.BeginAttempt(2);
+PushDiagnostics.Failure("PUSHME_HTTP_SEND",
+    new HttpRequestException("SECRET", null, System.Net.HttpStatusCode.BadRequest));
+PushDiagnostics.Failure("WORKER_HTTP",
+    new HttpRequestException("SECRET", null, System.Net.HttpStatusCode.BadRequest));
+Expect(PushDiagnostics.LastFailure.StartsWith("PUSHME_HTTP_SEND:", StringComparison.Ordinal),
+    true, "last failure retains exact failing PushMe stage, not generic retry catch");
+
 Expect(diagnosticReport.Contains("PRIVATE_SECRET"), false,
     "push diagnostics never contain exception message secrets");
 Expect(diagnosticReport.Contains("account@example.invalid"), false,
