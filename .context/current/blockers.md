@@ -30,3 +30,7 @@
 
 
 09.10.2026 after v0.3.34 release: initial AltProd TLS issue addressed by official Prod verified TLS and empty POST HTTP200. Still need live ACCOUNT_ACCEPTED of selected saved user account and genuine event4 on Google MCS in the newly integrated app; user test needed. Remote GitHub TLS results do not independently prove failure cause on user's network. No reason to request mailbox credentials, all auth remains in local DPAPI. Cleanup of trial token must be inspected after the next run. Long-running reliability and all-account delivery deferred until E2E success.
+
+## 09.10.2026 — открытый риск после выпуска v0.3.36
+
+Не осталось блокировки сборки: все CI шаги и оба инсталлятора SUCCESS. Не доказаны в пользовательской Windows-среде: подписка сразу нескольких реальных ящиков на общий токен; восстановление событий после длительного разрыва/выхода и повторного входа; отсутствие дублей; непрерывное получение на оставшихся аккаунтах после удаления одного. Снятие одного аккаунта пока реализовано консервативно через отзыв всего старого общего токена и повторную регистрацию остальных; если сервер не подтвердит отзыв, новый канал не запускается и требуется повторная попытка. Не повышать уровень доказательства без локального опыта, секреты не выгружать в GitHub.
