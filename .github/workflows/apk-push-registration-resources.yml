@@ -32,7 +32,7 @@ jobs:
           AAPT2=$(find "$ANDROID_HOME/build-tools" -type f -name aapt2 | sort -V | tail -n 1)
           test -x "$AAPT2"
           "$AAPT2" dump resources /tmp/mail-original/Mail-15.107.0.148045.apk > /tmp/resources.txt
-          "$AAPT2" dump xmltree /tmp/mail-original/Mail-15.107.0.148045.apk AndroidManifest.xml > /tmp/manifest.txt
+          "$AAPT2" dump xmltree --file AndroidManifest.xml /tmp/mail-original/Mail-15.107.0.148045.apk > /tmp/manifest.txt
           python3 - <<'PY'
           import re
           from pathlib import Path
