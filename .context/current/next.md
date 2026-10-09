@@ -51,3 +51,6 @@ User should install v0.3.34 update (official https://github.com/lvlaksim1/mailru
 
 ## Следующее действие v0.3.39: анализ отчёта
 Попросить владельца установить MailRuDesktop_Update_v0.3.39.exe; в Настройки → Диагностика Google и PushMe дождаться 2+ попыток, нажать «Сохранить в TXT» и приложить файл. Файл содержит только обезличенные этапы и коды ошибок; не собирать токены или исходные серверные ответы. Сверить точное место отказа с оригинальным APK и Google Play services, затем исправить нужный участок, пройти offline/Windows CI и выпустить последующее обновление. Диагностика не запускает отдельные сетевые проверки.
+
+## Next v0.3.40 diagnostic action
+Owner installs https://github.com/lvlaksim1/mailru-desktop/releases/download/v0.3.40/MailRuDesktop_Update_v0.3.40.exe; after normal startup and one automatic refusal (no manual experimental subscription), open Settings → Google/PushMe diagnostics; save TXT or copy filtered lines PUSHME SERVER_API_CODE / SERVER_REASON and FLOW PUSHME_RESPONSE_REJECTED, attach to chat. Inspect redacted category to identify 499 reason. If UNCLASSIFIED no unsupported inference. Only then modify protocol based on primary APK source; distinguish Google Play services MCS system and PushMe SDK account registration. No random 20+12 splitting.
