@@ -957,6 +957,16 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel MaxWidth="800" HorizontalAlignment="Left">
                         <TextBlock FontSize="{DynamicResource AppFontHeroSize}" FontWeight="SemiBold" Text="Настройки"/>
+                        <GroupBox Margin="0,16,0,0" Header="Уведомления о новых письмах (испытание)">
+                            <StackPanel Margin="12">
+                                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource AppMutedTextBrush}"
+                                           Text="Встроенный событийный приёмник по протоколу официального мобильного клиента. Запуск только вручную, без постоянной проверки ящика. Результаты Google и Mail.ru отображаются в отдельном окне."/>
+                                <Button x:Name="OpenPushProbeButton" Content="Проверить получение новых писем"
+                                        Margin="0,10,0,0" Padding="12,7"
+                                        HorizontalAlignment="Left"
+                                        Click="OpenPushProbeButton_Click"/>
+                            </StackPanel>
+                        </GroupBox>
                         <GroupBox Margin="0,16,0,0" Header="Внешний вид">
                             <StackPanel Margin="12">
                                 <TextBlock Margin="0,0,0,6" Text="Тема"/>
