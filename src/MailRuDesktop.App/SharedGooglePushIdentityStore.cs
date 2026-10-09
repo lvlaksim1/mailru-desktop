@@ -59,10 +59,11 @@ internal sealed class SharedGooglePushIdentityStore
         if (File.Exists(_file)) File.Delete(_file);
     }
 
-    internal static bool NeedsRotation(
+    internal static string[] PendingAccountUnsubscriptions(
         IEnumerable<string> previouslySubscribed, IEnumerable<string> currentlyWanted)
     {
         var wanted = new HashSet<string>(currentlyWanted, StringComparer.OrdinalIgnoreCase);
-        return previouslySubscribed.Any(login => !wanted.Contains(login));
+        return previouslySubscribed.Where(login => !wanted.Contains(login))
+            .Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
     }
 }
