@@ -8,6 +8,68 @@
 Отсутствующие детали в самих инструкциях не следует додумывать.
 
 
+## Lcom/vk/commonid/CommonIdProvider$Companion;::getCommonIdGenerated (Landroid/content/Context; Ljava/lang/Long;)Ljava/lang/String;
+Source APK member: Mail-15.107.0.148045.apk; DEX: classes3.dex
+
+~~~smali-like
+00000: monitor-enter v2
+00002: const-string v0, "context"
+00006: invoke-static v3, v0, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object; Ljava/lang/String;)V
+0000c: invoke-static Lcom/vk/commonid/CommonIdProvider;->access$getCommonIdProvider$cp()Lcom/vk/commonid/CommonIdProvider;
+00012: move-result-object v0
+00014: if-nez v0, +00dh
+00018: new-instance v0, Lcom/vk/commonid/CommonIdPrefs;
+0001c: invoke-direct v0, v3, Lcom/vk/commonid/CommonIdPrefs;-><init>(Landroid/content/Context;)V
+00022: invoke-static v2, v0, Lcom/vk/commonid/CommonIdProvider$Companion;->lpmidinommockvmoca(Lcom/vk/commonid/CommonIdProvider$Companion; Lcom/vk/commonid/CommonIdPrefs;)V
+00028: goto +3h
+0002a: move-exception v3
+0002c: goto +14h
+0002e: invoke-static Lcom/vk/commonid/CommonIdProvider;->access$getCommonIdProvider$cp()Lcom/vk/commonid/CommonIdProvider;
+00034: move-result-object v0
+00036: if-nez v0, +008h
+0003a: const-string v0, "commonIdProvider"
+0003e: invoke-static v0, Lkotlin/jvm/internal/Intrinsics;->throwUninitializedPropertyAccessException(Ljava/lang/String;)V
+00044: const/4 v0, 0
+00046: const/4 v1, 0
+00048: invoke-static v0, v3, v1, v4, Lcom/vk/commonid/CommonIdProvider;->access$getOrGenerateCommonIdInternal(Lcom/vk/commonid/CommonIdProvider; Landroid/content/Context; Z Ljava/lang/Long;)Ljava/lang/String;
+0004e: move-result-object v3
+00050: monitor-exit v2
+00052: return-object v3
+00054: monitor-exit v2
+00056: throw v3
+~~~
+
+
+## Lcom/vk/commonid/CommonIdProvider$Companion;::getCommonIdGenerated$default (Lcom/vk/commonid/CommonIdProvider$Companion; Landroid/content/Context; Ljava/lang/Long; I Ljava/lang/Object;)Ljava/lang/String;
+Source APK member: Mail-15.107.0.148045.apk; DEX: classes3.dex
+
+~~~smali-like
+00000: and-int/lit8 v3, v3, 2
+00004: if-eqz v3, +003h
+00008: const/4 v2, 0
+0000a: invoke-virtual v0, v1, v2, Lcom/vk/commonid/CommonIdProvider$Companion;->getCommonIdGenerated(Landroid/content/Context; Ljava/lang/Long;)Ljava/lang/String;
+00010: move-result-object v0
+00012: return-object v0
+~~~
+
+
+## Lcom/vk/commonid/CommonIdProvider;::getCommonIdGenerated (Landroid/content/Context; Ljava/lang/Long;)Ljava/lang/String;
+Source APK member: Mail-15.107.0.148045.apk; DEX: classes3.dex
+
+~~~smali-like
+00000: const-class v0, Lcom/vk/commonid/CommonIdProvider;
+00004: monitor-enter v0
+00006: sget-object v1, Lcom/vk/commonid/CommonIdProvider;->Companion Lcom/vk/commonid/CommonIdProvider$Companion;
+0000a: invoke-virtual v1, v2, v3, Lcom/vk/commonid/CommonIdProvider$Companion;->getCommonIdGenerated(Landroid/content/Context; Ljava/lang/Long;)Ljava/lang/String;
+00010: move-result-object v2
+00012: monitor-exit v0
+00014: return-object v2
+00016: move-exception v2
+00018: monitor-exit v0
+0001a: throw v2
+~~~
+
+
 ## Lcom/vk/pushme/logic/SubscriptionBatcher;::batch (Ljava/util/Collection;)Ljava/util/Collection;
 Source APK member: Mail-15.107.0.148045.apk; DEX: classes19.dex
 
