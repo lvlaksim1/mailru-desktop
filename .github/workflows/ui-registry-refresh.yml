@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/ui-registry-refresh.yml'
+      - 'src/MailRuDesktop.App/**/*.xaml'
+      - 'src/MailRuDesktop.App/**/*.cs'
+      - 'tools/ui_registry.py'
   workflow_dispatch:
 permissions:
   contents: write
