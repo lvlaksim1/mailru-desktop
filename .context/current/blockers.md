@@ -60,3 +60,6 @@ Source-confirmed APK mismatch investigation did not resolve shared 32-account Pu
 
 ## 09.10.2026 — PushMe 19-account result pending
 One account proven works. 32 returned PushMe 499 INVALID_FORMAT. Web Mail.ru limit20 reported by owner, but PushMe cap unknown. Need one regular manual test in v0.3.44 on exactly 19 with unchanged shared schema to confirm or reject size hypothesis. Do not claim CI means registration succeeds. Subsequent stop cleanup of 19 selected accounts can take ~2 minutes due >=5 sec network pacing.
+
+## 10.10.2026 — приёмка 19 закрыта; предел количества не определён
+PushMe реально принял 19 из 19 в одном групповом запросе, Google MCS получил новое письмо, всплывающее уведомление Windows получено. Блокер группы 19 снят. При 32 ранее было 499 INVALID_FORMAT. Неизвестно, допускается ли ровно 20 и какой максимальный размер; не доказано, что веб-лимит 20 относится к PushMe. Не подтверждена отдельная доставка по каждому из 19 и возможность безопасного разделения всех 32 на последовательные группы. Избегать автоматических опытов без указания владельца.
