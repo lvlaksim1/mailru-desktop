@@ -87,11 +87,20 @@ public partial class MainWindow
             var installerPath = await GitHubUpdateService.DownloadUpdateAsync(release);
             UpdateStatusText.Text = "Обновление скачано. Запускаю установщик...";
 
-            Process.Start(new ProcessStartInfo(installerPath)
+            // Inno /SILENT shows its installation progress, without the
+            // wizard dialogs. /SUPPRESSMSGBOXES avoids modal prompts. The
+            // updater itself starts the new app after replacing files.
+            // Desktop shortcuts are not touched by installer/update.iss.
+            var startInfo = new ProcessStartInfo(installerPath)
             {
                 UseShellExecute = true
-            });
-
+            };
+            startInfo.ArgumentList.Add("/SILENT");
+            startInfo.ArgumentList.Add("/SUPPRESSMSGBOXES");
+            startInfo.ArgumentList.Add("/NORESTART");
+            startInfo.ArgumentList.Add("/CLOSEAPPLICATIONS");
+            if (Process.Start(startInfo) is null)
+                throw new InvalidOperationException("Не удалось запустить установщик.");
             Application.Current.Shutdown();
         }
         catch (Exception ex)
