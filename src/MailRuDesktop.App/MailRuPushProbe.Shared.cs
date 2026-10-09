@@ -15,6 +15,105 @@ internal sealed partial class MailRuPushProbe
         "https://push-me.mail.ru/api/v1/unsubscribe_by_device_id";
     private static readonly SemaphoreSlim SharedSubscriptionGate = new(1, 1);
 
+    // Stage 1: create Google recipient ONLY by explicit user request.
+    // Subsequent PushMe batches and MCS reconnections reuse these credentials.
+    internal async Task<SharedGooglePushIdentityStore.State> EnsureGoogleRecipientAsync(
+        Action<string> progress, CancellationToken cancellationToken)
+    {
+        await SharedSubscriptionGate.WaitAsync(cancellationToken);
+        try
+        {
+            var store = new SharedGooglePushIdentityStore();
+            var saved = store.Load();
+            if (saved is null)
+            {
+                PushDiagnostics.Record("GOOGLE", "EXPLICIT_IDENTITY_CREATE");
+                var credentials = await CreateGoogleIdentityAsync(progress, cancellationToken);
+                saved = new SharedGooglePushIdentityStore.State(
+                    credentials.DeviceId, credentials.SecurityToken,
+                    credentials.RegistrationToken, [],
+                    SharedGooglePushIdentityStore.GeneratePushMeCommonId());
+                store.Save(saved);
+            }
+            else if (saved.PushMeCommonId is null)
+            {
+                saved = saved with {
+                    PushMeCommonId = SharedGooglePushIdentityStore.GeneratePushMeCommonId()
+                };
+                store.Save(saved);
+            }
+            else
+                PushDiagnostics.Record("GOOGLE", "SAVED_IDENTITY_REUSED");
+            return saved;
+        }
+        finally { SharedSubscriptionGate.Release(); }
+    }
+
+    // Stage 2: independent PushMe registration without opening a new MCS socket,
+    // registering a Google token, or affecting nonselected subscriptions.
+    internal async Task<SharedSubscriptionOutcome> RegisterGroupAsync(
+        IReadOnlyDictionary<string, string> accounts, CancellationToken cancellationToken)
+    {
+        if (accounts.Count == 0 || accounts.Count > 50)
+            throw new ArgumentException("Выберите от 1 до 50 аккаунтов.");
+        await SharedSubscriptionGate.WaitAsync(cancellationToken);
+        try
+        {
+            var store = new SharedGooglePushIdentityStore();
+            var saved = store.Load() ??
+                throw new InvalidOperationException("Сначала зарегистрируйте Google-получатель.");
+            if (saved.PushMeCommonId is null)
+                throw new InvalidDataException("Отсутствует постоянный PushMe CommonId.");
+
+            var existing = new HashSet<string>(saved.SubscribedAccounts,
+                StringComparer.OrdinalIgnoreCase);
+            if (accounts.Keys.Any(existing.Contains))
+                throw new InvalidOperationException(
+                    "Аккаунт уже зарегистрирован в PushMe; повторная подписка запрещена.");
+
+            var androidId = SharedGooglePushIdentityStore.AndroidIdFromCommonId(
+                saved.PushMeCommonId);
+            var subscriptions = accounts.Select(a =>
+                BuildSubscription(a.Key, a.Value, saved.RegistrationToken,
+                    androidId, saved.PushMeCommonId)).ToArray();
+            var json = JsonSerializer.Serialize(subscriptions);
+
+            // Retain uncertain server-side registrations across a crash/network
+            // failure; restore the old roster only on an EXPLICIT server refusal.
+            store.Save(saved with {
+                SubscribedAccounts = saved.SubscribedAccounts.Concat(accounts.Keys)
+                    .Distinct(StringComparer.OrdinalIgnoreCase).ToArray()
+            });
+            using var request = new HttpRequestMessage(HttpMethod.Post, SubscribeUrl);
+            request.Headers.TryAddWithoutValidation("User-Agent", AppUserAgent);
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+            PushDiagnostics.Record("FLOW", "PUSHME_HTTP_SEND", accounts.Count);
+            await PaceNetworkRequestAsync(cancellationToken);
+            using var response = await _http.SendAsync(request, cancellationToken);
+            PushDiagnostics.Record("PUSHME", "HTTP_STATUS", (int)response.StatusCode);
+            if (!response.IsSuccessStatusCode)
+                throw new HttpRequestException("PushMe group registration HTTP error",
+                    null, response.StatusCode);
+            var body = await response.Content.ReadAsStringAsync(cancellationToken);
+            var parsed = ParseSharedSubscriptionResponse(body, accounts.Keys);
+            if (parsed.Error is not null)
+            {
+                store.Save(saved); // Explicitly rejected: no subscriptions accepted.
+                PushDiagnostics.Record("FLOW", "PUSHME_RESPONSE_REJECTED");
+                return parsed;
+            }
+            var confirmed = saved.SubscribedAccounts.Concat(parsed.Accepted)
+                .Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+            store.Save(saved with { SubscribedAccounts = confirmed });
+            PushDiagnostics.Record("FLOW", "PUSHME_ACCEPTED", parsed.Accepted.Count);
+            PushDiagnostics.Record("PUSHME", "REJECTED_COUNT",
+                accounts.Count - parsed.Accepted.Count);
+            return parsed;
+        }
+        finally { SharedSubscriptionGate.Release(); }
+    }
+
+
     /// <summary>
     /// One protected Google identity and one MCS connection serve all authorized
     /// mailboxes. Only the account field inside an actual event=4 can route it.
@@ -26,7 +125,9 @@ internal sealed partial class MailRuPushProbe
         Action<string> onNewMail,
         Func<string, byte[], bool> shouldDeliver,
         CancellationToken cancellationToken,
-        bool preserveOtherAccounts = false)
+        bool preserveOtherAccounts = false,
+        bool listenOnly = false,
+        Action<string>? onMcsState = null)
     {
         if (accounts.Count == 0) return;
         var phase = "BEGIN";
@@ -34,6 +135,11 @@ internal sealed partial class MailRuPushProbe
         {
             phase = next;
             PushDiagnostics.Record("FLOW", next, value);
+            if (next is "MCS_TCP_CONNECT" or "MCS_TCP_CONNECTED" or
+                "MCS_TLS_HANDSHAKE" or "MCS_TLS_OK" or "MCS_LOGIN_SEND" or
+                "MCS_LOGIN_OK" or "MCS_SERVER_CLOSE" or "MCS_KEEPALIVE_TIMEOUT" or
+                "MCS_SERVER_LOGIN_ERROR" or "MCS_LOGIN_INVALID_RESPONSE")
+                onMcsState?.Invoke(next);
         }
         try
         {
@@ -49,7 +155,7 @@ internal sealed partial class MailRuPushProbe
         if (saved is not null) Phase("IDENTITY_REUSED");
         if (preserveOtherAccounts)
             PushDiagnostics.Record("PUSHME", "PRESERVE_UNSELECTED_ACCOUNTS");
-        if (saved is not null && !preserveOtherAccounts)
+        if (saved is not null && !preserveOtherAccounts && !listenOnly)
         {
             foreach (var removed in SharedGooglePushIdentityStore.PendingAccountUnsubscriptions(
                          saved.SubscribedAccounts, accounts.Keys))
@@ -73,6 +179,9 @@ internal sealed partial class MailRuPushProbe
             }
             saved = store.Load(); // The per-account unsubscribe updates the persisted roster.
         }
+        if (saved is null && listenOnly)
+            throw new InvalidOperationException(
+                "Google recipient is not registered. Complete stage 1 first.");
         if (saved is null)
         {
             Phase("IDENTITY_CREATE");
@@ -137,6 +246,19 @@ internal sealed partial class MailRuPushProbe
         Phase("MCS_LOGIN_OK");
         ReportAll("Google: один защищённый канал для всех аккаунтов (LOGIN_OK).");
 
+        HashSet<string> accepted;
+        if (listenOnly)
+        {
+            // Reconnecting MCS NEVER re-posts PushMe registrations. The
+            // persisted account roster is authoritative for this receiver.
+            accepted = new HashSet<string>(
+                accounts.Keys.Intersect(saved.SubscribedAccounts,
+                    StringComparer.OrdinalIgnoreCase),
+                StringComparer.OrdinalIgnoreCase);
+            Phase("MCS_LISTEN_ONLY", accepted.Count);
+        }
+        else
+        {
         Phase("PUSHME_BUILD_REQUEST", accounts.Count);
         var deviceName = saved.PushMeCommonId!;
         var androidId = SharedGooglePushIdentityStore.AndroidIdFromCommonId(deviceName);
@@ -147,7 +269,6 @@ internal sealed partial class MailRuPushProbe
         PushDiagnostics.Record("PUSHME", "COMMON_ID_STRUCTURE_OK",
             SharedGooglePushIdentityStore.IsValidPushMeCommonId(deviceName) ? 1 : 0);
         var json = JsonSerializer.Serialize(subscriptions);
-        HashSet<string> accepted;
         await SharedSubscriptionGate.WaitAsync(cancellationToken);
         try
         {
@@ -215,6 +336,7 @@ internal sealed partial class MailRuPushProbe
         {
             SharedSubscriptionGate.Release();
         }
+        } // end registration path; MCS listen-only skips PushMe POST entirely
 
             // Even partial acceptance is useful; retry nonaccepted accounts on the
             // next reconnection. Never deliver mail for unaccepted accounts.
