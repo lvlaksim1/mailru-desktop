@@ -100,6 +100,15 @@ internal sealed partial class MailRuPushProbe : IDisposable
         };
     }
 
+    // The literal wire-value profile that successfully delivered a single
+    // new-mail event in v0.3.35. Scoped ONLY to the user-selected manual
+    // test; the shared 32-account implementation remains unchanged.
+    internal static Dictionary<string, object?> BuildVerifiedSingleAccountSubscription(
+        string login, string oauth, string googleToken, ulong googleDeviceId,
+        string temporaryDeviceId) =>
+        BuildSubscription(login, oauth, googleToken,
+            googleDeviceId.ToString(CultureInfo.InvariantCulture), temporaryDeviceId);
+
     internal static string ClassifySubscription(string response, string login)
     {
         // Do not print, persist or forward the response. It may contain account details.
@@ -193,13 +202,15 @@ internal sealed partial class MailRuPushProbe : IDisposable
 
             await Task.Delay(RequestPause, cancellationToken);
             onState("Подписка выбранного аккаунта: официальный сервер Mail.ru Prod (TLS)…");
-            // An independent virtual Android CommonId, as in original APK
-            // DeviceIdProviderImpl. Do not use Google MCS device ID here.
-            var trialDevice = SharedGooglePushIdentityStore.GeneratePushMeCommonId();
+            // Exact v0.3.35 single-account request profile. That historical
+            // version was confirmed to receive a real new-mail event.
+            // Use one temporary Google token, ONE mailbox and this temporary
+            // trial ID, without changing the separate shared identity.
+            var trialDevice = "mailru-windows-" +
+                Convert.ToHexString(RandomNumberGenerator.GetBytes(12)).ToLowerInvariant();
             var json = JsonSerializer.Serialize(new[] {
-                BuildSubscription(login, oauth, temporaryToken,
-                    SharedGooglePushIdentityStore.AndroidIdFromCommonId(trialDevice),
-                    trialDevice)
+                BuildVerifiedSingleAccountSubscription(login, oauth, temporaryToken,
+                    identity.DeviceId, trialDevice)
             });
             using (var request = new HttpRequestMessage(HttpMethod.Post, SubscribeUrl))
             {
