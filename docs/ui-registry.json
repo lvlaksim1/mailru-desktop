@@ -21035,6 +21035,101 @@
     },
     {
       "color_roles_and_values": {},
+      "id": "PushSubscriptionManagerWindow/runtime/src/MailRuDesktop.App/PushSubscriptionManagerWindow.cs:112:ScrollViewer",
+      "line": 112,
+      "location": {
+        "Height": "230"
+      },
+      "name": null,
+      "parent": "PushSubscriptionManagerWindow/runtime",
+      "source": "src/MailRuDesktop.App/PushSubscriptionManagerWindow.cs",
+      "states": null,
+      "style": null,
+      "type": "ScrollViewer",
+      "typography": {},
+      "window": "PushSubscriptionManagerWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "PushSubscriptionManagerWindow/runtime/src/MailRuDesktop.App/PushSubscriptionManagerWindow.cs:122:ScrollViewer",
+      "line": 122,
+      "location": {},
+      "name": null,
+      "parent": "PushSubscriptionManagerWindow/runtime",
+      "source": "src/MailRuDesktop.App/PushSubscriptionManagerWindow.cs",
+      "states": null,
+      "style": null,
+      "type": "ScrollViewer",
+      "typography": {},
+      "window": "PushSubscriptionManagerWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "PushSubscriptionManagerWindow/runtime/src/MailRuDesktop.App/PushSubscriptionManagerWindow.cs:180:TextBlock",
+      "line": 180,
+      "location": {
+        "Margin": "new Thickness(0"
+      },
+      "name": null,
+      "parent": "PushSubscriptionManagerWindow/runtime",
+      "source": "src/MailRuDesktop.App/PushSubscriptionManagerWindow.cs",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {},
+      "window": "PushSubscriptionManagerWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "PushSubscriptionManagerWindow/runtime/src/MailRuDesktop.App/PushSubscriptionManagerWindow.cs:191:StackPanel",
+      "line": 191,
+      "location": {
+        "Margin": "new Thickness(0",
+        "Orientation": "Orientation.Horizontal"
+      },
+      "name": null,
+      "parent": "PushSubscriptionManagerWindow/runtime",
+      "source": "src/MailRuDesktop.App/PushSubscriptionManagerWindow.cs",
+      "states": null,
+      "style": null,
+      "type": "StackPanel",
+      "typography": {},
+      "window": "PushSubscriptionManagerWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "PushSubscriptionManagerWindow/runtime/src/MailRuDesktop.App/PushSubscriptionManagerWindow.cs:283:CheckBox",
+      "line": 283,
+      "location": {
+        "Margin": "new Thickness(3"
+      },
+      "name": null,
+      "parent": "PushSubscriptionManagerWindow/runtime",
+      "source": "src/MailRuDesktop.App/PushSubscriptionManagerWindow.cs",
+      "states": null,
+      "style": null,
+      "type": "CheckBox",
+      "typography": {},
+      "window": "PushSubscriptionManagerWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "PushSubscriptionManagerWindow/runtime/src/MailRuDesktop.App/PushSubscriptionManagerWindow.cs:90:StackPanel",
+      "line": 90,
+      "location": {
+        "Margin": "new Thickness(18)"
+      },
+      "name": null,
+      "parent": "PushSubscriptionManagerWindow/runtime",
+      "source": "src/MailRuDesktop.App/PushSubscriptionManagerWindow.cs",
+      "states": null,
+      "style": null,
+      "type": "StackPanel",
+      "typography": {},
+      "window": "PushSubscriptionManagerWindow"
+    },
+    {
+      "color_roles_and_values": {},
       "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:161:Hyperlink",
       "line": 161,
       "location": {},
@@ -21451,6 +21546,15 @@
       "geometry": {},
       "id": "PushProbeWindow",
       "source": "src/MailRuDesktop.App/PushProbeWindow.cs",
+      "typography": {}
+    },
+    "PushSubscriptionManagerWindow": {
+      "colors": {},
+      "declared_as": "C#",
+      "element_count": 6,
+      "geometry": {},
+      "id": "PushSubscriptionManagerWindow",
+      "source": "src/MailRuDesktop.App/PushSubscriptionManagerWindow.cs",
       "typography": {}
     },
     "TextPromptWindow": {
