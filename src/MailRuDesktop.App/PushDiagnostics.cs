@@ -35,6 +35,72 @@ internal static class PushDiagnostics
         return code;
     }
 
+    // Account addresses are deliberately included ONLY when supplied to the
+    // dedicated account operation logger. General Record() still validates
+    // fixed codes; network messages, tokens and raw payloads are never logged.
+    // The local view is detailed; copied/saved reports must explicitly choose
+    // between full and anonymized form.
+    internal static void RecordAccount(
+        string stage, string code, string account,
+        string? groupId = null, int? index = null, int? total = null,
+        string? operationId = null, int? number = null)
+    {
+        var safeAccount = SafeAccount(account);
+        var normalizedStage = SafeCode(stage);
+        var normalizedCode = SafeCode(code);
+        var safeGroup = SafeIdentifier(groupId);
+        var safeOperation = SafeIdentifier(operationId);
+        var item = index.HasValue && total.HasValue &&
+            index.Value > 0 && total.Value >= index.Value
+            ? " item=" + index.Value + "/" + total.Value : "";
+        var metrics = number is null ? "" : " count_or_code=" + number.Value;
+        var line = DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss.fff zzz") +
+            " #" + Interlocked.Increment(ref _sequence) +
+            " [" + normalizedStage + "] " + normalizedCode +
+            " account=" + safeAccount +
+            (safeGroup is null ? "" : " group=" + safeGroup) +
+            (safeOperation is null ? "" : " op=" + safeOperation) +
+            item + metrics;
+        AppendLine(line);
+    }
+
+    private static string SafeAccount(string? input)
+    {
+        if (string.IsNullOrWhiteSpace(input) || input.Length > 254 ||
+            !Regex.IsMatch(input, @"\A[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9](?:[A-Za-z0-9.-]{0,251}[A-Za-z0-9])?\z",
+                RegexOptions.CultureInvariant))
+            return "INVALID_ACCOUNT";
+        return input.ToLowerInvariant();
+    }
+
+    private static string? SafeIdentifier(string? id) =>
+        !string.IsNullOrEmpty(id) &&
+        Regex.IsMatch(id, @"\A[a-zA-Z0-9_-]{1,36}\z",
+            RegexOptions.CultureInvariant) ? id : null;
+
+    private static void AppendLine(string line)
+    {
+        try
+        {
+            lock (Sync)
+            {
+                Directory.CreateDirectory(LogDirectory);
+                File.AppendAllText(LogPath, line + Environment.NewLine,
+                    new UTF8Encoding(false));
+                var file = new FileInfo(LogPath);
+                if (file.Length > MaxLogBytes)
+                {
+                    var lines = File.ReadAllLines(LogPath, Encoding.UTF8);
+                    File.WriteAllLines(LogPath, lines.TakeLast(RetainLines),
+                        new UTF8Encoding(false));
+                }
+            }
+        }
+        catch (IOException) { /* disk diagnostics must never interrupt mail */ }
+        catch (UnauthorizedAccessException) { }
+        NotifyChanged();
+    }
+
     internal static void Record(string stage, string code, int? number = null)
     {
         var normalizedStage = SafeCode(stage);
@@ -43,23 +109,8 @@ internal static class PushDiagnostics
         var line = DateTimeOffset.Now.ToString("yyyy-MM-dd HH:mm:ss.fff zzz") +
                    " #" + Interlocked.Increment(ref _sequence) +
                    " [" + normalizedStage + "] " + normalizedCode + metric;
-        try
-        {
-            lock (Sync)
-            {
-                Directory.CreateDirectory(LogDirectory);
-                File.AppendAllText(LogPath, line + Environment.NewLine, new UTF8Encoding(false));
-                var file = new FileInfo(LogPath);
-                if (file.Length > MaxLogBytes)
-                {
-                    var lines = File.ReadAllLines(LogPath, Encoding.UTF8);
-                    File.WriteAllLines(LogPath, lines.TakeLast(RetainLines), new UTF8Encoding(false));
-                }
-            }
-        }
-        catch (IOException) { /* Disk diagnostics must never stop email. */ }
-        catch (UnauthorizedAccessException) { }
-        NotifyChanged();
+        AppendLine(line);
+
     }
 
     // PushMe SDK's original SubscriptionResponse.Error includes `message`.
@@ -173,7 +224,26 @@ internal static class PushDiagnostics
         get { lock (Sync) return _lastFailure; }
     }
 
-    internal static string Report(int maxLines = RetainLines)
+    // Stable address pseudonyms within each generated report; never export
+    // plaintext when redactAccounts=true. Mapping is local to this report.
+    internal static string Anonymize(string report)
+    {
+        var aliases = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        return Regex.Replace(report,
+            @"(?i)\b[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b",
+            match =>
+            {
+                if (!aliases.TryGetValue(match.Value, out var number))
+                {
+                    number = aliases.Count + 1;
+                    aliases[match.Value] = number;
+                }
+                return "ACCOUNT_" + number.ToString("D3");
+            });
+    }
+
+    internal static string Report(int maxLines = RetainLines,
+        bool redactAccounts = false)
     {
         lock (Sync)
         {
@@ -185,16 +255,19 @@ internal static class PushDiagnostics
                     : Enumerable.Empty<string>();
                 var version = typeof(PushDiagnostics).Assembly.GetName().Version?.ToString() ??
                               "unknown";
+                var body = string.Join(Environment.NewLine, all);
+                if (redactAccounts) body = Anonymize(body);
                 return "MailRu Desktop — диагностика Google / PushMe" +
                        Environment.NewLine +
                        "Версия: " + version + Environment.NewLine +
-                       "Файл содержит только коды этапов, категории ошибок и числовые показатели." +
+                       (redactAccounts
+                           ? "Адреса заменены стабильными обозначениями ACCOUNT_001, ACCOUNT_002…"
+                           : "Локальный подробный журнал: содержит адреса аккаунтов.") +
                        Environment.NewLine +
-                       "Не содержит адресов, паролей, токенов, содержимого писем и ответов сервера." +
+                       "Пароли, токены, содержимое писем и сырые ответы сервера не записываются." +
                        Environment.NewLine +
                        "Последний сбой: " + _lastFailure + Environment.NewLine +
-                       new string('-', 56) + Environment.NewLine +
-                       string.Join(Environment.NewLine, all);
+                       new string('-', 56) + Environment.NewLine + body;
             }
             catch (IOException)
             {
