@@ -270,3 +270,6 @@ In v0.3.42, inspect MCS LOGIN_ID_PRESENT, LOGIN_ERROR_PRESENT and optional LOGIN
 status: v0.3.43 full/update published, user test awaited
 
 Diagnostic release purposely disables automatic shared push for all 32 logins and leaves previous shared Google registration untouched. User manually opens Settings → Notifications → Select account for testing, checks consent, chooses exactly one of saved accounts, starts old v0.3.35 three-minute single-mailbox test. On event show new-mail balloon via tray if Windows notification setting enabled. Only temporary Google token is unsubscribed at end. User to report ACCOUNT_ACCEPTED and MAILRU_NEW_MAIL_EVENT_RECEIVED=YES and Windows popup. Do not start shared account background and do not claim success until real single-mailbox test. Keep original APK source-based multiaccount investigation separate.
+
+## I-046 — accept nineteen selected mailboxes trial
+Use v0.3.44 to register exactly 19 user-selected mailboxes via the group receiver and record sanitized SERVER_API_CODE, SERVER_REASON, PUSHME_ACCEPTED and new-mail event. Compare 19 against previous 32 PushMe 499 INVALID_FORMAT without changes to group JSON. Single selected mailbox three-minute test from v0.3.43 remains intact. No automatic retries and no speculative protocol requests. Distinguish web 20-account limit from unverified PushMe limits.
