@@ -9,6 +9,29 @@ static void Expect<T>(T actual, T expected, string label)
     Console.WriteLine("PASS " + label);
 }
 
+// Diagnostic tests are entirely offline. No fake or real token may appear in a report.
+PushDiagnostics.Clear();
+PushDiagnostics.Record("GOOGLE", "MCS_LOGIN_OK");
+PushDiagnostics.Record("PUSHME", "HTTP_STATUS", 403);
+PushDiagnostics.Record("account@example.invalid", "SECRET-TOKEN");
+PushDiagnostics.Failure("MCS_READ",
+    new EndOfStreamException("token=PRIVATE_SECRET account@example.invalid"));
+var diagnosticReport = PushDiagnostics.Report();
+Expect(diagnosticReport.Contains("MCS_LOGIN_OK"), true, "push report records successful MCS stage");
+Expect(diagnosticReport.Contains("count_or_code=403"), true,
+    "push report records numeric HTTP code");
+Expect(diagnosticReport.Contains("MCS_READ_MCS_END_OF_STREAM"), true,
+    "push report records safe exception kind without its message");
+Expect(diagnosticReport.Contains("PRIVATE_SECRET"), false,
+    "push diagnostics never contain exception message secrets");
+Expect(diagnosticReport.Contains("account@example.invalid"), false,
+    "push diagnostics never contain mailbox addresses");
+Expect(diagnosticReport.Contains("SECRET-TOKEN"), false,
+    "push diagnostics reject unsafe arbitrary codes");
+PushDiagnostics.Clear();
+Expect(PushDiagnostics.Report().Contains("MCS_LOGIN_OK"), false,
+    "clearing push diagnostics removes persisted history");
+
 Expect(MailRuEndpointCatalog.IsRuntimeHostAllowed("push-me.mail.ru"), true,
     "Original APK PushMe Prod host is registered for strict host policy");
 Expect(MailRuPushProbe.ClassifyNetworkError(
