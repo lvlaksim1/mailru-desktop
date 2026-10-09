@@ -257,3 +257,7 @@ Owner reports recurring Google LOGIN_OK→disconnect→0/32. First obtain TXT fr
 ## I-042 — inspect safe server error.message for PushMe code 499
 status: v0.3.40 available, user TXT awaited
 Capture one normal failed PushMe subscription response's numeric code and strictly redacted SERVER_REASON from v0.3.40's local diagnostic report; never ask for raw OAuth, Google token, account address, or raw PushMe body. Then correlate safe message with original APK fields/API implementation. Do NOT use experimental network requests or randomly split 32 mail account subscriptions. If SERVER_REASON_UNCLASSIFIED, acknowledge limits; further source study needed. Distinguish application rejection from Google MCS connectivity. Avoid claiming 499 is client timeout HTTP499 or 20-item hard limit.
+
+## I-043 — проверить принятие исходного формата CommonId сервером
+status: v0.3.41 source-derived correction released; live acceptance pending
+Владелец устанавливает v0.3.41 и наблюдает штатный запрос регистрации 32 аккаунтов (без ручного сетевого подбора). Сравнить новый SERVER_API_CODE и SERVER_REASON с прежним 499/INVALID_FORMAT. Если code=0 — проверить число принятых аккаунтов и доставку событий; если 499 остаётся — сопоставить остальные свойства вложенного settings с APK, не гадать и не внедрять произвольные размеры пакетов. Исходный CommonId у Android основан на AndroidID:MD5(Build.*); в Windows виртуальный Android-профиль, не выдавать за настоящий телефон.
