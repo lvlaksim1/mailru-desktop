@@ -377,3 +377,11 @@ statement: 2026-10-09 владелец прямо подтвердил, что �
 source: прямое сообщение владельца в чате 2026-10-09: «задачи 1-3 решены».
 authority: owner-runtime-report.
 supersedes: B-046 в части ожидания пользовательской приёмки задач 1–3.
+
+
+## B-048 — механизм уведомлений нового письма в APK восстановлен статически
+
+statement: В Android APK Mail.ru 15.107.0.148045 действуют GCM, HMS и VKPNS варианты транспорта; сервис RuStore MailMessagingService получает событие, передаёт слушателю, отдельный CopyPushTokensToPushMeSDK регистрирует токены соответствующих каналов, NewMailPush содержит идентификатор, отправителя, тему, папку, время и дополнительные поля, PushMessageServiceVisitor вызывает NotificationHandler.showNotification. PushMeSDK обслуживает регистрацию аккаунтов/токенов и служебный учёт событий. Наличие совместимого доставщика/токена на Windows не доказано, точные HTTP-методы PushMeApiImpl частично не декомпилированы. Не подменять механизм опросом почты.
+source: выборочная полная декомпиляция APK, Actions 37870637190 PASS; исследовательский коммит 2ef598f7b58ec2e4371cdc4bbaa49484e958a4c3; docs/research/android-new-mail-notifications-2026-10-09.md.
+authority: verified-repository-static-apk; NOT live network validation or Windows feasibility.
+supersedes: предварительное предположение о неизвестной внутренней цепочке уведомлений в B-047/предыдущем исследовании.
