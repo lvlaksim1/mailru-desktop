@@ -342,7 +342,7 @@ public partial class MainWindow
         PushDiagnostics.Record("UI", "MANUAL_GROUP19_START", accounts.Count);
         BackgroundPushStatusText.Text = "Проверка 19 аккаунтов: подключение…";
         _pushBackground.Reconcile(accounts, enabled: true,
-            retryOnFailure: false);
+            retryOnFailure: false, preserveOtherAccounts: true);
         return true;
     }
 
