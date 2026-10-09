@@ -1,4 +1,5 @@
 using System.Buffers.Binary;
+using System.Security.Authentication;
 using System.Globalization;
 using System.IO;
 using System.Net;
@@ -114,6 +115,24 @@ internal sealed class MailRuPushProbe : IDisposable
         }
     }
 
+    // Only fixed, non-personal technical categories are returned to the UI.
+    // Never display exception.Message: HTTP libraries may include secret URLs.
+    internal static string ClassifyNetworkError(HttpRequestException error)
+    {
+        if (error.InnerException is AuthenticationException ||
+            error.HttpRequestError == HttpRequestError.SecureConnectionError)
+            return "ошибка проверки сертификата TLS";
+        return error.HttpRequestError switch
+        {
+            HttpRequestError.NameResolutionError => "ошибка DNS: адрес сервера не найден",
+            HttpRequestError.ConnectionError => "не удалось соединиться с сервером",
+            HttpRequestError.HttpProtocolError => "ошибка протокола HTTP",
+            HttpRequestError.InvalidResponse => "неверный ответ HTTP",
+            HttpRequestError.ResponseEnded => "сервер преждевременно закрыл соединение",
+            _ => "сетевая ошибка (точный вид не определён)"
+        };
+    }
+
     public async Task RunAsync(
         string login, string oauth, Action<string> onState, Action onNewMail,
         CancellationToken cancellationToken)
@@ -151,7 +170,7 @@ internal sealed class MailRuPushProbe : IDisposable
             onState("Google: защищённый канал открыт (LOGIN_OK).");
 
             await Task.Delay(RequestPause, cancellationToken);
-            onState("Подписка выбранного аккаунта на сервере Mail.ru…");
+            onState("Подписка выбранного аккаунта: официальный сервер Mail.ru Prod (TLS)…");
             var trialDevice = "mailru-windows-" + Convert.ToHexString(RandomNumberGenerator.GetBytes(12)).ToLowerInvariant();
             var json = JsonSerializer.Serialize(new[] {
                 BuildSubscription(login, oauth, temporaryToken, identity.DeviceId, trialDevice)
@@ -162,7 +181,10 @@ internal sealed class MailRuPushProbe : IDisposable
                 request.Headers.TryAddWithoutValidation("User-Agent", AppUserAgent);
                 using var response = await _http.SendAsync(request, cancellationToken);
                 if (!response.IsSuccessStatusCode)
-                    throw new InvalidOperationException("Mail.ru: отказ HTTP " + (int)response.StatusCode);
+                {
+                    onState("Mail.ru Prod: отказ HTTP " + (int)response.StatusCode);
+                    return;
+                }
                 var raw = await response.Content.ReadAsStringAsync(cancellationToken);
                 var state = ClassifySubscription(raw, login);
                 onState("Mail.ru: " + state);
@@ -206,6 +228,10 @@ internal sealed class MailRuPushProbe : IDisposable
                 onState("Время ожидания истекло, событие нового письма не получено.");
             }
         }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            onState("Превышено время ожидания ответа сервера.");
+        }
         catch (OperationCanceledException)
         {
             onState("Проверка остановлена.");
@@ -216,7 +242,8 @@ internal sealed class MailRuPushProbe : IDisposable
             // account addresses or auth material.
             onState("Ошибка этапа: " + (ex switch
             {
-                HttpRequestException => "сетевое соединение",
+                HttpRequestException requestError => ClassifyNetworkError(requestError),
+                AuthenticationException => "ошибка проверки сертификата TLS",
                 SocketException => "соединение с Google",
                 IOException => "соединение прервано",
                 InvalidOperationException => "сервер не подтвердил операцию",
