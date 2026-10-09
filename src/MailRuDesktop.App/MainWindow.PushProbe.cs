@@ -88,8 +88,10 @@ public partial class MainWindow
     {
         if (!_pushBackgroundReady || _pushShuttingDown || _pushBackground is null)
             return;
-        var enabled = BackgroundPushEnabledCheckBox.IsChecked == true &&
-                      _pushProbeWindow is not { IsVisible: true };
+        var userEnabled = BackgroundPushEnabledCheckBox.IsChecked == true;
+        var pauseForDiagnostics = userEnabled &&
+                                  _pushProbeWindow is { IsVisible: true };
+        var enabled = userEnabled && !pauseForDiagnostics;
         var accounts = new List<(string Login, string Token)>();
         if (enabled)
         {
@@ -105,7 +107,7 @@ public partial class MainWindow
         _pushConnectedAccounts.RemoveWhere(login =>
             !accounts.Any(account =>
                 string.Equals(account.Login, login, StringComparison.OrdinalIgnoreCase)));
-        _pushBackground.Reconcile(accounts, enabled);
+        _pushBackground.Reconcile(accounts, enabled, pauseForDiagnostics);
         if (_pushNotificationArea is not null)
             _pushNotificationArea.Visible = true; // Tray icon is independent of push subscription.
         if (!enabled)
