@@ -23,6 +23,8 @@ var msgData = PushWire.Append(
     PushWire.TextField(5, "ru.mail.mailapp"),
     PushWire.BytesField(7, PushWire.Append(
         PushWire.TextField(1, "event"), PushWire.TextField(2, "4"))),
+    PushWire.BytesField(7, PushWire.Append(
+        PushWire.TextField(1, "account"), PushWire.TextField(2, "test@example.invalid"))),
     PushWire.TextField(9, "test-persistent-id"));
 Expect(PushWire.IsMailNewMessage(msgData), true, "continuous Mail.ru new-mail event");
 var ack = PushWire.SelectiveAcknowledgment(msgData);
@@ -41,11 +43,55 @@ using (var manager = new MailRuPushBackgroundService(
         PushWire.TextField(5, "ru.mail.mailapp"),
         PushWire.BytesField(7, PushWire.Append(
             PushWire.TextField(1, "event"), PushWire.TextField(2, "4"))),
+        PushWire.BytesField(7, PushWire.Append(
+            PushWire.TextField(1, "account"), PushWire.TextField(2, "test@example.invalid"))),
         PushWire.TextField(9, "another-persistent-id"));
     Expect(manager.AcceptMessage("test@example.invalid", distinctMessage), true,
         "two different letters must be handled even within two seconds");
     Expect(manager.AcceptMessage("test@example.invalid", distinctMessage), false,
         "repeated second letter is not handled twice");
+    Expect(PushWire.NewMailAccount(msgData), "test@example.invalid",
+        "shared Google receiver extracts mailbox from original message");
+    Expect(manager.AcceptMessage("other@example.invalid", msgData), false,
+        "shared receiver cannot route a letter to a different mailbox");
+    var missingAccount = PushWire.Append(
+        PushWire.TextField(5, "ru.mail.mailapp"),
+        PushWire.BytesField(7, PushWire.Append(
+            PushWire.TextField(1, "event"), PushWire.TextField(2, "4"))));
+    Expect(PushWire.NewMailAccount(missingAccount), null,
+        "event without mailbox never targets active UI account");
+    Expect(manager.AcceptMessage("test@example.invalid", missingAccount), false,
+        "no mailbox means no delivery");
+    Expect(SharedGooglePushIdentityStore.NeedsRotation(
+        ["old@example.invalid", "kept@example.invalid"], ["kept@example.invalid"]),
+        true, "removing one account requires safe shared-token rotation");
+    Expect(SharedGooglePushIdentityStore.NeedsRotation(
+        ["kept@example.invalid"], ["kept@example.invalid", "new@example.invalid"]),
+        false, "adding an account preserves the common Google token");
+    Expect(SharedGooglePushIdentityStore.NeedsRotation(
+        ["TEST@example.invalid"], ["test@example.invalid"]),
+        false, "account case changes do not rotate Google identity");
+    var secretRoot = Path.Combine(Path.GetTempPath(), "MailRuGoogleReceiver-" +
+        Guid.NewGuid().ToString("N"));
+    try
+    {
+        var store = new SharedGooglePushIdentityStore(secretRoot);
+        var original = new SharedGooglePushIdentityStore.State(
+            101, 202, "FAKE_GOOGLE_TOKEN_FOR_OFFLINE_TEST", ["test@example.invalid"]);
+        store.Save(original);
+        Expect(store.Load()!.RegistrationToken, original.RegistrationToken,
+            "shared Google identity survives app restart");
+        var protectedContent = File.ReadAllText(
+            Path.Combine(secretRoot, "google-push-receiver.dat"));
+        Expect(protectedContent.Contains(original.RegistrationToken, StringComparison.Ordinal),
+            false, "Google token never stored as plaintext");
+        store.Delete();
+        Expect(store.Load(), null, "server-confirmed unsubscribe removes protected identity");
+    }
+    finally
+    {
+        if (Directory.Exists(secretRoot)) Directory.Delete(secretRoot, recursive: true);
+    }
     Expect(manager.ActiveAccountCount, 0, "manager has no unsolicited account connections");
     manager.Reconcile(Array.Empty<(string Login, string Token)>(), enabled: false);
     Expect(manager.Enabled, false, "user opt-out cancels the receiving service");
