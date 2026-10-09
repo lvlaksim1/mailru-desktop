@@ -156,7 +156,10 @@ public partial class MainWindow
     private void BackgroundPushEnabledCheckBox_Changed(object sender, RoutedEventArgs e)
     {
         if (!_pushSettingsInitialized || _pushShuttingDown) return;
-        _settingsStore.SaveBackgroundPushEnabled(BackgroundPushEnabledCheckBox.IsChecked == true);
+        var selected = BackgroundPushEnabledCheckBox.IsChecked == true;
+        PushDiagnostics.Record("UI", selected ? "AUTO_NOTIFICATIONS_ENABLED" :
+            "AUTO_NOTIFICATIONS_DISABLED");
+        _settingsStore.SaveBackgroundPushEnabled(selected);
         SyncBackgroundPush();
     }
 
