@@ -1,0 +1,19 @@
+name: Original APK PushMe contract smoke (offline)
+on:
+  push:
+    branches:
+      - research/mail-apk-15.107.0.148045
+    paths:
+      - '.github/workflows/apk-pushme-contract-smoke.yml'
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/mail-apk-15.107.0.148045
+      - name: Check registration payload and account response logic (no network)
+        run: python3 tools/push_research/pushme_contract_probe.py
