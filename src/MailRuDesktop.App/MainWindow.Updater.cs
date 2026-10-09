@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.IO;
+using System.IO.Pipes;
 using System.Reflection;
 using System.Windows;
 
@@ -69,7 +71,7 @@ public partial class MainWindow
         }
     }
 
-    private async void InstallUpdateButton_Click(object sender, RoutedEventArgs e)
+    private void InstallUpdateButton_Click(object sender, RoutedEventArgs e)
     {
         var release = _availableUpdate;
         if (release is null)
@@ -80,35 +82,77 @@ public partial class MainWindow
 
         CheckForUpdatesButton.IsEnabled = false;
         InstallUpdateButton.IsEnabled = false;
-        UpdateStatusText.Text = $"Скачивание обновления {release.Version} с GitHub...";
-
         try
         {
-            var installerPath = await GitHubUpdateService.DownloadUpdateAsync(release);
-            UpdateStatusText.Text = "Обновление скачано. Запускаю установщик...";
+            // A separate single-file Windows process owns the progress window
+            // throughout download -> app exit -> Inno install -> app restart.
+            var installedHelper = Path.Combine(AppContext.BaseDirectory,
+                "UpdateAgent", "MailRuDesktop.UpdateAgent.exe");
+            if (!File.Exists(installedHelper))
+                throw new FileNotFoundException("Не найден модуль обновления.");
 
-            // Inno /SILENT shows its installation progress, without the
-            // wizard dialogs. /SUPPRESSMSGBOXES avoids modal prompts. The
-            // updater itself starts the new app after replacing files.
-            // Desktop shortcuts are not touched by installer/update.iss.
-            var startInfo = new ProcessStartInfo(installerPath)
+            var helperDirectory = Path.Combine(Path.GetTempPath(),
+                "MailRuDesktop-UpdateAgents");
+            Directory.CreateDirectory(helperDirectory);
+            foreach (var oldHelper in Directory.EnumerateFiles(helperDirectory,
+                         "MailRuDesktop.UpdateAgent-*.exe"))
             {
-                UseShellExecute = true
+                try { File.Delete(oldHelper); }
+                catch (IOException) { /* Another helper is still running. */ }
+                catch (UnauthorizedAccessException) { }
+            }
+            var helperCopy = Path.Combine(helperDirectory,
+                "MailRuDesktop.UpdateAgent-" + Guid.NewGuid().ToString("N") + ".exe");
+            File.Copy(installedHelper, helperCopy);
+            var pipeName = "MailRuDesktop-Update-" + Guid.NewGuid().ToString("N");
+            var pipe = new NamedPipeServerStream(pipeName, PipeDirection.In,
+                1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
+            var start = new ProcessStartInfo(helperCopy)
+            {
+                UseShellExecute = false
             };
-            startInfo.ArgumentList.Add("/SILENT");
-            startInfo.ArgumentList.Add("/SUPPRESSMSGBOXES");
-            startInfo.ArgumentList.Add("/NORESTART");
-            startInfo.ArgumentList.Add("/CLOSEAPPLICATIONS");
-            if (Process.Start(startInfo) is null)
-                throw new InvalidOperationException("Не удалось запустить установщик.");
-            Application.Current.Shutdown();
+            start.ArgumentList.Add(Environment.ProcessId.ToString());
+            start.ArgumentList.Add(release.UpdateDownloadUrl);
+            start.ArgumentList.Add(Environment.ProcessPath ??
+                Path.Combine(AppContext.BaseDirectory, "MailRuDesktop.App.exe"));
+            start.ArgumentList.Add(pipeName);
+
+            if (Process.Start(start) is null)
+            {
+                pipe.Dispose();
+                throw new InvalidOperationException("Модуль обновления не запущен.");
+            }
+            UpdateStatusText.Text =
+                "Окно обновления открыто. Программа закроется после скачивания.";
+            _ = Task.Run(async () =>
+            {
+                using (pipe)
+                using (var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(15)))
+                {
+                    try
+                    {
+                        await pipe.WaitForConnectionAsync(timeout.Token);
+                        using var reader = new StreamReader(pipe);
+                        var command = await reader.ReadLineAsync(timeout.Token);
+                        if (command == "UPDATE_READY")
+                            await Dispatcher.InvokeAsync(() =>
+                            {
+                                // Normal WPF Shutdown is intercepted by the tray:
+                                // explicitly take the controlled exit path instead.
+                                _pushExitRequested = true;
+                                Close();
+                            });
+                    }
+                    catch (OperationCanceledException) { }
+                    catch (IOException) { }
+                }
+            });
         }
-        catch (Exception ex)
+        catch (Exception error)
         {
-            UpdateStatusText.Text = "Не удалось скачать или запустить обновление.";
-            DiagnosticLog.Write(
-                "github_update_install",
-                ex.GetType().Name + ": " + ex.Message);
+            UpdateStatusText.Text = "Не удалось запустить обновление: " +
+                error.GetType().Name + ".";
+            DiagnosticLog.Write("github_update_install", error.GetType().Name);
             CheckForUpdatesButton.IsEnabled = true;
             InstallUpdateButton.IsEnabled = true;
         }

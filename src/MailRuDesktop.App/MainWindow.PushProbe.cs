@@ -77,7 +77,7 @@ public partial class MainWindow
                 if (_pushShuttingDown || Dispatcher.HasShutdownStarted) return;
                 _ = Dispatcher.BeginInvoke(new Action(() => OnPushNewMail(login)));
             },
-            SetGoogleMcsState);
+            phase => SetGoogleMcsState(phase));
         // Keep the user's previous preference in settings for future versions,
         // but NEVER enable the multi-account receiver in this test release.
         BackgroundPushEnabledCheckBox.IsChecked = ManualGroupManagementRelease
@@ -290,7 +290,8 @@ public partial class MainWindow
 
     private void OpenPushProbeButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_pushBackground?.Enabled == true)
+        if (_pushBackground?.Enabled == true ||
+            _supplementalReceivers.Values.Any(worker => worker.Enabled))
         {
             MessageBox.Show(this,
                 "Сначала остановите общий приём MCS в управлении группами. " +
@@ -404,6 +405,7 @@ public partial class MainWindow
         {
             if (_pushBackground is not null)
                 await _pushBackground.StopAsync();
+            await StopSupplementalGroupWorkersAsync();
         }
         finally
         {

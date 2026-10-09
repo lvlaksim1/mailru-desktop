@@ -35,6 +35,10 @@ jobs:
         shell: pwsh
         run: dotnet publish src/MailRuDesktop.App/MailRuDesktop.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:DebugType=None -p:DebugSymbols=false -p:Version=${{ steps.request.outputs.version }} -o publish
 
+      - name: Publish standalone update progress agent
+        shell: pwsh
+        run: dotnet publish src/MailRuDesktop.UpdateAgent/MailRuDesktop.UpdateAgent.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:DebugType=None -p:DebugSymbols=false -o publish/UpdateAgent
+
       - name: Install Inno Setup
         shell: pwsh
         run: choco install innosetup -y --no-progress

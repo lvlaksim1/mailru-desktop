@@ -13,7 +13,9 @@ internal sealed class PushGroupRegistryStore
 {
     internal sealed record Group(
         string Id, string[] Accounts, DateTimeOffset ConfirmedUtc,
-        string State = "CONFIRMED");
+        string State = "CONFIRMED",
+        string RecipientId = SharedGooglePushIdentityStore.PrimaryRecipientId,
+        bool? ReceiveEnabled = null);
     internal sealed record Registry(
         bool ReceiveEnabled, Group[] Groups, bool LegacyImported = false);
 
@@ -59,6 +61,7 @@ internal sealed class PushGroupRegistryStore
                 !uniqueIds.Add(group.Id) ||
                 group.Accounts is null || group.Accounts.Length == 0 ||
                 group.Accounts.Length > 50 ||
+                !SharedGooglePushIdentityStore.ValidRecipientId(group.RecipientId) ||
                 (group.State != "CONFIRMED" && group.State != "IMPORTED" &&
                  group.State != "RECHECK_REQUIRED" && group.State != "EVENT_SEEN"))
                 throw new InvalidDataException("Некорректная группа PushMe.");
@@ -78,8 +81,11 @@ internal sealed class PushGroupRegistryStore
 
     internal static Registry Register(
         Registry prior, string[] selected, IReadOnlyCollection<string> accepted,
-        string? groupId = null)
+        string? groupId = null,
+        string recipientId = SharedGooglePushIdentityStore.PrimaryRecipientId)
     {
+        if (!SharedGooglePushIdentityStore.ValidRecipientId(recipientId))
+            throw new ArgumentException("Invalid recipient slot.", nameof(recipientId));
         if (selected.Length == 0 ||
             selected.Distinct(StringComparer.OrdinalIgnoreCase).Count() != selected.Length)
             throw new ArgumentException("Некорректный состав группы.");
@@ -90,14 +96,16 @@ internal sealed class PushGroupRegistryStore
         var confirmed = selected.Where(a => accepted.Contains(a,
             StringComparer.OrdinalIgnoreCase)).ToArray();
         if (confirmed.Length == 0) return prior;
-        var group = new Group(groupId ?? Guid.NewGuid().ToString("N"), confirmed, DateTimeOffset.UtcNow);
+        var group = new Group(groupId ?? Guid.NewGuid().ToString("N"), confirmed,
+            DateTimeOffset.UtcNow, "CONFIRMED", recipientId,
+            prior.ReceiveEnabled);
         // A second batch may replace earlier server-side registrations;
         // until real events arrive for those groups, never present their
         // continuing delivery as verified.
         return prior with {
-            Groups = prior.Groups.Select(old => old with {
-                State = "RECHECK_REQUIRED"
-            }).Append(group).ToArray(),
+            Groups = prior.Groups.Select(old => old.RecipientId == recipientId
+                ? old with { State = "RECHECK_REQUIRED" } : old)
+                .Append(group).ToArray(),
             LegacyImported = true
         };
     }
@@ -133,6 +141,28 @@ internal sealed class PushGroupRegistryStore
                     ? group with { State = "EVENT_SEEN" } : group).ToArray()
         };
     }
+
+    internal static Registry SetGroupReceiving(Registry prior, string groupId, bool enabled)
+    {
+        if (!prior.Groups.Any(g => g.Id == groupId))
+            throw new ArgumentException("Group not found.", nameof(groupId));
+        // Materialize legacy null flags before changing the global intent so
+        // unrelated groups retain their previous per-group receiving choice.
+        var groups = prior.Groups.Select(g => g with {
+            ReceiveEnabled = g.Id == groupId
+                ? enabled : g.ReceiveEnabled ?? prior.ReceiveEnabled
+        }).ToArray();
+        return prior with {
+            ReceiveEnabled = groups.Any(g => g.ReceiveEnabled == true),
+            Groups = groups
+        };
+    }
+
+    internal static Registry SetAllReceiving(Registry prior, bool enabled) =>
+        prior with {
+            ReceiveEnabled = enabled,
+            Groups = prior.Groups.Select(g => g with { ReceiveEnabled = enabled }).ToArray()
+        };
 
     internal static Registry RemoveAccounts(Registry prior, IEnumerable<string> removed)
     {
