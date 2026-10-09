@@ -62,6 +62,40 @@ internal static class PushDiagnostics
         NotifyChanged();
     }
 
+    // PushMe SDK's original SubscriptionResponse.Error includes `message`.
+    // Preserve ONLY selected safe error vocabulary, never any arbitrary server
+    // string. Emails, token fragments, URLs, device IDs and unknown words
+    // cannot appear in the exported diagnostic report.
+    private static readonly HashSet<string> SafeServerTerms = new(
+        StringComparer.OrdinalIgnoreCase)
+    {
+        "invalid", "expired", "token", "access", "authentication", "authorization",
+        "unauthorized", "forbidden", "error", "bad", "request", "parameter",
+        "parameters", "missing", "required", "unsupported", "format",
+        "malformed", "incorrect", "not", "valid", "failed", "account",
+        "application", "client", "device", "id", "registered", "registration",
+        "push", "firebase", "google", "credential", "credentials", "permission",
+        "denied", "limit", "rate", "too", "many", "exceeded", "maximum",
+        "rejected", "unknown", "unavailable", "blocked", "disabled",
+        "неверный", "неверная", "неверное", "невалидный", "ошибка",
+        "токен", "доступ", "истёк", "истек", "авторизация", "аккаунт",
+        "устройство", "клиент", "приложение", "лимит", "превышен",
+        "недопустимый", "параметр", "отказано", "отклонён", "отклонен"
+    };
+
+    internal static string SafeServerReason(string? serverMessage)
+    {
+        if (string.IsNullOrWhiteSpace(serverMessage)) return "EMPTY";
+        var safe = Regex.Matches(serverMessage, @"[\\p{L}]+")
+            .Select(m => m.Value.ToLowerInvariant())
+            .Where(word => SafeServerTerms.Contains(word))
+            .Take(7)
+            .ToArray();
+        if (safe.Length == 0) return "UNCLASSIFIED";
+        var code = string.Join("_", safe).ToUpperInvariant();
+        return SafeCode(code);
+    }
+
     internal static string FailureCategory(Exception failure)
     {
         // Avoid ex.Message and ex.ToString(): they can contain request URIs or
