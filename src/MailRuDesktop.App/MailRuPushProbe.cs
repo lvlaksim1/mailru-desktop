@@ -53,7 +53,7 @@ internal sealed partial class MailRuPushProbe : IDisposable
 
 
     internal static Dictionary<string, object?> BuildSubscription(
-        string login, string oauth, string googleToken, ulong androidId, string trialDevice)
+        string login, string oauth, string googleToken, string androidId, string pushMeCommonId)
     {
         if (string.IsNullOrWhiteSpace(login) || string.IsNullOrWhiteSpace(oauth) ||
             string.IsNullOrWhiteSpace(googleToken))
@@ -77,8 +77,8 @@ internal sealed partial class MailRuPushProbe : IDisposable
             ["platform"] = "android", // wire name of FIREBASE; not internal "fcm"
             ["token"] = googleToken,
             ["access_token"] = oauth,
-            ["android_id"] = androidId.ToString(CultureInfo.InvariantCulture),
-            ["sdk_device_id"] = trialDevice,
+            ["android_id"] = androidId,
+            ["sdk_device_id"] = pushMeCommonId,
             ["settings"] = new
             {
                 capabilities = new { can_mail = new { Filter = filters } },
@@ -92,7 +92,7 @@ internal sealed partial class MailRuPushProbe : IDisposable
                     // Synthetic test device profile, NOT extracted from a real phone.
                     ["info"] = "Windows Research;0 cameras;360.0x800.0;NONE"
                 },
-                device_id = trialDevice,
+                device_id = pushMeCommonId,
                 client_time_zone = zone,
                 badge = new { status = true, mode = "unread" }
             },
@@ -194,9 +194,13 @@ internal sealed partial class MailRuPushProbe : IDisposable
 
             await Task.Delay(RequestPause, cancellationToken);
             onState("Подписка выбранного аккаунта: официальный сервер Mail.ru Prod (TLS)…");
-            var trialDevice = "mailru-windows-" + Convert.ToHexString(RandomNumberGenerator.GetBytes(12)).ToLowerInvariant();
+            // An independent virtual Android CommonId, as in original APK
+            // DeviceIdProviderImpl. Do not use Google MCS device ID here.
+            var trialDevice = SharedGooglePushIdentityStore.GeneratePushMeCommonId();
             var json = JsonSerializer.Serialize(new[] {
-                BuildSubscription(login, oauth, temporaryToken, identity.DeviceId, trialDevice)
+                BuildSubscription(login, oauth, temporaryToken,
+                    SharedGooglePushIdentityStore.AndroidIdFromCommonId(trialDevice),
+                    trialDevice)
             });
             using (var request = new HttpRequestMessage(HttpMethod.Post, SubscribeUrl))
             {
