@@ -261,3 +261,7 @@ Capture one normal failed PushMe subscription response's numeric code and strict
 ## I-043 — проверить принятие исходного формата CommonId сервером
 status: v0.3.41 source-derived correction released; live acceptance pending
 Владелец устанавливает v0.3.41 и наблюдает штатный запрос регистрации 32 аккаунтов (без ручного сетевого подбора). Сравнить новый SERVER_API_CODE и SERVER_REASON с прежним 499/INVALID_FORMAT. Если code=0 — проверить число принятых аккаунтов и доставку событий; если 499 остаётся — сопоставить остальные свойства вложенного settings с APK, не гадать и не внедрять произвольные размеры пакетов. Исходный CommonId у Android основан на AndroidID:MD5(Build.*); в Windows виртуальный Android-профиль, не выдавать за настоящий телефон.
+
+## I-044 — Verify fixed MCS classifier on normal v0.3.42 runtime
+status: code/offline Windows CI+installers complete; live user trace pending
+In v0.3.42, inspect MCS LOGIN_ID_PRESENT, LOGIN_ERROR_PRESENT and optional LOGIN_ERROR_CODE from one ordinary attempt, plus phase MCS_LOGIN_OK or MCS_SERVER_LOGIN_ERROR/MCS_LOGIN_INVALID_RESPONSE. Upstream Chromium accepts ErrorInfo.code=0 even if error field present, but prior v0.3.41 log did not capture code, thus not proven original cause. If MCS_LOGIN_OK, continue registration: SERVER_API_CODE / SERVER_REASON / PUSHME_ACCEPTED; earlier PushMe 499 INVALID_FORMAT remains open until new evidence. Keep reverse engineering source-first, no experimental connections or guessed field changes. Read-only diagnostic records safe codes, no token/body.
