@@ -1,31 +1,20 @@
-using System.Net;
-using System.Security.Cryptography;
-
 namespace MailRuDesktop.App;
 
 /// <summary>
-/// Independent long-running PushMe sessions for saved Mail.ru mailboxes.
-/// There is no timer-based mailbox polling: only subscribed Google MCS events
-/// cause a folder refresh. Every recipient is independent of the phone.
+/// One background worker, one Google token and one MCS connection for ALL
+/// authorized mailboxes. Reconciliations are serialized: overlapping receivers
+/// with the same persistent identity are never started.
 /// </summary>
 internal sealed class MailRuPushBackgroundService : IDisposable
 {
-    private sealed class Session
-    {
-        public required string Login { get; init; }
-        public required string AccessToken { get; init; }
-        public required CancellationTokenSource Cancellation { get; init; }
-        public Task Runner { get; set; } = Task.CompletedTask;
-    }
-
     private readonly object _sync = new();
-    private readonly Dictionary<string, Session> _sessions =
-        new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _recentMessages = new(StringComparer.Ordinal);
     private readonly Queue<string> _recentOrder = new();
-    private readonly List<Task> _retiredRunners = [];
     private readonly Action<string, string> _onStatus;
     private readonly Action<string> _onNewMail;
+    private Dictionary<string, string> _accounts = new(StringComparer.OrdinalIgnoreCase);
+    private CancellationTokenSource? _currentCancellation;
+    private Task _tail = Task.CompletedTask;
     private bool _enabled;
     private bool _stopping;
 
@@ -43,104 +32,133 @@ internal sealed class MailRuPushBackgroundService : IDisposable
 
     internal int ActiveAccountCount
     {
-        get { lock (_sync) return _sessions.Count; }
+        get { lock (_sync) return _enabled && !_stopping ? _accounts.Count : 0; }
     }
 
-    /// <summary>
-    /// Called on the WPF UI thread. Credentials stay in memory, and only
-    /// accounts with locally saved access tokens are admitted.
-    /// </summary>
     internal void Reconcile(IEnumerable<(string Login, string Token)> accounts, bool enabled)
     {
-        var wanted = enabled
+        var desired = enabled
             ? accounts
-                .Where(a => !string.IsNullOrWhiteSpace(a.Login) &&
-                            !string.IsNullOrWhiteSpace(a.Token))
-                .GroupBy(a => a.Login, StringComparer.OrdinalIgnoreCase)
-                .Select(g => g.First())
-                .ToDictionary(a => a.Login, a => a.Token,
+                .Where(x => !string.IsNullOrWhiteSpace(x.Login) &&
+                            !string.IsNullOrWhiteSpace(x.Token))
+                .GroupBy(x => x.Login, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(x => x.Key, x => x.First().Token,
                     StringComparer.OrdinalIgnoreCase)
             : new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         lock (_sync)
         {
             if (_stopping) return;
+            if (_enabled == enabled && SameAccounts(_accounts, desired)) return;
+
+            var previousAccounts = _accounts.Keys.ToArray();
+            _accounts = desired;
             _enabled = enabled;
-            _retiredRunners.RemoveAll(task => task.IsCompleted);
-            foreach (var existing in _sessions.Values.ToArray())
+            // Cancels the active MCS reader, NOT the persisted Google identity.
+            _currentCancellation?.Cancel();
+            var current = new CancellationTokenSource();
+            _currentCancellation = current;
+            var previous = _tail;
+
+            if (enabled && desired.Count > 0)
             {
-                if (wanted.TryGetValue(existing.Login, out var token) &&
-                    string.Equals(token, existing.AccessToken, StringComparison.Ordinal))
-                    continue;
-                existing.Cancellation.Cancel();
-                _retiredRunners.Add(existing.Runner);
-                _sessions.Remove(existing.Login);
-            }
-            foreach (var item in wanted)
-            {
-                if (_sessions.ContainsKey(item.Key)) continue;
-                var session = new Session
+                var snapshot = new Dictionary<string, string>(
+                    desired, StringComparer.OrdinalIgnoreCase);
+                _tail = Task.Run(async () =>
                 {
-                    Login = item.Key, AccessToken = item.Value,
-                    Cancellation = new CancellationTokenSource()
-                };
-                _sessions.Add(item.Key, session);
-                session.Runner = Task.Run(() => RunMailboxAsync(session));
+                    await AwaitQuietly(previous);
+                    if (!current.IsCancellationRequested)
+                        await RunSharedWorkerAsync(snapshot, current.Token);
+                });
+            }
+            else
+            {
+                // Opt-out or last-account removal: revoke the shared token only
+                // AFTER the old MCS reader has exited, then drop local identity.
+                _tail = Task.Run(async () =>
+                {
+                    await AwaitQuietly(previous);
+                    try
+                    {
+                        using var probe = new MailRuPushProbe();
+                        using var cleanup = new CancellationTokenSource(
+                            TimeSpan.FromSeconds(40));
+                        var revoked = await probe.UnsubscribeSharedAsync(cleanup.Token);
+                        foreach (var login in previousAccounts)
+                            _onStatus(login, revoked
+                                ? "Получение уведомлений остановлено."
+                                : "Удаление общей подписки не подтверждено.");
+                    }
+                    catch
+                    {
+                        foreach (var login in previousAccounts)
+                            _onStatus(login, "Удаление общей подписки не подтверждено.");
+                    }
+                });
             }
         }
     }
 
-    private async Task RunMailboxAsync(Session session)
+    private async Task RunSharedWorkerAsync(
+        IReadOnlyDictionary<string, string> snapshot, CancellationToken cancellationToken)
     {
-        // A failed server session never triggers tight re-registration loops.
-        // A successful MCS channel is kept open indefinitely.
         var failures = 0;
         try
         {
-            while (!session.Cancellation.IsCancellationRequested)
+            while (!cancellationToken.IsCancellationRequested)
             {
                 var started = DateTimeOffset.UtcNow;
                 try
                 {
-                    using var transport = new MailRuPushProbe();
-                    // Multiple distinct mailboxes get independent receiver tokens
-                    // and channels so the event always belongs to one account.
-                    await transport.RunAsync(
-                        session.Login, session.AccessToken,
-                        text => _onStatus(session.Login, SanitizedState(text)),
-                        () => OnNewMail(session.Login),
-                        session.Cancellation.Token,
-                        continuous: true,
-                        shouldDeliver: message => AcceptMessage(session.Login, message));
+                    using var probe = new MailRuPushProbe();
+                    await probe.RunSharedAsync(snapshot,
+                        (account, text) => _onStatus(account, SanitizedState(text)),
+                        account => _onNewMail(account),
+                        AcceptMessage,
+                        cancellationToken);
                 }
-                catch (OperationCanceledException)
-                    when (session.Cancellation.IsCancellationRequested)
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
                     break;
                 }
                 catch
                 {
-                    _onStatus(session.Login, "Ожидание повторного подключения.");
+                    foreach (var account in snapshot.Keys)
+                        _onStatus(account, "Ошибка этапа: общий канал недоступен.");
                 }
-                if (session.Cancellation.IsCancellationRequested) break;
-                // If a connection lived >15min, reset the retry count.
+                if (cancellationToken.IsCancellationRequested) break;
                 failures = (DateTimeOffset.UtcNow - started) > TimeSpan.FromMinutes(15)
                     ? 0 : Math.Min(failures + 1, 5);
                 var delay = RetryDelay(failures);
-                _onStatus(session.Login,
-                    "Соединение прервано. Повтор через " +
-                    (int)delay.TotalSeconds + " секунд.");
-                await Task.Delay(delay, session.Cancellation.Token);
+                foreach (var account in snapshot.Keys)
+                    _onStatus(account,
+                        "Соединение прервано. Повтор через " +
+                        (int)delay.TotalSeconds + " секунд.");
+                await Task.Delay(delay, cancellationToken);
             }
         }
-        catch (OperationCanceledException) when (session.Cancellation.IsCancellationRequested)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            // Expected when the user disables notifications or exits.
+            // Closing the app or changing the list only closes the MCS stream.
         }
         finally
         {
-            _onStatus(session.Login, "Получение уведомлений остановлено.");
+            foreach (var account in snapshot.Keys)
+                _onStatus(account, "Получение уведомлений остановлено.");
         }
+    }
+
+    private static bool SameAccounts(
+        IReadOnlyDictionary<string, string> oldAccounts,
+        IReadOnlyDictionary<string, string> newAccounts) =>
+        oldAccounts.Count == newAccounts.Count &&
+        oldAccounts.All(item => newAccounts.TryGetValue(item.Key, out var value) &&
+                                string.Equals(item.Value, value, StringComparison.Ordinal));
+
+    private static async Task AwaitQuietly(Task previous)
+    {
+        try { await previous; }
+        catch (Exception) { /* A retired generation must not stall its successor. */ }
     }
 
     internal static TimeSpan RetryDelay(int failures) => TimeSpan.FromSeconds(
@@ -148,7 +166,9 @@ internal sealed class MailRuPushBackgroundService : IDisposable
 
     internal bool AcceptMessage(string login, byte[] data)
     {
-        if (!PushWire.IsMailNewMessage(data)) return false;
+        var embeddedAccount = PushWire.NewMailAccount(data);
+        if (!string.Equals(embeddedAccount, login, StringComparison.OrdinalIgnoreCase))
+            return false;
         var id = login.ToLowerInvariant() + ":" + PushWire.MessageIdentifier(data);
         lock (_sync)
         {
@@ -161,41 +181,23 @@ internal sealed class MailRuPushBackgroundService : IDisposable
         }
     }
 
-    private void OnNewMail(string login) => _onNewMail(login);
-
-    private static string SanitizedState(string text)
-    {
-        // Probe state strings must never include tokens, addresses, or raw
-        // server JSON. The current probe emits only pre-defined categories.
-        return text.Length > 220 ? text[..220] : text;
-    }
+    private static string SanitizedState(string text) =>
+        text.Length > 220 ? text[..220] : text;
 
     internal async Task StopAsync()
     {
-        Task[] runners;
+        Task pending;
         lock (_sync)
         {
             _stopping = true;
             _enabled = false;
-            runners = _sessions.Values.Select(s =>
-            {
-                s.Cancellation.Cancel();
-                return s.Runner;
-            }).Concat(_retiredRunners).ToArray();
-            _sessions.Clear();
-            _retiredRunners.Clear();
+            _currentCancellation?.Cancel();
+            pending = _tail;
+            _accounts.Clear();
         }
-        try
-        {
-            await Task.WhenAll(runners).WaitAsync(TimeSpan.FromSeconds(90));
-        }
-        catch (TimeoutException)
-        {
-            // Preserve UI shutdown even if the remote server is unreachable.
-        }
-        catch (OperationCanceledException)
-        {
-        }
+        try { await pending.WaitAsync(TimeSpan.FromSeconds(90)); }
+        catch (TimeoutException) { /* Do not block Windows shutdown forever. */ }
+        catch (OperationCanceledException) { }
     }
 
     public void Dispose()
@@ -203,9 +205,8 @@ internal sealed class MailRuPushBackgroundService : IDisposable
         lock (_sync)
         {
             _stopping = true;
-            foreach (var session in _sessions.Values)
-                session.Cancellation.Cancel();
-            _sessions.Clear();
+            _currentCancellation?.Cancel();
+            _accounts.Clear();
         }
     }
 }
