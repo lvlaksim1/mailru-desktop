@@ -25,7 +25,8 @@ internal sealed partial class MailRuPushProbe
         Action<string, string> onStatus,
         Action<string> onNewMail,
         Func<string, byte[], bool> shouldDeliver,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool preserveOtherAccounts = false)
     {
         if (accounts.Count == 0) return;
         var phase = "BEGIN";
@@ -46,7 +47,9 @@ internal sealed partial class MailRuPushProbe
         var store = new SharedGooglePushIdentityStore();
         var saved = store.Load();
         if (saved is not null) Phase("IDENTITY_REUSED");
-        if (saved is not null)
+        if (preserveOtherAccounts)
+            PushDiagnostics.Record("PUSHME", "PRESERVE_UNSELECTED_ACCOUNTS");
+        if (saved is not null && !preserveOtherAccounts)
         {
             foreach (var removed in SharedGooglePushIdentityStore.PendingAccountUnsubscriptions(
                          saved.SubscribedAccounts, accounts.Keys))
