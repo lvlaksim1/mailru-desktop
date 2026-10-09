@@ -243,7 +243,8 @@ public partial class MainWindow
     {
         try
         {
-            Clipboard.SetText(PushDiagnostics.Report());
+            Clipboard.SetText(PushDiagnostics.Report(
+                redactAccounts: PushDiagnosticsExportModeComboBox.SelectedIndex != 1));
             PushDiagnosticsActionStatusText.Text = "Отчёт скопирован в буфер обмена.";
         }
         catch (System.Runtime.InteropServices.ExternalException)
@@ -265,7 +266,8 @@ public partial class MainWindow
         if (dialog.ShowDialog(this) != true) return;
         try
         {
-            File.WriteAllText(dialog.FileName, PushDiagnostics.Report(),
+            File.WriteAllText(dialog.FileName, PushDiagnostics.Report(
+                    redactAccounts: PushDiagnosticsExportModeComboBox.SelectedIndex != 1),
                 new UTF8Encoding(false));
             PushDiagnosticsActionStatusText.Text = "Отчёт сохранён в выбранный файл.";
         }
