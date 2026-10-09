@@ -23,6 +23,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
     private bool _paused;
     private bool _stopping;
     private bool _retryOnFailure = true;
+    private bool _preserveOtherAccounts;
 
     internal MailRuPushBackgroundService(
         Action<string, string> onStatus, Action<string> onNewMail)
@@ -42,7 +43,8 @@ internal sealed class MailRuPushBackgroundService : IDisposable
     }
 
     internal void Reconcile(IEnumerable<(string Login, string Token)> accounts, bool enabled,
-        bool pauseForDiagnostics = false, bool retryOnFailure = true)
+        bool pauseForDiagnostics = false, bool retryOnFailure = true,
+        bool preserveOtherAccounts = false)
     {
         var desired = enabled
             ? accounts
@@ -59,6 +61,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
             if (_stopping) return;
             if (_enabled == enabled && _paused == pauseForDiagnostics &&
                 _retryOnFailure == retryOnFailure &&
+                _preserveOtherAccounts == preserveOtherAccounts &&
                 SameAccounts(_accounts, desired)) return;
 
             // Original SDK keeps the Firebase receiver when a mailbox is deleted.
@@ -80,6 +83,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
             _enabled = enabled;
             _paused = pauseForDiagnostics;
             _retryOnFailure = retryOnFailure;
+            _preserveOtherAccounts = preserveOtherAccounts;
             // Cancels the active MCS reader, NOT the persisted Google identity.
             PushDiagnostics.Record("SERVICE", "RECEIVER_RESTART_REQUIRED");
             _currentCancellation?.Cancel();
@@ -221,7 +225,8 @@ internal sealed class MailRuPushBackgroundService : IDisposable
                             _onNewMail(account);
                         },
                         AcceptMessage,
-                        cancellationToken);
+                        cancellationToken,
+                        preserveOtherAccounts: _preserveOtherAccounts);
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
