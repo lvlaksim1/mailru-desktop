@@ -27,6 +27,17 @@ internal sealed class PushSubscriptionManagerWindow : Window
     private readonly TextBlock _summary = new();
     private readonly TextBlock _selectionCount = new();
     private readonly TextBlock _actionStatus = new() { TextWrapping = TextWrapping.Wrap };
+    private readonly TextBox _operationTrace = new()
+    {
+        IsReadOnly = true,
+        IsUndoEnabled = false,
+        Height = 165,
+        TextWrapping = TextWrapping.NoWrap,
+        FontFamily = new FontFamily("Consolas"),
+        FontSize = 11,
+        VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+        HorizontalScrollBarVisibility = ScrollBarVisibility.Auto
+    };
     private readonly StackPanel _accounts = new();
     private readonly ListBox _groups = new() { Height = 125 };
     private readonly Button _registerGoogleButton = new()
@@ -119,6 +130,11 @@ internal sealed class PushSubscriptionManagerWindow : Window
         content.Children.Add(_selectionCount);
         content.Children.Add(Buttons(_registerGroupButton));
         content.Children.Add(_actionStatus);
+        content.Children.Add(Heading("Журнал действий с аккаунтами"));
+        content.Children.Add(Info(
+            "Локальный подробный журнал: аккаунт, группа, номер операции, ответ. " +
+            "Копирование и сохранение полного или обезличенного отчёта доступны в настройках."));
+        content.Children.Add(_operationTrace);
         Content = new ScrollViewer
         {
             Content = content, VerticalScrollBarVisibility = ScrollBarVisibility.Auto
@@ -159,7 +175,22 @@ internal sealed class PushSubscriptionManagerWindow : Window
         };
         _startMcsButton.Click += (_, _) => { _startMcs(); UpdateView(); };
         _stopMcsButton.Click += (_, _) => { _stopMcs(); UpdateView(); };
+        PushDiagnostics.Changed += RefreshOperationTrace;
+        Closed += (_, _) => PushDiagnostics.Changed -= RefreshOperationTrace;
+        RefreshOperationTrace();
         UpdateView();
+    }
+
+    private void RefreshOperationTrace()
+    {
+        if (!Dispatcher.CheckAccess())
+        {
+            if (!Dispatcher.HasShutdownStarted)
+                _ = Dispatcher.BeginInvoke(new Action(RefreshOperationTrace));
+            return;
+        }
+        _operationTrace.Text = PushDiagnostics.Report(42);
+        _operationTrace.ScrollToEnd();
     }
 
     private sealed record GroupEntry(string Id, int Position, int Count, string State)
