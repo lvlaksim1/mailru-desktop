@@ -293,7 +293,12 @@ def run_live(apk: Path, report: Path) -> None:
             mcs = probe_mcs(android_id, security_token)
         elif response.startswith("Error="):
             registration = "REJECTED"
-            detail = safe_state(response.split("=", 1)[1].strip())
+            server_code = response.split("=", 1)[1].strip()
+            known_codes = {"INVALID_SENDER", "PHONE_REGISTRATION_ERROR",
+                           "AUTHENTICATION_FAILED", "SERVICE_NOT_AVAILABLE",
+                           "INVALID_PARAMETERS", "INVALID_REQUEST",
+                           "MISSING_INSTANCEID_SERVICE"}
+            detail = server_code if server_code in known_codes else "OTHER_REGISTER_ERROR"
         else:
             registration = "UNRECOGNIZED_RESPONSE"
             detail = "REDACTED"
