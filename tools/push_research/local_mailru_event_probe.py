@@ -276,9 +276,12 @@ def mcs_receive(sock: ssl.SSLSocket, seconds: int) -> bool:
                     # Decode only the event number, no personally identifying fields.
                     if key in (b"event", b"type"):
                         app_data[key] = value
-            if app_data.get(b"event") == b"4":
+            category = fields.get(5, [b""])[0]
+            if app_data.get(b"event") == b"4" and category == APP_ID.encode("ascii"):
                 print("MAILRU_NEW_MAIL_EVENT_RECEIVED=YES")
                 return True
+            if app_data.get(b"event") == b"4":
+                print("mcs_event4_received_from_non_mail_app=YES")
             print("mcs_data_message_received_event4=NO")
         # No payload and no account data are printed or persisted.
     print("MAILRU_NEW_MAIL_EVENT_RECEIVED=NO")
