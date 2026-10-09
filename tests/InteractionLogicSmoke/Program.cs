@@ -98,6 +98,21 @@ using (var manager = new MailRuPushBackgroundService(
     Expect(MailRuPushBackgroundService.RetryDelay(5),
         TimeSpan.FromMinutes(10), "reconnect has bounded ten-minute backoff");
 }
+// Static contract reconstructed from official APK PushMeApiImpl:
+var sharedSuccess = MailRuPushProbe.ParseSharedSubscriptionResponse(
+    """{"error":{"code":0}}""", ["a@example.invalid", "b@example.invalid"]);
+Expect(sharedSuccess.Error, null, "SDK accepts error=0 when validate_result is omitted");
+Expect(sharedSuccess.Accepted.Count, 2, "SDK accepts all accounts when validation is omitted");
+var sharedPartial = MailRuPushProbe.ParseSharedSubscriptionResponse(
+    """{"error":{"code":0},"validate_result":[{"account":"b@example.invalid","is_valid":false}]}""",
+    ["a@example.invalid", "b@example.invalid"]);
+Expect(sharedPartial.Error, null, "SDK partial validation is readable");
+Expect(sharedPartial.Accepted.SetEquals(["a@example.invalid"]), true,
+    "SDK rejects only explicitly invalid account");
+var sharedFailed = MailRuPushProbe.ParseSharedSubscriptionResponse(
+    """{"error":{"code":403}}""", ["a@example.invalid"]);
+Expect(sharedFailed.Error is not null, true, "SDK error.code nonzero rejects request");
+
 var pushSettingsDirectory = System.IO.Path.Combine(
     System.IO.Path.GetTempPath(), "MailRuPushSettings_" + Guid.NewGuid().ToString("N"));
 try
@@ -111,6 +126,13 @@ try
     storedSettings.SaveBackgroundPushEnabled(true);
     Expect(new AppSettingsStore(pushSettingsDirectory).LoadBackgroundPushEnabled(),
         true, "background push can be enabled again");
+    Expect(storedSettings.LoadTaskbarNotificationsEnabled(), true,
+        "Windows popup notifications enabled by default");
+    storedSettings.SaveTaskbarNotificationsEnabled(false);
+    Expect(new AppSettingsStore(pushSettingsDirectory).LoadTaskbarNotificationsEnabled(),
+        false, "disabling Windows popups persists independently");
+    Expect(storedSettings.LoadBackgroundPushEnabled(), true,
+        "turning off popups does not stop mail delivery");
 }
 finally
 {
