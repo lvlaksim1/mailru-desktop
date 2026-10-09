@@ -248,6 +248,14 @@ using (var manager = new MailRuPushBackgroundService(
         registered, ["g20@example.invalid"], ["g20@example.invalid"]);
     Expect(withSecond.Groups.Length, 2,
         "next batch adds a group without rewriting the previous accepted group");
+    Expect(withSecond.Groups[0].State, "RECHECK_REQUIRED",
+        "a second PushMe batch cannot be assumed to preserve first group's delivery");
+    var afterObservedMail = PushGroupRegistryStore.MarkObservedMail(
+        withSecond, "G1@example.invalid");
+    Expect(afterObservedMail.Groups[0].State, "EVENT_SEEN",
+        "real new-mail event confirms that one mailbox in older group still delivers");
+    Expect(afterObservedMail.Groups[1].State, "CONFIRMED",
+        "event for first group cannot certify delivery of other groups");
     Expect(PushGroupRegistryStore.Ungrouped(
         Enumerable.Range(1, 21).Select(i => "g" + i + "@example.invalid"),
         withSecond).SequenceEqual(["g21@example.invalid"]), true,
