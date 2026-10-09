@@ -18,7 +18,7 @@ internal sealed partial class MailRuPushProbe
     /// <summary>
     /// One protected Google identity and one MCS connection serve all authorized
     /// mailboxes. Only the account field inside an actual event=4 can route it.
-    /// Closing the app never revokes the identity; explicit disable/removal does.
+    /// Closing the app or removing one mailbox never revokes Google identity.
     /// </summary>
     internal async Task RunSharedAsync(
         IReadOnlyDictionary<string, string> accounts,
@@ -129,9 +129,10 @@ internal sealed partial class MailRuPushProbe
             if (accepted.Count == 0)
                 throw new InvalidOperationException("PushMe rejected all mailboxes.");
 
-            // Keep all possibly registered accounts for subsequent exact
-            // per-account unsubscription; never revoke the common token.
-            var associated = saved.SubscribedAccounts.Concat(accounts.Keys)
+            // Original SDK NewSubscriptionRequest persists confirmed account
+            // subscriptions only. The pre-POST roster is a crash-safety journal,
+            // replaced after a successful response with confirmed entries.
+            var associated = saved.SubscribedAccounts.Concat(accepted)
                 .Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
             store.Save(saved with { SubscribedAccounts = associated });
             foreach (var login in accepted)
