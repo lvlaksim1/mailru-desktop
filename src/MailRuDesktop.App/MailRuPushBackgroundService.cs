@@ -102,8 +102,13 @@ internal sealed class MailRuPushBackgroundService : IDisposable
                 _tail = Task.Run(async () =>
                 {
                     await AwaitQuietly(previous);
-                    QueueAccountRemoval(pending);
-                    await AwaitQuietly(_removalTail);
+                    Task removal;
+                    lock (_sync)
+                    {
+                        QueueAccountRemoval(pending);
+                        removal = _removalTail;
+                    }
+                    await AwaitQuietly(removal);
                 });
             }
             else if (pauseForDiagnostics)
