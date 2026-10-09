@@ -1922,6 +1922,7 @@ public partial class MainWindow : Window
                 _accessToken = refreshed.AccessToken;
                 _refreshToken = refreshed.RefreshToken ?? savedRefresh;
                 _authStore.UpdateTokens(account, _accessToken, _refreshToken);
+            SyncBackgroundPush();
                 AuthStatusText.Text = "Авторизация проверена и обновлена";
                 DiagnosticLog.Write("auth_refresh", account + ": refreshed and verified");
             }
@@ -1950,6 +1951,7 @@ public partial class MainWindow : Window
             // runtime only when it still uses this exact stale token.
             _authStore.UpdateTokens(account.Login, refreshed.AccessToken,
                 refreshed.RefreshToken ?? account.RefreshToken);
+            SyncBackgroundPush();
             if (string.Equals(_activeLogin, account.Login, StringComparison.OrdinalIgnoreCase) &&
                 string.Equals(_accessToken, account.AccessToken, StringComparison.Ordinal))
             {
