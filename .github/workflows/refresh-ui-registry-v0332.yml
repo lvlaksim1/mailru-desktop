@@ -1,0 +1,26 @@
+name: Temporary v0.3.32 registry regeneration
+on:
+  push:
+    branches: [fix/v0.3.32-single-webview-shell]
+    paths: [.github/workflows/refresh-ui-registry-v0332.yml]
+permissions:
+  contents: write
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/v0.3.32-single-webview-shell
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python tools/ui_registry.py --write
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/ui-registry.json
+          if ! git diff --cached --quiet; then
+            git commit -m "docs: sync v0.3.32 persistent reader UI"
+            git push origin HEAD:fix/v0.3.32-single-webview-shell
+          fi
