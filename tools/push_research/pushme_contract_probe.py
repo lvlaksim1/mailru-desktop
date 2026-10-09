@@ -12,6 +12,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 import json
 from typing import Any
+import time
+
+
+def original_apk_timezone_format() -> str:
+    """Match PushMe SDK getClientTimeZone(): GMT+HHMM using raw standard UTC offset."""
+    minutes_east = -time.timezone // 60
+    sign = "+" if minutes_east >= 0 else "-"
+    minutes = abs(minutes_east)
+    return f"GMT{sign}{minutes // 60:02d}{minutes % 60:02d}"
+
 
 SERVER = "https://alt-push-me.mail.ru"
 V2_PATH = "/api/v2/set_settings"
@@ -115,7 +125,7 @@ def self_test() -> None:
         google_sender_token="FAKE_GOOGLE_TOKEN_DO_NOT_USE",
         android_id="0123456789abcdef",
         device_id="probe-unique-device",
-        client_time_zone="Europe/Moscow",
+        client_time_zone=original_apk_timezone_format(),
         client={"name": "mail", "version": "fake"},
         capabilities={}
     )
@@ -128,6 +138,8 @@ def self_test() -> None:
     assert d[0]["status"] == 0
     assert d[0]["settings"]["badge"] == {"status": True, "mode": "unread"}
     assert d[0]["settings"]["capabilities"] == {}
+    assert len(original_apk_timezone_format()) == 8
+    assert original_apk_timezone_format()[:3] == "GMT"
     assert d[0]["account"] == "probe@example.invalid"
     assert PushMeSubscription(**{**fake.__dict__, "account": "PROBE@EXAMPLE.INVALID"}).prepare()["account"] == "probe@example.invalid"
     assert d[0]["token"] != d[0]["access_token"]
