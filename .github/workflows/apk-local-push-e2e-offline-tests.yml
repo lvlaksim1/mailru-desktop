@@ -2,7 +2,9 @@ name: Mail.ru mobile push local probe offline tests
 on:
   push:
     branches: [research/mail-apk-15.107.0.148045]
-    paths:\n      - '.github/workflows/apk-local-push-e2e-offline-tests.yml'\n      - 'tools/push_research/*.py'
+    paths:
+      - '.github/workflows/apk-local-push-e2e-offline-tests.yml'
+      - 'tools/push_research/*.py'
 permissions:
   contents: read
 jobs:
