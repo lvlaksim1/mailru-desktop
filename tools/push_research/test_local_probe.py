@@ -142,6 +142,38 @@ class LocalProbeTests(unittest.TestCase):
         self.assertEqual(sock.sent[0][:2], bytes((41, 2)))
         self.assertIn("google_mcs_login=OK", output.getvalue())
 
+    @unittest.skipUnless(__import__("os").name == "nt", "Windows-only DPAPI integration")
+    def test_real_windows_dpapi_round_trip_with_fake_data(self):
+        import ctypes
+        from ctypes import wintypes
+        class DataBlob(ctypes.Structure):
+            _fields_ = [("cbData", wintypes.DWORD),
+                        ("pbData", ctypes.POINTER(ctypes.c_ubyte))]
+        raw = b"FAKE_DPAPI_UNIT_TEST_ONLY"
+        array = (ctypes.c_ubyte * len(raw)).from_buffer_copy(raw)
+        source = DataBlob(len(raw), array)
+        output = DataBlob()
+        crypto = ctypes.windll.crypt32
+        crypto.CryptProtectData.argtypes = [
+            ctypes.POINTER(DataBlob), wintypes.LPCWSTR,
+            ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p,
+            wintypes.DWORD, ctypes.POINTER(DataBlob)]
+        crypto.CryptProtectData.restype = wintypes.BOOL
+        self.assertTrue(crypto.CryptProtectData(
+            ctypes.byref(source), "MailRu Desktop authorization",
+            None, None, None, 0x1, ctypes.byref(output)))
+        try:
+            encrypted = ctypes.string_at(output.pbData, output.cbData)
+        finally:
+            ctypes.windll.kernel32.LocalFree.argtypes = [ctypes.c_void_p]
+            ctypes.windll.kernel32.LocalFree.restype = ctypes.c_void_p
+            ctypes.windll.kernel32.LocalFree(
+                ctypes.cast(output.pbData, ctypes.c_void_p))
+        import base64
+        self.assertEqual(
+            probe.decrypt_windows_dpapi(base64.b64encode(encrypted).decode()),
+            raw.decode())
+
     def test_stored_account_authentication_uses_dpapi_not_plaintext(self):
         with tempfile.TemporaryDirectory() as folder:
             filename = Path(folder) / "auth.json"
