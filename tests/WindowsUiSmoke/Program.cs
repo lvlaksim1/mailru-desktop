@@ -47,6 +47,11 @@ internal static class Program
             Check(Require<Grid>(mail, "SettingsWorkspace").Visibility == Visibility.Visible,
                 "Settings can actually be opened by its button");
 
+            var backgroundSwitch = Require<CheckBox>(mail, "BackgroundPushEnabledCheckBox");
+            Check(backgroundSwitch.IsVisible,
+                "Persistent push opt-out is visible within Settings");
+            Check(Require<TextBlock>(mail, "BackgroundPushStatusText").IsVisible,
+                "Persistent push per-account connection state is visible");
             var pushSettings = Require<Button>(mail, "OpenPushProbeButton");
             Check(pushSettings.IsVisible, "Native push experiment is accessible in Settings");
             pushSettings.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent, pushSettings));
