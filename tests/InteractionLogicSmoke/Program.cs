@@ -35,6 +35,12 @@ Expect(PushWire.MessageIdentifier(msgData), PushWire.MessageIdentifier(msgData),
 using (var manager = new MailRuPushBackgroundService(
     (_, _) => { }, _ => { }))
 {
+    // Set state directly for offline tests: never open a real Google connection.
+    var f = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+    var accountField = typeof(MailRuPushBackgroundService).GetField("_accounts", f)!;
+    accountField.SetValue(manager, new Dictionary<string, string>(
+        StringComparer.OrdinalIgnoreCase) { ["test@example.invalid"] = "FAKE_ACCESS" });
+    typeof(MailRuPushBackgroundService).GetField("_enabled", f)!.SetValue(manager, true);
     Expect(manager.AcceptMessage("TEST@EXAMPLE.INVALID", msgData), true,
         "first delivery is accepted");
     Expect(manager.AcceptMessage("test@example.invalid", msgData), false,
@@ -62,15 +68,33 @@ using (var manager = new MailRuPushBackgroundService(
         "event without mailbox never targets active UI account");
     Expect(manager.AcceptMessage("test@example.invalid", missingAccount), false,
         "no mailbox means no delivery");
-    Expect(SharedGooglePushIdentityStore.NeedsRotation(
-        ["old@example.invalid", "kept@example.invalid"], ["kept@example.invalid"]),
-        true, "removing one account requires safe shared-token rotation");
-    Expect(SharedGooglePushIdentityStore.NeedsRotation(
-        ["kept@example.invalid"], ["kept@example.invalid", "new@example.invalid"]),
-        false, "adding an account preserves the common Google token");
-    Expect(SharedGooglePushIdentityStore.NeedsRotation(
-        ["TEST@example.invalid"], ["test@example.invalid"]),
-        false, "account case changes do not rotate Google identity");
+    var pending = SharedGooglePushIdentityStore.PendingAccountUnsubscriptions(
+        ["old@example.invalid", "kept@example.invalid"], ["kept@example.invalid"]);
+    Expect(pending.SequenceEqual(["old@example.invalid"]), true,
+        "removing one account queues only its server-side unsubscribe");
+    Expect(SharedGooglePushIdentityStore.PendingAccountUnsubscriptions(
+        ["kept@example.invalid"], ["kept@example.invalid", "new@example.invalid"]).Length,
+        0, "adding an account never rotates the common Google token");
+    Expect(SharedGooglePushIdentityStore.PendingAccountUnsubscriptions(
+        ["TEST@example.invalid"], ["test@example.invalid"]).Length,
+        0, "case change does not unsubscribe a mailbox");
+    Expect(MailRuPushProbe.UnsubscribeAccountUrl,
+        "https://push-me.mail.ru/api/v1/unsubscribe_by_device_id",
+        "unsubscribe URL exactly matches original APK PushMeApiImpl DEX");
+    var unsubscribeFields = MailRuPushProbe.BuildAccountUnsubscribeFields(
+        "TEST@EXAMPLE.INVALID", 0x65UL);
+    Expect(unsubscribeFields.Count, 3,
+        "original APK unsubscribe contains exactly three form fields");
+    Expect(unsubscribeFields["account"], "test@example.invalid",
+        "original APK unsubscribe lowercases account");
+    Expect(unsubscribeFields["device_id"], "mailru-windows-65",
+        "original APK unsubscribe device_id matches settings.device_id");
+    Expect(unsubscribeFields["application"], "mail",
+        "original APK unsubscribe uses mail application");
+    accountField.SetValue(manager,
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase));
+    Expect(manager.AcceptMessage("test@example.invalid", distinctMessage), false,
+        "removed account cannot receive an event even before remote unsubscribe");
     var secretRoot = Path.Combine(Path.GetTempPath(), "MailRuGoogleReceiver-" +
         Guid.NewGuid().ToString("N"));
     try
