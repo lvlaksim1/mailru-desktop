@@ -187,9 +187,8 @@ internal sealed partial class MailRuPushProbe : IDisposable
             var version = await PushWire.ReadByteAsync(stream, cancellationToken);
             var tag = await PushWire.ReadByteAsync(stream, cancellationToken);
             var reply = await PushWire.ReadFrameAsync(stream, cancellationToken);
-            if ((version != 41 && version != 38) || tag != 3 ||
-                !PushWire.HasField(reply, 1) || PushWire.HasField(reply, 3))
-                throw new InvalidOperationException("Google не подтвердил вход в канал уведомлений.");
+            if (!PushWire.ClassifyMcsLoginResponse(version, tag, reply).Accepted)
+                throw new InvalidOperationException("Ответ Google MCS не подтвердил вход.");
             onState("Google: защищённый канал открыт (LOGIN_OK).");
 
             await Task.Delay(RequestPause, cancellationToken);
