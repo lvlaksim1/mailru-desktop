@@ -103,14 +103,15 @@ internal static class PushDiagnostics
         get { lock (Sync) return _lastFailure; }
     }
 
-    internal static string Report()
+    internal static string Report(int maxLines = RetainLines)
     {
         lock (Sync)
         {
             try
             {
                 var all = File.Exists(LogPath)
-                    ? File.ReadAllLines(LogPath, Encoding.UTF8).TakeLast(RetainLines)
+                    ? File.ReadAllLines(LogPath, Encoding.UTF8)
+                        .TakeLast(Math.Clamp(maxLines, 1, RetainLines))
                     : Enumerable.Empty<string>();
                 var version = typeof(PushDiagnostics).Assembly.GetName().Version?.ToString() ??
                               "unknown";
