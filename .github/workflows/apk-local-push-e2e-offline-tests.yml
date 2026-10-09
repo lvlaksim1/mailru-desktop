@@ -1,0 +1,27 @@
+name: Mail.ru mobile push local probe offline tests
+on:
+  push:
+    branches: [research/mail-apk-15.107.0.148045]
+    paths: ['.github/workflows/apk-local-push-e2e-offline-tests.yml']
+permissions:
+  contents: read
+jobs:
+  smoke:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/mail-apk-15.107.0.148045
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check Google registration and MCS message encoders offline
+        run: python tools/push_research/google_sender_probe.py --self-test
+      - name: Check PushMe request and response classification offline
+        run: python tools/push_research/pushme_contract_probe.py
+      - name: Check locally runnable end-to-end runner without credentials
+        run: python tools/push_research/local_mailru_event_probe.py --self-test
