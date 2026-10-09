@@ -179,15 +179,27 @@ internal sealed class MailRuPushBackgroundService : IDisposable
         IReadOnlyDictionary<string, string> snapshot, CancellationToken cancellationToken)
     {
         var failures = 0;
+        IReadOnlyDictionary<string, string> current = snapshot;
         try
         {
             while (!cancellationToken.IsCancellationRequested)
             {
+                // Account deletion is applied in-place without dropping MCS.
+                // On the NEXT genuine reconnect use the current roster, not
+                // the startup snapshot (which might include removed accounts).
+                lock (_sync)
+                {
+                    if (_stopping || !_enabled || _paused)
+                        break;
+                    current = new Dictionary<string, string>(
+                        _accounts, StringComparer.OrdinalIgnoreCase);
+                }
+                if (current.Count == 0) break;
                 var started = DateTimeOffset.UtcNow;
                 try
                 {
                     using var probe = new MailRuPushProbe();
-                    await probe.RunSharedAsync(snapshot,
+                    await probe.RunSharedAsync(current,
                         (account, text) => _onStatus(account, SanitizedState(text)),
                         account =>
                         {
@@ -212,39 +224,39 @@ internal sealed class MailRuPushBackgroundService : IDisposable
                     var status = error.StatusCode is { } code
                         ? "PushMe: HTTP " + (int)code
                         : "Сетевая ошибка: " + MailRuPushProbe.ClassifyNetworkError(error);
-                    foreach (var account in snapshot.Keys)
+                    foreach (var account in current.Keys)
                         _onStatus(account, status);
                 }
                 catch (System.Security.Authentication.AuthenticationException)
                 {
-                    foreach (var account in snapshot.Keys)
+                    foreach (var account in current.Keys)
                         _onStatus(account, "Google MCS: ошибка проверки сертификата TLS.");
                 }
                 catch (System.Net.Sockets.SocketException)
                 {
-                    foreach (var account in snapshot.Keys)
+                    foreach (var account in current.Keys)
                         _onStatus(account, "Google MCS: ошибка сетевого соединения.");
                 }
                 catch (IOException)
                 {
-                    foreach (var account in snapshot.Keys)
+                    foreach (var account in current.Keys)
                         _onStatus(account, "Google MCS: защищённое соединение прервано.");
                 }
                 catch (InvalidOperationException)
                 {
-                    foreach (var account in snapshot.Keys)
+                    foreach (var account in current.Keys)
                         _onStatus(account, "Google/PushMe: сервер отклонил запрос; см. предыдущий статус.");
                 }
                 catch
                 {
-                    foreach (var account in snapshot.Keys)
+                    foreach (var account in current.Keys)
                         _onStatus(account, "Google/PushMe: непредвиденная ошибка обработки.");
                 }
                 if (cancellationToken.IsCancellationRequested) break;
                 failures = (DateTimeOffset.UtcNow - started) > TimeSpan.FromMinutes(15)
                     ? 0 : Math.Min(failures + 1, 5);
                 var delay = RetryDelay(failures);
-                foreach (var account in snapshot.Keys)
+                foreach (var account in current.Keys)
                     _onStatus(account,
                         "Соединение прервано. Повтор через " +
                         (int)delay.TotalSeconds + " секунд.");
@@ -257,7 +269,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
         }
         finally
         {
-            foreach (var account in snapshot.Keys)
+            foreach (var account in current.Keys)
                 _onStatus(account, "Получение уведомлений остановлено.");
         }
     }
