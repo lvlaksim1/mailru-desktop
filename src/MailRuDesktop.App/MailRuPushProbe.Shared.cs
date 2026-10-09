@@ -175,6 +175,12 @@ internal sealed partial class MailRuPushProbe
             var registration = ParseSharedSubscriptionResponse(raw, accounts.Keys);
             if (registration.Error is not null)
             {
+                // The server explicitly refused this entire batch. In the
+                // user-requested manual subset test, discard only its pending
+                // write-ahead entries: no account in the rejected batch was
+                // accepted and pre-existing subscriptions must be preserved.
+                if (preserveOtherAccounts)
+                    store.Save(saved);
                 Phase("PUSHME_RESPONSE_REJECTED");
                 ReportAll("PushMe: " + registration.Error);
                 throw new InvalidOperationException("PushMe subscription failed");
