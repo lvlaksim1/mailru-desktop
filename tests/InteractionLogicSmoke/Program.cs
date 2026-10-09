@@ -36,6 +36,28 @@ Expect(diagnosticReport.Contains("account@example.invalid"), false,
     "push diagnostics never contain mailbox addresses");
 Expect(diagnosticReport.Contains("SECRET-TOKEN"), false,
     "push diagnostics reject unsafe arbitrary codes");
+Expect(PushDiagnostics.SafeServerReason(
+    "Invalid access token for mail@example.invalid: abcdefghijklmnopqrstuvwxyz123456"),
+    "INVALID_ACCESS_TOKEN",
+    "SDK response message is reduced to safe server vocabulary");
+Expect(PushDiagnostics.SafeServerReason(
+    "Неверный токен у test@mail.ru"),
+    "INVALID_TOKEN",
+    "Russian server error message is mapped to safe diagnostic words");
+Expect(PushDiagnostics.SafeServerReason(
+    "Bearer VERYPRIVATECREDENTIAL12345678901234567"), "UNCLASSIFIED",
+    "unknown server message never leaks bearer or token");
+var serverCode = MailRuPushProbe.ParseSharedSubscriptionResponse(
+    """{"error":{"code":499,"message":"Invalid access token for test@mail.ru"}}""",
+    ["test@example.invalid"]);
+Expect(serverCode.Error?.Contains("499", StringComparison.Ordinal), true,
+    "original PushMe SDK nonzero error is recorded without claiming unknown code semantics");
+var serverReport = PushDiagnostics.Report();
+Expect(serverReport.Contains("SERVER_REASON_INVALID_ACCESS_TOKEN"), true,
+    "server refusal reason stored as safe category only");
+Expect(serverReport.Contains("test@mail.ru"), false,
+    "PushMe SDK error message mailbox never reaches exported report");
+
 PushDiagnostics.Clear();
 Expect(PushDiagnostics.Report().Contains("MCS_LOGIN_OK"), false,
     "clearing push diagnostics removes persisted history");
