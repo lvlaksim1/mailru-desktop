@@ -26,8 +26,12 @@ internal static class Program
             var action = Require<Button>(mail, "MainComposeButton");
             Check(action.IsVisible, "New Mail action is visible above the message list");
             Check(Require<Grid>(mail, "SettingsWorkspace") is { }, "settings workspace loads");
-            Check(Require<Border>(mail, "ReaderLoadingOverlay") is { },
-                "reader contains stable loading overlay");
+            var reader = Require<Microsoft.Web.WebView2.Wpf.WebView2>(
+                mail, "MessageWebView");
+            Check(reader.Visibility == Visibility.Visible,
+                "single WebView2 stays visible; loading occurs inside browser");
+            Check(mail.FindName("ReaderLoadingOverlay") is null,
+                "no WPF overlay can create WebView2 airspace flashes");
 
             var settingsAction = FindDescendant<Button>(mail,
                 b => b.Content?.ToString()?.Contains("Настройки", StringComparison.Ordinal) == true);
