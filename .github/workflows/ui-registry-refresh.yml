@@ -1,5 +1,5 @@
 name: Refresh checked UI registry
-# v2: register all explicitly typed controls of integrated push diagnostics
+# v3: include automatic notifications switch and connection-state label
 on:
   push:
     branches: [main]
