@@ -120,7 +120,7 @@ class LocalProbeTests(unittest.TestCase):
     def test_mcs_event_type_four_is_detected_without_message_details(self):
         app_data = google.pb_bytes(1, b"event") + google.pb_bytes(2, b"4")
         sender_data = google.pb_bytes(1, b"sender") + google.pb_bytes(2, b"SECRET_SENDER")
-        body = google.pb_bytes(7, app_data) + google.pb_bytes(7, sender_data)
+        body = google.pb_bytes(5, b"ru.mail.mailapp") + google.pb_bytes(7, app_data) + google.pb_bytes(7, sender_data)
         frame = bytes((8,)) + google.varint(len(body)) + body
         transport = FakeSocket(frame)
         with redirect_stdout(io.StringIO()) as output:
