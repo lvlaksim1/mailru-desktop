@@ -585,6 +585,33 @@ Expect(ReaderPresentationPolicy.ShouldStopLoading(
 Expect(ReaderPresentationPolicy.MaximumResourceWait <= TimeSpan.FromSeconds(4),
     true, "image deadline remains bounded under four seconds");
 
+var shell = ReaderShellScripts.CreateShell("#121212");
+Expect(shell.Contains("id=\"surface\"", StringComparison.Ordinal), true,
+    "single permanent reader shell contains the display surface");
+Expect(shell.Contains("id=\"status\"", StringComparison.Ordinal), true,
+    "browser-native loading layer replaces the WPF overlay");
+Expect(shell.Contains("allow-scripts", StringComparison.Ordinal), false,
+    "email content cannot run scripts in the shell");
+var dangerousHtml = "<div>\";}(); window.alert('test'); // \\n</div>";
+var stagedScript = ReaderShellScripts.Stage(27, dangerousHtml);
+Expect(stagedScript.Contains("frame.setAttribute('sandbox', 'allow-same-origin')",
+    StringComparison.Ordinal), true, "email iframe disallows scripts and navigation");
+Expect(stagedScript.Contains(System.Text.Json.JsonSerializer.Serialize(dangerousHtml),
+    StringComparison.Ordinal), true,
+    "untrusted HTML is passed to script only as JSON string data");
+Expect(ReaderShellScripts.Begin(27, "#111111", "Загрузка")
+    .Contains("rev < previous", StringComparison.Ordinal), true,
+    "stale selection cannot replace the current document");
+Expect(ReaderShellScripts.Poll(27).Contains(
+    "doc.readyState !== 'complete'", StringComparison.Ordinal), true,
+    "actual document and image completion are checked before reveal");
+Expect(ReaderShellScripts.Commit(27).Contains(
+    "if (old) old.remove()", StringComparison.Ordinal), true,
+    "new document atomically replaces previous frame inside one browser");
+Expect(ReaderShellScripts.FinishPendingImages(27).Contains(
+    "image.removeAttribute('srcset')", StringComparison.Ordinal), true,
+    "late resource loads are detached before visible publication");
+
 Console.WriteLine("All interaction logic tests passed.");
 
 sealed class RecordingHandler : HttpMessageHandler
