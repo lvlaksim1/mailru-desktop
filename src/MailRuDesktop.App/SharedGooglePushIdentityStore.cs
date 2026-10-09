@@ -1,4 +1,6 @@
 using System.IO;
+using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 using System.Text;
 using System.Text.Json;
 
@@ -13,7 +15,45 @@ internal sealed class SharedGooglePushIdentityStore
 {
     internal sealed record State(
         ulong DeviceId, ulong SecurityToken, string RegistrationToken,
-        string[] SubscribedAccounts);
+        string[] SubscribedAccounts, string? PushMeCommonId = null);
+
+    // Original APK: DeviceIdProviderImpl.getDeviceId() delegates to
+    // CommonIdProvider. That ID is android_id + ":" +
+    // MD5(concatenated Android Build.PRODUCT, BOARD, ... TAGS).
+    //
+    // Windows cannot read Settings.Secure.android_id or Android Build fields.
+    // For the virtual Android sender used by this desktop app, generate its
+    // own 16-hex installation ID and stable virtual Android Build fingerprint.
+    // Persist the result under DPAPI; NEVER derive it from Google MCS ID.
+    // This is a platform adaptation, not a claim to possess real Android IDs.
+    private const string VirtualAndroidBuild =
+        "MailRuDesktopVirtualAndroid13CompatibilityBuild-v1";
+
+    internal static string ComposePushMeCommonId(string androidId, string buildProperties)
+    {
+        if (!Regex.IsMatch(androidId, "^[a-f0-9]{16}$", RegexOptions.CultureInvariant))
+            throw new ArgumentException("Android-compatible ID must be 16 lowercase hex chars.");
+        var md5 = Convert.ToHexString(
+            MD5.HashData(Encoding.UTF8.GetBytes(buildProperties))).ToLowerInvariant();
+        return androidId + ":" + md5;
+    }
+
+    internal static string GeneratePushMeCommonId() =>
+        ComposePushMeCommonId(
+            Convert.ToHexString(RandomNumberGenerator.GetBytes(8)).ToLowerInvariant(),
+            VirtualAndroidBuild);
+
+    internal static bool IsValidPushMeCommonId(string? value) =>
+        value is not null &&
+        Regex.IsMatch(value, "^[a-f0-9]{16}:[a-f0-9]{32}$",
+            RegexOptions.CultureInvariant);
+
+    internal static string AndroidIdFromCommonId(string commonId)
+    {
+        if (!IsValidPushMeCommonId(commonId))
+            throw new ArgumentException("Not a valid PushMe CommonId.");
+        return commonId[..16];
+    }
 
     private readonly string _file;
 
@@ -35,7 +75,9 @@ internal sealed class SharedGooglePushIdentityStore
         var state = JsonSerializer.Deserialize<State>(value);
         if (state is null || state.DeviceId == 0 || state.SecurityToken == 0 ||
             string.IsNullOrWhiteSpace(state.RegistrationToken) ||
-            state.SubscribedAccounts is null)
+            state.SubscribedAccounts is null ||
+            (state.PushMeCommonId is not null &&
+             !IsValidPushMeCommonId(state.PushMeCommonId)))
             throw new InvalidDataException("Не удалось восстановить регистрацию Google.");
         return state;
     }
@@ -43,7 +85,9 @@ internal sealed class SharedGooglePushIdentityStore
     internal void Save(State state)
     {
         if (state.DeviceId == 0 || state.SecurityToken == 0 ||
-            string.IsNullOrWhiteSpace(state.RegistrationToken))
+            string.IsNullOrWhiteSpace(state.RegistrationToken) ||
+            (state.PushMeCommonId is not null &&
+             !IsValidPushMeCommonId(state.PushMeCommonId)))
             throw new ArgumentException("Недействительная регистрация Google.");
         var directory = Path.GetDirectoryName(_file)!;
         Directory.CreateDirectory(directory);
