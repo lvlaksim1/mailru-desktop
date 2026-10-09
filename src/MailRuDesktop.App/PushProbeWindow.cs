@@ -13,8 +13,8 @@ internal sealed class PushProbeWindow : Window
     private readonly AuthorizationStore _authorization;
     private readonly Action<string> _newMailCallback;
     private readonly ComboBox _accountSelect = new() { MinWidth = 310, Height = 30 };
-    private readonly Button _start = new() { Content = "Начать проверку", MinWidth = 155, Padding = new Thickness(12, 6) };
-    private readonly Button _stop = new() { Content = "Остановить", MinWidth = 110, Padding = new Thickness(12, 6), IsEnabled = false };
+    private readonly Button _start = new() { Content = "Начать проверку", MinWidth = 155, Padding = new Thickness(12, 6, 12, 6) };
+    private readonly Button _stop = new() { Content = "Остановить", MinWidth = 110, Padding = new Thickness(12, 6, 12, 6), IsEnabled = false };
     private readonly CheckBox _consent = new()
     {
         Content = "Разрешаю временную подписку выбранного аккаунта на уведомления",
