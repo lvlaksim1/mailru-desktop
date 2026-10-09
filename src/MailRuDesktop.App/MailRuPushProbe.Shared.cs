@@ -117,16 +117,16 @@ internal sealed partial class MailRuPushProbe
         PushDiagnostics.Record("MCS", "LOGIN_VERSION", version);
         PushDiagnostics.Record("MCS", "LOGIN_TAG", tag);
         Phase("MCS_LOGIN_PARSE");
-        var login = PushWire.ClassifyMcsLoginResponse(version, tag, reply);
-        PushDiagnostics.Record("MCS", "LOGIN_ID_PRESENT", login.IdPresent ? 1 : 0);
-        PushDiagnostics.Record("MCS", "LOGIN_ERROR_PRESENT", login.ErrorPresent ? 1 : 0);
+        var loginResponse = PushWire.ClassifyMcsLoginResponse(version, tag, reply);
+        PushDiagnostics.Record("MCS", "LOGIN_ID_PRESENT", loginResponse.IdPresent ? 1 : 0);
+        PushDiagnostics.Record("MCS", "LOGIN_ERROR_PRESENT", loginResponse.ErrorPresent ? 1 : 0);
         if (login.ErrorCode is int errorCode)
             PushDiagnostics.Record("MCS", "LOGIN_ERROR_CODE", errorCode);
         else if (login.ErrorPresent)
             PushDiagnostics.Record("MCS", "LOGIN_ERROR_CODE_MISSING");
         if (!login.Accepted)
         {
-            Phase(login.ErrorCode is int code && code != 0
+            Phase(loginResponse.ErrorCode is int code && code != 0
                 ? "MCS_SERVER_LOGIN_ERROR"
                 : "MCS_LOGIN_INVALID_RESPONSE");
             throw new InvalidOperationException("Ответ MCS не подтвердил авторизацию.");
