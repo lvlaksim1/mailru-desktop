@@ -21099,8 +21099,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "PushSubscriptionManagerWindow/runtime/src/MailRuDesktop.App/PushSubscriptionManagerWindow.cs:180:TextBlock",
-      "line": 180,
+      "id": "PushSubscriptionManagerWindow/runtime/src/MailRuDesktop.App/PushSubscriptionManagerWindow.cs:186:TextBlock",
+      "line": 186,
       "location": {
         "Margin": "new Thickness(0"
       },
@@ -21115,8 +21115,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "PushSubscriptionManagerWindow/runtime/src/MailRuDesktop.App/PushSubscriptionManagerWindow.cs:191:StackPanel",
-      "line": 191,
+      "id": "PushSubscriptionManagerWindow/runtime/src/MailRuDesktop.App/PushSubscriptionManagerWindow.cs:197:StackPanel",
+      "line": 197,
       "location": {
         "Margin": "new Thickness(0",
         "Orientation": "Orientation.Horizontal"
@@ -21132,8 +21132,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "PushSubscriptionManagerWindow/runtime/src/MailRuDesktop.App/PushSubscriptionManagerWindow.cs:283:CheckBox",
-      "line": 283,
+      "id": "PushSubscriptionManagerWindow/runtime/src/MailRuDesktop.App/PushSubscriptionManagerWindow.cs:289:CheckBox",
+      "line": 289,
       "location": {
         "Margin": "new Thickness(3"
       },
