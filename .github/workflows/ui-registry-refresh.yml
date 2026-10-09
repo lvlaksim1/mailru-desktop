@@ -1,4 +1,5 @@
 name: Refresh checked UI registry
+# v2: register all explicitly typed controls of integrated push diagnostics
 on:
   push:
     branches: [main]
