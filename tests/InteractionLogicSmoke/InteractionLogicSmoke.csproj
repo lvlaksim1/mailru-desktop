@@ -23,5 +23,6 @@
     <Compile Include="../../src/MailRuDesktop.App/MailRuPushProbe.Shared.cs" Link="MailRuPushProbe.Shared.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/SharedGooglePushIdentityStore.cs" Link="SharedGooglePushIdentityStore.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/MailRuPushBackgroundService.cs" Link="MailRuPushBackgroundService.cs"/>
+    <Compile Include="../../src/MailRuDesktop.App/PushDiagnostics.cs" Link="PushDiagnostics.cs"/>
   </ItemGroup>
 </Project>
