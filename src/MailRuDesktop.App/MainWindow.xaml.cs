@@ -74,6 +74,7 @@ public partial class MainWindow : Window
             ? "dev"
             : $"{version.Major}.{version.Minor}.{Math.Max(version.Build, 0)}";
         Title = $"MailRu Desktop v{displayVersion}";
+        InitializeBackgroundPush();
 
         RefreshSavedLogins();
 
@@ -100,6 +101,7 @@ public partial class MainWindow : Window
     {
         await InitializeReaderAsync();
         await EnsureStartupAccountAsync();
+        StartBackgroundPush();
     }
 
     private async Task InitializeReaderAsync()
@@ -178,6 +180,7 @@ public partial class MainWindow : Window
         }
 
         RefreshAccountRail(current);
+        SyncBackgroundPush();
     }
 
     private void RefreshAccountRail(string? preferredLogin = null) =>
