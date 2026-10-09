@@ -1,3 +1,6 @@
+using System.IO;
+using System.Net.Http;
+
 namespace MailRuDesktop.App;
 
 /// <summary>
@@ -129,10 +132,40 @@ internal sealed class MailRuPushBackgroundService : IDisposable
                 {
                     break;
                 }
+                catch (HttpRequestException error)
+                {
+                    // Original SDK distinguishes HTTP, TLS and transport failures.
+                    // Do not expose exception.Message: URLs and tokens may leak.
+                    var status = error.StatusCode is { } code
+                        ? "PushMe: HTTP " + (int)code
+                        : "Сетевая ошибка: " + MailRuPushProbe.ClassifyNetworkError(error);
+                    foreach (var account in snapshot.Keys)
+                        _onStatus(account, status);
+                }
+                catch (System.Security.Authentication.AuthenticationException)
+                {
+                    foreach (var account in snapshot.Keys)
+                        _onStatus(account, "Google MCS: ошибка проверки сертификата TLS.");
+                }
+                catch (System.Net.Sockets.SocketException)
+                {
+                    foreach (var account in snapshot.Keys)
+                        _onStatus(account, "Google MCS: ошибка сетевого соединения.");
+                }
+                catch (IOException)
+                {
+                    foreach (var account in snapshot.Keys)
+                        _onStatus(account, "Google MCS: защищённое соединение прервано.");
+                }
+                catch (InvalidOperationException)
+                {
+                    foreach (var account in snapshot.Keys)
+                        _onStatus(account, "Google/PushMe: сервер отклонил запрос; см. предыдущий статус.");
+                }
                 catch
                 {
                     foreach (var account in snapshot.Keys)
-                        _onStatus(account, "Ошибка этапа: общий канал недоступен.");
+                        _onStatus(account, "Google/PushMe: непредвиденная ошибка обработки.");
                 }
                 if (cancellationToken.IsCancellationRequested) break;
                 failures = (DateTimeOffset.UtcNow - started) > TimeSpan.FromMinutes(15)
