@@ -45,6 +45,7 @@ from google_sender_probe import (
 from pushme_contract_probe import (
     PushMeSubscription, SERVER, V2_PATH,
     evaluate_reply, prepare_batch, original_apk_timezone_format,
+    original_apk_mail_capabilities,
 )
 
 # Public signing-certificate digest verified from the SHA-256 checked APK
@@ -201,7 +202,7 @@ def subscribe_mailru(
             "lang": "ru_RU",
             "info": "Windows Research;0 cameras;360.0x800.0;NONE",
         },
-        capabilities={},
+        capabilities=original_apk_mail_capabilities(),
     )
     payload = prepare_batch([record])
     req = urllib.request.Request(
