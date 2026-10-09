@@ -1,0 +1,96 @@
+name: APK push transport targeted research
+
+on:
+  push:
+    branches:
+      - research/mail-apk-15.107.0.148045
+    paths:
+      - '.github/workflows/apk-push-transport-research.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  transport-path:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/mail-apk-15.107.0.148045
+          fetch-depth: 1
+
+      - name: Rebuild original APK with verified digest
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=research/apk-15.107.0.148045
+          cat "$R"/package/parts/Mail_ru_15.107.0.148045_APKs.zip.part-* > /tmp/original.zip
+          echo "42c976a0c2f3d5fb186a88bc855f782c81c8ce35f952fcf22f99c64828880af6  /tmp/original.zip" | sha256sum -c -
+          unzip -q /tmp/original.zip -d /tmp/original-apks
+          test -s /tmp/original-apks/Mail-15.107.0.148045.apk
+
+      - name: Install verified JADX
+        shell: bash
+        run: |
+          set -euo pipefail
+          sleep 5
+          curl --fail --location --retry 2 --retry-delay 5 --connect-timeout 30 --max-time 600 'https://github.com/skylot/jadx/releases/download/v1.5.6/jadx-1.5.6.zip' -o /tmp/jadx.zip
+          echo '545ea2be9c242511bc145755cf4bda2485ade42966e096f8b4d3da2a230e8974  /tmp/jadx.zip' | sha256sum -c -
+          mkdir -p /tmp/jadx
+          unzip -q /tmp/jadx.zip -d /tmp/jadx
+          chmod +x /tmp/jadx/bin/jadx
+
+      - name: Analyze GCM and push transport from original APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=research/apk-15.107.0.148045
+          DEST="$R/transport-deep-dive"
+          mkdir -p "$DEST/sources"
+          /tmp/jadx/bin/jadx -r -j 4 -d /tmp/mail-jadx /tmp/original-apks/Mail-15.107.0.148045.apk >/tmp/jadx-transport.log 2>&1 || true
+          SRC=/tmp/mail-jadx/sources
+          test -f "$SRC/ru/mail/util/push/gcm/GcmPushTransport.java"
+          test -f "$SRC/ru/mail/util/push/gcm/MailMessagingService.java"
+          test -f "$SRC/ru/mail/util/push/pusher/PushMeTransport.java"
+
+          find "$SRC" -type f -name '*.java' | sed "s#^$SRC/##" | grep -E \
+            '^(ru/mail/util/push/(gcm|huawei|vkpns|pusher|component|notifier|parser)/|ru/mail/setup/SetUpPush|ru/mail/rustoresdk/|ru/mail/push/|com/google/firebase/messaging/FirebaseMessagingService\.java|com/google/firebase/messaging/FirebaseMessaging\.java)' | sort -u > "$DEST/target-index.txt" || true
+
+          files=0; bytes=0
+          while IFS= read -r rel; do
+            [ -f "$SRC/$rel" ] || continue
+            size=$(stat -c %s "$SRC/$rel")
+            if ((files >= 250 || bytes+size > 8000000)); then continue; fi
+            mkdir -p "$DEST/sources/$(dirname "$rel")"
+            cp "$SRC/$rel" "$DEST/sources/$rel"
+            ((files+=1))
+            ((bytes+=size))
+          done < "$DEST/target-index.txt"
+          test -f "$DEST/sources/ru/mail/util/push/gcm/GcmPushTransport.java"
+          test -f "$DEST/sources/ru/mail/util/push/gcm/MailMessagingService.java"
+
+          {
+            echo '# Mail.ru original APK notification transport'
+            echo
+            echo 'Original APK 15.107.0.148045 verified by SHA-256; static JADX decompilation.'
+            echo "Indexed: $(wc -l < "$DEST/target-index.txt")"
+            echo "Stored: $files files / $bytes bytes (limit 250 / 8 MB)"
+            echo
+            echo '## Selected original code'
+            cat "$DEST/target-index.txt"
+            echo
+            echo 'Not a live server verification. No mailbox content or secrets.'
+          } > "$DEST/README.md"
+
+      - name: Save research only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name mailru-apk-research
+          git config user.email actions@users.noreply.github.com
+          git add research/apk-15.107.0.148045/transport-deep-dive
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'research: retain GCM and native push delivery paths'
+          git pull --rebase origin research/mail-apk-15.107.0.148045
+          git push origin HEAD:research/mail-apk-15.107.0.148045
