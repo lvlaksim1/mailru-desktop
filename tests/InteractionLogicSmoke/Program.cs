@@ -298,6 +298,16 @@ using (var manager = new MailRuPushBackgroundService(
         "another Google recipient cannot mark the primary group replaced");
     Expect(independent.Groups[1].RecipientId, "abcdef012345",
         "PushMe group retains its assigned independent Google recipient");
+    var onlySecondaryEnabled = PushGroupRegistryStore.SetGroupReceiving(
+        independent with { ReceiveEnabled = false }, independent.Groups[1].Id, true);
+    Expect(onlySecondaryEnabled.Groups[0].ReceiveEnabled, false,
+        "starting group B never activates group A");
+    Expect(onlySecondaryEnabled.Groups[1].ReceiveEnabled, true,
+        "group B receives independently");
+    var allStopped = PushGroupRegistryStore.SetAllReceiving(
+        onlySecondaryEnabled, false);
+    Expect(allStopped.Groups.All(g => g.ReceiveEnabled == false), true,
+        "global Stop closes all readers without deleting Google/group records");
     var afterObservedMail = PushGroupRegistryStore.MarkObservedMail(
         withSecond, "G1@example.invalid");
     Expect(afterObservedMail.Groups[0].State, "EVENT_SEEN",
