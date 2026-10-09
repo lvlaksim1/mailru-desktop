@@ -677,18 +677,9 @@
                                 CornerRadius="8"
                                 BorderBrush="{DynamicResource AppBorderBrush}"
                                 BorderThickness="1">
-                            <Grid>
-                                <wv2:WebView2 x:Name="MessageWebView"/>
-                                <Border x:Name="ReaderLoadingOverlay"
-                                        Visibility="Collapsed"
-                                        Background="{DynamicResource AppReaderBrush}">
-                                    <TextBlock x:Name="ReaderLoadingText"
-                                               VerticalAlignment="Center" HorizontalAlignment="Center"
-                                               FontSize="{DynamicResource AppFontBodySize}"
-                                               Foreground="{DynamicResource AppMutedTextBrush}"
-                                               Text="Загрузка письма…"/>
-                                </Border>
-                            </Grid>
+                            <!-- No WPF overlay over WebView2: the permanent
+                                 browser shell owns its loading layer. -->
+                            <wv2:WebView2 x:Name="MessageWebView"/>
                         </Border>
 
                         <StackPanel x:Name="IncomingAttachmentsPanel"
