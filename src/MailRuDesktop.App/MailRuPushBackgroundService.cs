@@ -62,9 +62,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
             // Only remove these subscriptions; keep the active MCS channel, token,
             // and subscriptions of every retained mailbox untouched.
             if (enabled && !pauseForDiagnostics && _enabled && !_paused &&
-                desired.Count > 0 && desired.Count < _accounts.Count &&
-                desired.All(pair => _accounts.TryGetValue(pair.Key, out var token) &&
-                                   string.Equals(token, pair.Value, StringComparison.Ordinal)))
+                CanRemoveWithoutReconnect(_accounts, desired))
             {
                 var removed = _accounts.Keys.Except(
                     desired.Keys, StringComparer.OrdinalIgnoreCase).ToArray();
@@ -273,6 +271,15 @@ internal sealed class MailRuPushBackgroundService : IDisposable
                 _onStatus(account, "Получение уведомлений остановлено.");
         }
     }
+
+    // Pure reconciliation rule: only account removals; retained OAuth values
+    // must be unchanged. Mirrors APK per-account unsubscribe without MCS reset.
+    internal static bool CanRemoveWithoutReconnect(
+        IReadOnlyDictionary<string, string> previous,
+        IReadOnlyDictionary<string, string> wanted) =>
+        wanted.Count > 0 && wanted.Count < previous.Count &&
+        wanted.All(pair => previous.TryGetValue(pair.Key, out var token) &&
+                           string.Equals(token, pair.Value, StringComparison.Ordinal));
 
     private static bool SameAccounts(
         IReadOnlyDictionary<string, string> oldAccounts,
