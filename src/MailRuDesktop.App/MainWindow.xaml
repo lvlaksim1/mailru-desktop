@@ -996,7 +996,7 @@
                         <GroupBox Margin="0,16,0,0" Header="Диагностика Google и PushMe">
                             <StackPanel Margin="12">
                                 <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource AppMutedTextBrush}"
-                                           Text="История подключения и повторных попыток. Только этапы, коды ошибок и числовые показатели — без адресов, токенов и содержимого писем."/>
+                                           Text="Подробный локальный журнал: адрес каждого аккаунта, группа, порядок операции, HTTP-код и результат. Токены, пароли и содержимое писем не записываются. Для отправки отчёта выберите обезличенный вариант."/>
                                 <TextBox x:Name="PushDiagnosticsLogTextBox"
                                          Margin="0,9,0,0"
                                          Height="205"
@@ -1008,6 +1008,14 @@
                                          TextWrapping="NoWrap"
                                          ScrollViewer.VerticalScrollBarVisibility="Auto"
                                          ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,9,0,2">
+                                    <TextBlock VerticalAlignment="Center" Text="Формат копирования / сохранения: " Margin="0,0,10,0"/>
+                                    <ComboBox x:Name="PushDiagnosticsExportModeComboBox" SelectedIndex="0"
+                                              MinWidth="240" VerticalAlignment="Center">
+                                        <ComboBoxItem Content="Без адресов (для отправки)"/>
+                                        <ComboBoxItem Content="Полный (с адресами)"/>
+                                    </ComboBox>
+                                </StackPanel>
                                 <WrapPanel Margin="0,10,0,0" Orientation="Horizontal">
                                     <Button x:Name="RefreshPushDiagnosticsButton" Content="Обновить журнал"
                                             Padding="11,6" Margin="0,0,8,6"
