@@ -42,6 +42,8 @@ wants = {
     "Lcom/vk/commonid/CommonIdProvider;": {"getCommonIdGenerated", "getCommonId", "generate", "create"},
     "Lcom/vk/commonid/CommonIdProvider$Companion;": {"getCommonIdGenerated", "getCommonIdGenerated$default", "getCommonId", "generate", "create"},
     "Lcom/vk/commonid/CommonIdPrefs;": {"getCommonId", "saveCommonId", "get", "set", "write", "read"},
+    "Lcom/vk/commonid/a;": {"call"},
+    "Lcom/vk/commonid/b;": {"call"},
 }
 results: dict[str, list[str]] = {}
 scanned = 0
@@ -65,10 +67,7 @@ with zipfile.ZipFile(archive) as outer:
                     for method in cls.get_methods():
                         mname = method.get_name()
                         if mname not in wants[clsname] and not (
-                            clsname.startswith("Lcom/vk/commonid/") and
-                            ("commonid" in mname.lower() or "generat" in mname.lower()
-                             or "uuid" in mname.lower() or "android" in mname.lower()
-                             or mname == "<init>")):
+                            clsname.startswith("Lcom/vk/commonid/")):
                             continue
                         code = method.get_code()
                         if code is None:
@@ -83,7 +82,7 @@ with zipfile.ZipFile(archive) as outer:
                         lines.extend(["~~~", ""])
                         key = clsname + "." + method.get_name()
                         results.setdefault(key, []).append("\n".join(lines))
-        if len(results) >= 22:
+        if len(results) >= 30:
             break
 
 required = [
