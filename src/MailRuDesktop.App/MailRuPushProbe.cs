@@ -30,6 +30,27 @@ internal sealed class MailRuPushProbe : IDisposable
     private const string AppUserAgent = "mobmail android 11.13.0.29089 ru.mail.mailapp";
     private static readonly TimeSpan RequestPause = TimeSpan.FromSeconds(5);
     private readonly HttpClient _http = new() { Timeout = TimeSpan.FromSeconds(25) };
+    private static readonly SemaphoreSlim NetworkRequestGate = new(1, 1);
+    private static DateTimeOffset _lastNetworkRequest = DateTimeOffset.MinValue;
+
+    // One global pace for independent mailbox sessions. No requests are
+    // started less than five seconds apart even during simultaneous reconnects.
+    private static async Task PaceNetworkRequestAsync(CancellationToken token)
+    {
+        await NetworkRequestGate.WaitAsync(token);
+        try
+        {
+            var remaining = RequestPause - (DateTimeOffset.UtcNow - _lastNetworkRequest);
+            if (remaining > TimeSpan.Zero)
+                await Task.Delay(remaining, token);
+            _lastNetworkRequest = DateTimeOffset.UtcNow;
+        }
+        finally
+        {
+            NetworkRequestGate.Release();
+        }
+    }
+
 
     internal static Dictionary<string, object?> BuildSubscription(
         string login, string oauth, string googleToken, ulong androidId, string trialDevice)
@@ -152,6 +173,7 @@ internal sealed class MailRuPushProbe : IDisposable
             temporaryToken = identity.RegistrationToken;
             await Task.Delay(RequestPause, cancellationToken);
 
+            await PaceNetworkRequestAsync(cancellationToken);
             using var socket = new TcpClient();
             await socket.ConnectAsync("mtalk.google.com", 5228, cancellationToken);
             using var stream = new SslStream(socket.GetStream(), false);
@@ -180,6 +202,7 @@ internal sealed class MailRuPushProbe : IDisposable
             {
                 request.Content = new StringContent(json, Encoding.UTF8, "application/json");
                 request.Headers.TryAddWithoutValidation("User-Agent", AppUserAgent);
+                await PaceNetworkRequestAsync(cancellationToken);
                 using var response = await _http.SendAsync(request, cancellationToken);
                 if (!response.IsSuccessStatusCode)
                 {
@@ -301,6 +324,7 @@ internal sealed class MailRuPushProbe : IDisposable
                     {
                         ["token"] = temporaryToken, ["application"] = "mail"
                     });
+                    await PaceNetworkRequestAsync(cleanup.Token);
                     using var response = await _http.SendAsync(request, cleanup.Token);
                     var body = await response.Content.ReadAsStringAsync(cleanup.Token);
                     var state = ClassifyCleanup(body);
@@ -341,6 +365,7 @@ internal sealed class MailRuPushProbe : IDisposable
             request.Content.Headers.ContentType =
                 new System.Net.Http.Headers.MediaTypeHeaderValue("application/x-protobuf");
             request.Headers.TryAddWithoutValidation("User-Agent", "Android-Checkin/1.0");
+            await PaceNetworkRequestAsync(ct);
             using var response = await _http.SendAsync(request, ct);
             response.EnsureSuccessStatusCode();
             var body = await response.Content.ReadAsByteArrayAsync(ct);
@@ -368,6 +393,7 @@ internal sealed class MailRuPushProbe : IDisposable
             registration.Headers.TryAddWithoutValidation("Authorization",
                 $"AidLogin {deviceId}:{secret}");
             registration.Headers.TryAddWithoutValidation("User-Agent", "Android-GCM/1.5 (Windows Research)");
+            await PaceNetworkRequestAsync(ct);
             using var reply = await _http.SendAsync(registration, ct);
             reply.EnsureSuccessStatusCode();
             var raw = await reply.Content.ReadAsStringAsync(ct);
