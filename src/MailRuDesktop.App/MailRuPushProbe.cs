@@ -133,8 +133,7 @@ internal sealed class MailRuPushProbe : IDisposable
             await Task.Delay(RequestPause, cancellationToken);
 
             using var socket = new TcpClient();
-            await socket.ConnectAsync("mtalk.google.com", 5228, cancellationToken)
-                .WaitAsync(TimeSpan.FromSeconds(20), cancellationToken);
+            await socket.ConnectAsync("mtalk.google.com", 5228, cancellationToken);
             using var stream = new SslStream(socket.GetStream(), false);
             await stream.AuthenticateAsClientAsync(
                 new SslClientAuthenticationOptions { TargetHost = "mtalk.google.com" },
