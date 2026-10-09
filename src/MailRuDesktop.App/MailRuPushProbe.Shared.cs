@@ -256,6 +256,8 @@ internal sealed partial class MailRuPushProbe
                     StringComparer.OrdinalIgnoreCase),
                 StringComparer.OrdinalIgnoreCase);
             Phase("MCS_LISTEN_ONLY", accepted.Count);
+            foreach (var login in accepted)
+                onStatus(login, "Постоянный приём уведомлений включён (сохранённая подписка).");
         }
         else
         {
