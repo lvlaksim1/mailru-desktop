@@ -59,7 +59,8 @@ internal sealed class PushGroupRegistryStore
                 !uniqueIds.Add(group.Id) ||
                 group.Accounts is null || group.Accounts.Length == 0 ||
                 group.Accounts.Length > 50 ||
-                (group.State != "CONFIRMED" && group.State != "IMPORTED"))
+                (group.State != "CONFIRMED" && group.State != "IMPORTED" &&
+                 group.State != "RECHECK_REQUIRED" && group.State != "EVENT_SEEN"))
                 throw new InvalidDataException("Некорректная группа PushMe.");
             foreach (var login in group.Accounts)
                 if (string.IsNullOrWhiteSpace(login) || !uniqueAccounts.Add(login))
@@ -89,8 +90,13 @@ internal sealed class PushGroupRegistryStore
             StringComparer.OrdinalIgnoreCase)).ToArray();
         if (confirmed.Length == 0) return prior;
         var group = new Group(Guid.NewGuid().ToString("N"), confirmed, DateTimeOffset.UtcNow);
+        // A second batch may replace earlier server-side registrations;
+        // until real events arrive for those groups, never present their
+        // continuing delivery as verified.
         return prior with {
-            Groups = prior.Groups.Append(group).ToArray(),
+            Groups = prior.Groups.Select(old => old with {
+                State = "RECHECK_REQUIRED"
+            }).Append(group).ToArray(),
             LegacyImported = true
         };
     }
@@ -116,6 +122,15 @@ internal sealed class PushGroupRegistryStore
         };
         Save(result);
         return result;
+    }
+
+    internal static Registry MarkObservedMail(Registry prior, string login)
+    {
+        return prior with {
+            Groups = prior.Groups.Select(group =>
+                group.Accounts.Contains(login, StringComparer.OrdinalIgnoreCase)
+                    ? group with { State = "EVENT_SEEN" } : group).ToArray()
+        };
     }
 
     internal static Registry RemoveAccounts(Registry prior, IEnumerable<string> removed)
