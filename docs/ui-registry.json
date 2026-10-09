@@ -15557,323 +15557,6 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]",
-      "location": {
-        "Margin": "0,16,0,0"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Expander",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]",
-      "location": {
-        "Margin": "12"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Grid",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid.ColumnDefinitions[0]",
-      "location": {},
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Grid.ColumnDefinitions",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[0]",
-      "location": {
-        "Width": "220"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid.ColumnDefinitions[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ColumnDefinition",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[1]",
-      "location": {
-        "Width": "16"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid.ColumnDefinitions[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ColumnDefinition",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[2]",
-      "location": {
-        "Width": "*"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid.ColumnDefinitions[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ColumnDefinition",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid.RowDefinitions[1]",
-      "location": {},
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Grid.RowDefinitions",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid.RowDefinitions[1]/RowDefinition[0]",
-      "location": {
-        "Height": "Auto"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid.RowDefinitions[1]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "RowDefinition",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid.RowDefinitions[1]/RowDefinition[1]",
-      "location": {
-        "Height": "Auto"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid.RowDefinitions[1]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "RowDefinition",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid[3]",
-      "location": {
-        "Grid.Column": "2"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Grid",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid[3]/Grid.RowDefinitions[0]",
-      "location": {},
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid[3]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Grid.RowDefinitions",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid[3]/Grid.RowDefinitions[0]/RowDefinition[0]",
-      "location": {
-        "Height": "Auto"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid[3]/Grid.RowDefinitions[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "RowDefinition",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid[3]/Grid.RowDefinitions[0]/RowDefinition[1]",
-      "location": {
-        "Height": "*"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid[3]/Grid.RowDefinitions[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "RowDefinition",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid[3]/Grid.RowDefinitions[0]/RowDefinition[2]",
-      "location": {
-        "Height": "Auto"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid[3]/Grid.RowDefinitions[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "RowDefinition",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid[3]/SignatureBodyTextBox",
-      "location": {
-        "Grid.Row": "1",
-        "Margin": "0,7,0,7",
-        "MinHeight": "105",
-        "Padding": "7"
-      },
-      "name": "SignatureBodyTextBox",
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid[3]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBox",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid[3]/SignatureNameTextBox",
-      "location": {
-        "Padding": "7"
-      },
-      "name": "SignatureNameTextBox",
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid[3]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBox",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid[3]/WrapPanel[3]",
-      "location": {
-        "Grid.Row": "2"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid[3]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "WrapPanel",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid[3]/WrapPanel[3]/Button[0]",
-      "location": {
-        "Margin": "0,0,6,0",
-        "Padding": "10,6"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid[3]/WrapPanel[3]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid[3]/WrapPanel[3]/Button[1]",
-      "location": {
-        "Margin": "0,0,6,0",
-        "Padding": "10,6"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid[3]/WrapPanel[3]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {
-        "Foreground": "{DynamicResource AppDangerBrush}"
-      },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid[3]/WrapPanel[3]/Button[2]",
-      "location": {
-        "Padding": "10,6"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/Grid[3]/WrapPanel[3]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]/SignaturesListBox",
-      "location": {
-        "Grid.RowSpan": "2",
-        "MinHeight": "150"
-      },
-      "name": "SignaturesListBox",
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[3]/Grid[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ListBox",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
       "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]",
       "location": {
         "Margin": "0,16,0,0"
@@ -15962,7 +15645,50 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid.RowDefinitions[1]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Grid.RowDefinitions",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid.RowDefinitions[1]/RowDefinition[0]",
+      "location": {
+        "Height": "Auto"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid.RowDefinitions[1]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "RowDefinition",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid.RowDefinitions[1]/RowDefinition[1]",
+      "location": {
+        "Height": "Auto"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid.RowDefinitions[1]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "RowDefinition",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[3]",
       "location": {
         "Grid.Column": "2"
       },
@@ -15977,10 +15703,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[3]/Grid.RowDefinitions[0]",
       "location": {},
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[3]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
@@ -15990,12 +15716,12 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]/RowDefinition[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[3]/Grid.RowDefinitions[0]/RowDefinition[0]",
       "location": {
         "Height": "Auto"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[3]/Grid.RowDefinitions[0]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
@@ -16005,12 +15731,27 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]/RowDefinition[1]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[3]/Grid.RowDefinitions[0]/RowDefinition[1]",
+      "location": {
+        "Height": "*"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[3]/Grid.RowDefinitions[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "RowDefinition",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[3]/Grid.RowDefinitions[0]/RowDefinition[2]",
       "location": {
         "Height": "Auto"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[3]/Grid.RowDefinitions[0]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
@@ -16020,121 +15761,15 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]/RowDefinition[2]",
-      "location": {
-        "Height": "120"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "RowDefinition",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]/RowDefinition[3]",
-      "location": {
-        "Height": "Auto"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "RowDefinition",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]/RowDefinition[4]",
-      "location": {
-        "Height": "90"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "RowDefinition",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]/RowDefinition[5]",
-      "location": {
-        "Height": "Auto"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "RowDefinition",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/TemplateAttachmentsListBox",
-      "location": {
-        "Grid.Row": "4",
-        "MinHeight": "70"
-      },
-      "name": "TemplateAttachmentsListBox",
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ListBox",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/TemplateBodyTextBox",
-      "location": {
-        "Grid.Row": "2",
-        "Padding": "7"
-      },
-      "name": "TemplateBodyTextBox",
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBox",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/TemplateNameTextBox",
-      "location": {
-        "Padding": "7"
-      },
-      "name": "TemplateNameTextBox",
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBox",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/TemplateSubjectTextBox",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[3]/SignatureBodyTextBox",
       "location": {
         "Grid.Row": "1",
         "Margin": "0,7,0,7",
+        "MinHeight": "105",
         "Padding": "7"
       },
-      "name": "TemplateSubjectTextBox",
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]",
+      "name": "SignatureBodyTextBox",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[3]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
@@ -16144,13 +15779,27 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/WrapPanel[4]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[3]/SignatureNameTextBox",
       "location": {
-        "Grid.Row": "3",
-        "Margin": "0,7,0,4"
+        "Padding": "7"
+      },
+      "name": "SignatureNameTextBox",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[3]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBox",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[3]/WrapPanel[3]",
+      "location": {
+        "Grid.Row": "2"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[3]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
@@ -16160,60 +15809,13 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/WrapPanel[4]/Button[0]",
-      "location": {
-        "Margin": "0,0,6,0",
-        "Padding": "10,5"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/WrapPanel[4]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/WrapPanel[4]/Button[1]",
-      "location": {
-        "Padding": "10,5"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/WrapPanel[4]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/WrapPanel[6]",
-      "location": {
-        "Grid.Row": "5",
-        "Margin": "0,7,0,0"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "WrapPanel",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/WrapPanel[6]/Button[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[3]/WrapPanel[3]/Button[0]",
       "location": {
         "Margin": "0,0,6,0",
         "Padding": "10,6"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/WrapPanel[6]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[3]/WrapPanel[3]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
@@ -16223,29 +15825,13 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/WrapPanel[6]/Button[1]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[3]/WrapPanel[3]/Button[1]",
       "location": {
         "Margin": "0,0,6,0",
         "Padding": "10,6"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/WrapPanel[6]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/WrapPanel[6]/Button[2]",
-      "location": {
-        "Margin": "0,0,6,0",
-        "Padding": "10,6"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/WrapPanel[6]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[3]/WrapPanel[3]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
@@ -16257,13 +15843,12 @@
       "color_roles_and_values": {
         "Foreground": "{DynamicResource AppDangerBrush}"
       },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/WrapPanel[6]/Button[3]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[3]/WrapPanel[3]/Button[2]",
       "location": {
-        "Margin": "0,0,6,0",
         "Padding": "10,6"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/WrapPanel[6]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[3]/WrapPanel[3]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
@@ -16273,26 +15858,12 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/WrapPanel[6]/Button[4]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/SignaturesListBox",
       "location": {
-        "Padding": "10,6"
+        "Grid.RowSpan": "2",
+        "MinHeight": "150"
       },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/Grid[2]/WrapPanel[6]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]/MailTemplatesListBox",
-      "location": {
-        "MinHeight": "230"
-      },
-      "name": "MailTemplatesListBox",
+      "name": "SignaturesListBox",
       "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[4]/Grid[0]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
@@ -16303,7 +15874,7 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[8]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]",
       "location": {
         "Margin": "0,16,0,0"
       },
@@ -16318,27 +15889,284 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[8]/StackPanel[0]",
-      "location": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]",
+      "location": {
+        "Margin": "12"
+      },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[8]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
-      "type": "StackPanel",
+      "type": "Grid",
       "typography": {},
       "window": "MainWindow"
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[8]/StackPanel[0]/Button[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Grid.ColumnDefinitions",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[0]",
       "location": {
-        "HorizontalAlignment": "Left",
-        "Margin": "0,8,0,0",
-        "Padding": "12,5"
+        "Width": "220"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[8]/StackPanel[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ColumnDefinition",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[1]",
+      "location": {
+        "Width": "16"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ColumnDefinition",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[2]",
+      "location": {
+        "Width": "*"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ColumnDefinition",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]",
+      "location": {
+        "Grid.Column": "2"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Grid",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Grid.RowDefinitions",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]/RowDefinition[0]",
+      "location": {
+        "Height": "Auto"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "RowDefinition",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]/RowDefinition[1]",
+      "location": {
+        "Height": "Auto"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "RowDefinition",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]/RowDefinition[2]",
+      "location": {
+        "Height": "120"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "RowDefinition",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]/RowDefinition[3]",
+      "location": {
+        "Height": "Auto"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "RowDefinition",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]/RowDefinition[4]",
+      "location": {
+        "Height": "90"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "RowDefinition",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]/RowDefinition[5]",
+      "location": {
+        "Height": "Auto"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/Grid.RowDefinitions[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "RowDefinition",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/TemplateAttachmentsListBox",
+      "location": {
+        "Grid.Row": "4",
+        "MinHeight": "70"
+      },
+      "name": "TemplateAttachmentsListBox",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ListBox",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/TemplateBodyTextBox",
+      "location": {
+        "Grid.Row": "2",
+        "Padding": "7"
+      },
+      "name": "TemplateBodyTextBox",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBox",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/TemplateNameTextBox",
+      "location": {
+        "Padding": "7"
+      },
+      "name": "TemplateNameTextBox",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBox",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/TemplateSubjectTextBox",
+      "location": {
+        "Grid.Row": "1",
+        "Margin": "0,7,0,7",
+        "Padding": "7"
+      },
+      "name": "TemplateSubjectTextBox",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBox",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/WrapPanel[4]",
+      "location": {
+        "Grid.Row": "3",
+        "Margin": "0,7,0,4"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "WrapPanel",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/WrapPanel[4]/Button[0]",
+      "location": {
+        "Margin": "0,0,6,0",
+        "Padding": "10,5"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/WrapPanel[4]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
@@ -16348,13 +16176,185 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[8]/StackPanel[0]/ResponseTextBox",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/WrapPanel[4]/Button[1]",
+      "location": {
+        "Padding": "10,5"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/WrapPanel[4]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Button",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/WrapPanel[6]",
+      "location": {
+        "Grid.Row": "5",
+        "Margin": "0,7,0,0"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "WrapPanel",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/WrapPanel[6]/Button[0]",
+      "location": {
+        "Margin": "0,0,6,0",
+        "Padding": "10,6"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/WrapPanel[6]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Button",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/WrapPanel[6]/Button[1]",
+      "location": {
+        "Margin": "0,0,6,0",
+        "Padding": "10,6"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/WrapPanel[6]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Button",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/WrapPanel[6]/Button[2]",
+      "location": {
+        "Margin": "0,0,6,0",
+        "Padding": "10,6"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/WrapPanel[6]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Button",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {
+        "Foreground": "{DynamicResource AppDangerBrush}"
+      },
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/WrapPanel[6]/Button[3]",
+      "location": {
+        "Margin": "0,0,6,0",
+        "Padding": "10,6"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/WrapPanel[6]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Button",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/WrapPanel[6]/Button[4]",
+      "location": {
+        "Padding": "10,6"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/Grid[2]/WrapPanel[6]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Button",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]/MailTemplatesListBox",
+      "location": {
+        "MinHeight": "230"
+      },
+      "name": "MailTemplatesListBox",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[5]/Grid[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ListBox",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[9]",
+      "location": {
+        "Margin": "0,16,0,0"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Expander",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[9]/StackPanel[0]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[9]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "StackPanel",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[9]/StackPanel[0]/Button[0]",
+      "location": {
+        "HorizontalAlignment": "Left",
+        "Margin": "0,8,0,0",
+        "Padding": "12,5"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[9]/StackPanel[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Button",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[9]/StackPanel[0]/ResponseTextBox",
       "location": {
         "Height": "220",
         "Margin": "0,8,0,0"
       },
       "name": "ResponseTextBox",
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[8]/StackPanel[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/Expander[9]/StackPanel[0]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
@@ -16504,622 +16504,36 @@
     },
     {
       "color_roles_and_values": {
-        "Background": "{DynamicResource AppPanelBrush}",
-        "Foreground": "{DynamicResource AppTextBrush}"
+        "Foreground": "{DynamicResource AppMutedTextBrush}"
       },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]",
-      "location": {
-        "Margin": "0,16,0,0"
-      },
-      "name": null,
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/PushDiagnosticsActionStatusText",
+      "location": {},
+      "name": "PushDiagnosticsActionStatusText",
       "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
-      "type": "Expander",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]",
-      "location": {
-        "Margin": "12"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "StackPanel",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/Button[5]",
-      "location": {
-        "HorizontalAlignment": "Left",
-        "Padding": "12,7"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {
-        "Foreground": "{DynamicResource AppWarningBrush}"
-      },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteContrastText",
-      "location": {
-        "Margin": "0,12,0,9"
-      },
-      "name": "PaletteContrastText",
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {
-        "Foreground": "{DynamicResource AppMutedTextBrush}"
-      },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleCountText",
-      "location": {
-        "Margin": "0,0,0,5"
-      },
-      "name": "PaletteRoleCountText",
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
       "type": "TextBlock",
       "typography": {},
       "window": "MainWindow"
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl",
-      "location": {},
-      "name": "PaletteRoleItemsControl",
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ItemsControl",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.GroupStyle[0]",
-      "location": {},
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ItemsControl.GroupStyle",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.GroupStyle[0]/GroupStyle[0]",
-      "location": {},
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.GroupStyle[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "GroupStyle",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.GroupStyle[0]/GroupStyle[0]/GroupStyle.HeaderTemplate[0]",
-      "location": {},
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.GroupStyle[0]/GroupStyle[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "GroupStyle.HeaderTemplate",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.GroupStyle[0]/GroupStyle[0]/GroupStyle.HeaderTemplate[0]/DataTemplate[0]",
-      "location": {},
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.GroupStyle[0]/GroupStyle[0]/GroupStyle.HeaderTemplate[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": {
-        "Key": "",
-        "TargetType": ""
-      },
-      "style": null,
-      "type": "DataTemplate",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {
-        "Background": "{DynamicResource AppPanelBrush}"
-      },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.GroupStyle[0]/GroupStyle[0]/GroupStyle.HeaderTemplate[0]/DataTemplate[0]/Border[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/PushDiagnosticsLogTextBox",
       "location": {
-        "Margin": "0,12,0,3",
-        "Padding": "7,5"
+        "Height": "205",
+        "Margin": "0,9,0,0",
+        "MinWidth": "420"
       },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.GroupStyle[0]/GroupStyle[0]/GroupStyle.HeaderTemplate[0]/DataTemplate[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Border",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.GroupStyle[0]/GroupStyle[0]/GroupStyle.HeaderTemplate[0]/DataTemplate[0]/Border[0]/TextBlock[0]",
-      "location": {},
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.GroupStyle[0]/GroupStyle[0]/GroupStyle.HeaderTemplate[0]/DataTemplate[0]/Border[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
-      "typography": {
-        "FontWeight": "SemiBold"
-      },
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]",
-      "location": {},
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ItemsControl.ItemTemplate",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]",
-      "location": {},
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": {
-        "Key": "",
-        "TargetType": ""
-      },
-      "style": null,
-      "type": "DataTemplate",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {
-        "BorderBrush": "{DynamicResource AppBorderBrush}"
-      },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]",
-      "location": {
-        "Padding": "4,7"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Border",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]",
-      "location": {},
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Grid",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {
-        "Background": "{Binding Swatch}",
-        "BorderBrush": "{DynamicResource AppBorderBrush}"
-      },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Border[1]",
-      "location": {
-        "Height": "26",
-        "HorizontalAlignment": "Left",
-        "VerticalAlignment": "Center",
-        "Width": "26"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Border",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Button[4]",
-      "location": {
-        "Grid.Column": "3",
-        "Margin": "0,0,5,0",
-        "Padding": "7,5",
-        "VerticalAlignment": "Center"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Button[5]",
-      "location": {
-        "Grid.Column": "4",
-        "Padding": "5",
-        "VerticalAlignment": "Center"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Grid.ColumnDefinitions[0]",
-      "location": {},
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Grid.ColumnDefinitions",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[0]",
-      "location": {
-        "Width": "34"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Grid.ColumnDefinitions[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ColumnDefinition",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[1]",
-      "location": {
-        "Width": "*"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Grid.ColumnDefinitions[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ColumnDefinition",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[2]",
-      "location": {
-        "Width": "92"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Grid.ColumnDefinitions[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ColumnDefinition",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[3]",
-      "location": {
-        "Width": "82"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Grid.ColumnDefinitions[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ColumnDefinition",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[4]",
-      "location": {
-        "Width": "36"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Grid.ColumnDefinitions[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ColumnDefinition",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/StackPanel[2]",
-      "location": {
-        "Grid.Column": "1",
-        "Margin": "4,0,8,0"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "StackPanel",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/StackPanel[2]/TextBlock[0]",
-      "location": {},
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/StackPanel[2]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
-      "typography": {
-        "FontWeight": "SemiBold"
-      },
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {
-        "Foreground": "{DynamicResource AppMutedTextBrush}"
-      },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/StackPanel[2]/TextBlock[1]",
-      "location": {},
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/StackPanel[2]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
-      "typography": {
-        "FontSize": "{DynamicResource AppFontSmallSize}"
-      },
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/TextBox[3]",
-      "location": {
-        "Grid.Column": "2",
-        "Margin": "0,0,6,0",
-        "Padding": "5",
-        "VerticalAlignment": "Center"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]",
+      "name": "PushDiagnosticsLogTextBox",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
       "type": "TextBox",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/TextBlock[0]",
-      "location": {
-        "Margin": "0,0,0,10"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/WrapPanel[1]",
-      "location": {
-        "Margin": "0,0,0,8",
-        "VerticalAlignment": "Center"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "WrapPanel",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/WrapPanel[1]/PaletteThemeComboBox",
-      "location": {
-        "Width": "160"
-      },
-      "name": "PaletteThemeComboBox",
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/WrapPanel[1]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ComboBox",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/WrapPanel[1]/PaletteThemeComboBox/ComboBoxItem[0]",
-      "location": {},
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/WrapPanel[1]/PaletteThemeComboBox",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ComboBoxItem",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/WrapPanel[1]/PaletteThemeComboBox/ComboBoxItem[1]",
-      "location": {},
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/WrapPanel[1]/PaletteThemeComboBox",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ComboBoxItem",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/WrapPanel[1]/TextBlock[0]",
-      "location": {
-        "Margin": "0,0,9,0",
-        "VerticalAlignment": "Center"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/WrapPanel[1]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {
-        "Foreground": "{DynamicResource AppMutedTextBrush}"
-      },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/WrapPanel[1]/TextBlock[2]",
-      "location": {
-        "Margin": "13,0,0,0",
-        "VerticalAlignment": "Center"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Expander[7]/StackPanel[0]/WrapPanel[1]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/Separator[3]",
-      "location": {
-        "Margin": "0,12,0,10"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Separator",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/TextBlock[0]",
-      "location": {
-        "Margin": "0,0,0,6"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {
-        "Foreground": "{DynamicResource AppMutedTextBrush}"
-      },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/TextBlock[2]",
-      "location": {
-        "Margin": "0,8,0,0"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/TextBlock[4]",
-      "location": {},
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
       "typography": {
-        "FontWeight": "SemiBold"
+        "FontFamily": "Consolas",
+        "FontSize": "11"
       },
       "window": "MainWindow"
     },
@@ -17127,10 +16541,8 @@
       "color_roles_and_values": {
         "Foreground": "{DynamicResource AppMutedTextBrush}"
       },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/TextBlock[6]",
-      "location": {
-        "Margin": "0,7,0,0"
-      },
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/TextBlock[0]",
+      "location": {},
       "name": null,
       "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
@@ -17142,65 +16554,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/ThemeComboBox",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/WrapPanel[2]",
       "location": {
-        "HorizontalAlignment": "Left",
-        "Width": "220"
-      },
-      "name": "ThemeComboBox",
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ComboBox",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/ThemeComboBox/ComboBoxItem[0]",
-      "location": {},
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/ThemeComboBox",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ComboBoxItem",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/ThemeComboBox/ComboBoxItem[1]",
-      "location": {},
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/ThemeComboBox",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ComboBoxItem",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/ThemeComboBox/ComboBoxItem[2]",
-      "location": {},
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/ThemeComboBox",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ComboBoxItem",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/WrapPanel[5]",
-      "location": {
-        "Margin": "0,7,0,0",
-        "VerticalAlignment": "Center"
+        "Margin": "0,10,0,0",
+        "Orientation": "Horizontal"
       },
       "name": null,
       "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]",
@@ -17213,12 +16570,13 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/WrapPanel[5]/Button[2]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/WrapPanel[2]/ClearPushDiagnosticsButton",
       "location": {
-        "Padding": "9,5"
+        "Margin": "0,0,8,6",
+        "Padding": "11,6"
       },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/WrapPanel[5]",
+      "name": "ClearPushDiagnosticsButton",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/WrapPanel[2]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
@@ -17228,40 +16586,55 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/WrapPanel[5]/InterfaceFontSlider",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/WrapPanel[2]/CopyPushDiagnosticsButton",
       "location": {
-        "VerticalAlignment": "Center",
-        "Width": "230"
+        "Margin": "0,0,8,6",
+        "Padding": "11,6"
       },
-      "name": "InterfaceFontSlider",
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/WrapPanel[5]",
+      "name": "CopyPushDiagnosticsButton",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/WrapPanel[2]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
-      "type": "Slider",
+      "type": "Button",
       "typography": {},
       "window": "MainWindow"
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/WrapPanel[5]/InterfaceFontValueText",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/WrapPanel[2]/RefreshPushDiagnosticsButton",
       "location": {
-        "Margin": "12,0,0,0",
-        "VerticalAlignment": "Center",
-        "Width": "100"
+        "Margin": "0,0,8,6",
+        "Padding": "11,6"
       },
-      "name": "InterfaceFontValueText",
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/WrapPanel[5]",
+      "name": "RefreshPushDiagnosticsButton",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/WrapPanel[2]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
-      "type": "TextBlock",
+      "type": "Button",
       "typography": {},
       "window": "MainWindow"
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[5]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/WrapPanel[2]/SavePushDiagnosticsButton",
+      "location": {
+        "Margin": "0,0,8,6",
+        "Padding": "11,6"
+      },
+      "name": "SavePushDiagnosticsButton",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[2]/StackPanel[0]/WrapPanel[2]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Button",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]",
       "location": {
         "Margin": "0,16,0,0"
       },
@@ -17276,12 +16649,45 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[5]/StackPanel[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]",
       "location": {
         "Margin": "12"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[5]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "StackPanel",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {
+        "Background": "{DynamicResource AppPanelBrush}",
+        "Foreground": "{DynamicResource AppTextBrush}"
+      },
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]",
+      "location": {
+        "Margin": "0,16,0,0"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Expander",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]",
+      "location": {
+        "Margin": "12"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
@@ -17291,12 +16697,47 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[5]/StackPanel[0]/AttachmentDirectoryStatusText",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/Button[5]",
       "location": {
-        "Visibility": "Collapsed"
+        "HorizontalAlignment": "Left",
+        "Padding": "12,7"
       },
-      "name": "AttachmentDirectoryStatusText",
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[5]/StackPanel[0]",
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Button",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {
+        "Foreground": "{DynamicResource AppWarningBrush}"
+      },
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteContrastText",
+      "location": {
+        "Margin": "0,12,0,9"
+      },
+      "name": "PaletteContrastText",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {
+        "Foreground": "{DynamicResource AppMutedTextBrush}"
+      },
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleCountText",
+      "location": {
+        "Margin": "0,0,0,5"
+      },
+      "name": "PaletteRoleCountText",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
@@ -17306,44 +16747,196 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[5]/StackPanel[0]/DockPanel[1]",
-      "location": {
-        "Margin": "0,5,0,0"
-      },
-      "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[5]/StackPanel[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl",
+      "location": {},
+      "name": "PaletteRoleItemsControl",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
-      "type": "DockPanel",
+      "type": "ItemsControl",
       "typography": {},
       "window": "MainWindow"
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[5]/StackPanel[0]/DockPanel[1]/AttachmentDownloadDirectoryText",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.GroupStyle[0]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ItemsControl.GroupStyle",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.GroupStyle[0]/GroupStyle[0]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.GroupStyle[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "GroupStyle",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.GroupStyle[0]/GroupStyle[0]/GroupStyle.HeaderTemplate[0]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.GroupStyle[0]/GroupStyle[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "GroupStyle.HeaderTemplate",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.GroupStyle[0]/GroupStyle[0]/GroupStyle.HeaderTemplate[0]/DataTemplate[0]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.GroupStyle[0]/GroupStyle[0]/GroupStyle.HeaderTemplate[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": {
+        "Key": "",
+        "TargetType": ""
+      },
+      "style": null,
+      "type": "DataTemplate",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {
+        "Background": "{DynamicResource AppPanelBrush}"
+      },
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.GroupStyle[0]/GroupStyle[0]/GroupStyle.HeaderTemplate[0]/DataTemplate[0]/Border[0]",
       "location": {
+        "Margin": "0,12,0,3",
+        "Padding": "7,5"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.GroupStyle[0]/GroupStyle[0]/GroupStyle.HeaderTemplate[0]/DataTemplate[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Border",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.GroupStyle[0]/GroupStyle[0]/GroupStyle.HeaderTemplate[0]/DataTemplate[0]/Border[0]/TextBlock[0]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.GroupStyle[0]/GroupStyle[0]/GroupStyle.HeaderTemplate[0]/DataTemplate[0]/Border[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {
+        "FontWeight": "SemiBold"
+      },
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ItemsControl.ItemTemplate",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": {
+        "Key": "",
+        "TargetType": ""
+      },
+      "style": null,
+      "type": "DataTemplate",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {
+        "BorderBrush": "{DynamicResource AppBorderBrush}"
+      },
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]",
+      "location": {
+        "Padding": "4,7"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Border",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Grid",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {
+        "Background": "{Binding Swatch}",
+        "BorderBrush": "{DynamicResource AppBorderBrush}"
+      },
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Border[1]",
+      "location": {
+        "Height": "26",
+        "HorizontalAlignment": "Left",
+        "VerticalAlignment": "Center",
+        "Width": "26"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Border",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Button[4]",
+      "location": {
+        "Grid.Column": "3",
+        "Margin": "0,0,5,0",
+        "Padding": "7,5",
         "VerticalAlignment": "Center"
       },
-      "name": "AttachmentDownloadDirectoryText",
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[5]/StackPanel[0]/DockPanel[1]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[5]/StackPanel[0]/DockPanel[1]/Button[0]",
-      "location": {
-        "DockPanel.Dock": "Left",
-        "Margin": "0,0,9,0",
-        "Padding": "12,6"
-      },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[5]/StackPanel[0]/DockPanel[1]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
@@ -17353,12 +16946,472 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[5]/StackPanel[0]/TextBlock[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Button[5]",
       "location": {
-        "Margin": "0,0,0,5"
+        "Grid.Column": "4",
+        "Padding": "5",
+        "VerticalAlignment": "Center"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[5]/StackPanel[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Button",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Grid.ColumnDefinitions",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[0]",
+      "location": {
+        "Width": "34"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ColumnDefinition",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[1]",
+      "location": {
+        "Width": "*"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ColumnDefinition",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[2]",
+      "location": {
+        "Width": "92"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ColumnDefinition",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[3]",
+      "location": {
+        "Width": "82"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ColumnDefinition",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[4]",
+      "location": {
+        "Width": "36"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ColumnDefinition",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/StackPanel[2]",
+      "location": {
+        "Grid.Column": "1",
+        "Margin": "4,0,8,0"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "StackPanel",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/StackPanel[2]/TextBlock[0]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/StackPanel[2]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {
+        "FontWeight": "SemiBold"
+      },
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {
+        "Foreground": "{DynamicResource AppMutedTextBrush}"
+      },
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/StackPanel[2]/TextBlock[1]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/StackPanel[2]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {
+        "FontSize": "{DynamicResource AppFontSmallSize}"
+      },
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]/TextBox[3]",
+      "location": {
+        "Grid.Column": "2",
+        "Margin": "0,0,6,0",
+        "Padding": "5",
+        "VerticalAlignment": "Center"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/PaletteRoleItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Border[0]/Grid[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBox",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/TextBlock[0]",
+      "location": {
+        "Margin": "0,0,0,10"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/WrapPanel[1]",
+      "location": {
+        "Margin": "0,0,0,8",
+        "VerticalAlignment": "Center"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "WrapPanel",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/WrapPanel[1]/PaletteThemeComboBox",
+      "location": {
+        "Width": "160"
+      },
+      "name": "PaletteThemeComboBox",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/WrapPanel[1]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ComboBox",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/WrapPanel[1]/PaletteThemeComboBox/ComboBoxItem[0]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/WrapPanel[1]/PaletteThemeComboBox",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ComboBoxItem",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/WrapPanel[1]/PaletteThemeComboBox/ComboBoxItem[1]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/WrapPanel[1]/PaletteThemeComboBox",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ComboBoxItem",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/WrapPanel[1]/TextBlock[0]",
+      "location": {
+        "Margin": "0,0,9,0",
+        "VerticalAlignment": "Center"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/WrapPanel[1]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {
+        "Foreground": "{DynamicResource AppMutedTextBrush}"
+      },
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/WrapPanel[1]/TextBlock[2]",
+      "location": {
+        "Margin": "13,0,0,0",
+        "VerticalAlignment": "Center"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Expander[7]/StackPanel[0]/WrapPanel[1]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/Separator[3]",
+      "location": {
+        "Margin": "0,12,0,10"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Separator",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/TextBlock[0]",
+      "location": {
+        "Margin": "0,0,0,6"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {
+        "Foreground": "{DynamicResource AppMutedTextBrush}"
+      },
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/TextBlock[2]",
+      "location": {
+        "Margin": "0,8,0,0"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/TextBlock[4]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {
+        "FontWeight": "SemiBold"
+      },
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {
+        "Foreground": "{DynamicResource AppMutedTextBrush}"
+      },
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/TextBlock[6]",
+      "location": {
+        "Margin": "0,7,0,0"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/ThemeComboBox",
+      "location": {
+        "HorizontalAlignment": "Left",
+        "Width": "220"
+      },
+      "name": "ThemeComboBox",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ComboBox",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/ThemeComboBox/ComboBoxItem[0]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/ThemeComboBox",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ComboBoxItem",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/ThemeComboBox/ComboBoxItem[1]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/ThemeComboBox",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ComboBoxItem",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/ThemeComboBox/ComboBoxItem[2]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/ThemeComboBox",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ComboBoxItem",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/WrapPanel[5]",
+      "location": {
+        "Margin": "0,7,0,0",
+        "VerticalAlignment": "Center"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "WrapPanel",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/WrapPanel[5]/Button[2]",
+      "location": {
+        "Padding": "9,5"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/WrapPanel[5]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Button",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/WrapPanel[5]/InterfaceFontSlider",
+      "location": {
+        "VerticalAlignment": "Center",
+        "Width": "230"
+      },
+      "name": "InterfaceFontSlider",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/WrapPanel[5]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Slider",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/WrapPanel[5]/InterfaceFontValueText",
+      "location": {
+        "Margin": "12,0,0,0",
+        "VerticalAlignment": "Center",
+        "Width": "100"
+      },
+      "name": "InterfaceFontValueText",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[3]/StackPanel[0]/WrapPanel[5]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
@@ -17398,6 +17451,21 @@
     },
     {
       "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[6]/StackPanel[0]/AttachmentDirectoryStatusText",
+      "location": {
+        "Visibility": "Collapsed"
+      },
+      "name": "AttachmentDirectoryStatusText",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[6]/StackPanel[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
       "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[6]/StackPanel[0]/DockPanel[1]",
       "location": {
         "Margin": "0,5,0,0"
@@ -17408,6 +17476,21 @@
       "states": null,
       "style": null,
       "type": "DockPanel",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[6]/StackPanel[0]/DockPanel[1]/AttachmentDownloadDirectoryText",
+      "location": {
+        "VerticalAlignment": "Center"
+      },
+      "name": "AttachmentDownloadDirectoryText",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[6]/StackPanel[0]/DockPanel[1]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
       "typography": {},
       "window": "MainWindow"
     },
@@ -17425,36 +17508,6 @@
       "states": null,
       "style": null,
       "type": "Button",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[6]/StackPanel[0]/DockPanel[1]/TemplateDirectoryText",
-      "location": {
-        "VerticalAlignment": "Center"
-      },
-      "name": "TemplateDirectoryText",
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[6]/StackPanel[0]/DockPanel[1]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
-      "typography": {},
-      "window": "MainWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[6]/StackPanel[0]/TemplateDirectoryStatusText",
-      "location": {
-        "Visibility": "Collapsed"
-      },
-      "name": "TemplateDirectoryStatusText",
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[6]/StackPanel[0]",
-      "source": "src/MailRuDesktop.App/MainWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
       "typography": {},
       "window": "MainWindow"
     },
@@ -17504,14 +17557,59 @@
       "window": "MainWindow"
     },
     {
-      "color_roles_and_values": {
-        "Foreground": "{DynamicResource AppMutedTextBrush}"
-      },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[7]/StackPanel[0]/UpdateStatusText",
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[7]/StackPanel[0]/DockPanel[1]",
       "location": {
-        "Margin": "0,8,0,0"
+        "Margin": "0,5,0,0"
       },
-      "name": "UpdateStatusText",
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[7]/StackPanel[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "DockPanel",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[7]/StackPanel[0]/DockPanel[1]/Button[0]",
+      "location": {
+        "DockPanel.Dock": "Left",
+        "Margin": "0,0,9,0",
+        "Padding": "12,6"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[7]/StackPanel[0]/DockPanel[1]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Button",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[7]/StackPanel[0]/DockPanel[1]/TemplateDirectoryText",
+      "location": {
+        "VerticalAlignment": "Center"
+      },
+      "name": "TemplateDirectoryText",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[7]/StackPanel[0]/DockPanel[1]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[7]/StackPanel[0]/TemplateDirectoryStatusText",
+      "location": {
+        "Visibility": "Collapsed"
+      },
+      "name": "TemplateDirectoryStatusText",
       "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[7]/StackPanel[0]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
@@ -17522,10 +17620,72 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[7]/StackPanel[0]/WrapPanel[0]",
-      "location": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[7]/StackPanel[0]/TextBlock[0]",
+      "location": {
+        "Margin": "0,0,0,5"
+      },
       "name": null,
       "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[7]/StackPanel[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[8]",
+      "location": {
+        "Margin": "0,16,0,0"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "GroupBox",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[8]/StackPanel[0]",
+      "location": {
+        "Margin": "12"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[8]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "StackPanel",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {
+        "Foreground": "{DynamicResource AppMutedTextBrush}"
+      },
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[8]/StackPanel[0]/UpdateStatusText",
+      "location": {
+        "Margin": "0,8,0,0"
+      },
+      "name": "UpdateStatusText",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[8]/StackPanel[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[8]/StackPanel[0]/WrapPanel[0]",
+      "location": {},
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[8]/StackPanel[0]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
@@ -17535,13 +17695,13 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[7]/StackPanel[0]/WrapPanel[0]/Button[2]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[8]/StackPanel[0]/WrapPanel[0]/Button[2]",
       "location": {
         "Margin": "8,0,0,0",
         "Padding": "14,7"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[7]/StackPanel[0]/WrapPanel[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[8]/StackPanel[0]/WrapPanel[0]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
@@ -17551,12 +17711,12 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[7]/StackPanel[0]/WrapPanel[0]/CheckForUpdatesButton",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[8]/StackPanel[0]/WrapPanel[0]/CheckForUpdatesButton",
       "location": {
         "Padding": "14,7"
       },
       "name": "CheckForUpdatesButton",
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[7]/StackPanel[0]/WrapPanel[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[8]/StackPanel[0]/WrapPanel[0]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
@@ -17566,14 +17726,14 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[7]/StackPanel[0]/WrapPanel[0]/InstallUpdateButton",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[8]/StackPanel[0]/WrapPanel[0]/InstallUpdateButton",
       "location": {
         "Margin": "8,0,0,0",
         "Padding": "14,7",
         "Visibility": "Collapsed"
       },
       "name": "InstallUpdateButton",
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[7]/StackPanel[0]/WrapPanel[0]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[8]/StackPanel[0]/WrapPanel[0]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
@@ -21038,7 +21198,7 @@
         "Foreground": "{DynamicResource AppTextBrush}"
       },
       "declared_as": "XAML",
-      "element_count": 765,
+      "element_count": 775,
       "geometry": {
         "Height": "900",
         "MinHeight": "720",
