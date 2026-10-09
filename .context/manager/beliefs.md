@@ -430,3 +430,8 @@ SHA-256 оригинального APK Mail.ru 15.107.0.148045 и целевая
 ## B-056 — v0.3.33 опубликована с нативной проверкой мобильной доставки
 
 После успешной CI GitHub Actions 37880498382 (SUCCESS) и штатной сборки релиза Actions 37880613099 (SUCCESS) опубликован реальный выпуск v0.3.33 с двумя проверенными файлами: MailRuDesktop_Setup_v0.3.33.exe и MailRuDesktop_Update_v0.3.33.exe. Ссылки https://github.com/lvlaksim1/mailru-desktop/releases/tag/v0.3.33 . Событийный эксперимент встроен в настройках программы, не требует отдельного exe, Python или CMD. Реальный Mail.ru ACCOUNT_ACCEPTED и MCS event4 внутри программы пока не испытывались: выпуском доказана доставка программных файлов и проверок сборки, а не пуш-доставка писем.
+
+
+## B-057 — Mail.ru AltProd has a certificate-chain failure; official Prod HTTPS works
+
+User in-app v0.3.33 trial: Google check-in OK, TOKEN_ISSUED, MCS LOGIN_OK; Mail.ru PushMe account subscription failed with network error, cleanup unconfirmed. Independent GitHub Actions 37881120525 and 37881273739 verified alt-push-me.mail.ru DNS OK but TLS chain invalid (verify code20 unable to get local issuer certificate); official original APK PusherHost.Prod push-me.mail.ru TLS OK and empty JSON POST /api/v2/set_settings returned HTTP200. No passwords or OAuth were used in these tests. These observations strongly implicate AltProd TLS, though remote diagnostics cannot prove actual cause on user's Windows PC. v0.3.34 native .NET code now uses official Prod for both subscription and cleanup, retains strict TLS validation, reports sanitized DNS/TLS/HTTP categories. CI 37881506882 PASS, release Actions 37881628473 PASS; both full/update installers published v0.3.34. Actual account subscription and event4 remain unverified.

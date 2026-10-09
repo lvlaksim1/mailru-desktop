@@ -27,3 +27,6 @@
 
 
 После 09.10.2026: сборка и установщики v0.3.33 больше не заблокированы — CI 37880498382 PASS, release 37880613099 PASS. Единственная ключевая недоказанная часть получения новых писем — реальный PushMe сервер принимает ли независимый Windows FCM token, и будет ли на нативном канале MCS event4. Для этого нужен испытательный подключённый ящик в окне самого MailRu Desktop на ПК владельца, никаких логинов или токенов через GitHub/чат. Не утверждать что события уже работают. Также долговременное переподключение и дубли будут прорабатываться после успешного события.
+
+
+09.10.2026 after v0.3.34 release: initial AltProd TLS issue addressed by official Prod verified TLS and empty POST HTTP200. Still need live ACCOUNT_ACCEPTED of selected saved user account and genuine event4 on Google MCS in the newly integrated app; user test needed. Remote GitHub TLS results do not independently prove failure cause on user's network. No reason to request mailbox credentials, all auth remains in local DPAPI. Cleanup of trial token must be inspected after the next run. Long-running reliability and all-account delivery deferred until E2E success.

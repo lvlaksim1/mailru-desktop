@@ -228,3 +228,9 @@ status: интегрировано в main, требуется CI + выпуск
 status: v0.3.33 full/update RELEASED; пользовательское серверное испытание pending
 
 Пользователю переданы прямые ссылки на оба установщика https://github.com/lvlaksim1/mailru-desktop/releases/tag/v0.3.33. Следом получить обезличенные технические состояния из окна Настройки → Уведомления о новых письмах: Google TOKEN_ISSUED, LOGIN_OK, PushMe ACCOUNT_ACCEPTED либо отклонение, истинный event4, успешность удаления собственного временного токена. Не просить пароли/скопированные OAuth и не предлагать прежний отдельный архив. При провале расследовать точную причину; при реальном event4 планировать устойчивое подключение всех ящиков, переподключение и фильтрацию повторов.
+
+
+## I-037 — verify v0.3.34 PushMe Prod subscription on the authorized user mailbox
+status: code, CI and installers delivered; live ACCOUNT_ACCEPTED / event4 pending
+
+Update v0.3.34 link https://github.com/lvlaksim1/mailru-desktop/releases/download/v0.3.34/MailRuDesktop_Update_v0.3.34.exe. User repeats in-app trial under already saved account after update, sends control mail ONLY when ACCOUNT_ACCEPTED, reports anonymized technical states and cleanup outcome. Distinguish valid TLS, HTTP200, validated account and actual event4; successful network POST without account validation is insufficient. No return to separate Python tool; no raw mailbox tokens sent to GitHub/chat.

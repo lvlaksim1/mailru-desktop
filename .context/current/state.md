@@ -42,3 +42,8 @@ Original APK FirebaseInstanceInfoProvider подтверждён Actions 3787479
 ## 09.10.2026 — штатный выпуск v0.3.33 доступен пользователю
 
 Main содержит native .NET PushMe + Google/MCS и WPF окно проверки в Настройках (без автозапуска). CI 37880498382 SUCCESS. Штатный релиз GitHub Actions 37880613099 SUCCESS, выпуск v0.3.33 опубликован 09.10.2026, два файла реально найдены: https://github.com/lvlaksim1/mailru-desktop/releases/download/v0.3.33/MailRuDesktop_Setup_v0.3.33.exe и https://github.com/lvlaksim1/mailru-desktop/releases/download/v0.3.33/MailRuDesktop_Update_v0.3.33.exe. Основной сценарий испытания теперь через интерфейс и OAuth из действующего AuthorizationStore; личные данные не выгружаются. Реальная серверная подписка Mail.ru и получение event4 пока не тестировались на компьютере пользователя.
+
+
+## 2026-10-09 — in-app Mail.ru network failure diagnosed, official Prod repair shipped v0.3.34
+
+User's v0.3.33 in-app test: Google check-in OK, TOKEN_ISSUED, MCS LOGIN_OK, network failure at Mail.ru subscription; cleanup not confirmed. Independent public endpoint diagnostics Actions 37881120525/37881273739: AltProd alt-push-me.mail.ru certificate chain error 20, Prod push-me.mail.ru valid TLS and POST /api/v2/set_settings with empty [] returns HTTP200. Original APK PusherHost.Prod explicitly defines Prod. Main changed subscription and cleanup host to Prod without bypassing certificates, added sanitized error classifications. CI 37881506882 SUCCESS, release 37881628473 SUCCESS, download https://github.com/lvlaksim1/mailru-desktop/releases/tag/v0.3.34. No actual Mail.ru ACCOUNT_ACCEPTED or delivered event4 proved yet. User already received update links.
