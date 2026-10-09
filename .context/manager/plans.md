@@ -193,3 +193,16 @@ Patch PR #100 merged 277a3dc67cac7792715accf6b2edc71193742900, branch Windows CI
 4. Preserve v0.3.30 parallel auth image loading, cancellation of stale message fetches, Save As template copy and explicit overwrite confirmation. Keep Owner accepted avatar retrieval, contact picker, account drag, version checking, palettes.
 5. Issue #77 Send Now of an already-scheduled Outbox message remains disabled. Proven atomic unschedule and unique delivery required before activation. Other technical debts: actual scheduled delivery, read receipts, server search alternative.
 6. Any follow-up release requires Windows build, InteractionLogicSmoke, WindowsUiSmoke, UI registry and launch checks, plus Owner-specific WebView2 visual acceptance.
+
+
+## OVERRIDING PLAN — v0.3.32, 2026-10-09
+
+Последний продуктовый переход: PR #102, merge ae6968c0352a05badd278f31697e5f182b59f4eb, Windows CI ветки 37865194581 PASS и main 37865347046 PASS; release issue #103, installer workflow 37865488404 underway at the time of drafting.
+
+1. После публикации и установки v0.3.32 воспроизвести видеосценарий: Магнит → поддержка ФГИС → Магнит → СДЭК → другие письма. Письма не должны показывать содержимое предыдущего документа, WPF пустой кадр или сырую разметку. Обязательно сравнить изображение и геометрию чека.
+2. Подтвердить сохраняющееся получение аутентифицированных встроенных GIF и приемлемую скорость; при сбоях безопасная диагностика reader_visual_ready/mail_render_timing/mail_image_inline без полного письма/токенов. Быстрые старые запросы отменяются, серверное получение не переписывалось.
+3. Новый обязательный регрессионный тест: реальный WindowsUiSmoke содержит WebView2, два синтетических документа с data: GIF, проверяет единственный активный iframe, один основной браузер, ноль новых верхнеуровневых навигаций после создания shell, и отсутствие скрытия контрола.
+4. Инвариант для следующих исправлений: НЕЛЬЗЯ использовать второй WebView2, WPF-Overlay поверх WebView2, установку WebView2.Visibility=Hidden при смене писем, Stop или NavigateToString для каждого письма. Постоянная страница создаётся однократно; изолированные HTML элементы управляются внутри неё, переход заголовка после публикации.
+5. Предварительно принятые почтовые и UI функции (подписи, шаблоны и Save As, авторизация аккаунтов, изображения отправителей, контакты, перетаскивание, темы, обновления) сохранять.
+6. Issue #77 немедленной отправки отложенного письма по-прежнему ЗАБЛОКИРОВАНА: без атомарной отмены старого задания новая обычная отправка опасна дубликатом. Прочтение/точная доставка/неподтверждённый поиск остаются техническими долгами.
+7. Требовать прохождения Windows CI, реестра элементов и запуска при каждом выпуске. Не считать реальную картинку владельца проверенной по одному автономному испытанию.

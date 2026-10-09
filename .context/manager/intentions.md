@@ -168,3 +168,9 @@ status: ЗАБЛОКИРОВАНО, не реализовано
 status: CI PASS; installer requested; Owner GUI acceptance pending
 
 Owner provided reproducible K-001.mp4 demonstrating v0.3.30 HTML-first and late-image layout changes. PR #100 merged an atomic visibility guard with bounded 3s image settling/Stop deadline and navigation-ID filtering. Compare the actual same letter when selecting and reselecting quickly: neither raw text, old letter nor late large images may rearrange a visible receipt. Verify completeness of embedded images: on time-out they may be deliberately abandoned, requiring follow-up optimization if this prevents full receipt viewing. Measure reader_visual_ready reason=complete/limited and elapsed-ms, without exposing email contents, cookies, full HTML or token. Do NOT mark problem closed merely because CI passes. Keep scheduled Send Now #77 blocked until duplicate-free source operation proven.
+
+
+## I-027 — повторная визуальная проверка v0.3.32 без второго WebView2
+status: PR #102 merged; main Windows CI PASS; owner runtime gate pending
+
+Цель: устранить мерцание старого письма, пустой WPF кадр и несогласованность заголовка и содержимого. Код переводит предварительную загрузку внутрь единственной постоянной страницы WebView2 и меняет HTML одним действием браузера. Запрос выбранного письма проверяется по поколению; все поздние ответы отклоняются. В WindowsUiSmoke реальный WebView2 открыл две синтетические HTML-страницы подряд без корневой навигации, с одной активной внутренней областью и без Visibility переключений. Владелец должен повторить именно серию открытий Магнит ↔ техподдержка/СДЭК, оценить остатки предыдущих кадров, скорость, появление изображений, положение прокрутки и заголовки. Если возникнут сбои, проверять новое управление содержимым, но не возвращать показ по DOMContentLoaded, WPF Overlay, Stop и повторный NavigateToString. Issue #77 не относится к этому выпуску и остаётся заблокированной.

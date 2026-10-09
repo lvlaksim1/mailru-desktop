@@ -23,6 +23,8 @@
 - Normal runtime has no artificial five-second delay; research/probe/test requests keep at least five seconds spacing.
 - CAPTCHA/reCAPTCHA/additional interactive verification stops authorization; no bypass.
 
-Current Owner-gated release (2026-10-09): v0.3.31. Mail body no longer blocks on sequential images; Save As copies Markdown, target-name overwrite requires confirmation. Issue #77 Send Now still disabled pending duplicate-safe protocol evidence.
+Current Owner-gated release (2026-10-09): v0.3.32. Mail body no longer blocks on sequential images; Save As copies Markdown, target-name overwrite requires confirmation. Issue #77 Send Now still disabled pending duplicate-safe protocol evidence.
 
-Current user-gated release: v0.3.31 staged reader (PR #100, Windows CI passed); K-001.mp4 shows old v0.3.30 image-driven flicker. Real correction unconfirmed until Owner re-test. Issue #77 blocked.
+Current user-gated release: v0.3.32 staged reader (PR #100, Windows CI passed); K-001.mp4 shows old v0.3.30 image-driven flicker. Real correction unconfirmed until Owner re-test. Issue #77 blocked.
+
+New product branch (2026-10-09): v0.3.32 / PR #102, one WebView2 persistent browser-shell DOM staging (zero per-letter top-level navigation, no WPF overlay/Visibility flip), branch and main CI passed, Owner visual acceptance pending. Issue #77 Send Now blocked.

@@ -1,15 +1,14 @@
-# Latest handoff — MailRu Desktop v0.3.31 (2026-10-09)
+# MailRu Desktop manager handoff — v0.3.32 (2026-10-09)
 
-manager: project-manager; repository: lvlaksim1/mailru-desktop
-product and manager-state authority: main
-product merge: PR #100, commit 277a3dc67cac7792715accf6b2edc71193742900
-branch CI 37860604229 PASS; main CI 37860751548 PASS
-installer release workflow: 37860887859, triggered by issue #101 for v0.3.31
+Manager: project-manager; repo: lvlaksim1/mailru-desktop
+Product authority/main; manager state authority/main.
+Product PR #102 merged: ae6968c0352a05badd278f31697e5f182b59f4eb
+Windows PR CI 37865194581 PASS; main CI 37865347046 PASS
+Release issue #103, installer workflow 37865488404 for v0.3.32.
+Official releases: https://github.com/lvlaksim1/mailru-desktop/releases/tag/v0.3.32.
 
-Owner provided video K-001.mp4 and demonstrated v0.3.30 flicker. Receipt text is shown first, then the pictures load and force a visible table layout change. Earlier v0.3.30 intentionally revealed HTML at DOMContentLoaded, which caused the regression; previous statement that old flicker was fixed is superseded by the new video. Owner requested an immediate update including this correction.
+Owner recorded repeated overlay/flash mixing new Magnet receipt graphics with older technical-support email, emphatically rejected multiple WebView2 instances and requested root-cause correction. Reviewing v0.3.31 source revealed per-selection WebView2.Visibility Hidden then Visible, WPF ReaderLoadingOverlay on top of WebView2 and CoreWebView2.Stop + NavigateToString for each mail. WPF and WebView2 paint asynchronously; those operations plausibly expose stale/blank frames. Do not claim that camera frame blending alone establishes exact source; use source and actual test. No second WebView2 is introduced.
 
-v0.3.31 source: new MainWindow.ReaderPresentation.cs and ReaderPresentationPolicy.cs. Current WebView2 navigation is gated by revision and ID, default/loading overlay remains until images are settled. Host-originated script sets lazy HTML images eager; readiness is inspected via document.images[*].complete, in addition to NavigationCompleted. On completion, reveal once after hidden settling. On 3-second bounded deadline, stop pending WebView2 loads BEFORE publishing so late image display cannot reflow visible receipt. Safe reader_visual_ready diagnostic includes reason=complete or limited and elapsed-ms. Mail page scripts remain disabled. Unit tests cover no visibility on DOM readiness alone, full completion, timeout stopping and zero reveal before DOM. Full Windows CI passes; authenticated Owner UI test still required.
+v0.3.32 replaces MainWindow.ReaderPresentation.cs with a persistent browser shell: one WebView2, single NavigateToString at startup, no WPF overlay, no per-email Stop/navigation/Visibility change. Host-generated JSON-escaped HTML is staged in a sandboxed frame of the same browser document; the shell shows its own loading surface and atomically replaces the previous iframe when images are ready (or bounded fallback). Scripts from letters remain blocked; context includes strict generation to reject late requests. Header moves to commit time rather than changing early above former body. New ReaderShellScripts.cs supplies safe shell scripts; .xaml overlay removed; WindowsUiSmoke now initializes an actual WebView2 and proves the first/second synthetic email stage/commit and no new root navigation. UI registry now 9 windows/1371 elements and 26 WPF color resource names, no unresolved roles. PR and main CI fully passed.
 
-Important compromise: if images cannot complete within deadline, Stop may cause missing images. Do NOT claim both zero flicker and full image fidelity without Owner testing. v0.3.30 fixes to Markdown Save As, signed-in image loading and email latency are preserved; other Owner-accepted UI remains unchanged.
-
-Outstanding: #77 Send Now scheduled Outbox remains disabled until atomic duplicate-safe transition proven; recipient read receipt, real scheduled delivery and alternate search remain technical debts.
+**Owner-side visual test still pending.** Validate the original video sequence, real embedded images, web links and speed. Do not call the flicker eliminated based on the two synthetic letters alone. Keep v0.3.30/31 template fixes and OAuth image loading; already accepted account/contact/photo features preserved. Send Now #77 remains blocked, no duplicate-safe server transition proven; read receipts, exact scheduled delivery and alternative search remain unpaid technical debts.
