@@ -18,6 +18,38 @@ Expect(MailRuPushProbe.ClassifyNetworkError(
     new HttpRequestException(HttpRequestError.NameResolutionError, "SECRET_DNS_DETAIL")),
     "ошибка DNS: адрес сервера не найден", "DNS failure classified without leaking details");
 
+// Constant receiving: duplicate protection, backoff and user opt-out are offline.
+var msgData = PushWire.Append(
+    PushWire.TextField(5, "ru.mail.mailapp"),
+    PushWire.BytesField(7, PushWire.Append(
+        PushWire.TextField(1, "event"), PushWire.TextField(2, "4"))),
+    PushWire.TextField(9, "test-persistent-id"));
+Expect(PushWire.IsMailNewMessage(msgData), true, "continuous Mail.ru new-mail event");
+var ack = PushWire.SelectiveAcknowledgment(msgData);
+if (ack is null || !PushWire.Parse(ack).Any(field => field.Field == 7))
+    throw new Exception("MCS selective acknowledgment extension absent");
+Expect(PushWire.MessageIdentifier(msgData), PushWire.MessageIdentifier(msgData),
+    "stable MCS persistent message identity");
+using (var manager = new MailRuPushBackgroundService(
+    (_, _) => { }, _ => { }))
+{
+    Expect(manager.AcceptMessage("TEST@EXAMPLE.INVALID", msgData), true,
+        "first delivery is accepted");
+    Expect(manager.AcceptMessage("test@example.invalid", msgData), false,
+        "same persistent message id is not processed twice");
+    Expect(manager.ActiveAccountCount, 0, "manager has no unsolicited account connections");
+    manager.Reconcile(Array.Empty<(string Login, string Token)>(), enabled: false);
+    Expect(manager.Enabled, false, "user opt-out cancels the receiving service");
+    Expect(MailRuPushBackgroundService.RetryDelay(5),
+        TimeSpan.FromMinutes(10), "reconnect has bounded ten-minute backoff");
+}
+using (var folder = new System.IO.MemoryStream())
+{
+    var copy = PushWire.Varint(300);
+    await folder.WriteAsync(copy);
+    if (folder.Length < 2) throw new Exception("protobuf multi-byte varint not encoded");
+}
+
 // Original Android-app push protocol: all tests are offline and use fake tokens.
 var pushRequest = MailRuPushProbe.BuildSubscription(
     "TEST@EXAMPLE.INVALID", "NOT_A_REAL_OAUTH", "NOT_A_REAL_GOOGLE_TOKEN",
