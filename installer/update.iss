@@ -22,6 +22,9 @@ AppSupportURL=https://github.com/lvlaksim1/mailru-desktop/issues
 DefaultDirName={localappdata}\\Programs\\MailRuDesktop
 DisableDirPage=yes
 DisableProgramGroupPage=yes
+DisableWelcomePage=yes
+DisableReadyPage=yes
+DisableFinishedPage=yes
 DirExistsWarning=no
 UsePreviousAppDir=no
 OutputDir={#OutputDir}
@@ -41,16 +44,11 @@ VersionInfoVersion={#AppVersion}
 VersionInfoProductName={#AppName}
 VersionInfoDescription=MailRu Desktop update installer
 
-[Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
-
 [Files]
 Source: "{#PublishDir}\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
-; Recreate the shortcut on every update so shell metadata/icon changes are refreshed.
-[Icons]
-Name: "{autoprograms}\\MailRu Desktop"; Filename: "{app}\\{#AppExeName}"; WorkingDir: "{app}"
-Name: "{userdesktop}\\MailRu Desktop"; Filename: "{app}\\{#AppExeName}"; WorkingDir: "{app}"; Tasks: desktopicon
+; Updater never deletes or recreates shortcuts. Existing Explorer desktop
+; icon placement is preserved. Full installer creates icons on first install.
 
 [Registry]
 Root: HKCU; Subkey: "Software\\MailRuDesktop"; Flags: uninsdeletekey
@@ -62,7 +60,7 @@ Type: files; Name: "{autoprograms}\\MailRu Desktop.lnk"
 Type: files; Name: "{userdesktop}\\MailRu Desktop.lnk"
 
 [Run]
-Filename: "{app}\\{#AppExeName}"; Description: "Запустить MailRu Desktop"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\\{#AppExeName}"; Flags: nowait
 
 [Code]
 function InitializeSetup(): Boolean;
