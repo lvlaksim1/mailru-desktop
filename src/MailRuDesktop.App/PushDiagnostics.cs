@@ -91,11 +91,25 @@ internal static class PushDiagnostics
         return "EXCEPTION_" + SafeCode(failure.GetType().Name.ToUpperInvariant());
     }
 
+    internal static void BeginAttempt(int number)
+    {
+        lock (Sync) _lastFailure = "NONE";
+        Record("WORKER", "CONNECT_ATTEMPT", number);
+    }
+
     internal static void Failure(string stage, Exception failure)
     {
         var category = FailureCategory(failure);
-        lock (Sync) _lastFailure = SafeCode(stage) + ":" + category;
-        Record("ERROR", SafeCode(stage) + "_" + category);
+        var safeStage = SafeCode(stage);
+        lock (Sync)
+        {
+            // Keep the original failing step (e.g. PUSHME_HTTP_SEND), not
+            // the later generic catch in the background retry controller.
+            if (!safeStage.StartsWith("WORKER_", StringComparison.Ordinal) ||
+                _lastFailure == "NONE")
+                _lastFailure = safeStage + ":" + category;
+        }
+        Record("ERROR", safeStage + "_" + category);
     }
 
     internal static string LastFailure
