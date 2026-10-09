@@ -167,7 +167,8 @@ public partial class MainWindow
         if (state.Contains("Постоянный приём уведомлений включён",
             StringComparison.OrdinalIgnoreCase))
             _pushConnectedAccounts.Add(login);
-        else if (state.Contains("Соединение прервано", StringComparison.OrdinalIgnoreCase) ||
+        else if (state.Contains("PushMe отклонил регистрацию", StringComparison.OrdinalIgnoreCase) ||
+                 state.Contains("Соединение прервано", StringComparison.OrdinalIgnoreCase) ||
                  state.Contains("Получение уведомлений остановлено", StringComparison.OrdinalIgnoreCase) ||
                  state.Contains("Аккаунт отклонён", StringComparison.OrdinalIgnoreCase) ||
                  state.Contains("Ошибка этапа", StringComparison.OrdinalIgnoreCase))
@@ -176,7 +177,8 @@ public partial class MainWindow
         var enabled = _pushBackground.ActiveAccountCount;
         var connected = _pushConnectedAccounts.Count;
         var displayedState = state;
-        if (state.Contains("Соединение прервано", StringComparison.OrdinalIgnoreCase) &&
+        if ((state.Contains("Соединение прервано", StringComparison.OrdinalIgnoreCase) ||
+             state.Contains("PushMe отклонил регистрацию", StringComparison.OrdinalIgnoreCase)) &&
             PushDiagnostics.LastFailure != "NONE")
             displayedState += " Причина: " + PushDiagnostics.LastFailure +
                               ". Подробности — в журнале ниже.";
