@@ -10,6 +10,11 @@ namespace MailRuDesktop.App;
 
 internal sealed partial class MailRuPushProbe
 {
+    // Exact original APK DEX: PushMeApiImpl.unsubscribeByDeviceId().
+    internal const string UnsubscribeAccountUrl =
+        "https://push-me.mail.ru/api/v1/unsubscribe_by_device_id";
+    private static readonly SemaphoreSlim SharedSubscriptionGate = new(1, 1);
+
     /// <summary>
     /// One protected Google identity and one MCS connection serve all authorized
     /// mailboxes. Only the account field inside an actual event=4 can route it.
@@ -30,13 +35,29 @@ internal sealed partial class MailRuPushProbe
 
         var store = new SharedGooglePushIdentityStore();
         var saved = store.Load();
-        if (saved is not null && SharedGooglePushIdentityStore.NeedsRotation(
-                saved.SubscribedAccounts, accounts.Keys))
+        if (saved is not null)
         {
-            ReportAll("Состав аккаунтов изменился; защищённая смена общего получателя.");
-            if (!await UnsubscribeSharedAsync(cancellationToken))
-                throw new IOException("Shared token revocation was not confirmed.");
-            saved = null;
+            var wanted = new HashSet<string>(accounts.Keys, StringComparer.OrdinalIgnoreCase);
+            foreach (var removed in saved.SubscribedAccounts.Where(a => !wanted.Contains(a)).ToArray())
+            {
+                try
+                {
+                    if (await UnsubscribeAccountAsync(removed, cancellationToken))
+                        onStatus(removed, "PushMe: адресная подписка удалена.");
+                    else
+                        onStatus(removed, "PushMe: отписка аккаунта ожидает повтора.");
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception)
+                {
+                    // Maintain the remaining account subscriptions; retry later.
+                    onStatus(removed, "PushMe: отписка аккаунта ожидает повтора.");
+                }
+            }
+            saved = store.Load(); // The per-account unsubscribe updates the persisted roster.
         }
         if (saved is null)
         {
@@ -72,6 +93,10 @@ internal sealed partial class MailRuPushProbe
             BuildSubscription(item.Key, item.Value, saved.RegistrationToken,
                 saved.DeviceId, deviceName)).ToArray();
         var json = JsonSerializer.Serialize(subscriptions);
+        HashSet<string> accepted;
+        await SharedSubscriptionGate.WaitAsync(cancellationToken);
+        try
+        {
         // Persist the prospective account roster BEFORE the network write.
         // If Windows exits after PushMe accepts the POST, the next startup
         // still knows which accounts might be bound to this Google token.
@@ -96,7 +121,7 @@ internal sealed partial class MailRuPushProbe
                 ReportAll("PushMe: " + registration.Error);
                 throw new InvalidOperationException("PushMe subscription failed");
             }
-            var accepted = registration.Accepted;
+            accepted = registration.Accepted;
             foreach (var login in accounts.Keys)
                 onStatus(login, accepted.Contains(login)
                     ? "Mail.ru: ACCOUNT_ACCEPTED"
@@ -104,8 +129,8 @@ internal sealed partial class MailRuPushProbe
             if (accepted.Count == 0)
                 throw new InvalidOperationException("PushMe rejected all mailboxes.");
 
-            // Keep earlier server-confirmed subscriptions (all still desired),
-            // plus newly accepted ones. Removed accounts force rotation above.
+            // Keep all possibly registered accounts for subsequent exact
+            // per-account unsubscription; never revoke the common token.
             var associated = saved.SubscribedAccounts.Concat(accounts.Keys)
                 .Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
             store.Save(saved with { SubscribedAccounts = associated });
@@ -113,6 +138,12 @@ internal sealed partial class MailRuPushProbe
                 onStatus(login, "Подписка подтверждена. Постоянный приём уведомлений включён.");
             if (accepted.Count < accounts.Count)
                 ReportAll("Часть почтовых аккаунтов требует повторной подписки.");
+
+        }
+        finally
+        {
+            SharedSubscriptionGate.Release();
+        }
 
             // Even partial acceptance is useful; retry nonaccepted accounts on the
             // next reconnection. Never deliver mail for unaccepted accounts.
@@ -163,7 +194,6 @@ internal sealed partial class MailRuPushProbe
                 onStatus(account, "MAILRU_NEW_MAIL_EVENT_RECEIVED=YES.");
                 onNewMail(account);
             }
-        }
     }
 
 
@@ -212,6 +242,59 @@ internal sealed partial class MailRuPushProbe
         }
     }
 
+    // Source of fields/endpoint: original APK
+    // PushMeApiImpl.unsubscribeByDeviceId and UnsubscribeUseCase.invoke.
+    // device_id is DeviceIdProvider.getDeviceId(), corresponding to the
+    // value registered as settings.device_id, NOT FCM token/sdK_device_id.
+    internal static Dictionary<string, string> BuildAccountUnsubscribeFields(
+        string account, ulong googleDeviceId)
+    {
+        if (string.IsNullOrWhiteSpace(account) || googleDeviceId == 0)
+            throw new ArgumentException("Invalid account or device ID.");
+        return new(StringComparer.Ordinal)
+        {
+            ["account"] = account.ToLowerInvariant(),
+            ["device_id"] = "mailru-windows-" + googleDeviceId.ToString("x"),
+            ["application"] = "mail"
+        };
+    }
+
+    // IMPORTANT:  HTTP failure must NOT clear the pending account from DPAPI.
+    // A next connection retries, while other accounts remain registered.
+    internal async Task<bool> UnsubscribeAccountAsync(
+        string account, CancellationToken cancellationToken)
+    {
+        await SharedSubscriptionGate.WaitAsync(cancellationToken);
+        try
+        {
+            var store = new SharedGooglePushIdentityStore();
+            var saved = store.Load();
+            if (saved is null ||
+                !saved.SubscribedAccounts.Contains(account, StringComparer.OrdinalIgnoreCase))
+                return true;
+            using var request = new HttpRequestMessage(HttpMethod.Post, UnsubscribeAccountUrl);
+            request.Headers.TryAddWithoutValidation("User-Agent", AppUserAgent);
+            request.Content = new FormUrlEncodedContent(
+                BuildAccountUnsubscribeFields(account, saved.DeviceId));
+            await PaceNetworkRequestAsync(cancellationToken);
+            using var response = await _http.SendAsync(request, cancellationToken);
+            if (!response.IsSuccessStatusCode) return false;
+            var raw = await response.Content.ReadAsStringAsync(cancellationToken);
+            if (!ClassifyCleanup(raw)) return false;
+            store.Save(saved with
+            {
+                SubscribedAccounts = saved.SubscribedAccounts
+                    .Where(a => !string.Equals(a, account, StringComparison.OrdinalIgnoreCase))
+                    .ToArray()
+            });
+            return true;
+        }
+        finally
+        {
+            SharedSubscriptionGate.Release();
+        }
+    }
+
     /// <summary>
     /// Token-wide revocation is only used when ALL subscribers are being
     /// retired (user disables push) or a removed account requires rotation.
@@ -222,6 +305,9 @@ internal sealed partial class MailRuPushProbe
         var store = new SharedGooglePushIdentityStore();
         var saved = store.Load();
         if (saved is null) return true;
+        await SharedSubscriptionGate.WaitAsync(cancellationToken);
+        try
+        {
         using var request = new HttpRequestMessage(HttpMethod.Post, UnsubscribeUrl);
         request.Headers.TryAddWithoutValidation("User-Agent", AppUserAgent);
         request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
@@ -236,6 +322,11 @@ internal sealed partial class MailRuPushProbe
         if (!ClassifyCleanup(body)) return false;
         store.Delete();
         return true;
+        }
+        finally
+        {
+            SharedSubscriptionGate.Release();
+        }
     }
 }
 
