@@ -98,26 +98,34 @@ internal static class Program
                 "taskbar popup preference remains adjustable during manual-only test");
             pushWindow!.Close();
 
-            var groupButton = Require<Button>(mail, "OpenGroup19ProbeButton");
+            Check(Require<TextBlock>(mail, "GoogleRecipientStatusText").IsVisible,
+                "protected Google registration has a separate visible status");
+            Check(Require<TextBlock>(mail, "GoogleMcsStatusText").IsVisible,
+                "Google MCS channel has an independent visible connection state");
+            var groupButton = Require<Button>(mail, "OpenPushGroupManagerButton");
             Check(groupButton.IsVisible && groupButton.IsEnabled &&
-                groupButton.Content?.ToString() == "Проверить 19 аккаунтов",
-                "19-account test available separately from single-account test");
+                groupButton.Content?.ToString() == "Google и группы PushMe",
+                "durable Google recipient and group manager is available");
             groupButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent, groupButton));
             mail.UpdateLayout();
-            var groupWindow = Application.Current.Windows.OfType<Window>()
+            var groupManager = Application.Current.Windows.OfType<Window>()
                 .FirstOrDefault(w =>
-                    w.Title.Contains("Проверка 19 аккаунтов", StringComparison.Ordinal));
-            Check(groupWindow is not null && groupWindow.IsVisible,
-                "manual 19-account selector opens without network startup");
-            var groupStart = FindDescendant<Button>(groupWindow!,
-                b => b.Content?.ToString() == "Зарегистрировать 19 аккаунтов");
-            Check(groupStart is not null && !groupStart.IsEnabled,
-                "19-account subscription requires explicit user confirmation");
-            var groupStop = FindDescendant<Button>(groupWindow!,
-                b => b.Content?.ToString() == "Остановить приём");
-            Check(groupStop is not null && !groupStop.IsEnabled,
-                "19-account receiver is not automatically started");
-            groupWindow!.Close();
+                    w.Title.Contains("Google и группы PushMe", StringComparison.Ordinal));
+            Check(groupManager is not null && groupManager.IsVisible,
+                "persistent group manager opens without network startup");
+            Check(FindDescendant<Button>(groupManager!,
+                    b => b.Content?.ToString() == "Зарегистрировать Google") is not null,
+                "stage-one explicit Google registration exists");
+            Check(FindDescendant<Button>(groupManager!,
+                    b => b.Content?.ToString() == "Остановить приём") is not null,
+                "MCS-only Stop button is separate from group deletion");
+            Check(FindDescendant<Button>(groupManager!,
+                    b => b.Content?.ToString() == "Удалить выбранную группу") is not null,
+                "address-specific PushMe group deletion has an independent action");
+            Check(FindDescendant<Button>(groupManager!,
+                    b => b.Content?.ToString() == "Удалить регистрацию Google") is not null,
+                "Google deletion requires its own explicit action");
+            groupManager!.Close();
 
             // Functional offline UI test: with 20 synthetic mailboxes the
             // selector starts with 19, requires consent, and never selects 20.
