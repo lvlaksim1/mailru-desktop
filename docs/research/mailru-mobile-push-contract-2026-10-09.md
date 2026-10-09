@@ -144,3 +144,29 @@ GitHub Actions № **37875870944 / SUCCESS**. Исследовательская
 4. Токен был сознательно уничтожен вместе с временным процессом; в публичном репозитории нет работающих персональных токенов.
 
 Следующий этап: подготовить полностью локальную подписку на `https://alt-push-me.mail.ru/api/v2/set_settings` по исходной схеме `PushMeApiImpl` (`application="mail"`, `platform="android"`, заголовок и сериализация JSON из оригинального кода). Использовать сохранённую авторизацию **только на компьютере владельца**, не передавая её в GitHub/журналы. Эксперимент должен одновременно удерживать соединение MCS, обрабатывать ответ каждого аккаунта и получать первое реальное уведомление; без этого не включать транспорт по умолчанию.
+
+## Окончательная статическая проверка полей почтовой подписки из оригинального APK
+
+Исследовательский источник `pushme-exact-settings-deep-dive` сохранён GitHub Actions №37877449399 (SUCCESS), целевой класс `MailCapabilitiesProvider` отдельно получен GitHub Actions №37878519042 (SUCCESS). Новые файлы не являются новыми версиями APK; это классы из исходного SHA-256-проверенного архива.
+
+`CapabilitiesProviderFactory.createProviderForMailApp(needPushMsg, FilterAccessor, enabledReminderPush)` возвращает `MailCapabilitiesProvider`. Его `getCapabilities(account, enabledTags)` при `needPushMsg=true` строит:
+
+```json
+{
+  "can_mail": {
+    "Filter": {
+      "Folder": {"filterList": [], "enabled": false},
+      "SocialNetwork": {"excludeList": [], "enabled": false},
+      "SocialService": {"excludeList": [], "enabled": false}
+    }
+  }
+}
+```
+
+Здесь **наборы пусты и фильтры отключены по решению об испытании нового получателя**, а не извлечены из настроек существующего телефона. Фактически оригинальный APK получает признаки `enabled` и списки фильтров из `FilterAccessor` конкретного пользователя. Если `needPushMsg=false`, `can_mail` **равен числу `0`**. Дополнительно могут быть `tags: [id]` и `actual_support: 0|1` (важное напоминание).
+
+Карта `client` оригинального `ClientInfoProviderImpl` имеет обязательные поля `info`, `platform`, `version`, `name` (фактически `ru.mail.mailapp`), `type`, `lang`; дополнительные `playservices`, `connectid` зависят от устройства. `getClientTimeZone()` вычисляет стандартное смещение в формате `GMT+HHMM` / `GMT-HHMM`, **без двоеточия**. В Windows-опыте поля, описывающие аппаратный Android-телефон, имитируются и в исходнике явно отмечены как искусственные. Это не доказательство полного тождества Android и Windows.
+
+В `SubscriptionUseCase.java` функция `isV1(application)` неизменно возвращает `false`: актуальная SDK отправляет почтовую подписку через **`POST /api/v2/set_settings`**, приводит `account` к нижнему регистру, использует настоящий `access_token`, создаёт `status=0` и сетевой `platform=android`. Это устраняет неопределённость между старыми V1 и текущим V2.
+
+Экспериментальная программа Windows приведена к этим полям, её автономные тесты не подменяют испытание настоящего `event=4` на почтовом сервере.
