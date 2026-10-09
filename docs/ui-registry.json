@@ -7224,6 +7224,156 @@
     },
     {
       "color_roles_and_values": {},
+      "id": "Group19PushProbeWindow/runtime/src/MailRuDesktop.App/Group19PushProbeWindow.cs:103:StackPanel",
+      "line": 103,
+      "location": {
+        "Margin": "new Thickness(0",
+        "Orientation": "Orientation.Horizontal"
+      },
+      "name": null,
+      "parent": "Group19PushProbeWindow/runtime",
+      "source": "src/MailRuDesktop.App/Group19PushProbeWindow.cs",
+      "states": null,
+      "style": null,
+      "type": "StackPanel",
+      "typography": {
+        "FontWeight": "Fon"
+      },
+      "window": "Group19PushProbeWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "Group19PushProbeWindow/runtime/src/MailRuDesktop.App/Group19PushProbeWindow.cs:107:TextBlock",
+      "line": 107,
+      "location": {
+        "Margin": "new Thickness(0"
+      },
+      "name": null,
+      "parent": "Group19PushProbeWindow/runtime",
+      "source": "src/MailRuDesktop.App/Group19PushProbeWindow.cs",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {
+        "FontWeight": "FontWeights.SemiBold"
+      },
+      "window": "Group19PushProbeWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "Group19PushProbeWindow/runtime/src/MailRuDesktop.App/Group19PushProbeWindow.cs:116:ScrollViewer",
+      "line": 116,
+      "location": {},
+      "name": null,
+      "parent": "Group19PushProbeWindow/runtime",
+      "source": "src/MailRuDesktop.App/Group19PushProbeWindow.cs",
+      "states": null,
+      "style": null,
+      "type": "ScrollViewer",
+      "typography": {},
+      "window": "Group19PushProbeWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "Group19PushProbeWindow/runtime/src/MailRuDesktop.App/Group19PushProbeWindow.cs:59:StackPanel",
+      "line": 59,
+      "location": {
+        "Margin": "new Thickness(18)"
+      },
+      "name": null,
+      "parent": "Group19PushProbeWindow/runtime",
+      "source": "src/MailRuDesktop.App/Group19PushProbeWindow.cs",
+      "states": null,
+      "style": null,
+      "type": "StackPanel",
+      "typography": {
+        "FontSize": "17",
+        "FontWeight": "FontWeights.SemiBold"
+      },
+      "window": "Group19PushProbeWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "Group19PushProbeWindow/runtime/src/MailRuDesktop.App/Group19PushProbeWindow.cs:60:TextBlock",
+      "line": 60,
+      "location": {},
+      "name": null,
+      "parent": "Group19PushProbeWindow/runtime",
+      "source": "src/MailRuDesktop.App/Group19PushProbeWindow.cs",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {
+        "FontSize": "17",
+        "FontWeight": "FontWeights.SemiBold"
+      },
+      "window": "Group19PushProbeWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "Group19PushProbeWindow/runtime/src/MailRuDesktop.App/Group19PushProbeWindow.cs:66:TextBlock",
+      "line": 66,
+      "location": {},
+      "name": null,
+      "parent": "Group19PushProbeWindow/runtime",
+      "source": "src/MailRuDesktop.App/Group19PushProbeWindow.cs",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {},
+      "window": "Group19PushProbeWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "Group19PushProbeWindow/runtime/src/MailRuDesktop.App/Group19PushProbeWindow.cs:79:StackPanel",
+      "line": 79,
+      "location": {
+        "Margin": "new Th"
+      },
+      "name": null,
+      "parent": "Group19PushProbeWindow/runtime",
+      "source": "src/MailRuDesktop.App/Group19PushProbeWindow.cs",
+      "states": null,
+      "style": null,
+      "type": "StackPanel",
+      "typography": {},
+      "window": "Group19PushProbeWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "Group19PushProbeWindow/runtime/src/MailRuDesktop.App/Group19PushProbeWindow.cs:83:CheckBox",
+      "line": 83,
+      "location": {
+        "Margin": "new Thickness(0"
+      },
+      "name": null,
+      "parent": "Group19PushProbeWindow/runtime",
+      "source": "src/MailRuDesktop.App/Group19PushProbeWindow.cs",
+      "states": null,
+      "style": null,
+      "type": "CheckBox",
+      "typography": {},
+      "window": "Group19PushProbeWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "Group19PushProbeWindow/runtime/src/MailRuDesktop.App/Group19PushProbeWindow.cs:94:ScrollViewer",
+      "line": 94,
+      "location": {
+        "Height": "180",
+        "Orientation": "O"
+      },
+      "name": null,
+      "parent": "Group19PushProbeWindow/runtime",
+      "source": "src/MailRuDesktop.App/Group19PushProbeWindow.cs",
+      "states": null,
+      "style": null,
+      "type": "ScrollViewer",
+      "typography": {},
+      "window": "Group19PushProbeWindow"
+    },
+    {
+      "color_roles_and_values": {},
       "id": "MailRuVerificationWindow/runtime/src/MailRuDesktop.App/MailRuVerificationWindow.cs:108:StackPanel",
       "line": 108,
       "location": {
@@ -21181,6 +21331,15 @@
       "geometry": {},
       "id": "AppDialog",
       "source": "src/MailRuDesktop.App/AppDialog.cs",
+      "typography": {}
+    },
+    "Group19PushProbeWindow": {
+      "colors": {},
+      "declared_as": "C#",
+      "element_count": 9,
+      "geometry": {},
+      "id": "Group19PushProbeWindow",
+      "source": "src/MailRuDesktop.App/Group19PushProbeWindow.cs",
       "typography": {}
     },
     "MailRuVerificationWindow": {
