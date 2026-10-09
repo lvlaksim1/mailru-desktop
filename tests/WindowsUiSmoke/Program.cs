@@ -153,21 +153,7 @@ internal static class Program
     private static void VerifyPermanentBrowserShell(
         Window owner, Microsoft.Web.WebView2.Wpf.WebView2 reader)
     {
-        var ready = AwaitOnDispatcher(async () =>
-        {
-            for (var n = 0; n < 120; n++)
-            {
-                if (reader.CoreWebView2 is not null)
-                {
-                    var probe = await reader.CoreWebView2.ExecuteScriptAsync(
-                        "(Boolean(document.getElementById('frames')))");
-                    if (probe == "true")
-                        return true;
-                }
-                await Task.Delay(70);
-            }
-            return false;
-        }());
+        var ready = AwaitOnDispatcher(WaitForShell(reader));
         Check(ready, "WebView2 has initialized exactly one persistent reader shell");
 
         var browser = reader.CoreWebView2!;
@@ -201,6 +187,23 @@ internal static class Program
             "switching mail must not navigate the top-level WebView2");
         Check(reader.Visibility == Visibility.Visible,
             "the same WPF browser remains continuously visible");
+    }
+
+    private static async Task<bool> WaitForShell(
+        Microsoft.Web.WebView2.Wpf.WebView2 reader)
+    {
+        for (var i = 0; i < 120; i++)
+        {
+            if (reader.CoreWebView2 is not null)
+            {
+                var result = await reader.CoreWebView2.ExecuteScriptAsync(
+                    "(Boolean(document.getElementById('frames')))");
+                if (result == "true")
+                    return true;
+            }
+            await Task.Delay(70);
+        }
+        return false;
     }
 
     private static async Task<bool> WaitForMessage(
