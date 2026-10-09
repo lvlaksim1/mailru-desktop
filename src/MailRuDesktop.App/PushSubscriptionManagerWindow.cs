@@ -166,7 +166,13 @@ internal sealed class PushSubscriptionManagerWindow : Window
     {
         public override string ToString() =>
             "Группа №" + Position + " — " + Count +
-            " аккаунтов (" + (State == "IMPORTED" ? "восстановлена" : "подтверждена") + ")";
+            " аккаунтов (" + (State switch
+            {
+                "IMPORTED" => "состав восстановлен, доставка не проверена",
+                "RECHECK_REQUIRED" => "доставка после другой группы не проверена",
+                "EVENT_SEEN" => "событие нового письма получено",
+                _ => "регистрация принята PushMe"
+            }) + ")";
     }
 
     private static TextBlock Heading(string value) => new()
@@ -312,6 +318,6 @@ internal sealed class PushSubscriptionManagerWindow : Window
             _readGroups().Groups.Length > 0 &&
             _mcsState() is not ("Подключён" or "Подключается" or "Переподключается");
         _stopMcsButton.IsEnabled = !_busy &&
-            _mcsState() is "Подключён" or "Подключается" or "Переподключается";
+            (_mcsState() is "Подключён" or "Подключается" or "Переподключается");
     }
 }
