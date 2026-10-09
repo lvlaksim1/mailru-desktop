@@ -16576,14 +16576,48 @@
       "window": "MainWindow"
     },
     {
+      "color_roles_and_values": {
+        "Foreground": "{DynamicResource AppMutedTextBrush}"
+      },
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[1]/StackPanel[0]/GoogleMcsStatusText",
+      "location": {
+        "Margin": "0,4,0,4"
+      },
+      "name": "GoogleMcsStatusText",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[1]/StackPanel[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {
+        "Foreground": "{DynamicResource AppMutedTextBrush}"
+      },
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[1]/StackPanel[0]/GoogleRecipientStatusText",
+      "location": {
+        "Margin": "0,8,0,0"
+      },
+      "name": "GoogleRecipientStatusText",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[1]/StackPanel[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[1]/StackPanel[0]/OpenGroup19ProbeButton",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[1]/StackPanel[0]/OpenPushGroupManagerButton",
       "location": {
         "HorizontalAlignment": "Left",
         "Margin": "0,8,0,0",
         "Padding": "12,7"
       },
-      "name": "OpenGroup19ProbeButton",
+      "name": "OpenPushGroupManagerButton",
       "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[1]/StackPanel[0]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
@@ -16628,7 +16662,7 @@
       "color_roles_and_values": {
         "Foreground": "{DynamicResource AppMutedTextBrush}"
       },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[1]/StackPanel[0]/TextBlock[3]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[1]/StackPanel[0]/TextBlock[5]",
       "location": {},
       "name": null,
       "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[1]/StackPanel[0]",
@@ -21469,7 +21503,7 @@
         "Foreground": "{DynamicResource AppTextBrush}"
       },
       "declared_as": "XAML",
-      "element_count": 776,
+      "element_count": 778,
       "geometry": {
         "Height": "900",
         "MinHeight": "720",
