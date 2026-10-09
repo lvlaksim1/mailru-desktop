@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using System.Reflection;
+using System.Windows.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -19,6 +21,10 @@ internal static class Program
         {
             var app = new App();
             app.InitializeComponent();
+            // The test owns the STA thread without Application.Run().
+            // Preserve WPF's dispatcher synchronization context across await.
+            SynchronizationContext.SetSynchronizationContext(
+                new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher));
             mail = new MainWindow();
             mail.Show();
             mail.UpdateLayout();
@@ -26,8 +32,12 @@ internal static class Program
             var action = Require<Button>(mail, "MainComposeButton");
             Check(action.IsVisible, "New Mail action is visible above the message list");
             Check(Require<Grid>(mail, "SettingsWorkspace") is { }, "settings workspace loads");
-            Check(Require<Border>(mail, "ReaderLoadingOverlay") is { },
-                "reader contains stable loading overlay");
+            var reader = Require<Microsoft.Web.WebView2.Wpf.WebView2>(
+                mail, "MessageWebView");
+            Check(reader.Visibility == Visibility.Visible,
+                "single WebView2 stays visible; loading occurs inside browser");
+            Check(mail.FindName("ReaderLoadingOverlay") is null,
+                "no WPF overlay can create WebView2 airspace flashes");
 
             var settingsAction = FindDescendant<Button>(mail,
                 b => b.Content?.ToString()?.Contains("Настройки", StringComparison.Ordinal) == true);
@@ -124,6 +134,8 @@ internal static class Program
             colorPicker!.Close();
             colorPicker = null;
 
+            VerifyPermanentBrowserShell(mail, reader);
+
             Console.WriteLine("Windows WPF UI interaction smoke: PASS");
             return 0;
         }
@@ -140,6 +152,100 @@ internal static class Program
             editor?.Close();
             mail?.Close();
         }
+    }
+
+    private static void VerifyPermanentBrowserShell(
+        Window owner, Microsoft.Web.WebView2.Wpf.WebView2 reader)
+    {
+        var ready = AwaitOnDispatcher(WaitForShell(reader));
+        Check(ready, "WebView2 has initialized exactly one persistent reader shell");
+
+        var browser = reader.CoreWebView2!;
+        var extraNavigations = 0;
+        reader.NavigationStarting += (_, _) => extraNavigations++;
+        var type = owner.GetType();
+        var begin = type.GetMethod("BeginReaderTransition",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        var show = type.GetMethod("ShowReaderHtml",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        Check(begin is not null && show is not null,
+            "browser-shell staging entry points are present");
+
+        begin!.Invoke(owner, new object?[] { null, "Загрузка письма…" });
+        show!.Invoke(owner, new object?[]
+        {
+            "<p id='integration-message'>FIRST</p>" +
+            "<img src='data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='>"
+        });
+        Check(AwaitOnDispatcher(WaitForMessage(browser, "FIRST")),
+            "first message appears with its image in a single shell");
+
+        begin.Invoke(owner, new object?[] { null, "Загрузка письма…" });
+        show.Invoke(owner, new object?[]
+        {
+            "<p id='integration-message'>SECOND</p>"
+        });
+        Check(AwaitOnDispatcher(WaitForMessage(browser, "SECOND")),
+            "new letter replaces previous document atomically");
+        Check(extraNavigations == 0,
+            "switching mail must not navigate the top-level WebView2");
+        Check(reader.Visibility == Visibility.Visible,
+            "the same WPF browser remains continuously visible");
+    }
+
+    private static async Task<bool> WaitForShell(
+        Microsoft.Web.WebView2.Wpf.WebView2 reader)
+    {
+        for (var i = 0; i < 120; i++)
+        {
+            if (reader.CoreWebView2 is not null)
+            {
+                var result = await reader.CoreWebView2.ExecuteScriptAsync(
+                    "(Boolean(document.getElementById('frames')))");
+                if (result == "true")
+                    return true;
+            }
+            await Task.Delay(70);
+        }
+        return false;
+    }
+
+    private static async Task<bool> WaitForMessage(
+        Microsoft.Web.WebView2.Core.CoreWebView2 browser, string expected)
+    {
+        for (var i = 0; i < 100; i++)
+        {
+            var response = await browser.ExecuteScriptAsync(
+                "(() => {const frames=document.querySelectorAll('iframe[data-active]');" +
+                "return frames.length === 1 && " +
+                "frames[0].contentDocument?.getElementById('integration-message')?.textContent " +
+                "=== " + System.Text.Json.JsonSerializer.Serialize(expected) + ";})()");
+            if (response == "true")
+                return true;
+            await Task.Delay(80);
+        }
+        return false;
+    }
+
+    private static T AwaitOnDispatcher<T>(Task<T> task)
+    {
+        var frame = new DispatcherFrame();
+        var watch = Stopwatch.StartNew();
+        var ticker = new DispatcherTimer(DispatcherPriority.Background)
+        {
+            Interval = TimeSpan.FromMilliseconds(30)
+        };
+        ticker.Tick += (_, _) =>
+        {
+            if (task.IsCompleted || watch.Elapsed > TimeSpan.FromSeconds(15))
+                frame.Continue = false;
+        };
+        ticker.Start();
+        try { Dispatcher.PushFrame(frame); }
+        finally { ticker.Stop(); }
+        if (!task.IsCompleted)
+            throw new TimeoutException("Timed out waiting for WebView2 browser shell.");
+        return task.GetAwaiter().GetResult();
     }
 
     private static T Require<T>(FrameworkElement root, string name)

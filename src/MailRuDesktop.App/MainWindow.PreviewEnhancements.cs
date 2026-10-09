@@ -22,25 +22,22 @@ public partial class MainWindow
             return;
 
         _previewEnhancementsInitialized = true;
-        // Preview is no longer coupled to the checkbox selection state.
-        MessageWebView.NavigationCompleted += PreviewMessageWebView_NavigationCompleted;
+        // Message metadata now updates on the same browser-shell commit
+        // that publishes the new body, not on top-level navigation events.
     }
 
     private void UpdatePreviewSelectionFields(MailRuMessageSummary message)
     {
         PreviewComposePanel.Visibility = Visibility.Collapsed;
         PreviewComposeStatusText.Text = string.Empty;
-        SelectedSenderNameText.Text = message.SenderName;
-        SelectedSenderText.Text = string.IsNullOrWhiteSpace(message.SenderEmail)
-            ? message.SenderDisplay
-            : message.SenderEmail;
+        // The pending message's header is published with the prepared body.
+        SelectedSenderNameText.Text = string.Empty;
+        SelectedSenderText.Text = string.Empty;
         SelectedToText.Text = string.Empty;
         _previewAutoReadMessageId = message.Unread ? message.Id : null;
     }
 
-    private void PreviewMessageWebView_NavigationCompleted(
-        object? sender,
-        CoreWebView2NavigationCompletedEventArgs e)
+    private void ApplyLoadedPreviewFields()
     {
         if (_currentFullMessage is not null &&
             ActivePreviewMessage is MailRuMessageSummary selected &&

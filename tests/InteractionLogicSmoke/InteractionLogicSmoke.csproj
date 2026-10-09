@@ -16,6 +16,7 @@
     <Compile Include="../../src/MailRuDesktop.App/GitHubUpdateService.cs" Link="GitHubUpdateService.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/MailRuInlineImageSource.cs" Link="MailRuInlineImageSource.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/ReaderPresentationPolicy.cs" Link="ReaderPresentationPolicy.cs"/>
+    <Compile Include="../../src/MailRuDesktop.App/ReaderShellScripts.cs" Link="ReaderShellScripts.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/AppSettingsStore.cs" Link="AppSettingsStore.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/AuthorizationStore.cs" Link="AuthorizationStore.cs"/>
   </ItemGroup>

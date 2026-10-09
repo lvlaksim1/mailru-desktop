@@ -32,8 +32,6 @@ public partial class MainWindow : Window
     private bool _updatingAccountSelection;
     private bool _readerReady;
     private bool _readerWaitingForFullMessage;
-    private bool _readerNavigationPending;
-    private ulong _latestReaderNavigationId;
     private long _messageLoadGeneration;
     private CancellationTokenSource? _messageLoadCancellation;
     private MailRuFullMessage? _currentFullMessage;
@@ -124,13 +122,28 @@ public partial class MainWindow : Window
             MessageWebView.CoreWebView2.Settings.AreDevToolsEnabled = false;
             MessageWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
             ConfigureMailImageProxy();
-            InitializeReaderPresentation();
-            MessageWebView.NavigationStarting += ReaderNavigationStarting;
-            MessageWebView.CoreWebView2.DOMContentLoaded += ReaderDomContentLoaded;
-            MessageWebView.NavigationCompleted += ReaderNavigationCompleted;
-            _readerReady = true;
 
-            ShowReaderText("Выберите письмо.");
+            // Navigate the top-level WebView2 ONCE. All future letters are
+            // published inside this permanent browser document.
+            var ready = new TaskCompletionSource<bool>(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            void ShellLoaded(object? _, CoreWebView2NavigationCompletedEventArgs nav)
+            {
+                ready.TrySetResult(nav.IsSuccess);
+            }
+            MessageWebView.NavigationCompleted += ShellLoaded;
+            try
+            {
+                MessageWebView.NavigateToString(
+                    ReaderShellScripts.CreateShell(ThemeManager.ReaderBackgroundHtml));
+                if (!await ready.Task.WaitAsync(TimeSpan.FromSeconds(15)))
+                    throw new InvalidOperationException("Не удалось создать область просмотра.");
+            }
+            finally
+            {
+                MessageWebView.NavigationCompleted -= ShellLoaded;
+            }
+            _readerReady = true;
         }
         catch (Exception ex)
         {
@@ -714,7 +727,7 @@ public partial class MainWindow : Window
 
     private void DisplaySummary(MailRuMessageSummary message)
     {
-        UpdateSelectedMessageHeader(message);
+        BeginReaderTransition(message);
 
         IncomingAttachmentsListBox.ItemsSource = null;
         IncomingAttachmentsPanel.Visibility = Visibility.Collapsed;
@@ -726,14 +739,6 @@ public partial class MainWindow : Window
         // newest selected letter wait behind the previous network response.
         _messageLoadCancellation?.Cancel();
         _messageLoadCancellation = new CancellationTokenSource();
-        // No events from a previous navigation may publish an old letter.
-        CancelReaderPresentation();
-        _readerNavigationPending = false;
-        _readerWaitingForFullMessage = true;
-        MessageWebView.Visibility = Visibility.Hidden;
-        ReaderLoadingOverlay.Visibility = Visibility.Visible;
-        ReaderLoadingText.Text = "Загрузка письма…";
-        MessageWebView.CoreWebView2?.Stop();
     }
 
     private void UpdateSelectedMessageHeader(MailRuMessageSummary message)
@@ -1481,7 +1486,8 @@ public partial class MainWindow : Window
         IncomingAttachmentsPanel.Visibility = Visibility.Collapsed;
         DownloadAttachmentButton.Visibility = Visibility.Collapsed;
         DownloadAllAttachmentsButton.Visibility = Visibility.Collapsed;
-        ShowReaderText("Выберите письмо.");
+        BeginReaderTransition(null, "Выберите письмо.");
+        _ = SetReaderEmptyAsync("Выберите письмо.");
     }
 
     private void FolderManageToggleButton_Click(object sender, RoutedEventArgs e)
@@ -2015,12 +2021,9 @@ public partial class MainWindow : Window
             body +
             "</body></html>";
 
-        CancelReaderPresentation();
-        _readerNavigationPending = true;
-        _readerWaitingForFullMessage = true;
-        MessageWebView.Visibility = Visibility.Hidden;
-        ReaderLoadingOverlay.Visibility = Visibility.Visible;
-        MessageWebView.NavigateToString(document);
+        // A staged iframe replaces only the browser's internal DOM content.
+        // The WPF WebView2 control itself never disappears or navigates.
+        _ = StageReaderDocumentAsync(_readerGeneration, document);
     }
 
     private void ThemeManager_ThemeChanged(object? sender, EventArgs e)
@@ -2033,14 +2036,13 @@ public partial class MainWindow : Window
 
         // A theme update while images or navigation are still pending must
         // never replace the new letter with the raw, unprepared HTML body.
-        if (!_readerReady || _readerWaitingForFullMessage ||
-            _readerNavigationPending ||
-            _readerStageRevealing ||
-            MessageWebView.Visibility != Visibility.Visible)
+        if (!_readerReady || _readerWaitingForFullMessage)
             return;
 
         if (_currentFullMessage is not null)
         {
+            BeginReaderTransition(ActivePreviewMessage);
+            _readerWaitingForFullMessage = false;
             if (!string.IsNullOrWhiteSpace(_currentPreparedHtml))
                 ShowReaderHtml(_currentPreparedHtml);
             else if (!string.IsNullOrWhiteSpace(_currentFullMessage.Html))
