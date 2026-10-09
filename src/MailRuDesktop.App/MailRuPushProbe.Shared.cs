@@ -116,11 +116,20 @@ internal sealed partial class MailRuPushProbe
         var reply = await PushWire.ReadFrameAsync(stream, cancellationToken);
         PushDiagnostics.Record("MCS", "LOGIN_VERSION", version);
         PushDiagnostics.Record("MCS", "LOGIN_TAG", tag);
-        if ((version != 41 && version != 38) || tag != 3 ||
-            !PushWire.HasField(reply, 1) || PushWire.HasField(reply, 3))
+        Phase("MCS_LOGIN_PARSE");
+        var login = PushWire.ClassifyMcsLoginResponse(version, tag, reply);
+        PushDiagnostics.Record("MCS", "LOGIN_ID_PRESENT", login.IdPresent ? 1 : 0);
+        PushDiagnostics.Record("MCS", "LOGIN_ERROR_PRESENT", login.ErrorPresent ? 1 : 0);
+        if (login.ErrorCode is int errorCode)
+            PushDiagnostics.Record("MCS", "LOGIN_ERROR_CODE", errorCode);
+        else if (login.ErrorPresent)
+            PushDiagnostics.Record("MCS", "LOGIN_ERROR_CODE_MISSING");
+        if (!login.Accepted)
         {
-            Phase("MCS_LOGIN_REJECTED");
-            throw new InvalidOperationException("Google не подтвердил общий канал.");
+            Phase(login.ErrorCode is int code && code != 0
+                ? "MCS_SERVER_LOGIN_ERROR"
+                : "MCS_LOGIN_INVALID_RESPONSE");
+            throw new InvalidOperationException("Ответ MCS не подтвердил авторизацию.");
         }
         Phase("MCS_LOGIN_OK");
         ReportAll("Google: один защищённый канал для всех аккаунтов (LOGIN_OK).");
