@@ -253,3 +253,7 @@ status: code+offline CI+Windows installers complete, real runtime pending
 ## I-041 — use v0.3.39 diagnostics to identify recurrent Google/PushMe failure
 status: diagnostics implemented and released, user TXT evidence pending
 Owner reports recurring Google LOGIN_OK→disconnect→0/32. First obtain TXT from installed v0.3.39 Settings → «Диагностика Google и PushMe», after at least two failed reconnects. Identify exact phase and error category or server code without passwords, token or account data. Then compare failing protocol step strictly against original APK source and, where appropriate, Google Play services implementation. No request guessing or active network probing, as directed by owner. v0.3.39 is diagnostic only; do not claim reconnect problem fixed.
+
+## I-042 — inspect safe server error.message for PushMe code 499
+status: v0.3.40 available, user TXT awaited
+Capture one normal failed PushMe subscription response's numeric code and strictly redacted SERVER_REASON from v0.3.40's local diagnostic report; never ask for raw OAuth, Google token, account address, or raw PushMe body. Then correlate safe message with original APK fields/API implementation. Do NOT use experimental network requests or randomly split 32 mail account subscriptions. If SERVER_REASON_UNCLASSIFIED, acknowledge limits; further source study needed. Distinguish application rejection from Google MCS connectivity. Avoid claiming 499 is client timeout HTTP499 or 20-item hard limit.
