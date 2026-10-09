@@ -78,6 +78,25 @@ using (var manager = new MailRuPushBackgroundService(
     Expect(SharedGooglePushIdentityStore.PendingAccountUnsubscriptions(
         ["TEST@example.invalid"], ["test@example.invalid"]).Length,
         0, "case change does not unsubscribe a mailbox");
+    var twoAccounts = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["a@example.invalid"] = "FAKE_A",
+        ["b@example.invalid"] = "FAKE_B"
+    };
+    var withoutB = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["a@example.invalid"] = "FAKE_A"
+    };
+    Expect(MailRuPushBackgroundService.CanRemoveWithoutReconnect(twoAccounts, withoutB),
+        true, "delete one account without stopping the Google MCS channel");
+    Expect(MailRuPushBackgroundService.CanRemoveWithoutReconnect(twoAccounts,
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        { ["a@example.invalid"] = "REFRESHED" }), false,
+        "OAuth changes require subscription reconciliation");
+    Expect(MailRuPushBackgroundService.CanRemoveWithoutReconnect(twoAccounts,
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)), false,
+        "last account removal uses separate address-unsubscribe path");
+
     Expect(MailRuPushProbe.UnsubscribeAccountUrl,
         "https://push-me.mail.ru/api/v1/unsubscribe_by_device_id",
         "unsubscribe URL exactly matches original APK PushMeApiImpl DEX");
