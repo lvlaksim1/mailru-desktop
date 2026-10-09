@@ -1,0 +1,32 @@
+name: Diagnose official APK PushMe hosts without mailbox credentials
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/pushme-public-endpoint-reachability.yml]
+permissions:
+  contents: read
+jobs:
+  public-host-diagnostics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Public DNS and certificate handshake only (no HTTP mutation)
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import socket,ssl
+          hosts=["alt-push-me.mail.ru","push-me.mail.ru","aj-https.mail.ru"]
+          for host in hosts:
+              try:
+                  infos=socket.getaddrinfo(host,443,type=socket.SOCK_STREAM)
+                  print(host+": dns=OK count="+str(len(infos)))
+              except socket.gaierror as e:
+                  print(host+": dns=ERROR "+str(e.errno))
+                  continue
+              try:
+                  with socket.create_connection((host,443),timeout=8) as raw:
+                      with ssl.create_default_context().wrap_socket(raw,server_hostname=host) as sock:
+                          print(host+": tls=OK version="+sock.version())
+              except Exception as e:
+                  print(host+": tls=ERROR "+type(e).__name__)
+          PY
