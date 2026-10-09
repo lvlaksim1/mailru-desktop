@@ -21,6 +21,10 @@ internal static class Program
         {
             var app = new App();
             app.InitializeComponent();
+            // The test owns the STA thread without Application.Run().
+            // Preserve WPF's dispatcher synchronization context across await.
+            SynchronizationContext.SetSynchronizationContext(
+                new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher));
             mail = new MainWindow();
             mail.Show();
             mail.UpdateLayout();
