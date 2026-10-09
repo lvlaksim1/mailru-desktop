@@ -63,3 +63,6 @@ Owner installs https://github.com/lvlaksim1/mailru-desktop/releases/download/v0.
 
 ## Следующий шаг после установки v0.3.43
 Пользователь устанавливает https://github.com/lvlaksim1/mailru-desktop/releases/download/v0.3.43/MailRuDesktop_Update_v0.3.43.exe, в Настройках включает уведомления Windows, нажимает «Выбрать аккаунт для проверки», выбирает ровно один ящик, подтверждает согласие, начинает тест и отправляет новое письмо в течение 3 минут. Проверить текст ACCOUNT_ACCEPTED и MAILRU_NEW_MAIL_EVENT_RECEIVED=YES, появление уведомления Windows. При проблеме получить безопасные технические состояния теста. Другие ящики не подписываются. После приёмки сверить только изменённые между однопользовательским и общим режимами поля/схему с оригинальным APK; никаких экспериментальных запросов.
+
+## After user installs v0.3.44
+Update https://github.com/lvlaksim1/mailru-desktop/releases/download/v0.3.44/MailRuDesktop_Update_v0.3.44.exe . Settings -> Notifications -> Check 19 accounts; select exactly19, confirm and click Register, save sanitized TXT: PUSHME_HTTP_SEND count=19, SERVER_API_CODE and SERVER_REASON if any, PUSHME_ACCEPTED if successful, NEW_MAIL_EVENT if real mail arrives. If 499 remains, size <20 does not resolve format, compare old verified v0.3.35 single with shared. Preserve old single test and Windows popups.
