@@ -235,6 +235,55 @@ using (var manager = new MailRuPushBackgroundService(
     {
         if (Directory.Exists(secretRoot)) Directory.Delete(secretRoot, recursive: true);
     }
+    var emptyRegistry = new PushGroupRegistryStore.Registry(false, []);
+    var nineteen = Enumerable.Range(1, 19).Select(i =>
+        "g" + i + "@example.invalid").ToArray();
+    var registered = PushGroupRegistryStore.Register(
+        emptyRegistry, nineteen, nineteen);
+    Expect(registered.Groups.Length, 1,
+        "19 confirmed accounts are persisted in one group, not 19 unrelated groups");
+    Expect(registered.Groups[0].Accounts.Length, 19,
+        "confirmed PushMe group retains all exact selected accounts");
+    var withSecond = PushGroupRegistryStore.Register(
+        registered, ["g20@example.invalid"], ["g20@example.invalid"]);
+    Expect(withSecond.Groups.Length, 2,
+        "next batch adds a group without rewriting the previous accepted group");
+    Expect(PushGroupRegistryStore.Ungrouped(
+        Enumerable.Range(1, 21).Select(i => "g" + i + "@example.invalid"),
+        withSecond).SequenceEqual(["g21@example.invalid"]), true,
+        "account registry maps each mailbox to one group and exposes ungrouped");
+    var removedOne = PushGroupRegistryStore.RemoveAccounts(
+        withSecond, ["g1@example.invalid"]);
+    Expect(removedOne.Groups[0].Accounts.Length, 18, 
+        "removing a mailbox affects only its own registered group");
+    Expect(removedOne.Groups[1].Accounts.Length, 1,
+        "other group stays intact after address-specific removal");
+    var duplicateRejected = false;
+    try { PushGroupRegistryStore.Register(
+        registered, ["G1@example.invalid"], ["G1@example.invalid"]); }
+    catch (InvalidOperationException) { duplicateRejected = true; }
+    Expect(duplicateRejected, true,
+        "existing group member cannot be registered in another group");
+    // The new stop operation is cancellation ONLY. Its pure state change
+    // must not start unsubscribe jobs or clear the saved Google credentials.
+    manager.StopListeningOnly();
+    Expect(manager.Enabled, false,
+        "MCS-only Stop changes reader state without invoking global token revoke");
+    var groupRoot = Path.Combine(Path.GetTempPath(), "MailRuPushGroups-" +
+        Guid.NewGuid().ToString("N"));
+    try
+    {
+        var groupStore = new PushGroupRegistryStore(groupRoot);
+        groupStore.Save(withSecond with { ReceiveEnabled = true });
+        Expect(groupStore.Load().Groups.Length, 2,
+            "confirmed group mapping survives app restart under DPAPI");
+        Expect(groupStore.Load().ReceiveEnabled, true,
+            "desired MCS reconnect state persists independently of group memberships");
+        var protectedGroups = File.ReadAllText(Path.Combine(groupRoot, "push-groups.dat"));
+        Expect(protectedGroups.Contains("g1@example.invalid", StringComparison.Ordinal),
+            false, "group addresses never stored in plaintext");
+    }
+    finally { if (Directory.Exists(groupRoot)) Directory.Delete(groupRoot, true); }
     Expect(manager.ActiveAccountCount, 0, "manager has no unsolicited account connections");
     manager.Reconcile(Array.Empty<(string Login, string Token)>(), enabled: false);
     Expect(manager.Enabled, false, "user opt-out cancels the receiving service");
