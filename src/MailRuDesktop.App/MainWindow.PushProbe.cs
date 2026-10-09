@@ -1,3 +1,5 @@
+using System.IO;
+using System.Text;
 using System.ComponentModel;
 using System.Windows;
 using MailRuDesktop.Protocol;
@@ -57,6 +59,9 @@ public partial class MainWindow
             _pushNotificationIcon?.Dispose();
             _pushNotificationIcon = null;
         }
+        PushDiagnostics.Changed += OnPushDiagnosticsChanged;
+        PushDiagnostics.Record("APP", "UI_INITIALIZED");
+        RefreshPushDiagnosticsView();
         _pushBackground = new MailRuPushBackgroundService(
             (login, state) =>
             {
@@ -170,8 +175,85 @@ public partial class MainWindow
         if (BackgroundPushEnabledCheckBox.IsChecked != true) return;
         var enabled = _pushBackground.ActiveAccountCount;
         var connected = _pushConnectedAccounts.Count;
+        var displayedState = state;
+        if (state.Contains("Соединение прервано", StringComparison.OrdinalIgnoreCase) &&
+            PushDiagnostics.LastFailure != "NONE")
+            displayedState += " Причина: " + PushDiagnostics.LastFailure +
+                              ". Подробности — в журнале ниже.";
         BackgroundPushStatusText.Text =
-            $"Подключено: {connected} из {enabled}. {state}";
+            $"Подключено: {connected} из {enabled}. {displayedState}";
+    }
+
+    private void OnPushDiagnosticsChanged()
+    {
+        if (_pushShuttingDown || Dispatcher.HasShutdownStarted ||
+            Dispatcher.HasShutdownFinished) return;
+        try
+        {
+            _ = Dispatcher.BeginInvoke(new Action(RefreshPushDiagnosticsView));
+        }
+        catch (InvalidOperationException) { }
+    }
+
+    private void RefreshPushDiagnosticsView()
+    {
+        if (_pushShuttingDown || PushDiagnosticsLogTextBox is null) return;
+        // Show the latest entries, but export the full bounded history.
+        PushDiagnosticsLogTextBox.Text = PushDiagnostics.Report(140);
+        PushDiagnosticsLogTextBox.ScrollToEnd();
+    }
+
+    private void RefreshPushDiagnosticsButton_Click(object sender, RoutedEventArgs e)
+    {
+        RefreshPushDiagnosticsView(); // Only reads a local log; no network requests.
+        PushDiagnosticsActionStatusText.Text = "Журнал обновлён.";
+    }
+
+    private void CopyPushDiagnosticsButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Clipboard.SetText(PushDiagnostics.Report());
+            PushDiagnosticsActionStatusText.Text = "Отчёт скопирован в буфер обмена.";
+        }
+        catch (System.Runtime.InteropServices.ExternalException)
+        {
+            PushDiagnosticsActionStatusText.Text = "Не удалось скопировать отчёт.";
+        }
+    }
+
+    private void SavePushDiagnosticsButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = "Сохранить диагностику Google и PushMe",
+            Filter = "Текстовый отчёт (*.txt)|*.txt",
+            FileName = "MailRuDesktop-PushMe-Diagnostics.txt",
+            DefaultExt = ".txt",
+            AddExtension = true
+        };
+        if (dialog.ShowDialog(this) != true) return;
+        try
+        {
+            File.WriteAllText(dialog.FileName, PushDiagnostics.Report(),
+                new UTF8Encoding(false));
+            PushDiagnosticsActionStatusText.Text = "Отчёт сохранён в выбранный файл.";
+        }
+        catch (IOException)
+        {
+            PushDiagnosticsActionStatusText.Text = "Не удалось сохранить отчёт.";
+        }
+        catch (UnauthorizedAccessException)
+        {
+            PushDiagnosticsActionStatusText.Text = "Нет прав для сохранения отчёта.";
+        }
+    }
+
+    private void ClearPushDiagnosticsButton_Click(object sender, RoutedEventArgs e)
+    {
+        PushDiagnostics.Clear();
+        RefreshPushDiagnosticsView();
+        PushDiagnosticsActionStatusText.Text = "Журнал очищен.";
     }
 
     private void OpenPushProbeButton_Click(object sender, RoutedEventArgs e)
@@ -270,7 +352,9 @@ public partial class MainWindow
             }
         }
         if (_pushShuttingDown) return;
+        PushDiagnostics.Record("APP", "EXIT_REQUESTED");
         _pushShuttingDown = true;
+        PushDiagnostics.Changed -= OnPushDiagnosticsChanged;
         _pushBackgroundReady = false;
         try
         {
