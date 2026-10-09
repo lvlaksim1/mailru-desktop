@@ -52,6 +52,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
                     StringComparer.OrdinalIgnoreCase)
             : new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
+        PushDiagnostics.Record("SERVICE", enabled ? "RECONCILE_ENABLED" : "RECONCILE_DISABLED", desired.Count);
         lock (_sync)
         {
             if (_stopping) return;
@@ -67,6 +68,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
                 var removed = _accounts.Keys.Except(
                     desired.Keys, StringComparer.OrdinalIgnoreCase).ToArray();
                 _accounts = desired;
+                PushDiagnostics.Record("SERVICE", "MAILBOX_REMOVED_WITHOUT_MCS_RESTART", removed.Length);
                 QueueAccountRemoval(removed);
                 return;
             }
@@ -76,6 +78,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
             _enabled = enabled;
             _paused = pauseForDiagnostics;
             // Cancels the active MCS reader, NOT the persisted Google identity.
+            PushDiagnostics.Record("SERVICE", "RECEIVER_RESTART_REQUIRED");
             _currentCancellation?.Cancel();
             var current = new CancellationTokenSource();
             _currentCancellation = current;
@@ -158,14 +161,18 @@ internal sealed class MailRuPushBackgroundService : IDisposable
                 try
                 {
                     using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(35));
+                    PushDiagnostics.Record("PUSHME", "ACCOUNT_UNSUBSCRIBE_START");
                     var removedFromServer = await probe.UnsubscribeAccountAsync(
                         account, timeout.Token);
+                    PushDiagnostics.Record("PUSHME", removedFromServer ?
+                        "ACCOUNT_UNSUBSCRIBE_OK" : "ACCOUNT_UNSUBSCRIBE_DEFERRED");
                     _onStatus(account, removedFromServer
                         ? "PushMe: адресная подписка удалена."
                         : "PushMe: адресная отписка ожидает повторной попытки.");
                 }
-                catch (Exception)
+                catch (Exception failure)
                 {
+                    PushDiagnostics.Failure("ACCOUNT_UNSUBSCRIBE", failure);
                     _onStatus(account, "PushMe: адресная отписка ожидает повторной попытки.");
                     // DPAPI roster remains unchanged; next connection retries.
                 }
@@ -177,6 +184,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
         IReadOnlyDictionary<string, string> snapshot, CancellationToken cancellationToken)
     {
         var failures = 0;
+        var attempt = 0;
         IReadOnlyDictionary<string, string> current = snapshot;
         try
         {
@@ -194,6 +202,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
                 }
                 if (current.Count == 0) break;
                 var started = DateTimeOffset.UtcNow;
+                PushDiagnostics.Record("WORKER", "CONNECT_ATTEMPT", ++attempt);
                 try
                 {
                     using var probe = new MailRuPushProbe();
@@ -217,6 +226,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
                 }
                 catch (HttpRequestException error)
                 {
+                    PushDiagnostics.Failure("WORKER_HTTP", error);
                     // Original SDK distinguishes HTTP, TLS and transport failures.
                     // Do not expose exception.Message: URLs and tokens may leak.
                     var status = error.StatusCode is { } code
@@ -225,28 +235,33 @@ internal sealed class MailRuPushBackgroundService : IDisposable
                     foreach (var account in current.Keys)
                         _onStatus(account, status);
                 }
-                catch (System.Security.Authentication.AuthenticationException)
+                catch (System.Security.Authentication.AuthenticationException error)
                 {
+                    PushDiagnostics.Failure("WORKER_TLS", error);
                     foreach (var account in current.Keys)
                         _onStatus(account, "Google MCS: ошибка проверки сертификата TLS.");
                 }
-                catch (System.Net.Sockets.SocketException)
+                catch (System.Net.Sockets.SocketException error)
                 {
+                    PushDiagnostics.Failure("WORKER_SOCKET", error);
                     foreach (var account in current.Keys)
                         _onStatus(account, "Google MCS: ошибка сетевого соединения.");
                 }
-                catch (IOException)
+                catch (IOException error)
                 {
+                    PushDiagnostics.Failure("WORKER_IO", error);
                     foreach (var account in current.Keys)
                         _onStatus(account, "Google MCS: защищённое соединение прервано.");
                 }
-                catch (InvalidOperationException)
+                catch (InvalidOperationException error)
                 {
+                    PushDiagnostics.Failure("WORKER_PROTOCOL", error);
                     foreach (var account in current.Keys)
                         _onStatus(account, "Google/PushMe: сервер отклонил запрос; см. предыдущий статус.");
                 }
-                catch
+                catch (Exception error)
                 {
+                    PushDiagnostics.Failure("WORKER_OTHER", error);
                     foreach (var account in current.Keys)
                         _onStatus(account, "Google/PushMe: непредвиденная ошибка обработки.");
                 }
@@ -254,6 +269,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
                 failures = (DateTimeOffset.UtcNow - started) > TimeSpan.FromMinutes(15)
                     ? 0 : Math.Min(failures + 1, 5);
                 var delay = RetryDelay(failures);
+                PushDiagnostics.Record("WORKER", "RETRY_DELAY_SECONDS", (int)delay.TotalSeconds);
                 foreach (var account in current.Keys)
                     _onStatus(account,
                         "Соединение прервано. Повтор через " +
@@ -267,6 +283,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
         }
         finally
         {
+            PushDiagnostics.Record("WORKER", "RECEIVER_STOPPED");
             foreach (var account in current.Keys)
                 _onStatus(account, "Получение уведомлений остановлено.");
         }
