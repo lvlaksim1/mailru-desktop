@@ -1,0 +1,57 @@
+name: Standalone experimental Windows push notification trial
+on:
+  push:
+    branches: [research/mail-apk-15.107.0.148045]
+    paths:
+      - '.github/workflows/apk-local-push-windows-trial-build.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  portable-experimental-tool:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/mail-apk-15.107.0.148045
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Offline tests first (no real mailbox)
+        shell: pwsh
+        run: |
+          python -m unittest discover -s tools/push_research -p 'test_local_probe.py' -v
+          python tools/push_research/local_mailru_event_probe.py --self-test
+      - name: Build a self-contained console-only trial (no install)
+        shell: pwsh
+        run: |
+          Start-Sleep -Seconds 5
+          python -m pip install --disable-pip-version-check "pyinstaller==6.16.0"
+          python -m PyInstaller --onefile --console --clean --name MailRuPushTrial --distpath dist-push-trial --workpath _work-push-trial --specpath _work-push-trial tools/push_research/local_mailru_event_probe.py
+          if ($LASTEXITCODE -ne 0) { throw "Trial build failed" }
+      - name: Verify packaged executable offline and prepare explicit launcher
+        shell: pwsh
+        run: |
+          & "./dist-push-trial/MailRuPushTrial.exe" --self-test
+          if ($LASTEXITCODE -ne 0) { throw "Packaged offline check failed" }
+          Copy-Item tools/push_research/Start_Push_Trial.cmd dist-push-trial/
+          @'
+          Экспериментальная проверка уведомлений Mail.ru для Windows
+          1. Распакуйте архив в отдельную папку.
+          2. Запустите Start_Push_Trial.cmd.
+          3. Укажите только уже подключённый в MailRuDesktop испытательный ящик.
+          4. После подтверждения отправьте в этот ящик письмо с другого устройства.
+          Успех возможен только при подтверждённой подписке и событии event=4.
+          Скрипт должен снять только собственный временный токен; статус очистки
+          отображается по окончании испытания. Не считайте вывод LOGIN_OK
+          доказательством доставки письма.
+          Это не релиз и не установщик MailRuDesktop; никакие данные/пароли/токены
+          в GitHub не загружаются.
+          '@ | Set-Content -Encoding UTF8 dist-push-trial/README.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MailRuPushTrial-Windows-EXPERIMENTAL
+          path: dist-push-trial/*
+          retention-days: 1
+          if-no-files-found: error
