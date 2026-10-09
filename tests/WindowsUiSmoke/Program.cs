@@ -119,6 +119,33 @@ internal static class Program
                 "19-account receiver is not automatically started");
             groupWindow!.Close();
 
+            // Functional offline UI test: with 20 synthetic mailboxes the
+            // selector starts with 19, requires consent, and never selects 20.
+            IReadOnlyList<string>? submitted = null;
+            var fakeLogins = Enumerable.Range(1, 20)
+                .Select(i => "dummy" + i + "@example.invalid");
+            var simulated = new Group19PushProbeWindow(fakeLogins,
+                selected => { submitted = selected.ToArray(); return true; },
+                () => { }) { Owner = mail };
+            simulated.Show();
+            simulated.UpdateLayout();
+            var simulatedStart = FindDescendant<Button>(simulated,
+                b => b.Content?.ToString() == "Зарегистрировать 19 аккаунтов");
+            var confirmation = FindDescendant<CheckBox>(simulated,
+                c => c.Content?.ToString()?.Contains("Подтверждаю регистрацию только",
+                    StringComparison.Ordinal) == true);
+            Check(simulatedStart is not null && !simulatedStart.IsEnabled,
+                "exactly nineteen are preselected but registration requires user consent");
+            Check(confirmation is not null, "explicit nineteen-account consent exists");
+            confirmation!.IsChecked = true;
+            Check(simulatedStart!.IsEnabled,
+                "nineteen preselected accounts enable registration after consent");
+            simulatedStart.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent, simulatedStart));
+            Check(submitted is { Count: 19 } &&
+                  submitted.Distinct(StringComparer.OrdinalIgnoreCase).Count() == 19,
+                "manual group test passes exactly nineteen unique account IDs");
+            simulated.Close();
+
             var palette = FindDescendant<Expander>(mail,
                 e => string.Equals(e.Header?.ToString(),
                     "Цвета элементов интерфейса", StringComparison.Ordinal));
