@@ -80,6 +80,8 @@ internal sealed class PushSubscriptionManagerWindow : Window
         Content = "Удалить выбранную группу", Padding = new Thickness(10, 6, 10, 6)
     };
     private bool _busy;
+    private int _deleteConfirmed;
+    private int _deleteUnconfirmed;
 
     internal PushSubscriptionManagerWindow(
         IEnumerable<string> authorized,
@@ -193,6 +195,8 @@ internal sealed class PushSubscriptionManagerWindow : Window
                 != MessageBoxResult.Yes) return;
             _deleteProgress.Visibility = Visibility.Visible;
             _deleteProgressText.Visibility = Visibility.Visible;
+            _deleteConfirmed = 0;
+            _deleteUnconfirmed = 0;
             _deleteProgress.Value = 0;
             _deleteProgressText.Text = "Удаление: 0 из " + selected.Count;
             await ExecuteAsync(() => _deleteGroup(selected.Id, (done, total, login, result) =>
@@ -217,8 +221,15 @@ internal sealed class PushSubscriptionManagerWindow : Window
     private void SetDeleteProgress(int done, int total, string login, string result)
     {
         _deleteProgress.Value = total == 0 ? 0 : done * 100.0 / total;
+        if (login.Length > 0)
+        {
+            if (result == "Удалено") _deleteConfirmed++;
+            else _deleteUnconfirmed++;
+        }
         _deleteProgressText.Text = "Обработано " + done + " из " + total +
-            (login.Length == 0 ? "" : " — " + login + ": " + result);
+            ". Подтверждено: " + _deleteConfirmed +
+            ". Не подтверждено: " + _deleteUnconfirmed +
+            (login.Length == 0 ? "" : ". Последний: " + login + " — " + result);
     }
 
     private void RefreshOperationTrace()
