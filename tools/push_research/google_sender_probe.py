@@ -14,6 +14,8 @@ import os
 from pathlib import Path
 import re
 import secrets
+import socket
+import ssl
 import struct
 import subprocess
 import time
@@ -125,7 +127,7 @@ def safe_state(value: str) -> str:
     return re.sub(r"[^A-Za-z0-9_\-]", "_", value)[:64]
 
 
-def emit_report(report: Path, checkin: str, gcm: str, details: str) -> None:
+def emit_report(report: Path, checkin: str, gcm: str, details: str, mcs: str = "NOT_ATTEMPTED") -> None:
     report.parent.mkdir(parents=True, exist_ok=True)
     lines = [
         "# Research: original sender Google registration — single trial",
@@ -137,11 +139,14 @@ def emit_report(report: Path, checkin: str, gcm: str, details: str) -> None:
         "",
         "- Google check-in: **" + safe_state(checkin) + "**",
         "- Google sender-specific registration: **" + safe_state(gcm) + "**",
+        "- Google MCS protected-channel login: **" + safe_state(mcs) + "**",
         "- Diagnostic class: " + safe_state(details),
         "",
         "## Scope and limits",
         "",
         "Temporary check-in/registration credentials were never logged or stored.",
+        "MCS login, if successful, establishes an authenticated delivery-channel session,",
+        "but does not prove receipt of any Mail.ru message.",
         "The existence of a registration token, even if returned, would **not**",
         "prove persistent delivery or acceptance by Mail.ru PushMe.",
         "This is not the native FirebaseInstanceId.getToken implementation:",
@@ -151,6 +156,78 @@ def emit_report(report: Path, checkin: str, gcm: str, details: str) -> None:
     ]
     report.write_text("\n".join(lines), encoding="utf-8")
 
+
+
+def mcs_login_payload(android_id: int, security_token: int) -> bytes:
+    """Encode the minimal MCS LoginRequest format observed in Chromium."""
+    device = str(android_id)
+    pieces = [
+        pb_bytes(1, b"chrome-63.0.3234.0"),
+        pb_bytes(2, b"mcs.android.com"),
+        pb_bytes(3, device.encode()),
+        pb_bytes(4, device.encode()),
+        pb_bytes(5, str(security_token).encode()),
+        pb_bytes(6, ("android-" + format(android_id, "x")).encode()),
+        pb_bytes(8, pb_bytes(1, b"new_vc") + pb_bytes(2, b"1")),
+        pb_int(12, 0),
+        pb_int(14, 1),
+        pb_int(16, 2),
+        pb_int(17, 1),
+    ]
+    return b"".join(pieces)
+
+
+def recv_exact(sock: ssl.SSLSocket, length: int) -> bytes:
+    data = bytearray()
+    while len(data) < length:
+        part = sock.recv(length - len(data))
+        if not part:
+            raise OSError("socket closed")
+        data.extend(part)
+    return bytes(data)
+
+
+def recv_frame_length(sock: ssl.SSLSocket) -> int:
+    value = 0
+    for i in range(5):
+        byte = recv_exact(sock, 1)[0]
+        value |= (byte & 127) << (i * 7)
+        if not (byte & 128):
+            if value > 65536:
+                raise ValueError("MCS response too large")
+            return value
+    raise ValueError("MCS frame length invalid")
+
+
+def probe_mcs(android_id: int, security_token: int) -> str:
+    """Try one authenticated, TLS-protected MCS login. No message data retained."""
+    try:
+        context = ssl.create_default_context()
+        with socket.create_connection(("mtalk.google.com", 5228), timeout=12) as raw:
+            with context.wrap_socket(raw, server_hostname="mtalk.google.com") as conn:
+                conn.settimeout(12)
+                data = mcs_login_payload(android_id, security_token)
+                conn.sendall(bytes((41, 2)) + varint(len(data)) + data)
+                version = recv_exact(conn, 1)[0]
+                tag = recv_exact(conn, 1)[0]
+                length = recv_frame_length(conn)
+                body = recv_exact(conn, length)
+                if version not in (38, 41):
+                    return "BAD_VERSION"
+                if tag != 3:
+                    return "NON_LOGIN_RESPONSE"
+                fields = parse_fields(body)
+                if 1 not in fields:
+                    return "BAD_LOGIN_RESPONSE"
+                if 3 in fields:
+                    return "LOGIN_REJECTED"
+                return "LOGIN_OK"
+    except socket.timeout:
+        return "NETWORK_TIMEOUT"
+    except (OSError, ssl.SSLError):
+        return "NETWORK_OR_TLS_ERROR"
+    except ValueError:
+        return "PROTOCOL_ERROR"
 
 def self_test() -> None:
     assert varint(300) == b"\xac\x02"
@@ -163,6 +240,10 @@ def self_test() -> None:
     assert nested[12] == [3] and 13 in nested
     assert safe_state("token=SECRET:ABC") == "token_SECRET_ABC"
     assert SENDER_ID != DEFAULT_SENDER_ID
+    login = parse_fields(mcs_login_payload(123456789, 987654321))
+    assert login[2] == [b"mcs.android.com"]
+    assert login[5] == [b"987654321"]
+    assert login[16] == [2]
     print("offline_self_test=PASS")
 
 
@@ -170,6 +251,7 @@ def run_live(apk: Path, report: Path) -> None:
     cert = find_certificate_sha1(apk)
     checkin = "NOT_ATTEMPTED"
     registration = "NOT_ATTEMPTED"
+    mcs = "NOT_ATTEMPTED"
     detail = "NONE"
     try:
         answer = post(CHECKIN_URL, checkin_payload(),
@@ -207,6 +289,8 @@ def run_live(apk: Path, report: Path) -> None:
         if response.startswith("token=") and len(response) > len("token=") + 10:
             registration = "TOKEN_ISSUED"
             detail = "TOKEN_NOT_PERSISTED"
+            time.sleep(5)
+            mcs = probe_mcs(android_id, security_token)
         elif response.startswith("Error="):
             registration = "REJECTED"
             detail = safe_state(response.split("=", 1)[1].strip())
@@ -232,7 +316,8 @@ def run_live(apk: Path, report: Path) -> None:
         else:
             registration = "ERROR"
     finally:
-        emit_report(report, checkin, registration, detail)
+        emit_report(report, checkin, registration, detail, mcs)
+        print("mcs_login=" + safe_state(mcs))
         print("checkin=" + safe_state(checkin))
         print("sender_registration=" + safe_state(registration))
         print("diagnostic=" + safe_state(detail))
