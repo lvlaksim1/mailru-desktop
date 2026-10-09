@@ -288,6 +288,15 @@ public partial class MainWindow
 
     private void OpenPushProbeButton_Click(object sender, RoutedEventArgs e)
     {
+        if (_pushBackground?.Enabled == true)
+        {
+            MessageBox.Show(this,
+                "Сначала остановите общий приём MCS в управлении группами. " +
+                "Одиночная диагностика использует отдельный временный получатель.",
+                "Проверка одного аккаунта", MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            return;
+        }
         if (_pushProbeWindow is { IsVisible: true })
         {
             _pushProbeWindow.Activate();
@@ -329,6 +338,7 @@ public partial class MainWindow
         {
             // Notification-area availability must not break mail refresh.
         }
+        _ = RecordPushDeliveryAsync(login);
         _ = RefreshAfterPushAsync(login);
     }
 
