@@ -77,9 +77,22 @@ internal sealed partial class MailRuPushProbe
             var registered = await CreateGoogleIdentityAsync(ReportAll, cancellationToken);
             saved = new SharedGooglePushIdentityStore.State(
                 registered.DeviceId, registered.SecurityToken,
-                registered.RegistrationToken, Array.Empty<string>());
+                registered.RegistrationToken, Array.Empty<string>(),
+                SharedGooglePushIdentityStore.GeneratePushMeCommonId());
             store.Save(saved); // Persist before any server-side subscription.
             Phase("IDENTITY_CREATED");
+        }
+
+        // Migrate pre-v0.3.41 Windows identities without revoking or
+        // recreating the working Google sender/connection.
+        if (saved.PushMeCommonId is null)
+        {
+            saved = saved with
+            {
+                PushMeCommonId = SharedGooglePushIdentityStore.GeneratePushMeCommonId()
+            };
+            store.Save(saved);
+            Phase("PUSHME_COMMON_ID_MIGRATED");
         }
 
         Phase("MCS_TCP_CONNECT");
@@ -113,10 +126,14 @@ internal sealed partial class MailRuPushProbe
         ReportAll("Google: один защищённый канал для всех аккаунтов (LOGIN_OK).");
 
         Phase("PUSHME_BUILD_REQUEST", accounts.Count);
-        var deviceName = "mailru-windows-" + saved.DeviceId.ToString("x");
+        var deviceName = saved.PushMeCommonId!;
+        var androidId = SharedGooglePushIdentityStore.AndroidIdFromCommonId(deviceName);
         var subscriptions = accounts.Select(item =>
             BuildSubscription(item.Key, item.Value, saved.RegistrationToken,
-                saved.DeviceId, deviceName)).ToArray();
+                androidId, deviceName)).ToArray();
+        PushDiagnostics.Record("PUSHME", "COMMON_ID_SOURCE_ANDROID_COMPAT");
+        PushDiagnostics.Record("PUSHME", "COMMON_ID_STRUCTURE_OK",
+            SharedGooglePushIdentityStore.IsValidPushMeCommonId(deviceName) ? 1 : 0);
         var json = JsonSerializer.Serialize(subscriptions);
         HashSet<string> accepted;
         await SharedSubscriptionGate.WaitAsync(cancellationToken);
@@ -318,14 +335,15 @@ internal sealed partial class MailRuPushProbe
     // device_id is DeviceIdProvider.getDeviceId(), corresponding to the
     // value registered as settings.device_id, NOT FCM token/sdK_device_id.
     internal static Dictionary<string, string> BuildAccountUnsubscribeFields(
-        string account, ulong googleDeviceId)
+        string account, string pushMeCommonId)
     {
-        if (string.IsNullOrWhiteSpace(account) || googleDeviceId == 0)
-            throw new ArgumentException("Invalid account or device ID.");
+        if (string.IsNullOrWhiteSpace(account) ||
+            !SharedGooglePushIdentityStore.IsValidPushMeCommonId(pushMeCommonId))
+            throw new ArgumentException("Invalid account or PushMe CommonId.");
         return new(StringComparer.Ordinal)
         {
             ["account"] = account.ToLowerInvariant(),
-            ["device_id"] = "mailru-windows-" + googleDeviceId.ToString("x"),
+            ["device_id"] = pushMeCommonId,
             ["application"] = "mail"
         };
     }
@@ -346,7 +364,11 @@ internal sealed partial class MailRuPushProbe
             using var request = new HttpRequestMessage(HttpMethod.Post, UnsubscribeAccountUrl);
             request.Headers.TryAddWithoutValidation("User-Agent", AppUserAgent);
             request.Content = new FormUrlEncodedContent(
-                BuildAccountUnsubscribeFields(account, saved.DeviceId));
+                BuildAccountUnsubscribeFields(account,
+                    saved.PushMeCommonId ??
+                    // Pre-migration installations might have previously
+                    // registered this account under the legacy identifier.
+                    "mailru-windows-" + saved.DeviceId.ToString("x")));
             await PaceNetworkRequestAsync(cancellationToken);
             using var response = await _http.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode) return false;
