@@ -1,0 +1,27 @@
+name: Inspect official APK PushMe public certificate identity
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/pushme-certificate-chain-research.yml]
+permissions:
+  contents: read
+jobs:
+  certificate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Print only non-secret TLS certificate subject, SAN and dates
+        shell: bash
+        run: |
+          for host in alt-push-me.mail.ru push-me.mail.ru; do
+            echo "HOST=$host"
+            timeout 12 bash -c "echo | openssl s_client -connect $host:443 -servername $host -verify_return_error 2>/dev/null | openssl x509 -noout -subject -issuer -dates -ext subjectAltName" || true
+            sleep 5
+          done
+      - name: Compare public HTTPS endpoint method response without tokens
+        shell: bash
+        run: |
+          for host in push-me.mail.ru; do
+            echo "HOST=$host"
+            curl --head --silent --show-error --location --max-time 15 --output /dev/null --write-out 'HTTP_STATUS=%{http_code} TLS_VERIFY=%{ssl_verify_result}\n' "https://$host/api/v2/set_settings" || true
+          done
