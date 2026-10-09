@@ -94,6 +94,11 @@ public partial class MainWindow
                     accounts.Add((login, auth.AccessToken));
             }
         }
+        // Remove no-longer-authorized mailboxes from the UI count immediately;
+        // the common receiver is then reconciled as a single generation.
+        _pushConnectedAccounts.RemoveWhere(login =>
+            !accounts.Any(account =>
+                string.Equals(account.Login, login, StringComparison.OrdinalIgnoreCase)));
         _pushBackground.Reconcile(accounts, enabled);
         if (_pushNotificationArea is not null)
             _pushNotificationArea.Visible = enabled;
