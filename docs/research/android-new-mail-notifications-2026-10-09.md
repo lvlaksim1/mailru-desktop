@@ -136,3 +136,31 @@ Google подтверждает, что FCM-токен/идентификато�
 Эти коммиты являются весомыми доказательствами того, что независимый настольный приёмник Google FCM реально использовался и сопровождался в 2026 году. Но это **не доказательство совместимости сервера Mail.ru с новым токеном** и не гарантия работоспособности по сети владельца.
 
 Исследовательский приоритет меняется: проверять `superhuman/push-receiver` как актуальный кандидат, а `liamcottle/push-receiver` и `javajuice1337/push-receiver-v2` оставить историческими. Ни один чужой исходный код автоматически в продукт не копировать; вариант интеграции C#/.NET оценивать после испытаний.
+
+## 2026-10-09 — целевая декомпиляция Google-транспорта завершена
+
+GitHub Actions №37872182332 **SUCCESS**, исходная ветка `research/mail-apk-15.107.0.148045`, итоговый коммит `7d5de6c41af591c0e4eaca30ee601bba4a2ea004`. После проверки SHA-256 оригинального APK дополнительно сохранено 93 файла, 528770 байт, в `research/apk-15.107.0.148045/transport-deep-dive/sources/`.
+
+### Доказанная цепочка при выборе способа доставки на телефоне
+
+`ru/mail/setup/SetUpPushComponent.java`, `createPushFactories` проверяет `GooglePlayServicesUtil.isPlayServicesAvailable`; при успехе выбирает `GcmPushFactory`. Если Google недоступен, но доступен `HuaweiServicesUtil.isHuaweiServicesAvailable`, выбирает `HmsPushFactory`. Если доступен VKPNS и уже есть основной транспорт, может добавить `VkpnsPushFactory`. В другом варианте конфигурации фабрика GCM выбрана напрямую; отсутствие других транспортов может вести к резервному созданию GCM, **что не гарантирует его доступность**. Наблюдение владельца — своевременные уведомления без RuStore/VK — согласуется с использованием предустановленных Google Play Services или Huawei, но не доказывает наличия самостоятельного приёмника внутри APK.
+
+`ru/mail/util/push/gcm/GCMAvailabilityChecker.java` прямо использует `GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(context)`; это свидетельство **зависимости от внешних системных Google Play Services** в обычном режиме.
+
+`ru/mail/util/push/gcm/GcmPushKitWrapper.java` получает идентификатор отправителя из `R.string.push_sender_id`; вызывает `FirebaseInfoProvider.getToken(senderId)` для получения действительного токена устройства. `GcmPushTransport.java` передаёт `onMessageReceived` в общую подсистему `PushMessagesTransport`, а `onNewToken` — в базовый механизм обновления и вспомогательную службу проверки.
+
+`ru/mail/util/push/gcm/MailMessagingService.java` наследуется от `FirebaseMessagingService`. При `onCreate` обеспечивает `FirebaseAppInitializer.ensureInitialized`. При `onMessageReceived(RemoteMessage)` получает `remoteMessage.getData()`, вызывает `PushMeSdk.INSTANCE.onMessageReceived(data, Transport.FIREBASE)` и передаёт событие с `PushType.GCM` в `getPushMessageReceivedNotifier().onMessageReceived`. При `onNewToken(String)` передаёт новое значение и в `PushMeSdk.INSTANCE.onNewToken(token, Transport.FIREBASE)`, и в `getPushTokenRefreshedNotifier`.
+
+`ru/mail/setup/SetUpPushMeSdk.java` получает авторизацию **для каждой отдельной учётной записи** путём `peekAuthToken(..., "ru.mail.oauth2.access")`, регистрирует этот источник в `PushMeSdk.setAuthProvider`, применяет конфигурацию приложения `"mail"` с `PusherHost.AltProd`; начальная миграция переносит токены через `PushTokenUpdater.copyPushTokenToSdk`.
+
+`ru/mail/util/push/pusher/PushMeSDKPusherTransport.java` формирует `Application.AccountRequest` для всех аккаунтов, устанавливает `SubscriptionSettings` c `SpecifyTransportOption.AllTransports` и вызывает `PushMeSdk.INSTANCE.getApp().registerAccounts(...).execute()`. Это доказывает применение того же почтового OAuth для **регистрации серверной подписки на внешние токены доставщиков**.
+
+### Доказанная последовательность
+
+1. Системные службы Google Play / Firebase обеспечивают токен доставки конкретной установки приложения.
+2. APK передаёт токен в `PushMeSdk`; отдельно связывает его с аккаунтами через почтовый OAuth `ru.mail.oauth2.access`.
+3. Серверное событие поступает в `FirebaseMessagingService.onMessageReceived`.
+4. `PushProcessor` разбирает `event=4` в `NewMailPush` со сведениями о конкретном письме.
+5. `PushMessageServiceVisitor` вызывает `NotificationHandler.showNotification`.
+
+Здесь подтверждён источник, регистрация и конечный обработчик **по статическому коду APK**. Не подтверждены на живом независимом Windows-клиенте: получение нового FCM токена, принимаемого почтовой системой Mail.ru, успешная серверная подписка, фактическая доставка события. Исследовать возможную отдельную Windows-регистрацию на контролируемом тестовом ящике; не путать успешный вывод Android-класса с доказательством совместимости Windows.
