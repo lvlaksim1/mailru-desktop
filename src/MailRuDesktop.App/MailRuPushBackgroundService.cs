@@ -23,8 +23,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
         new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _recentMessages = new(StringComparer.Ordinal);
     private readonly Queue<string> _recentOrder = new();
-    private readonly Dictionary<string, DateTimeOffset> _lastEventAt =
-        new(StringComparer.OrdinalIgnoreCase);
+    private readonly List<Task> _retiredRunners = [];
     private readonly Action<string, string> _onStatus;
     private readonly Action<string> _onNewMail;
     private bool _enabled;
@@ -67,12 +66,14 @@ internal sealed class MailRuPushBackgroundService : IDisposable
         {
             if (_stopping) return;
             _enabled = enabled;
+            _retiredRunners.RemoveAll(task => task.IsCompleted);
             foreach (var existing in _sessions.Values.ToArray())
             {
                 if (wanted.TryGetValue(existing.Login, out var token) &&
                     string.Equals(token, existing.AccessToken, StringComparison.Ordinal))
                     continue;
                 existing.Cancellation.Cancel();
+                _retiredRunners.Add(existing.Runner);
                 _sessions.Remove(existing.Login);
             }
             foreach (var item in wanted)
@@ -149,16 +150,9 @@ internal sealed class MailRuPushBackgroundService : IDisposable
     {
         if (!PushWire.IsMailNewMessage(data)) return false;
         var id = login.ToLowerInvariant() + ":" + PushWire.MessageIdentifier(data);
-        var now = DateTimeOffset.UtcNow;
         lock (_sync)
         {
             if (_recentMessages.Contains(id)) return false;
-            // Debounce identical logical notification bursts, including on
-            // re-registration; suppress only close duplicates, not later mail.
-            if (_lastEventAt.TryGetValue(login, out var previous) &&
-                now - previous < TimeSpan.FromSeconds(2))
-                return false;
-            _lastEventAt[login] = now;
             _recentMessages.Add(id);
             _recentOrder.Enqueue(id);
             while (_recentOrder.Count > 1024)
@@ -187,12 +181,13 @@ internal sealed class MailRuPushBackgroundService : IDisposable
             {
                 s.Cancellation.Cancel();
                 return s.Runner;
-            }).ToArray();
+            }).Concat(_retiredRunners).ToArray();
             _sessions.Clear();
+            _retiredRunners.Clear();
         }
         try
         {
-            await Task.WhenAll(runners).WaitAsync(TimeSpan.FromSeconds(45));
+            await Task.WhenAll(runners).WaitAsync(TimeSpan.FromSeconds(90));
         }
         catch (TimeoutException)
         {
