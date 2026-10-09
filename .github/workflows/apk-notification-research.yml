@@ -1,0 +1,90 @@
+name: APK notification pathway research
+on:
+  push:
+    branches:
+      - research/mail-apk-15.107.0.148045
+    paths:
+      - '.github/workflows/apk-notification-research.yml'
+permissions:
+  contents: write
+jobs:
+  extract-notifications:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/mail-apk-15.107.0.148045
+          fetch-depth: 1
+      - name: Reconstruct and validate APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=research/apk-15.107.0.148045
+          cat "$R"/package/parts/Mail_ru_15.107.0.148045_APKs.zip.part-* > /tmp/mail-pack.zip
+          echo "42c976a0c2f3d5fb186a88bc855f782c81c8ce35f952fcf22f99c64828880af6  /tmp/mail-pack.zip" | sha256sum -c -
+          mkdir -p /tmp/mail-apks
+          unzip -q /tmp/mail-pack.zip -d /tmp/mail-apks
+          test -s /tmp/mail-apks/Mail-15.107.0.148045.apk
+      - name: Get JADX
+        shell: bash
+        run: |
+          set -euo pipefail
+          sleep 5
+          curl --fail --location --retry 2 --retry-delay 5 --connect-timeout 30 --max-time 600 'https://github.com/skylot/jadx/releases/download/v1.5.6/jadx-1.5.6.zip' -o /tmp/jadx.zip
+          echo '545ea2be9c242511bc145755cf4bda2485ade42966e096f8b4d3da2a230e8974  /tmp/jadx.zip' | sha256sum -c -
+          mkdir -p /tmp/jadx
+          unzip -q /tmp/jadx.zip -d /tmp/jadx
+          chmod +x /tmp/jadx/bin/jadx
+      - name: Decompile original APK and extract notification subsystem
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=research/apk-15.107.0.148045
+          DEST="$R/notifications"
+          mkdir -p /tmp/mail-sources "$DEST/sources"
+          /tmp/jadx/bin/jadx -r -j 4 -d /tmp/mail-sources /tmp/mail-apks/Mail-15.107.0.148045.apk > /tmp/jadx-push.log 2>&1 || true
+          SRC=/tmp/mail-sources/sources
+          test -d "$SRC/ru/mail"
+          find "$SRC" -type f -name '*.java' | sed "s#^$SRC/##" | grep -Ei '(^ru/mail/util/push/|^com/vk/pushme/|^ru/mail/.*/push/|^ru/mail/.*/notification/|^ru/mail/.*/notifications/|^ru/mail/.*/firebase/|^ru/mail/.*/fcm/|^com/google/firebase/messaging/)' | sort > "$DEST/notification-path-index.txt" || true
+          grep -RIlE 'PushMeParamsPreparerImpl|InternalSubscriptionRequest|FirebaseMessagingService|onMessageReceived\(|PushMeApi|push-me\.mail\.ru|alt-push-me\.mail\.ru|PushType\.VKPNS|PushType\.HMS' "$SRC/ru/mail" "$SRC/com/vk" 2>/dev/null | sed "s#^$SRC/##" | sort -u > "$DEST/notification-cross-references.txt" || true
+          cat "$DEST/notification-path-index.txt" "$DEST/notification-cross-references.txt" | sort -u > /tmp/notification-selected.txt
+          count=0; bytes=0
+          while IFS= read -r p; do
+            [ -f "$SRC/$p" ] || continue
+            s=$(stat -c %s "$SRC/$p")
+            if (( count >= 380 || bytes+s > 15000000 )); then continue; fi
+            mkdir -p "$DEST/sources/$(dirname "$p")"
+            cp "$SRC/$p" "$DEST/sources/$p"
+            ((count+=1))
+            ((bytes+=s))
+          done < /tmp/notification-selected.txt
+          {
+            echo "# APK notification subsystem extraction"
+            echo
+            echo "APK: Mail.ru Android 15.107.0.148045, checked SHA-256 package."
+            echo "JADX version: 1.5.6."
+            echo "Index lines: $(wc -l < "$DEST/notification-path-index.txt")."
+            echo "Cross-reference paths: $(wc -l < "$DEST/notification-cross-references.txt")."
+            echo "Saved files: $count; bytes: $bytes; capped at 380 files/15 MB."
+            echo
+            echo "Lists are static decompilation evidence, not live network validation."
+            echo
+            echo "## Notification and push class names"
+            head -n 250 "$DEST/notification-path-index.txt"
+            echo
+            echo "## Cross-references"
+            head -n 250 "$DEST/notification-cross-references.txt"
+          } > "$DEST/README.md"
+          find "$DEST/sources" -type f | wc -l
+      - name: Commit bounded extracted source subset
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name mailru-apk-research
+          git config user.email actions@users.noreply.github.com
+          git add research/apk-15.107.0.148045/notifications
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'research: retain original APK notification pathway source'
+          git pull --rebase origin research/mail-apk-15.107.0.148045
+          git push origin HEAD:research/mail-apk-15.107.0.148045
