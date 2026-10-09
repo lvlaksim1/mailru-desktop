@@ -153,14 +153,24 @@ using (var manager = new MailRuPushBackgroundService(
     Expect(MailRuPushProbe.UnsubscribeAccountUrl,
         "https://push-me.mail.ru/api/v1/unsubscribe_by_device_id",
         "unsubscribe URL exactly matches original APK PushMeApiImpl DEX");
+    var originalCommonId = SharedGooglePushIdentityStore.ComposePushMeCommonId(
+        "0123456789abcdef", "");
+    Expect(originalCommonId,
+        "0123456789abcdef:d41d8cd98f00b204e9800998ecf8427e",
+        "source-based CommonId = Android ID colon MD5 of Android Build values");
+    Expect(SharedGooglePushIdentityStore.IsValidPushMeCommonId(originalCommonId),
+        true, "CommonId has official APK's persisted two-part form");
+    var generatedCommonId = SharedGooglePushIdentityStore.GeneratePushMeCommonId();
+    Expect(SharedGooglePushIdentityStore.IsValidPushMeCommonId(generatedCommonId),
+        true, "Windows virtual Android ID remains private and APK-shaped");
     var unsubscribeFields = MailRuPushProbe.BuildAccountUnsubscribeFields(
-        "TEST@EXAMPLE.INVALID", 0x65UL);
+        "TEST@EXAMPLE.INVALID", originalCommonId);
     Expect(unsubscribeFields.Count, 3,
         "original APK unsubscribe contains exactly three form fields");
     Expect(unsubscribeFields["account"], "test@example.invalid",
         "original APK unsubscribe lowercases account");
-    Expect(unsubscribeFields["device_id"], "mailru-windows-65",
-        "original APK unsubscribe device_id matches settings.device_id");
+    Expect(unsubscribeFields["device_id"], originalCommonId,
+        "original APK unsubscribe device_id matches settings.device_id, not Google MCS ID");
     Expect(unsubscribeFields["application"], "mail",
         "original APK unsubscribe uses mail application");
     accountField.SetValue(manager,
@@ -248,7 +258,8 @@ using (var folder = new System.IO.MemoryStream())
 // Original Android-app push protocol: all tests are offline and use fake tokens.
 var pushRequest = MailRuPushProbe.BuildSubscription(
     "TEST@EXAMPLE.INVALID", "NOT_A_REAL_OAUTH", "NOT_A_REAL_GOOGLE_TOKEN",
-    12345, "fresh-trial-only");
+    "0123456789abcdef",
+    SharedGooglePushIdentityStore.ComposePushMeCommonId("0123456789abcdef", "fake Android Build"));
 using (var pushJson = System.Text.Json.JsonDocument.Parse(
     System.Text.Json.JsonSerializer.Serialize(new[] { pushRequest })))
 {
@@ -257,6 +268,15 @@ using (var pushJson = System.Text.Json.JsonDocument.Parse(
         "PushMe account normalized to lower case");
     Expect(samplePush.GetProperty("application").GetString(), "mail", "PushMe application");
     Expect(samplePush.GetProperty("platform").GetString(), "android", "PushMe original FCM wire platform");
+    Expect(samplePush.GetProperty("android_id").GetString(), "0123456789abcdef",
+        "original APK Android secure ID uses stable 16-hex form, not decimal Google device ID");
+    var sampleCommonId = samplePush.GetProperty("sdk_device_id").GetString();
+    Expect(SharedGooglePushIdentityStore.IsValidPushMeCommonId(sampleCommonId),
+        true, "subscription SDK device id uses original CommonId form");
+    Expect(samplePush.GetProperty("settings").GetProperty("device_id").GetString(),
+        sampleCommonId, "settings.device_id matches SDK identifier");
+    Expect(sampleCommonId!.StartsWith("0123456789abcdef:", StringComparison.Ordinal),
+        true, "CommonId contains same Android ID as request");
     Expect(samplePush.GetProperty("status").GetInt32(), 0, "PushMe enabled status");
     Expect(samplePush.GetProperty("settings").GetProperty("capabilities")
         .GetProperty("can_mail").GetProperty("Filter").GetProperty("Folder")
