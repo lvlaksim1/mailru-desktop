@@ -132,8 +132,9 @@ internal sealed partial class MailRuPushProbe
             // Original SDK NewSubscriptionRequest persists confirmed account
             // subscriptions only. The pre-POST roster is a crash-safety journal,
             // replaced after a successful response with confirmed entries.
-            var associated = saved.SubscribedAccounts.Concat(accepted)
-                .Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+            var associated = saved.SubscribedAccounts
+                .Except(accounts.Keys, StringComparer.OrdinalIgnoreCase)
+                .Concat(accepted).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
             store.Save(saved with { SubscribedAccounts = associated });
             foreach (var login in accepted)
                 onStatus(login, "Подписка подтверждена. Постоянный приём уведомлений включён.");
