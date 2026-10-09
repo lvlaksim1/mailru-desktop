@@ -963,13 +963,18 @@
                                           Content="Получать новые письма автоматически, пока работает приложение"
                                           Checked="BackgroundPushEnabledCheckBox_Changed"
                                           Unchecked="BackgroundPushEnabledCheckBox_Changed"/>
+                                <CheckBox x:Name="TaskbarNotificationsEnabledCheckBox"
+                                          Margin="0,8,0,0"
+                                          Content="Показывать уведомления Windows о новых письмах"
+                                          Checked="TaskbarNotificationsEnabledCheckBox_Changed"
+                                          Unchecked="TaskbarNotificationsEnabledCheckBox_Changed"/>
                                 <TextBlock x:Name="BackgroundPushStatusText"
                                            Margin="0,8,0,4"
                                            TextWrapping="Wrap"
                                            Foreground="{DynamicResource AppMutedTextBrush}"
                                            Text="Подключение к службе уведомлений не запущено."/>
                                 <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource AppMutedTextBrush}"
-                                           Text="Используется подтверждённый механизм Google и Mail.ru без периодического опроса ящика. Каждый сохранённый аккаунт получает собственное соединение; при разрыве выполняется повторное подключение. Телефонные подписки не изменяются."/>
+                                           Text="Используется подтверждённый механизм Google и Mail.ru без периодического опроса ящика. Один Google-получатель обслуживает все сохранённые аккаунты, а подписки учитываются отдельно; при разрыве выполняется повторное подключение. Телефонные подписки не изменяются."/>
                                 <Button x:Name="OpenPushProbeButton" Content="Проверить получение уведомлений вручную"
                                         Margin="0,10,0,0" Padding="12,7"
                                         HorizontalAlignment="Left"
