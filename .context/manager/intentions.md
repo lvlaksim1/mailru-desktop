@@ -234,3 +234,8 @@ status: v0.3.33 full/update RELEASED; пользовательское серв�
 status: code, CI and installers delivered; live ACCOUNT_ACCEPTED / event4 pending
 
 Update v0.3.34 link https://github.com/lvlaksim1/mailru-desktop/releases/download/v0.3.34/MailRuDesktop_Update_v0.3.34.exe. User repeats in-app trial under already saved account after update, sends control mail ONLY when ACCOUNT_ACCEPTED, reports anonymized technical states and cleanup outcome. Distinguish valid TLS, HTTP200, validated account and actual event4; successful network POST without account validation is insufficient. No return to separate Python tool; no raw mailbox tokens sent to GitHub/chat.
+
+## I-038 — принять общий Google-получатель v0.3.36 на нескольких реальных аккаунтах
+status: active; реализация, автономные испытания и установщики выполнены, проверка живой многопочтовой доставки открыта
+
+Владелец согласовал один постоянный Google-токен на все почтовые аккаунты; опубликована v0.3.36. Не выпускать фиктивный отчёт о полной надёжности. Требуется опыт владельца с минимум двумя уже авторизованными ящиками: принять event=4 для каждого, проверить независимое обновление значков/списков, повторные события, завершение и запуск программы, разрыв MCS, добавление и удаление аккаунта без выключения оставшихся; телефонные уведомления не трогать. Не запрашивать OAuth/Google токены или текст сообщений. При расхождении — исправить исходники и подтвердить CI перед новым релизом.
