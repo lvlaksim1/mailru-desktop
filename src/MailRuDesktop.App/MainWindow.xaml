@@ -973,16 +973,24 @@
                                            TextWrapping="Wrap"
                                            Foreground="{DynamicResource AppMutedTextBrush}"
                                            Text="Подключение к службе уведомлений не запущено."/>
+                                <TextBlock x:Name="GoogleRecipientStatusText"
+                                           Margin="0,8,0,0" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource AppMutedTextBrush}"
+                                           Text="Google: проверка сохранённой регистрации…"/>
+                                <TextBlock x:Name="GoogleMcsStatusText"
+                                           Margin="0,4,0,4" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource AppMutedTextBrush}"
+                                           Text="Google MCS: Остановлен"/>
                                 <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource AppMutedTextBrush}"
-                                           Text="Проверочная версия: автоматическая регистрация всех аккаунтов отключена. Доступны две ручные проверки: один выбранный аккаунт (ранее успешно испытанный режим) и 19 выбранных аккаунтов с одним общим Google-получателем. Остальные аккаунты в запрос не попадут. Уведомления Windows показываются, если включён переключатель выше. Телефонные подписки не изменяются."/>
+                                           Text="Получение уведомлений настраивается поэтапно: сначала однократная регистрация Google, затем самостоятельные группы PushMe. Остановка MCS не снимает подписки. Состав каждой группы и принадлежность аккаунтов сохраняются. Проверка одного аккаунта оставлена отдельно."/>
                                 <Button x:Name="OpenPushProbeButton" Content="Выбрать аккаунт для проверки"
                                         Margin="0,10,0,0" Padding="12,7"
                                         HorizontalAlignment="Left"
                                         Click="OpenPushProbeButton_Click"/>
-                                <Button x:Name="OpenGroup19ProbeButton" Content="Проверить 19 аккаунтов"
+                                <Button x:Name="OpenPushGroupManagerButton" Content="Google и группы PushMe"
                                         Margin="0,8,0,0" Padding="12,7"
                                         HorizontalAlignment="Left"
-                                        Click="OpenGroup19ProbeButton_Click"/>
+                                        Click="OpenPushGroupManagerButton_Click"/>
                             </StackPanel>
                         </GroupBox>
                         <GroupBox Margin="0,16,0,0" Header="Диагностика Google и PushMe">
