@@ -37,8 +37,8 @@ internal sealed partial class MailRuPushProbe
         var saved = store.Load();
         if (saved is not null)
         {
-            var wanted = new HashSet<string>(accounts.Keys, StringComparer.OrdinalIgnoreCase);
-            foreach (var removed in saved.SubscribedAccounts.Where(a => !wanted.Contains(a)).ToArray())
+            foreach (var removed in SharedGooglePushIdentityStore.PendingAccountUnsubscriptions(
+                         saved.SubscribedAccounts, accounts.Keys))
             {
                 try
                 {
