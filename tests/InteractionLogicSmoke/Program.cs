@@ -71,6 +71,33 @@ Expect(MailRuPushProbe.ClassifyNetworkError(
     new HttpRequestException(HttpRequestError.NameResolutionError, "SECRET_DNS_DETAIL")),
     "ошибка DNS: адрес сервера не найден", "DNS failure classified without leaking details");
 
+// Source-based MCS validation: Chromium mcs.proto LoginResponse tag=3,
+// required id=1, optional ErrorInfo=3 with required int32 code=1.
+// The old implementation rejected even ErrorInfo.code=0.
+var loginOk = PushWire.TextField(1, "non-sensitive-example-server-id");
+var loginCodeZero = PushWire.Append(loginOk,
+    PushWire.BytesField(3, PushWire.VarintField(1, 0)));
+var loginCodeFailure = PushWire.Append(loginOk,
+    PushWire.BytesField(3, PushWire.VarintField(1, 7)));
+var loginErrorMissingCode = PushWire.Append(loginOk,
+    PushWire.BytesField(3, Array.Empty<byte>()));
+Expect(PushWire.ClassifyMcsLoginResponse(41, 3, loginOk).Accepted, true,
+    "MCS login succeeds with required id and absent ErrorInfo");
+Expect(PushWire.ClassifyMcsLoginResponse(41, 3, loginCodeZero).Accepted, true,
+    "MCS login accepts ErrorInfo.code=0 as original Chromium implementation");
+Expect(PushWire.ClassifyMcsLoginResponse(41, 3, loginCodeFailure).Accepted, false,
+    "MCS login rejects actual server ErrorInfo.code != 0");
+Expect(PushWire.ClassifyMcsLoginResponse(41, 3, loginCodeFailure).ErrorCode, 7,
+    "MCS diagnostic extracts numeric error code only");
+Expect(PushWire.ClassifyMcsLoginResponse(41, 3, loginErrorMissingCode).Accepted, false,
+    "Malformed Google MCS ErrorInfo without required code is rejected");
+Expect(PushWire.ClassifyMcsLoginResponse(41, 3, PushWire.VarintField(5, 1)).Accepted,
+    false, "MCS login requires field 1 server id");
+Expect(PushWire.ClassifyMcsLoginResponse(41, 4, loginOk).Accepted, false,
+    "MCS CLOSE tag does not count as successful LOGIN");
+Expect(PushWire.ClassifyMcsLoginResponse(40, 3, loginOk).Accepted, false,
+    "Unsupported MCS wire version is rejected");
+
 // Constant receiving: duplicate protection, backoff and user opt-out are offline.
 var msgData = PushWire.Append(
     PushWire.TextField(5, "ru.mail.mailapp"),
