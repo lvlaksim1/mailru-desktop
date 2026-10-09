@@ -21,6 +21,8 @@ internal sealed class PushSubscriptionManagerWindow : Window
     private readonly Action _startMcs;
     private readonly Action _stopMcs;
     private readonly Func<string> _mcsState;
+    private readonly Action<string> _startGroupMcs;
+    private readonly Action<string> _stopGroupMcs;
     private readonly List<(string Login, CheckBox Box)> _accountBoxes = [];
     private readonly TextBlock _googleStatus = new();
     private readonly ComboBox _googleRecipients = new()
@@ -75,6 +77,14 @@ internal sealed class PushSubscriptionManagerWindow : Window
         Content = "Зарегистрировать выбранные аккаунты",
         Padding = new Thickness(10, 6, 10, 6)
     };
+    private readonly Button _startGroupMcsButton = new()
+    {
+        Content = "Подключить MCS группы", Padding = new Thickness(10, 6, 10, 6)
+    };
+    private readonly Button _stopGroupMcsButton = new()
+    {
+        Content = "Остановить MCS группы", Padding = new Thickness(10, 6, 10, 6)
+    };
     private readonly Button _deleteGroupButton = new()
     {
         Content = "Удалить выбранную группу", Padding = new Thickness(10, 6, 10, 6)
@@ -91,7 +101,8 @@ internal sealed class PushSubscriptionManagerWindow : Window
         Func<string, Task<string>> removeGoogle,
         Func<IReadOnlyList<string>, Task<string>> registerBatch,
         Func<string, Action<int, int, string, string>, Task<string>> deleteGroup,
-        Action startMcs, Action stopMcs, Func<string> mcsState)
+        Action startMcs, Action stopMcs, Func<string> mcsState,
+        Action<string> startGroupMcs, Action<string> stopGroupMcs)
     {
         _authorized = authorized.Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(x => x, StringComparer.CurrentCultureIgnoreCase).ToArray();
@@ -104,6 +115,8 @@ internal sealed class PushSubscriptionManagerWindow : Window
         _startMcs = startMcs;
         _stopMcs = stopMcs;
         _mcsState = mcsState;
+        _startGroupMcs = startGroupMcs;
+        _stopGroupMcs = stopGroupMcs;
         Title = "MailRu Desktop — Google и группы PushMe";
         Width = 900;
         Height = 780;
@@ -137,7 +150,8 @@ internal sealed class PushSubscriptionManagerWindow : Window
         _groups.SelectionChanged += (_, _) => UpdateControls();
         _googleRecipients.SelectionChanged += (_, _) => UpdateControls();
         content.Children.Add(_groups);
-        content.Children.Add(Buttons(_deleteGroupButton));
+        content.Children.Add(Buttons(_startGroupMcsButton,
+            _stopGroupMcsButton, _deleteGroupButton));
         content.Children.Add(Heading("Аккаунты и принадлежность к группам"));
         var accountScroll = new ScrollViewer
         {
@@ -183,6 +197,18 @@ internal sealed class PushSubscriptionManagerWindow : Window
                 "Подтвердить группу", MessageBoxButton.YesNo, MessageBoxImage.Question)
                 != MessageBoxResult.Yes) return;
             await ExecuteAsync(() => _registerBatch(chosen));
+        };
+        _startGroupMcsButton.Click += (_, _) =>
+        {
+            if (_groups.SelectedItem is GroupEntry group)
+                _startGroupMcs(group.Id);
+            UpdateView();
+        };
+        _stopGroupMcsButton.Click += (_, _) =>
+        {
+            if (_groups.SelectedItem is GroupEntry group)
+                _stopGroupMcs(group.Id);
+            UpdateView();
         };
         _deleteGroupButton.Click += async (_, _) =>
         {
@@ -252,11 +278,12 @@ internal sealed class PushSubscriptionManagerWindow : Window
     }
 
     private sealed record GroupEntry(string Id, int Position, int Count,
-        string State, string RecipientId)
+        string State, string RecipientId, bool ReceiveEnabled)
     {
         public override string ToString() =>
             "Группа №" + Position + " — " + Count +
-            " аккаунтов, Google " + RecipientId + " (" + (State switch
+            " аккаунтов, Google " + RecipientId +
+            (ReceiveEnabled ? ", MCS включён" : ", MCS остановлен") + " (" + (State switch
             {
                 "IMPORTED" => "состав восстановлен, доставка не проверена",
                 "RECHECK_REQUIRED" => "доставка после другой группы не проверена",
@@ -376,7 +403,8 @@ internal sealed class PushSubscriptionManagerWindow : Window
         {
             var group = registry.Groups[i];
             var display = new GroupEntry(group.Id, i + 1,
-                group.Accounts.Length, group.State, group.RecipientId);
+                group.Accounts.Length, group.State, group.RecipientId,
+                group.ReceiveEnabled ?? registry.ReceiveEnabled);
             _groups.Items.Add(display);
             if (group.Id == lastId) _groups.SelectedItem = display;
             foreach (var login in group.Accounts)
@@ -421,6 +449,9 @@ internal sealed class PushSubscriptionManagerWindow : Window
         _registerGroupButton.IsEnabled = !_busy && hasFreeGoogle &&
             count is > 0 and <= 30;
         _deleteGroupButton.IsEnabled = !_busy && _groups.SelectedItem is GroupEntry;
+        var chosen = _groups.SelectedItem as GroupEntry;
+        _startGroupMcsButton.IsEnabled = !_busy && chosen is { ReceiveEnabled: false };
+        _stopGroupMcsButton.IsEnabled = !_busy && chosen is { ReceiveEnabled: true };
         // The persisted receiving intent, not merely an instantaneous network
         // status, controls Start/Stop. A user must be able to press Stop even
         // while the worker reports ERROR and awaits its reconnect delay.
