@@ -66,3 +66,6 @@ Owner installs https://github.com/lvlaksim1/mailru-desktop/releases/download/v0.
 
 ## After user installs v0.3.44
 Update https://github.com/lvlaksim1/mailru-desktop/releases/download/v0.3.44/MailRuDesktop_Update_v0.3.44.exe . Settings -> Notifications -> Check 19 accounts; select exactly19, confirm and click Register, save sanitized TXT: PUSHME_HTTP_SEND count=19, SERVER_API_CODE and SERVER_REASON if any, PUSHME_ACCEPTED if successful, NEW_MAIL_EVENT if real mail arrives. If 499 remains, size <20 does not resolve format, compare old verified v0.3.35 single with shared. Preserve old single test and Windows popups.
+
+## После успешного испытания v0.3.44
+Признать реальную приёмку 19/19 и одного нового письма. Сохранить текущую группу и одиночный режим без изменений. При следующем обсуждении предложить осторожный отдельный тест ровно 20 либо чтение исходной группировки APK для выявления границы, но только по распоряжению пользователя; не инициировать массовые сетевые пробы самостоятельно. Если потребуется постоянный автоматический приём 19, согласовать режим запуска и очистки без изменения действующего протокола.
