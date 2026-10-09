@@ -404,6 +404,7 @@ public partial class MainWindow
         {
             if (_pushBackground is not null)
                 await _pushBackground.StopAsync();
+            await StopSupplementalGroupWorkersAsync();
         }
         finally
         {
