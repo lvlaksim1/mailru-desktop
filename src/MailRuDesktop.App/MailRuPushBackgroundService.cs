@@ -15,6 +15,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
     private readonly Queue<string> _recentOrder = new();
     private readonly Action<string, string> _onStatus;
     private readonly Action<string> _onNewMail;
+    private readonly Action<string> _onMcsState;
     private Dictionary<string, string> _accounts = new(StringComparer.OrdinalIgnoreCase);
     private CancellationTokenSource? _currentCancellation;
     private Task _tail = Task.CompletedTask;
@@ -24,12 +25,15 @@ internal sealed class MailRuPushBackgroundService : IDisposable
     private bool _stopping;
     private bool _retryOnFailure = true;
     private bool _preserveOtherAccounts;
+    private bool _listenOnly;
 
     internal MailRuPushBackgroundService(
-        Action<string, string> onStatus, Action<string> onNewMail)
+        Action<string, string> onStatus, Action<string> onNewMail,
+        Action<string>? onMcsState = null)
     {
         _onStatus = onStatus;
         _onNewMail = onNewMail;
+        _onMcsState = onMcsState ?? (_ => { });
     }
 
     internal bool Enabled
@@ -44,7 +48,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
 
     internal void Reconcile(IEnumerable<(string Login, string Token)> accounts, bool enabled,
         bool pauseForDiagnostics = false, bool retryOnFailure = true,
-        bool preserveOtherAccounts = false)
+        bool preserveOtherAccounts = false, bool listenOnly = false)
     {
         var desired = enabled
             ? accounts
@@ -62,12 +66,13 @@ internal sealed class MailRuPushBackgroundService : IDisposable
             if (_enabled == enabled && _paused == pauseForDiagnostics &&
                 _retryOnFailure == retryOnFailure &&
                 _preserveOtherAccounts == preserveOtherAccounts &&
+                _listenOnly == listenOnly &&
                 SameAccounts(_accounts, desired)) return;
 
             // Original SDK keeps the Firebase receiver when a mailbox is deleted.
             // Only remove these subscriptions; keep the active MCS channel, token,
             // and subscriptions of every retained mailbox untouched.
-            if (enabled && !pauseForDiagnostics && _enabled && !_paused &&
+            if (!listenOnly && enabled && !pauseForDiagnostics && _enabled && !_paused &&
                 CanRemoveWithoutReconnect(_accounts, desired))
             {
                 var removed = _accounts.Keys.Except(
@@ -84,6 +89,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
             _paused = pauseForDiagnostics;
             _retryOnFailure = retryOnFailure;
             _preserveOtherAccounts = preserveOtherAccounts;
+            _listenOnly = listenOnly;
             // Cancels the active MCS reader, NOT the persisted Google identity.
             PushDiagnostics.Record("SERVICE", "RECEIVER_RESTART_REQUIRED");
             _currentCancellation?.Cancel();
@@ -153,6 +159,24 @@ internal sealed class MailRuPushBackgroundService : IDisposable
         }
     }
 
+    /// <summary>
+    /// Close only the MCS TCP/TLS reader, keep Google device credentials,
+    /// PushMe registrations, pending unsubscribes and all group assignments.
+    /// Unlike Reconcile(enabled:false), this NEVER sends unsubscribe_by_token.
+    /// </summary>
+    internal void StopListeningOnly()
+    {
+        lock (_sync)
+        {
+            if (_stopping) return;
+            _enabled = false;
+            _accounts.Clear();
+            _currentCancellation?.Cancel();
+            PushDiagnostics.Record("SERVICE", "MCS_ONLY_STOP_REQUESTED");
+        }
+        _onMcsState("STOPPED");
+    }
+
     // Called only while holding _sync. A serial queue prevents overlapping
     // removal requests from clearing each other's persisted subscriber roster.
     private void QueueAccountRemoval(string[] removed)
@@ -209,6 +233,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
                 }
                 if (current.Count == 0) break;
                 var started = DateTimeOffset.UtcNow;
+                _onMcsState(attempt == 0 ? "CONNECTING" : "RECONNECTING");
                 PushDiagnostics.BeginAttempt(++attempt);
                 try
                 {
@@ -226,7 +251,9 @@ internal sealed class MailRuPushBackgroundService : IDisposable
                         },
                         AcceptMessage,
                         cancellationToken,
-                        preserveOtherAccounts: _preserveOtherAccounts);
+                        preserveOtherAccounts: _preserveOtherAccounts,
+                        listenOnly: _listenOnly,
+                        onMcsState: _onMcsState);
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
@@ -274,6 +301,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
                         _onStatus(account, "Google/PushMe: непредвиденная ошибка обработки.");
                 }
                 if (cancellationToken.IsCancellationRequested) break;
+                _onMcsState("ERROR");
                 bool retry;
                 lock (_sync) retry = _retryOnFailure;
                 if (!retry)
@@ -302,6 +330,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
         }
         finally
         {
+            _onMcsState("STOPPED");
             PushDiagnostics.Record("WORKER", "RECEIVER_STOPPED");
             foreach (var account in current.Keys)
                 _onStatus(account, "Получение уведомлений остановлено.");
