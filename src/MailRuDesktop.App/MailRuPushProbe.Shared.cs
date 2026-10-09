@@ -430,6 +430,7 @@ internal sealed partial class MailRuPushProbe
         var body = await response.Content.ReadAsStringAsync(cancellationToken);
         if (!ClassifyCleanup(body)) return false;
         store.Delete();
+        PushDiagnostics.Record("GOOGLE", "IDENTITY_REMOVED_ON_OPT_OUT");
         return true;
         }
         finally
