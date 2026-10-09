@@ -1,0 +1,53 @@
+name: Original APK public signing-certificate metadata
+on:
+  push:
+    branches: [research/mail-apk-15.107.0.148045]
+    paths: ['.github/workflows/apk-push-signature-metadata.yml']
+permissions:
+  contents: write
+jobs:
+  signing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/mail-apk-15.107.0.148045
+      - name: Verify original APK package and extract public certificate SHA1
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=research/apk-15.107.0.148045
+          cat "$R"/package/parts/Mail_ru_15.107.0.148045_APKs.zip.part-* > /tmp/mail-original.zip
+          echo '42c976a0c2f3d5fb186a88bc855f782c81c8ce35f952fcf22f99c64828880af6  /tmp/mail-original.zip' | sha256sum -c -
+          mkdir -p /tmp/mail-original
+          unzip -q /tmp/mail-original.zip -d /tmp/mail-original
+          APK=/tmp/mail-original/Mail-15.107.0.148045.apk
+          SIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)
+          "$SIGNER" verify --print-certs "$APK" >/tmp/cert-info.txt
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('/tmp/cert-info.txt').read_text()
+          m=re.search(r'certificate SHA-1 digest:\s*([0-9a-fA-F]{40})',s)
+          if not m: raise ValueError('SHA-1 public fingerprint not found')
+          value=m.group(1).lower()
+          Path('research/apk-15.107.0.148045/PUBLIC_APK_CERTIFICATE.md').write_text(
+              '# Public APK signing certificate SHA-1\n\n'
+              'Original Mail.ru Android 15.107.0.148045, original package SHA-256 checked.\n'
+              'This is a public **certificate fingerprint**, not a password, key or token.\n\n'
+              '- SHA-1: `'+value+'`\n',encoding='utf-8')
+          print('Extracted public APK signing-certificate fingerprint, no secrets')
+          PY
+      - name: Commit non-sensitive metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name mailru-apk-research
+          git config user.email actions@users.noreply.github.com
+          git add research/apk-15.107.0.148045/PUBLIC_APK_CERTIFICATE.md
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'research: retain verified public original APK certificate fingerprint'
+          sleep 5
+          git pull --rebase origin research/mail-apk-15.107.0.148045
+          git push origin HEAD:research/mail-apk-15.107.0.148045
