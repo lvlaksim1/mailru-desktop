@@ -16,10 +16,40 @@ public partial class MainWindow
     private bool _pushShuttingDown;
     private bool _pushShutdownComplete;
     private string? _pushWindowTitle;
+    private System.Windows.Forms.NotifyIcon? _pushNotificationArea;
+    private System.Drawing.Icon? _pushNotificationIcon;
 
     private void InitializeBackgroundPush()
     {
         _pushWindowTitle = Title;
+        try
+        {
+            _pushNotificationIcon = Environment.ProcessPath is { Length: > 0 } exe
+                ? System.Drawing.Icon.ExtractAssociatedIcon(exe)
+                : null;
+            _pushNotificationArea = new System.Windows.Forms.NotifyIcon
+            {
+                Icon = _pushNotificationIcon ?? System.Drawing.SystemIcons.Application,
+                Text = "MailRu Desktop — новые письма",
+                Visible = _settingsStore.LoadBackgroundPushEnabled()
+            };
+            _pushNotificationArea.DoubleClick += (_, _) =>
+            {
+                _ = Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    WindowState = WindowState.Normal;
+                    Show();
+                    Activate();
+                }));
+            };
+        }
+        catch
+        {
+            _pushNotificationArea?.Dispose();
+            _pushNotificationArea = null;
+            _pushNotificationIcon?.Dispose();
+            _pushNotificationIcon = null;
+        }
         _pushBackground = new MailRuPushBackgroundService(
             (login, state) =>
             {
@@ -63,6 +93,8 @@ public partial class MainWindow
             }
         }
         _pushBackground.Reconcile(accounts, enabled);
+        if (_pushNotificationArea is not null)
+            _pushNotificationArea.Visible = enabled;
         if (!enabled)
             BackgroundPushStatusText.Text =
                 _pushProbeWindow is { IsVisible: true }
@@ -124,6 +156,17 @@ public partial class MainWindow
         if (!Title.Contains("Новое письмо", StringComparison.Ordinal))
             Title = _pushWindowTitle + " • Новое письмо";
         BackgroundPushStatusText.Text = "Получено новое письмо. Обновление почтовых папок…";
+        try
+        {
+            _pushNotificationArea?.ShowBalloonTip(
+                5000, "MailRu Desktop — новое письмо",
+                "Новое письмо: " + login,
+                System.Windows.Forms.ToolTipIcon.Info);
+        }
+        catch
+        {
+            // Notification-area availability must not break mail refresh.
+        }
         _ = RefreshAfterPushAsync(login);
     }
 
@@ -173,6 +216,10 @@ public partial class MainWindow
         finally
         {
             _pushBackground?.Dispose();
+            _pushNotificationArea?.Dispose();
+            _pushNotificationArea = null;
+            _pushNotificationIcon?.Dispose();
+            _pushNotificationIcon = null;
             _pushShutdownComplete = true;
             Close();
         }
