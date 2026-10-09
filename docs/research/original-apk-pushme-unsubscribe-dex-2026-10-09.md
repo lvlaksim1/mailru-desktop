@@ -8,6 +8,185 @@
 Отсутствующие детали в самих инструкциях не следует додумывать.
 
 
+## Lcom/vk/commonid/CommonIdPrefs;::<init> (Landroid/content/Context;)V
+Source APK member: Mail-15.107.0.148045.apk; DEX: classes3.dex
+
+~~~smali-like
+00000: invoke-direct v0, Ljava/lang/Object;-><init>()V
+00006: iput-object v1, v0, Lcom/vk/commonid/CommonIdPrefs;->lpmidinommockvmoca Landroid/content/Context;
+0000a: return-void 
+~~~
+
+
+## Lcom/vk/commonid/CommonIdPrefs;::getCommonId (Z Ljava/lang/Long;)Lcom/vk/commonid/CommonId;
+Source APK member: Mail-15.107.0.148045.apk; DEX: classes3.dex
+
+~~~smali-like
+00000: invoke-virtual v2, Lcom/vk/commonid/CommonIdPrefs;->getLocalCommonId()Lcom/vk/commonid/CommonId;
+00006: move-result-object v0
+00008: invoke-virtual v0, Lcom/vk/commonid/CommonId;->getCommonId()Ljava/lang/String;
+0000e: move-result-object v1
+00010: invoke-interface v1, Ljava/lang/CharSequence;->length()I
+00016: move-result v1
+00018: if-nez v1, +003h
+0001c: goto +9h
+0001e: invoke-virtual v0, Lcom/vk/commonid/CommonId;->isValueDirty()Z
+00024: move-result v1
+00026: if-eqz v1, +039h
+0002a: if-eqz v3, +037h
+0002e: iget-object v3, v2, Lcom/vk/commonid/CommonIdPrefs;->lpmidinommockvmoca Landroid/content/Context;
+00032: if-eqz v3, +02ah
+00036: if-eqz v4, +012h
+0003a: new-instance v3, Lcom/vk/commonid/a;
+0003e: invoke-direct v3, v2, v4, Lcom/vk/commonid/a;-><init>(Lcom/vk/commonid/CommonIdPrefs; Ljava/lang/Long;)V
+00044: invoke-static v3, Lio/reactivex/rxjava3/core/Single;->fromCallable(Ljava/util/concurrent/Callable;)Lio/reactivex/rxjava3/core/Single;
+0004a: move-result-object v3
+0004c: invoke-virtual v3, Lio/reactivex/rxjava3/core/Single;->blockingGet()Ljava/lang/Object;
+00052: move-result-object v3
+00054: check-cast v3, Lcom/vk/commonid/CommonId;
+00058: goto +10h
+0005a: new-instance v3, Lcom/vk/commonid/b;
+0005e: invoke-direct v3, v2, Lcom/vk/commonid/b;-><init>(Lcom/vk/commonid/CommonIdPrefs;)V
+00064: invoke-static v3, Lio/reactivex/rxjava3/core/Single;->fromCallable(Ljava/util/concurrent/Callable;)Lio/reactivex/rxjava3/core/Single;
+0006a: move-result-object v3
+0006c: invoke-virtual v3, Lio/reactivex/rxjava3/core/Single;->blockingGet()Ljava/lang/Object;
+00072: move-result-object v3
+00074: check-cast v3, Lcom/vk/commonid/CommonId;
+00078: invoke-static v3, Lkotlin/jvm/internal/Intrinsics;->checkNotNull(Ljava/lang/Object;)V
+0007e: invoke-virtual v2, v3, Lcom/vk/commonid/CommonIdPrefs;->setCommonId(Lcom/vk/commonid/CommonId;)V
+00084: return-object v3
+00086: new-instance v3, Lcom/vk/commonid/CommonId;
+0008a: const/4 v4, 0
+0008c: const/4 v0, 3
+0008e: const/4 v1, 0
+00090: invoke-direct v3, v1, v4, v0, v1, Lcom/vk/commonid/CommonId;-><init>(Ljava/lang/String; Z I Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+00096: return-object v3
+00098: return-object v0
+~~~
+
+
+## Lcom/vk/commonid/CommonIdPrefs;::getLocalCommonId ()Lcom/vk/commonid/CommonId;
+Source APK member: Mail-15.107.0.148045.apk; DEX: classes3.dex
+
+~~~smali-like
+00000: iget-object v0, v6, Lcom/vk/commonid/CommonIdPrefs;->lpmidinommockvmoca Landroid/content/Context;
+00004: const/4 v1, 0
+00006: const/4 v2, 0
+00008: if-eqz v0, +01ch
+0000c: sget-object v3, Lcom/vk/core/preference/Preference;->INSTANCE Lcom/vk/core/preference/Preference;
+00010: invoke-virtual v3, v0, Lcom/vk/core/preference/Preference;->initIfNeeded(Landroid/content/Context;)V
+00016: const-string v0, "__common_id_value__"
+0001a: const-string v3, "__common_id_prefs__"
+0001e: const/4 v4, 4
+00020: invoke-static v3, v0, v2, v4, v2, Lcom/vk/core/preference/Preference;->getString$default(Ljava/lang/String; Ljava/lang/String; Ljava/lang/String; I Ljava/lang/Object;)Ljava/lang/String;
+00026: move-result-object v0
+00028: const-string v5, "__common_id_dirty__"
+0002c: invoke-static v3, v5, v1, v4, v2, Lcom/vk/core/preference/Preference;->getBoolean$default(Ljava/lang/String; Ljava/lang/String; Z I Ljava/lang/Object;)Z
+00032: move-result v1
+00034: new-instance v2, Lcom/vk/commonid/CommonId;
+00038: invoke-direct v2, v0, v1, Lcom/vk/commonid/CommonId;-><init>(Ljava/lang/String; Z)V
+0003e: return-object v2
+00040: new-instance v0, Lcom/vk/commonid/CommonId;
+00044: const/4 v3, 3
+00046: invoke-direct v0, v2, v1, v3, v2, Lcom/vk/commonid/CommonId;-><init>(Ljava/lang/String; Z I Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+0004c: return-object v0
+~~~
+
+
+## Lcom/vk/commonid/CommonIdPrefs;::setCommonId (Lcom/vk/commonid/CommonId;)V
+Source APK member: Mail-15.107.0.148045.apk; DEX: classes3.dex
+
+~~~smali-like
+00000: const-string v0, "commonId"
+00004: invoke-static v4, v0, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object; Ljava/lang/String;)V
+0000a: invoke-virtual v4, Lcom/vk/commonid/CommonId;->getCommonId()Ljava/lang/String;
+00010: move-result-object v0
+00012: const-string v1, "__common_id_value__"
+00016: const-string v2, "__common_id_prefs__"
+0001a: invoke-static v2, v1, v0, Lcom/vk/core/preference/Preference;->set(Ljava/lang/String; Ljava/lang/String; Ljava/lang/String;)V
+00020: invoke-virtual v4, Lcom/vk/commonid/CommonId;->isValueDirty()Z
+00026: move-result v4
+00028: const-string v0, "__common_id_dirty__"
+0002c: invoke-static v2, v0, v4, Lcom/vk/core/preference/Preference;->set(Ljava/lang/String; Ljava/lang/String; Z)V
+00032: return-void 
+~~~
+
+
+## Lcom/vk/commonid/CommonIdProvider$Companion;::<init> ()V
+Source APK member: Mail-15.107.0.148045.apk; DEX: classes3.dex
+
+~~~smali-like
+00000: invoke-direct v0, Ljava/lang/Object;-><init>()V
+00006: return-void 
+~~~
+
+## Lcom/vk/commonid/CommonIdProvider$Companion;::<init> (Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+Source APK member: Mail-15.107.0.148045.apk; DEX: classes3.dex
+
+~~~smali-like
+00000: invoke-direct v0, Lcom/vk/commonid/CommonIdProvider$Companion;-><init>()V
+00006: return-void 
+~~~
+
+
+## Lcom/vk/commonid/CommonIdProvider$Companion;::access$findDeviceIdByAndroidId (Lcom/vk/commonid/CommonIdProvider$Companion; Landroid/content/Context;)Ljava/lang/String;
+Source APK member: Mail-15.107.0.148045.apk; DEX: classes3.dex
+
+~~~smali-like
+00000: invoke-virtual v0, Ljava/lang/Object;->getClass()Ljava/lang/Class;
+00006: invoke-virtual v1, Landroid/content/Context;->getContentResolver()Landroid/content/ContentResolver;
+0000c: move-result-object v0
+0000e: const-string v1, "android_id"
+00012: invoke-static v0, v1, Landroid/provider/Settings$Secure;->getString(Landroid/content/ContentResolver; Ljava/lang/String;)Ljava/lang/String;
+00018: move-result-object v0
+0001a: return-object v0
+~~~
+
+
+## Lcom/vk/commonid/CommonIdProvider$Companion;::access$getCommonIdGenerated (Lcom/vk/commonid/CommonIdProvider$Companion;)Ljava/lang/String;
+Source APK member: Mail-15.107.0.148045.apk; DEX: classes3.dex
+
+~~~smali-like
+00000: invoke-virtual v2, Ljava/lang/Object;->getClass()Ljava/lang/Class;
+00006: new-instance v2, Ljava/lang/StringBuilder;
+0000a: invoke-direct v2, Ljava/lang/StringBuilder;-><init>()V
+00010: sget-object v0, Landroid/os/Build;->PRODUCT Ljava/lang/String;
+00014: invoke-virtual v2, v0, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+0001a: sget-object v1, Landroid/os/Build;->BOARD Ljava/lang/String;
+0001e: invoke-virtual v2, v1, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+00024: sget-object v1, Landroid/os/Build;->BOOTLOADER Ljava/lang/String;
+00028: invoke-virtual v2, v1, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+0002e: sget-object v1, Landroid/os/Build;->BRAND Ljava/lang/String;
+00032: invoke-virtual v2, v1, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+00038: sget-object v1, Landroid/os/Build;->DEVICE Ljava/lang/String;
+0003c: invoke-virtual v2, v1, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+00042: sget-object v1, Landroid/os/Build;->DISPLAY Ljava/lang/String;
+00046: invoke-virtual v2, v1, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+0004c: sget-object v1, Landroid/os/Build;->FINGERPRINT Ljava/lang/String;
+00050: invoke-virtual v2, v1, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+00056: sget-object v1, Landroid/os/Build;->HARDWARE Ljava/lang/String;
+0005a: invoke-virtual v2, v1, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+00060: sget-object v1, Landroid/os/Build;->HOST Ljava/lang/String;
+00064: invoke-virtual v2, v1, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+0006a: sget-object v1, Landroid/os/Build;->ID Ljava/lang/String;
+0006e: invoke-virtual v2, v1, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+00074: sget-object v1, Landroid/os/Build;->MANUFACTURER Ljava/lang/String;
+00078: invoke-virtual v2, v1, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+0007e: sget-object v1, Landroid/os/Build;->MODEL Ljava/lang/String;
+00082: invoke-virtual v2, v1, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+00088: invoke-virtual v2, v0, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+0008e: sget-object v0, Landroid/os/Build;->TAGS Ljava/lang/String;
+00092: invoke-virtual v2, v0, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+00098: invoke-virtual v2, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+0009e: move-result-object v2
+000a0: const-string v0, "toString(...)"
+000a4: invoke-static v2, v0, Lkotlin/jvm/internal/Intrinsics;->checkNotNullExpressionValue(Ljava/lang/Object; Ljava/lang/String;)V
+000aa: invoke-static v2, Lcom/vk/core/util/MD5;->convert(Ljava/lang/String;)Ljava/lang/String;
+000b0: move-result-object v2
+000b2: return-object v2
+~~~
+
+
 ## Lcom/vk/commonid/CommonIdProvider$Companion;::getCommonIdGenerated (Landroid/content/Context; Ljava/lang/Long;)Ljava/lang/String;
 Source APK member: Mail-15.107.0.148045.apk; DEX: classes3.dex
 
@@ -53,6 +232,82 @@ Source APK member: Mail-15.107.0.148045.apk; DEX: classes3.dex
 ~~~
 
 
+## Lcom/vk/commonid/CommonIdProvider;::<init> (Lcom/vk/commonid/CommonIdStorage; Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+Source APK member: Mail-15.107.0.148045.apk; DEX: classes3.dex
+
+~~~smali-like
+00000: invoke-direct v0, Ljava/lang/Object;-><init>()V
+00006: iput-object v1, v0, Lcom/vk/commonid/CommonIdProvider;->lpmidinommockvmoca Lcom/vk/commonid/CommonIdStorage;
+0000a: return-void 
+~~~
+
+
+## Lcom/vk/commonid/CommonIdProvider;::access$getCommonIdProvider$cp ()Lcom/vk/commonid/CommonIdProvider;
+Source APK member: Mail-15.107.0.148045.apk; DEX: classes3.dex
+
+~~~smali-like
+00000: sget-object v0, Lcom/vk/commonid/CommonIdProvider;->lpmidinommockvmocc Lcom/vk/commonid/CommonIdProvider;
+00004: return-object v0
+~~~
+
+
+## Lcom/vk/commonid/CommonIdProvider;::access$getLocalOrGenerateCommonId (Lcom/vk/commonid/CommonIdProvider; Landroid/content/Context; Z Ljava/lang/Long;)Ljava/lang/String;
+Source APK member: Mail-15.107.0.148045.apk; DEX: classes3.dex
+
+~~~smali-like
+00000: invoke-direct v0, v1, v2, v3, Lcom/vk/commonid/CommonIdProvider;->lpmidinommockvmoca(Landroid/content/Context; Z Ljava/lang/Long;)Ljava/lang/String;
+00006: move-result-object v0
+00008: return-object v0
+~~~
+
+
+## Lcom/vk/commonid/CommonIdProvider;::access$getNextCommonId$cp ()Lcom/vk/commonid/CommonId;
+Source APK member: Mail-15.107.0.148045.apk; DEX: classes3.dex
+
+~~~smali-like
+00000: sget-object v0, Lcom/vk/commonid/CommonIdProvider;->lpmidinommockvmocb Lcom/vk/commonid/CommonId;
+00004: return-object v0
+~~~
+
+
+## Lcom/vk/commonid/CommonIdProvider;::access$getOrGenerateCommonIdInternal (Lcom/vk/commonid/CommonIdProvider; Landroid/content/Context; Z Ljava/lang/Long;)Ljava/lang/String;
+Source APK member: Mail-15.107.0.148045.apk; DEX: classes3.dex
+
+~~~smali-like
+00000: invoke-virtual v1, Ljava/lang/Object;->getClass()Ljava/lang/Class;
+00006: sget-object v0, Lcom/vk/commonid/CommonIdProvider;->lpmidinommockvmocb Lcom/vk/commonid/CommonId;
+0000a: invoke-virtual v0, Lcom/vk/commonid/CommonId;->getCommonId()Ljava/lang/String;
+00010: move-result-object v0
+00012: invoke-virtual v0, Ljava/lang/String;->length()I
+00018: move-result v0
+0001a: if-lez v0, +009h
+0001e: sget-object v1, Lcom/vk/commonid/CommonIdProvider;->lpmidinommockvmocb Lcom/vk/commonid/CommonId;
+00022: invoke-virtual v1, Lcom/vk/commonid/CommonId;->getCommonId()Ljava/lang/String;
+00028: move-result-object v1
+0002a: return-object v1
+0002c: invoke-direct v1, v2, v3, v4, Lcom/vk/commonid/CommonIdProvider;->lpmidinommockvmoca(Landroid/content/Context; Z Ljava/lang/Long;)Ljava/lang/String;
+00032: move-result-object v1
+00034: return-object v1
+~~~
+
+
+## Lcom/vk/commonid/CommonIdProvider;::access$setCommonIdChangedListener$cp (Lkotlin/jvm/functions/Function0;)V
+Source APK member: Mail-15.107.0.148045.apk; DEX: classes3.dex
+
+~~~smali-like
+00000: return-void 
+~~~
+
+
+## Lcom/vk/commonid/CommonIdProvider;::access$setCommonIdProvider$cp (Lcom/vk/commonid/CommonIdProvider;)V
+Source APK member: Mail-15.107.0.148045.apk; DEX: classes3.dex
+
+~~~smali-like
+00000: sput-object v0, Lcom/vk/commonid/CommonIdProvider;->lpmidinommockvmocc Lcom/vk/commonid/CommonIdProvider;
+00004: return-void 
+~~~
+
+
 ## Lcom/vk/commonid/CommonIdProvider;::getCommonIdGenerated (Landroid/content/Context; Ljava/lang/Long;)Ljava/lang/String;
 Source APK member: Mail-15.107.0.148045.apk; DEX: classes3.dex
 
@@ -67,6 +322,15 @@ Source APK member: Mail-15.107.0.148045.apk; DEX: classes3.dex
 00016: move-exception v2
 00018: monitor-exit v0
 0001a: throw v2
+~~~
+
+
+## Lcom/vk/commonid/CommonIdProvider;::getCommonIdStorage ()Lcom/vk/commonid/CommonIdStorage;
+Source APK member: Mail-15.107.0.148045.apk; DEX: classes3.dex
+
+~~~smali-like
+00000: iget-object v0, v1, Lcom/vk/commonid/CommonIdProvider;->lpmidinommockvmoca Lcom/vk/commonid/CommonIdStorage;
+00004: return-object v0
 ~~~
 
 
