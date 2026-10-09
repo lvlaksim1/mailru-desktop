@@ -45,3 +45,6 @@
 
 ## 09.10.2026 — root cause still unknown, v0.3.39 report needed
 Владелец наблюдает 0/32 и циклические обрывы канала Google/PushMe, включая 45/90 с задержки повторных подключений. Сам скриншот не различает сбой до подписки PushMe, API-ответ сервера или сбой чтения MCS. v0.3.39 только добавляет технический журнал; успешный CI не доказывает исправления соединения. Для первопричины требуется безопасный TXT отчёт из новой панели пользователя. По требованиям владельца — не подбирать сетевые запросы, читать оригинальный APK и системные компоненты Google.
+
+## 09.10.2026 — PushMe application-level 499 unresolved
+No Google TCP/TLS/login defect in captured two attempts; both MCS logins succeeded. PushMe set_settings responds HTTP200 but JSON error.code499 for 32 mailboxes. Exact server reason not identifiable from code alone; native SDK reads error.message and classifies nonzero as ServerError. v0.3.40 can provide safe redacted SERVER_REASON but user report pending. Guessing 499=HTTP nginx499, 20-item max, expired OAuth or ban is unsupported. Avoid network experiments, password/token disclosure and unverified protocol modifications. Current Windows client still ties MCS lifecycle to subscription error (architectural mismatch with Play services); isolate in later source-backed fix.
