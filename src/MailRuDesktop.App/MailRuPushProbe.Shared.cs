@@ -72,6 +72,14 @@ internal sealed partial class MailRuPushProbe
             BuildSubscription(item.Key, item.Value, saved.RegistrationToken,
                 saved.DeviceId, deviceName)).ToArray();
         var json = JsonSerializer.Serialize(subscriptions);
+        // Persist the prospective account roster BEFORE the network write.
+        // If Windows exits after PushMe accepts the POST, the next startup
+        // still knows which accounts might be bound to this Google token.
+        store.Save(saved with
+        {
+            SubscribedAccounts = saved.SubscribedAccounts.Concat(accounts.Keys)
+                .Distinct(StringComparer.OrdinalIgnoreCase).ToArray()
+        });
         using (var request = new HttpRequestMessage(HttpMethod.Post, SubscribeUrl))
         {
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
