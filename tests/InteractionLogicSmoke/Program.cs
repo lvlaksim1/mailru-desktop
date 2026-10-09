@@ -9,6 +9,15 @@ static void Expect<T>(T actual, T expected, string label)
     Console.WriteLine("PASS " + label);
 }
 
+Expect(MailRuEndpointCatalog.IsRuntimeHostAllowed("push-me.mail.ru"), true,
+    "Original APK PushMe Prod host is registered for strict host policy");
+Expect(MailRuPushProbe.ClassifyNetworkError(
+    new HttpRequestException(HttpRequestError.SecureConnectionError, "SECRET_CERT_DETAIL")),
+    "ошибка проверки сертификата TLS", "TLS failure classified without leaking details");
+Expect(MailRuPushProbe.ClassifyNetworkError(
+    new HttpRequestException(HttpRequestError.NameResolutionError, "SECRET_DNS_DETAIL")),
+    "ошибка DNS: адрес сервера не найден", "DNS failure classified without leaking details");
+
 // Original Android-app push protocol: all tests are offline and use fake tokens.
 var pushRequest = MailRuPushProbe.BuildSubscription(
     "TEST@EXAMPLE.INVALID", "NOT_A_REAL_OAUTH", "NOT_A_REAL_GOOGLE_TOKEN",
