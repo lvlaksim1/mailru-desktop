@@ -48,8 +48,12 @@ internal static class Program
                 "Settings can actually be opened by its button");
 
             var backgroundSwitch = Require<CheckBox>(mail, "BackgroundPushEnabledCheckBox");
-            Check(backgroundSwitch.IsVisible,
-                "Persistent push opt-out is visible within Settings");
+            Check(backgroundSwitch.IsVisible && !backgroundSwitch.IsEnabled &&
+                  backgroundSwitch.IsChecked != true,
+                "single-account test release disables multi-account automatic subscription");
+            Check(Require<TextBlock>(mail, "BackgroundPushStatusText").Text
+                    .Contains("Проверочная версия", StringComparison.Ordinal),
+                "manual-only testing mode is clearly explained in Settings");
             Check(Require<CheckBox>(mail, "TaskbarNotificationsEnabledCheckBox").IsVisible,
                 "Windows popup notification setting is visible and independent");
             Check(Require<TextBlock>(mail, "BackgroundPushStatusText").IsVisible,
@@ -71,7 +75,9 @@ internal static class Program
             Check(pushLog.Text.Contains("Google / PushMe", StringComparison.Ordinal),
                 "diagnostic viewer refreshes without making network calls");
             var pushSettings = Require<Button>(mail, "OpenPushProbeButton");
-            Check(pushSettings.IsVisible, "Native push experiment is accessible in Settings");
+            Check(pushSettings.IsVisible &&
+                  pushSettings.Content?.ToString() == "Выбрать аккаунт для проверки",
+                "explicit single-account selection button is accessible in Settings");
             pushSettings.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent, pushSettings));
             mail.UpdateLayout();
             var pushWindow = Application.Current.Windows.OfType<Window>()
@@ -82,6 +88,14 @@ internal static class Program
                 b => b.Content?.ToString() == "Начать проверку");
             Check(runControl is not null && !runControl.IsEnabled,
                 "No push subscription can start without explicit consent");
+            var selectAccount = FindDescendant<ComboBox>(pushWindow!,
+                cb => cb.MinWidth >= 300 && cb.IsEnabled);
+            Check(selectAccount is not null,
+                "manual test displays account selector before registration");
+            var trayNotifyCheckbox = Require<CheckBox>(
+                mail, "TaskbarNotificationsEnabledCheckBox");
+            Check(trayNotifyCheckbox.IsEnabled,
+                "taskbar popup preference remains adjustable during manual-only test");
             pushWindow!.Close();
 
             var palette = FindDescendant<Expander>(mail,
