@@ -385,3 +385,18 @@ statement: В Android APK Mail.ru 15.107.0.148045 действуют GCM, HMS и
 source: выборочная полная декомпиляция APK, Actions 37870637190 PASS; исследовательский коммит 2ef598f7b58ec2e4371cdc4bbaa49484e958a4c3; docs/research/android-new-mail-notifications-2026-10-09.md.
 authority: verified-repository-static-apk; NOT live network validation or Windows feasibility.
 supersedes: предварительное предположение о неизвестной внутренней цепочке уведомлений в B-047/предыдущем исследовании.
+
+
+## B-049 — подтверждён альтернативный Google-канал на телефоне без RuStore/VK
+
+statement: Владелец сообщил о своевременных уведомлениях оригинальной Почты Mail на телефоне без установленных RuStore и VK. APK предоставляет GCM/FCM, HMS и VKPNS через PushFactoryCreatorKt; PushProcessor по event=4 собирает NewMailPush, поэтому RuStore/VK не обязательны. Наблюдение НЕ исключает системных служб Google Play/Huawei. Документация Google подтверждает зависимость FCM от Google Play services. Дополнительно выявлена сопровождаемая в 2026 году реализация независимого настольного приёмника Superhuman/push-receiver v2.1.7 (Firebase Installations, FCM Registrations, TLS mtalk.google.com:5228, подтверждения и устранение дублей), исправления от июня–июля 2026 подтверждают фактическую работу с изменёнными пакетами Google. Приём FCM токена сервером Mail.ru и событие на Windows НЕ проверены. Исследование docs/research/android-new-mail-notifications-2026-10-09.md.
+source: прямой отчёт владельца 2026-10-09; APK статический PushType, PushFactoryCreatorKt, PushProcessor; GitHub superhuman/push-receiver commit 87395486756f137b70c8a51d998dc6a6c57a5da6; официальное описание Firebase зависимости.
+authority: Owner report + verified repository source + public source for third-party candidate; no Windows live validation.
+supersedes: любые предположения, что RuStore/VK требуются обязательно; не превращать это в утверждение, что на телефоне нет Google/Huawei служб.
+
+
+## B-050 — оригинальный Google FCM канал подтвердился полной декомпиляцией
+
+statement: Успешный GitHub Actions 37872182332, коммит исследовательской ветки 7d5de6c41af591c0e4eaca30ee601bba4a2ea004, исходные 93 файла. SetUpPushComponent сначала выбирает GCM при доступности Google Play Services, иначе HMS при доступности Huawei, может добавить VKPNS. GCMAvailabilityChecker напрямую проверяет Google Play Services. GcmPushKitWrapper получает токен через FirebaseInfoProvider.getToken(push_sender_id). MailMessagingService наследуется от FirebaseMessagingService и на onMessageReceived передаёт данные в PushMeSdk и уведомитель, на onNewToken регистрирует обновление. SetUpPushMeSdk получает реальный ru.mail.oauth2.access на каждый почтовый аккаунт, PushMeSDKPusherTransport регистрирует эти аккаунты в серверном PushMe. Это статическое подтверждение механизма оригинального APK, но не доказательство совместимости независимого Windows FCM-токена с Mail.ru.
+source: исследовательская ветка APK 15.107.0.148045, GitHub Actions 37872182332 PASS; docs/research/android-new-mail-notifications-2026-10-09.md.
+authority: verified-source-static-APK, no Windows Mail.ru live verification.
