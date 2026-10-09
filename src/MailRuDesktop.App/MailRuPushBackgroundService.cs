@@ -19,6 +19,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
     private CancellationTokenSource? _currentCancellation;
     private Task _tail = Task.CompletedTask;
     private bool _enabled;
+    private bool _paused;
     private bool _stopping;
 
     internal MailRuPushBackgroundService(
@@ -38,7 +39,8 @@ internal sealed class MailRuPushBackgroundService : IDisposable
         get { lock (_sync) return _enabled && !_stopping ? _accounts.Count : 0; }
     }
 
-    internal void Reconcile(IEnumerable<(string Login, string Token)> accounts, bool enabled)
+    internal void Reconcile(IEnumerable<(string Login, string Token)> accounts, bool enabled,
+        bool pauseForDiagnostics = false)
     {
         var desired = enabled
             ? accounts
@@ -52,11 +54,13 @@ internal sealed class MailRuPushBackgroundService : IDisposable
         lock (_sync)
         {
             if (_stopping) return;
-            if (_enabled == enabled && SameAccounts(_accounts, desired)) return;
+            if (_enabled == enabled && _paused == pauseForDiagnostics &&
+                SameAccounts(_accounts, desired)) return;
 
             var previousAccounts = _accounts.Keys.ToArray();
             _accounts = desired;
             _enabled = enabled;
+            _paused = pauseForDiagnostics;
             // Cancels the active MCS reader, NOT the persisted Google identity.
             _currentCancellation?.Cancel();
             var current = new CancellationTokenSource();
@@ -73,6 +77,12 @@ internal sealed class MailRuPushBackgroundService : IDisposable
                     if (!current.IsCancellationRequested)
                         await RunSharedWorkerAsync(snapshot, current.Token);
                 });
+            }
+            else if (pauseForDiagnostics)
+            {
+                // Manual three-minute test pauses the shared reader only.
+                // Do NOT revoke its durable Google identity or server subscriptions.
+                _tail = Task.Run(async () => await AwaitQuietly(previous));
             }
             else
             {
