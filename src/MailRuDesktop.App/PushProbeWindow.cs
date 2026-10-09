@@ -84,7 +84,7 @@ internal sealed class PushProbeWindow : Window
             Text = "Технические состояния (без токенов и содержимого писем)",
             FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 16, 0, 8)
         });
-        _states.SetResourceReference(Control.BackgroundProperty, "AppControlBackgroundBrush");
+        _states.SetResourceReference(Control.BackgroundProperty, "AppPanelBrush");
         _states.SetResourceReference(Control.ForegroundProperty, "AppTextBrush");
         panel.Children.Add(_states);
 
