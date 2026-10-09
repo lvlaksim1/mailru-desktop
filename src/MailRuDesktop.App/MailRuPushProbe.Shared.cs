@@ -90,15 +90,19 @@ internal sealed partial class MailRuPushProbe
                 throw new HttpRequestException(
                     "PushMe subscription HTTP failure", null, response.StatusCode);
             var raw = await response.Content.ReadAsStringAsync(cancellationToken);
-            var accepted = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var login in accounts.Keys)
+            var registration = ParseSharedSubscriptionResponse(raw, accounts.Keys);
+            if (registration.Error is not null)
             {
-                var outcome = ClassifySubscription(raw, login);
-                onStatus(login, "Mail.ru: " + outcome);
-                if (outcome == "ACCOUNT_ACCEPTED") accepted.Add(login);
+                ReportAll("PushMe: " + registration.Error);
+                throw new InvalidOperationException("PushMe subscription failed");
             }
+            var accepted = registration.Accepted;
+            foreach (var login in accounts.Keys)
+                onStatus(login, accepted.Contains(login)
+                    ? "Mail.ru: ACCOUNT_ACCEPTED"
+                    : "Mail.ru: аккаунт отклонён (validate_result.is_valid=false).");
             if (accepted.Count == 0)
-                throw new InvalidOperationException("PushMe не подтвердил аккаунты.");
+                throw new InvalidOperationException("PushMe rejected all mailboxes.");
 
             // Keep earlier server-confirmed subscriptions (all still desired),
             // plus newly accepted ones. Removed accounts force rotation above.
@@ -159,6 +163,52 @@ internal sealed partial class MailRuPushProbe
                 onStatus(account, "MAILRU_NEW_MAIL_EVENT_RECEIVED=YES.");
                 onNewMail(account);
             }
+        }
+    }
+
+
+    // Direct reconstruction of original APK PushMeApiImpl
+    // parseSubscriptionResponseToResult(): code==0 and absent/empty
+    // validate_result means OK. Only explicit is_valid=false rejects a mailbox.
+    internal sealed record SharedSubscriptionOutcome(
+        HashSet<string> Accepted, string? Error);
+
+    internal static SharedSubscriptionOutcome ParseSharedSubscriptionResponse(
+        string response, IEnumerable<string> requested)
+    {
+        var accepted = new HashSet<string>(requested, StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            using var doc = JsonDocument.Parse(response);
+            var root = doc.RootElement;
+            if (!root.TryGetProperty("error", out var error) ||
+                !error.TryGetProperty("code", out var code) ||
+                !code.TryGetInt32(out var codeValue))
+                return new(accepted, "ответ сервера не соответствует PushMe SDK");
+            if (codeValue != 0)
+                return new(accepted, "ошибка сервера, код " + codeValue);
+            if (!root.TryGetProperty("validate_result", out var validation) ||
+                validation.ValueKind == JsonValueKind.Null)
+                return new(accepted, null);
+            if (validation.ValueKind != JsonValueKind.Array)
+                return new(accepted, "неверное поле validate_result");
+            foreach (var item in validation.EnumerateArray())
+            {
+                if (item.ValueKind != JsonValueKind.Object ||
+                    !item.TryGetProperty("account", out var login) ||
+                    login.ValueKind != JsonValueKind.String ||
+                    !item.TryGetProperty("is_valid", out var valid) ||
+                    (valid.ValueKind != JsonValueKind.True &&
+                     valid.ValueKind != JsonValueKind.False))
+                    return new(accepted, "неверный элемент validate_result");
+                if (valid.ValueKind == JsonValueKind.False)
+                    accepted.Remove(login.GetString() ?? "");
+            }
+            return new(accepted, null);
+        }
+        catch (JsonException)
+        {
+            return new(accepted, "неверный формат ответа PushMe SDK");
         }
     }
 
