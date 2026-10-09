@@ -24,12 +24,12 @@ internal sealed class Group19PushProbeWindow : Window
     };
     private readonly Button _start = new()
     {
-        Content = "Зарегистрировать 19 аккаунтов", Padding = new Thickness(12, 7)
+        Content = "Зарегистрировать 19 аккаунтов", Padding = new Thickness(12, 7, 12, 7)
     };
     private readonly Button _stop = new()
     {
         Content = "Остановить приём", IsEnabled = false,
-        Padding = new Thickness(12, 7), Margin = new Thickness(10, 0, 0, 0)
+        Padding = new Thickness(12, 7, 12, 7), Margin = new Thickness(10, 0, 0, 0)
     };
     private readonly CheckBox _confirmed = new()
     {
