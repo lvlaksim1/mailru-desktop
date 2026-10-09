@@ -11,6 +11,8 @@ public partial class MainWindow
     private readonly SemaphoreSlim _pushRefreshGate = new(1, 1);
     private readonly Dictionary<string, string> _pushStates =
         new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _pushConnectedAccounts =
+        new(StringComparer.OrdinalIgnoreCase);
     private bool _pushSettingsInitialized;
     private bool _pushBackgroundReady;
     private bool _pushShuttingDown;
@@ -96,10 +98,13 @@ public partial class MainWindow
         if (_pushNotificationArea is not null)
             _pushNotificationArea.Visible = enabled;
         if (!enabled)
+        {
+            _pushConnectedAccounts.Clear();
             BackgroundPushStatusText.Text =
                 _pushProbeWindow is { IsVisible: true }
                     ? "Автоматический приём временно остановлен для ручной проверки."
                     : "Автоматическое получение уведомлений выключено.";
+        }
         else if (accounts.Count == 0)
             BackgroundPushStatusText.Text = "Нет подключённых почтовых аккаунтов.";
         else
@@ -117,12 +122,16 @@ public partial class MainWindow
     {
         if (_pushShuttingDown || _pushBackground is null) return;
         _pushStates[login] = state;
+        if (state.Contains("Постоянный приём уведомлений включён",
+            StringComparison.OrdinalIgnoreCase))
+            _pushConnectedAccounts.Add(login);
+        else if (state.Contains("Соединение прервано", StringComparison.OrdinalIgnoreCase) ||
+                 state.Contains("Получение уведомлений остановлено", StringComparison.OrdinalIgnoreCase) ||
+                 state.Contains("Ошибка этапа", StringComparison.OrdinalIgnoreCase))
+            _pushConnectedAccounts.Remove(login);
         if (BackgroundPushEnabledCheckBox.IsChecked != true) return;
         var enabled = _pushBackground.ActiveAccountCount;
-        var connected = _pushStates
-            .Where(pair => pair.Value.Contains("Постоянный приём уведомлений включён",
-                StringComparison.OrdinalIgnoreCase))
-            .Count();
+        var connected = _pushConnectedAccounts.Count;
         BackgroundPushStatusText.Text =
             $"Подключено: {connected} из {enabled}. {state}";
     }
