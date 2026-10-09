@@ -37,3 +37,8 @@ Original APK FirebaseInstanceInfoProvider подтверждён Actions 3787479
 ## 2026-10-09 — внедрена в main нативная проверка уведомлений v0.3.33
 
 С учётом прямого требования владельца о тестировании в основном приложении интегрированы native .NET8 MailRuPushProbe.cs, PushProbeWindow.cs, MainWindow.PushProbe.cs и новая настройка в MainWindow.xaml; никаких сторонних exe, Python в установке, второго WebView2 или таймерного опроса почтовых папок. Только выбранный аккаунт и явное согласие; обособленный Google recipient, TLS MCS, одна PushMe V2 подписка, event4, попытка собственной отписки, обновление списка по событию. Версия проекта 0.3.33, исходная документация docs/research/native-push-integration-2026-10-09.md. Новые проверки tests/InteractionLogicSmoke и WindowsUiSmoke; сборка не завершена итоговым CI, выпуск не подтверждён. Генератор реестра интерфейса прошёл на GitHub Actions 37880300567, новый коммит 33bd848. Реальный серверный Mail.ru ACCOUNT_ACCEPTED/event4 не проверен — требуется опыт владельца после установки.
+
+
+## 09.10.2026 — штатный выпуск v0.3.33 доступен пользователю
+
+Main содержит native .NET PushMe + Google/MCS и WPF окно проверки в Настройках (без автозапуска). CI 37880498382 SUCCESS. Штатный релиз GitHub Actions 37880613099 SUCCESS, выпуск v0.3.33 опубликован 09.10.2026, два файла реально найдены: https://github.com/lvlaksim1/mailru-desktop/releases/download/v0.3.33/MailRuDesktop_Setup_v0.3.33.exe и https://github.com/lvlaksim1/mailru-desktop/releases/download/v0.3.33/MailRuDesktop_Update_v0.3.33.exe. Основной сценарий испытания теперь через интерфейс и OAuth из действующего AuthorizationStore; личные данные не выгружаются. Реальная серверная подписка Mail.ru и получение event4 пока не тестировались на компьютере пользователя.
