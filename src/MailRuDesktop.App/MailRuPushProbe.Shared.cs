@@ -28,13 +28,24 @@ internal sealed partial class MailRuPushProbe
         CancellationToken cancellationToken)
     {
         if (accounts.Count == 0) return;
+        var phase = "BEGIN";
+        void Phase(string next, int? value = null)
+        {
+            phase = next;
+            PushDiagnostics.Record("FLOW", next, value);
+        }
+        try
+        {
+        Phase("SESSION_START", accounts.Count);
         void ReportAll(string status)
         {
             foreach (var login in accounts.Keys) onStatus(login, status);
         }
 
+        Phase("IDENTITY_LOAD");
         var store = new SharedGooglePushIdentityStore();
         var saved = store.Load();
+        if (saved is not null) Phase("IDENTITY_REUSED");
         if (saved is not null)
         {
             foreach (var removed in SharedGooglePushIdentityStore.PendingAccountUnsubscriptions(
@@ -61,21 +72,28 @@ internal sealed partial class MailRuPushProbe
         }
         if (saved is null)
         {
+            Phase("IDENTITY_CREATE");
             ReportAll("Регистрация одного Google-получателя для всех аккаунтов.");
             var registered = await CreateGoogleIdentityAsync(ReportAll, cancellationToken);
             saved = new SharedGooglePushIdentityStore.State(
                 registered.DeviceId, registered.SecurityToken,
                 registered.RegistrationToken, Array.Empty<string>());
             store.Save(saved); // Persist before any server-side subscription.
+            Phase("IDENTITY_CREATED");
         }
 
+        Phase("MCS_TCP_CONNECT");
         await PaceNetworkRequestAsync(cancellationToken);
         using var socket = new TcpClient();
         await socket.ConnectAsync("mtalk.google.com", 5228, cancellationToken);
+        Phase("MCS_TCP_CONNECTED");
         using var stream = new SslStream(socket.GetStream(), false);
+        Phase("MCS_TLS_HANDSHAKE");
         await stream.AuthenticateAsClientAsync(
             new SslClientAuthenticationOptions { TargetHost = "mtalk.google.com" },
             cancellationToken);
+        Phase("MCS_TLS_OK");
+        Phase("MCS_LOGIN_SEND");
         await stream.WriteAsync(new byte[] { 41, 2 }, cancellationToken);
         await PushWire.WriteFrameAsync(
             stream, PushWire.LoginRequest(saved.DeviceId, saved.SecurityToken),
@@ -83,11 +101,18 @@ internal sealed partial class MailRuPushProbe
         var version = await PushWire.ReadByteAsync(stream, cancellationToken);
         var tag = await PushWire.ReadByteAsync(stream, cancellationToken);
         var reply = await PushWire.ReadFrameAsync(stream, cancellationToken);
+        PushDiagnostics.Record("MCS", "LOGIN_VERSION", version);
+        PushDiagnostics.Record("MCS", "LOGIN_TAG", tag);
         if ((version != 41 && version != 38) || tag != 3 ||
             !PushWire.HasField(reply, 1) || PushWire.HasField(reply, 3))
+        {
+            Phase("MCS_LOGIN_REJECTED");
             throw new InvalidOperationException("Google не подтвердил общий канал.");
+        }
+        Phase("MCS_LOGIN_OK");
         ReportAll("Google: один защищённый канал для всех аккаунтов (LOGIN_OK).");
 
+        Phase("PUSHME_BUILD_REQUEST", accounts.Count);
         var deviceName = "mailru-windows-" + saved.DeviceId.ToString("x");
         var subscriptions = accounts.Select(item =>
             BuildSubscription(item.Key, item.Value, saved.RegistrationToken,
@@ -109,25 +134,34 @@ internal sealed partial class MailRuPushProbe
         {
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
             request.Headers.TryAddWithoutValidation("User-Agent", AppUserAgent);
+            Phase("PUSHME_HTTP_SEND", accounts.Count);
             await PaceNetworkRequestAsync(cancellationToken);
             using var response = await _http.SendAsync(request, cancellationToken);
+            PushDiagnostics.Record("PUSHME", "HTTP_STATUS", (int)response.StatusCode);
             if (!response.IsSuccessStatusCode)
                 throw new HttpRequestException(
                     "PushMe subscription HTTP failure", null, response.StatusCode);
+            Phase("PUSHME_READ_RESPONSE");
             var raw = await response.Content.ReadAsStringAsync(cancellationToken);
             var registration = ParseSharedSubscriptionResponse(raw, accounts.Keys);
             if (registration.Error is not null)
             {
+                Phase("PUSHME_RESPONSE_REJECTED");
                 ReportAll("PushMe: " + registration.Error);
                 throw new InvalidOperationException("PushMe subscription failed");
             }
             accepted = registration.Accepted;
+            Phase("PUSHME_ACCEPTED", accepted.Count);
+            PushDiagnostics.Record("PUSHME", "REJECTED_COUNT", accounts.Count - accepted.Count);
             foreach (var login in accounts.Keys)
                 onStatus(login, accepted.Contains(login)
                     ? "Mail.ru: ACCOUNT_ACCEPTED"
                     : "Mail.ru: аккаунт отклонён (validate_result.is_valid=false).");
             if (accepted.Count == 0)
+            {
+                Phase("PUSHME_ZERO_ACCEPTED");
                 throw new InvalidOperationException("PushMe rejected all mailboxes.");
+            }
 
             // Original SDK NewSubscriptionRequest persists confirmed account
             // subscriptions only. The pre-POST roster is a crash-safety journal,
@@ -149,6 +183,7 @@ internal sealed partial class MailRuPushProbe
 
             // Even partial acceptance is useful; retry nonaccepted accounts on the
             // next reconnection. Never deliver mail for unaccepted accounts.
+            Phase("MCS_RECEIVE_STARTED");
             var heartbeatAwaiting = false;
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -167,7 +202,11 @@ internal sealed partial class MailRuPushProbe
                         when (!cancellationToken.IsCancellationRequested)
                     {
                         if (heartbeatAwaiting)
+                        {
+                            Phase("MCS_KEEPALIVE_TIMEOUT");
                             throw new IOException("MCS keepalive timed out");
+                        }
+                        PushDiagnostics.Record("MCS", "KEEPALIVE_SENT");
                         await stream.WriteAsync(new byte[] { 0, 0 }, cancellationToken);
                         heartbeatAwaiting = true;
                         continue;
@@ -176,11 +215,17 @@ internal sealed partial class MailRuPushProbe
                 heartbeatAwaiting = false;
                 if (messageTag == 0)
                 {
+                    PushDiagnostics.Record("MCS", "PING_FROM_SERVER");
                     await stream.WriteAsync(new byte[] { 1, 0 }, cancellationToken);
                     continue;
                 }
                 if (messageTag == 4)
+                {
+                    Phase("MCS_SERVER_CLOSE", messageTag);
                     throw new IOException("Google MCS closed the connection");
+                }
+                if (messageTag != 8)
+                    PushDiagnostics.Record("MCS", "OTHER_FRAME_TAG", messageTag);
                 if (messageTag != 8) continue;
 
                 var ack = PushWire.SelectiveAcknowledgment(data);
@@ -193,9 +238,21 @@ internal sealed partial class MailRuPushProbe
                 if (account is null || !accepted.Contains(account) ||
                     !shouldDeliver(account, data))
                     continue;
+                PushDiagnostics.Record("MCS", "NEW_MAIL_EVENT");
                 onStatus(account, "MAILRU_NEW_MAIL_EVENT_RECEIVED=YES.");
                 onNewMail(account);
             }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            PushDiagnostics.Record("FLOW", "USER_CANCELLED");
+            throw;
+        }
+        catch (Exception failure)
+        {
+            PushDiagnostics.Failure(phase, failure);
+            throw;
+        }
     }
 
 
@@ -217,6 +274,7 @@ internal sealed partial class MailRuPushProbe
                 !error.TryGetProperty("code", out var code) ||
                 !code.TryGetInt32(out var codeValue))
                 return new(accepted, "ответ сервера не соответствует PushMe SDK");
+            PushDiagnostics.Record("PUSHME", "SERVER_API_CODE", codeValue);
             if (codeValue != 0)
                 return new(accepted, "ошибка сервера, код " + codeValue);
             if (!root.TryGetProperty("validate_result", out var validation) ||
