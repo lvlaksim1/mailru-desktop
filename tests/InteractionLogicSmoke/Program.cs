@@ -37,12 +37,41 @@ using (var manager = new MailRuPushBackgroundService(
         "first delivery is accepted");
     Expect(manager.AcceptMessage("test@example.invalid", msgData), false,
         "same persistent message id is not processed twice");
+    var distinctMessage = PushWire.Append(
+        PushWire.TextField(5, "ru.mail.mailapp"),
+        PushWire.BytesField(7, PushWire.Append(
+            PushWire.TextField(1, "event"), PushWire.TextField(2, "4"))),
+        PushWire.TextField(9, "another-persistent-id"));
+    Expect(manager.AcceptMessage("test@example.invalid", distinctMessage), true,
+        "two different letters must be handled even within two seconds");
+    Expect(manager.AcceptMessage("test@example.invalid", distinctMessage), false,
+        "repeated second letter is not handled twice");
     Expect(manager.ActiveAccountCount, 0, "manager has no unsolicited account connections");
     manager.Reconcile(Array.Empty<(string Login, string Token)>(), enabled: false);
     Expect(manager.Enabled, false, "user opt-out cancels the receiving service");
     Expect(MailRuPushBackgroundService.RetryDelay(5),
         TimeSpan.FromMinutes(10), "reconnect has bounded ten-minute backoff");
 }
+var pushSettingsDirectory = System.IO.Path.Combine(
+    System.IO.Path.GetTempPath(), "MailRuPushSettings_" + Guid.NewGuid().ToString("N"));
+try
+{
+    var storedSettings = new AppSettingsStore(pushSettingsDirectory);
+    Expect(storedSettings.LoadBackgroundPushEnabled(), true,
+        "first start enables background push after feature approval");
+    storedSettings.SaveBackgroundPushEnabled(false);
+    Expect(new AppSettingsStore(pushSettingsDirectory).LoadBackgroundPushEnabled(),
+        false, "background push opt-out persists");
+    storedSettings.SaveBackgroundPushEnabled(true);
+    Expect(new AppSettingsStore(pushSettingsDirectory).LoadBackgroundPushEnabled(),
+        true, "background push can be enabled again");
+}
+finally
+{
+    if (System.IO.Directory.Exists(pushSettingsDirectory))
+        System.IO.Directory.Delete(pushSettingsDirectory, recursive: true);
+}
+
 using (var folder = new System.IO.MemoryStream())
 {
     var copy = PushWire.Varint(300);
