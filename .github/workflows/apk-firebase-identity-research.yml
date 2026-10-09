@@ -1,0 +1,83 @@
+name: APK Firebase identity and PushMe client research
+on:
+  push:
+    branches:
+      - research/mail-apk-15.107.0.148045
+    paths:
+      - '.github/workflows/apk-firebase-identity-research.yml'
+permissions:
+  contents: write
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/mail-apk-15.107.0.148045
+          fetch-depth: 1
+      - name: Recover original APK with verified hash
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=research/apk-15.107.0.148045
+          cat "$R"/package/parts/Mail_ru_15.107.0.148045_APKs.zip.part-* >/tmp/original.zip
+          echo '42c976a0c2f3d5fb186a88bc855f782c81c8ce35f952fcf22f99c64828880af6  /tmp/original.zip' | sha256sum -c -
+          mkdir /tmp/apk
+          unzip -q /tmp/original.zip -d /tmp/apk
+          test -f /tmp/apk/Mail-15.107.0.148045.apk
+      - name: Restore verified decompiler
+        shell: bash
+        run: |
+          set -euo pipefail
+          sleep 5
+          curl -fL --retry 2 --retry-delay 5 --connect-timeout 30 --max-time 600 'https://github.com/skylot/jadx/releases/download/v1.5.6/jadx-1.5.6.zip' -o /tmp/jadx.zip
+          echo '545ea2be9c242511bc145755cf4bda2485ade42966e096f8b4d3da2a230e8974  /tmp/jadx.zip' | sha256sum -c -
+          mkdir -p /tmp/jadx-bin
+          unzip -q /tmp/jadx.zip -d /tmp/jadx-bin
+          chmod +x /tmp/jadx-bin/bin/jadx
+      - name: Recover the FirebaseInfoProvider implementation and incomplete PushMe API
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=research/apk-15.107.0.148045
+          DEST="$R/firebase-identity-deep-dive"
+          mkdir -p "$DEST/sources"
+          /tmp/jadx-bin/bin/jadx -r --show-bad-code -j 4 -d /tmp/jadx-out /tmp/apk/Mail-15.107.0.148045.apk >/tmp/jadx-log.txt 2>&1 || true
+          SRC=/tmp/jadx-out/sources
+          test -d "$SRC/ru/mail/utils"
+          find "$SRC" -type f -name '*.java' | sed "s#^$SRC/##" | grep -E \
+            '(^ru/mail/.*Firebase(InfoProvider|AppInitializer)|^ru/mail/utils/.*Firebase|^com/vk/pushme/network/PushMeApiImpl\.java$|^ru/mail/util/push/gcm/GcmPushKitWrapper\.java$)' \
+            | sort -u > "$DEST/index.txt" || true
+          test -s "$DEST/index.txt"
+          count=0; bytes=0
+          while IFS= read -r rel; do
+            [ -f "$SRC/$rel" ] || continue
+            n=$(stat -c %s "$SRC/$rel")
+            if ((count>=40 || bytes+n > 1500000)); then continue; fi
+            mkdir -p "$DEST/sources/$(dirname "$rel")"
+            cp "$SRC/$rel" "$DEST/sources/$rel"
+            ((count+=1))
+            ((bytes+=n))
+          done < "$DEST/index.txt"
+          {
+            echo '# Original APK: Google FCM sender identity'
+            echo
+            echo 'APK 15.107.0.148045; verified original ZIP SHA-256; JADX 1.5.6 with --show-bad-code.'
+            echo "Saved $count Java classes; $bytes bytes (up to 40 files / 1.5 MB)."
+            echo 'This is static code evidence only, no Google/Mail.ru registrations or mail data.'
+            echo
+            echo '## Source paths'
+            cat "$DEST/index.txt"
+          } > "$DEST/README.md"
+      - name: Publish only bounded research code
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name mailru-apk-research
+          git config user.email actions@users.noreply.github.com
+          git add research/apk-15.107.0.148045/firebase-identity-deep-dive
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'research: retain original Firebase identity and PushMe API sources'
+          git pull --rebase origin research/mail-apk-15.107.0.148045
+          git push origin HEAD:research/mail-apk-15.107.0.148045
