@@ -981,6 +981,40 @@
                                         Click="OpenPushProbeButton_Click"/>
                             </StackPanel>
                         </GroupBox>
+                        <GroupBox Margin="0,16,0,0" Header="Диагностика Google и PushMe">
+                            <StackPanel Margin="12">
+                                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource AppMutedTextBrush}"
+                                           Text="История подключения и повторных попыток. Только этапы, коды ошибок и числовые показатели — без адресов, токенов и содержимого писем."/>
+                                <TextBox x:Name="PushDiagnosticsLogTextBox"
+                                         Margin="0,9,0,0"
+                                         Height="205"
+                                         MinWidth="420"
+                                         FontFamily="Consolas"
+                                         FontSize="11"
+                                         IsReadOnly="True"
+                                         IsUndoEnabled="False"
+                                         TextWrapping="NoWrap"
+                                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
+                                <WrapPanel Margin="0,10,0,0" Orientation="Horizontal">
+                                    <Button x:Name="RefreshPushDiagnosticsButton" Content="Обновить журнал"
+                                            Padding="11,6" Margin="0,0,8,6"
+                                            Click="RefreshPushDiagnosticsButton_Click"/>
+                                    <Button x:Name="CopyPushDiagnosticsButton" Content="Копировать отчёт"
+                                            Padding="11,6" Margin="0,0,8,6"
+                                            Click="CopyPushDiagnosticsButton_Click"/>
+                                    <Button x:Name="SavePushDiagnosticsButton" Content="Сохранить в TXT"
+                                            Padding="11,6" Margin="0,0,8,6"
+                                            Click="SavePushDiagnosticsButton_Click"/>
+                                    <Button x:Name="ClearPushDiagnosticsButton" Content="Очистить журнал"
+                                            Padding="11,6" Margin="0,0,8,6"
+                                            Click="ClearPushDiagnosticsButton_Click"/>
+                                </WrapPanel>
+                                <TextBlock x:Name="PushDiagnosticsActionStatusText"
+                                           Foreground="{DynamicResource AppMutedTextBrush}"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </GroupBox>
                         <GroupBox Margin="0,16,0,0" Header="Внешний вид">
                             <StackPanel Margin="12">
                                 <TextBlock Margin="0,0,0,6" Text="Тема"/>
