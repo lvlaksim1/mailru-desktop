@@ -29,3 +29,7 @@
 
 
 User should install v0.3.34 update (official https://github.com/lvlaksim1/mailru-desktop/releases/download/v0.3.34/MailRuDesktop_Update_v0.3.34.exe), open Settings → Notification test, select previously authorized account and start with consent; wait for explicit ACCOUNT_ACCEPTED before sending an experimental new letter. Ask only safe screenshot of technical statuses if failure, no OAuth/token/body. If HTTP200 without account acceptance investigate server response shape and exact original APK schema, if MCS event4 absent investigate registration semantics and server response. Avoid extra standalone EXEs and periodic mailbox polling.
+
+
+## Для следующего чата — вопросы пользователя
+Ответить по декомпилированному `PushProcessor.java`: значения `event` — 4, 40, 6, 10, 13, 20, 30, 101, 228, 229, 1002, 1003, 2002, 3000, 3001, 4001, 5000; каждый обработчик нужно описать точно по исходному методу. По `PushMeSDKPusherTransport.registerMailAppForPushes` Android формирует общий список аккаунтов и вызывает `registerAccounts` один раз; Google-токен относится к экземпляру приложения. В версии Windows 0.3.35 используется отдельный получатель на аккаунт. Разобрать достоинства и недостатки схем и согласовать дальнейшую разработку, без изменений до решения владельца.
