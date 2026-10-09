@@ -120,11 +120,11 @@ internal sealed partial class MailRuPushProbe
         var loginResponse = PushWire.ClassifyMcsLoginResponse(version, tag, reply);
         PushDiagnostics.Record("MCS", "LOGIN_ID_PRESENT", loginResponse.IdPresent ? 1 : 0);
         PushDiagnostics.Record("MCS", "LOGIN_ERROR_PRESENT", loginResponse.ErrorPresent ? 1 : 0);
-        if (login.ErrorCode is int errorCode)
+        if (loginResponse.ErrorCode is int errorCode)
             PushDiagnostics.Record("MCS", "LOGIN_ERROR_CODE", errorCode);
-        else if (login.ErrorPresent)
+        else if (loginResponse.ErrorPresent)
             PushDiagnostics.Record("MCS", "LOGIN_ERROR_CODE_MISSING");
-        if (!login.Accepted)
+        if (!loginResponse.Accepted)
         {
             Phase(loginResponse.ErrorCode is int code && code != 0
                 ? "MCS_SERVER_LOGIN_ERROR"
