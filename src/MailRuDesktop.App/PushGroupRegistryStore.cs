@@ -13,7 +13,7 @@ internal sealed class PushGroupRegistryStore
 {
     internal sealed record Group(
         string Id, string[] Accounts, DateTimeOffset ConfirmedUtc,
-        string State = "CONFIRMED");
+        string State = "CONFIRMED", string RecipientId = SharedGooglePushIdentityStore.PrimaryRecipientId);
     internal sealed record Registry(
         bool ReceiveEnabled, Group[] Groups, bool LegacyImported = false);
 
@@ -59,6 +59,7 @@ internal sealed class PushGroupRegistryStore
                 !uniqueIds.Add(group.Id) ||
                 group.Accounts is null || group.Accounts.Length == 0 ||
                 group.Accounts.Length > 50 ||
+                !SharedGooglePushIdentityStore.ValidRecipientId(group.RecipientId) ||
                 (group.State != "CONFIRMED" && group.State != "IMPORTED" &&
                  group.State != "RECHECK_REQUIRED" && group.State != "EVENT_SEEN"))
                 throw new InvalidDataException("Некорректная группа PushMe.");
@@ -78,8 +79,11 @@ internal sealed class PushGroupRegistryStore
 
     internal static Registry Register(
         Registry prior, string[] selected, IReadOnlyCollection<string> accepted,
-        string? groupId = null)
+        string? groupId = null,
+        string recipientId = SharedGooglePushIdentityStore.PrimaryRecipientId)
     {
+        if (!SharedGooglePushIdentityStore.ValidRecipientId(recipientId))
+            throw new ArgumentException("Invalid recipient slot.", nameof(recipientId));
         if (selected.Length == 0 ||
             selected.Distinct(StringComparer.OrdinalIgnoreCase).Count() != selected.Length)
             throw new ArgumentException("Некорректный состав группы.");
@@ -90,14 +94,15 @@ internal sealed class PushGroupRegistryStore
         var confirmed = selected.Where(a => accepted.Contains(a,
             StringComparer.OrdinalIgnoreCase)).ToArray();
         if (confirmed.Length == 0) return prior;
-        var group = new Group(groupId ?? Guid.NewGuid().ToString("N"), confirmed, DateTimeOffset.UtcNow);
+        var group = new Group(groupId ?? Guid.NewGuid().ToString("N"), confirmed,
+            DateTimeOffset.UtcNow, "CONFIRMED", recipientId);
         // A second batch may replace earlier server-side registrations;
         // until real events arrive for those groups, never present their
         // continuing delivery as verified.
         return prior with {
-            Groups = prior.Groups.Select(old => old with {
-                State = "RECHECK_REQUIRED"
-            }).Append(group).ToArray(),
+            Groups = prior.Groups.Select(old => old.RecipientId == recipientId
+                ? old with { State = "RECHECK_REQUIRED" } : old)
+                .Append(group).ToArray(),
             LegacyImported = true
         };
     }
