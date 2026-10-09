@@ -51,7 +51,9 @@ public static class MailRuEndpointCatalog
         new("messages.draft", "POST", "aj-https.mail.ru", "/api/v1/messages/draft", EndpointEvidence.VerifiedLocal, "Save draft"),
         new("oauth.refresh", "POST", "o2.mail.ru", "/token", EndpointEvidence.VerifiedLocal, "Refresh mailbox access token"),
         new("pushme.subscribe.experimental", "POST", "alt-push-me.mail.ru", "/api/v2/set_settings", EndpointEvidence.StaticOfficialClient, "Original APK PushMe subscription (user-invoked experiment)"),
-        new("pushme.unsubscribe.experimental", "POST", "alt-push-me.mail.ru", "/api/v2/unsubscribe_by_token", EndpointEvidence.StaticOfficialClient, "Cleanup of experiment-only recipient")
+        new("pushme.unsubscribe.experimental", "POST", "alt-push-me.mail.ru", "/api/v2/unsubscribe_by_token", EndpointEvidence.StaticOfficialClient, "Cleanup of experiment-only recipient"),
+        new("pushme.prod.subscribe.experimental", "POST", "push-me.mail.ru", "/api/v2/set_settings", EndpointEvidence.StaticOfficialClient, "Original APK PusherHost.Prod, TLS-verified in network trial"),
+        new("pushme.prod.unsubscribe.experimental", "POST", "push-me.mail.ru", "/api/v2/unsubscribe_by_token", EndpointEvidence.StaticOfficialClient, "Clean up only temporary PushMe Prod token")
     ];
 
     public static bool IsRuntimeHostAllowed(string host) =>
