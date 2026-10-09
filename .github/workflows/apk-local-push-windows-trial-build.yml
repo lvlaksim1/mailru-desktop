@@ -4,6 +4,8 @@ on:
     branches: [research/mail-apk-15.107.0.148045]
     paths:
       - '.github/workflows/apk-local-push-windows-trial-build.yml'
+      - 'tools/push_research/*.py'
+      - 'tools/push_research/*.cmd'
   workflow_dispatch:
 permissions:
   contents: read
