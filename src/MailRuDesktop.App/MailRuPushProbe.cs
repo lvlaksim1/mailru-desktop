@@ -18,7 +18,7 @@ namespace MailRuDesktop.App;
 /// Each run creates an independent Google recipient and subscribes one mailbox.
 /// No mail credentials, Google credentials or message payloads are persisted.
 /// </summary>
-internal sealed class MailRuPushProbe : IDisposable
+internal sealed partial class MailRuPushProbe : IDisposable
 {
     internal const string SenderId = "1098335887158";
     internal const string AndroidPackage = "ru.mail.mailapp";
@@ -352,7 +352,7 @@ internal sealed class MailRuPushProbe : IDisposable
         catch (JsonException) { return false; }
     }
 
-    private async Task<GoogleIdentity> CreateGoogleIdentityAsync(
+    internal async Task<GoogleIdentity> CreateGoogleIdentityAsync(
         Action<string> onState, CancellationToken ct)
     {
         var build = PushWire.Fields((1, 1UL));
@@ -406,7 +406,7 @@ internal sealed class MailRuPushProbe : IDisposable
 
     public void Dispose() => _http.Dispose();
 
-    private sealed record GoogleIdentity(ulong DeviceId, ulong SecurityToken, string RegistrationToken);
+    internal sealed record GoogleIdentity(ulong DeviceId, ulong SecurityToken, string RegistrationToken);
 }
 
 /// <summary>
