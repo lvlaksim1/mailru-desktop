@@ -52,10 +52,19 @@ internal sealed partial class MailRuPushProbe
     // Stage 2: independent PushMe registration without opening a new MCS socket,
     // registering a Google token, or affecting nonselected subscriptions.
     internal async Task<SharedSubscriptionOutcome> RegisterGroupAsync(
-        IReadOnlyDictionary<string, string> accounts, CancellationToken cancellationToken)
+        IReadOnlyDictionary<string, string> accounts, CancellationToken cancellationToken,
+        string? groupId = null)
     {
         if (accounts.Count == 0 || accounts.Count > 50)
             throw new ArgumentException("Выберите от 1 до 50 аккаунтов.");
+        var operationId = Guid.NewGuid().ToString("N")[..12];
+        var orderedAccounts = accounts.Keys.ToArray();
+        var groupTag = groupId ?? "NEW";
+        for (var i = 0; i < orderedAccounts.Length; i++)
+            PushDiagnostics.RecordAccount("PUSHME", "ACCOUNT_SUBSCRIBE_QUEUED",
+                orderedAccounts[i], groupTag, i + 1, orderedAccounts.Length, operationId);
+        try
+        {
         await SharedSubscriptionGate.WaitAsync(cancellationToken);
         try
         {
@@ -100,6 +109,10 @@ internal sealed partial class MailRuPushProbe
             {
                 store.Save(saved); // Explicitly rejected: no subscriptions accepted.
                 PushDiagnostics.Record("FLOW", "PUSHME_RESPONSE_REJECTED");
+                for (var i = 0; i < orderedAccounts.Length; i++)
+                    PushDiagnostics.RecordAccount("PUSHME", "ACCOUNT_SUBSCRIBE_REJECTED",
+                        orderedAccounts[i], groupTag, i + 1, orderedAccounts.Length,
+                        operationId);
                 return parsed;
             }
             var confirmed = saved.SubscribedAccounts.Concat(parsed.Accepted)
@@ -108,9 +121,25 @@ internal sealed partial class MailRuPushProbe
             PushDiagnostics.Record("FLOW", "PUSHME_ACCEPTED", parsed.Accepted.Count);
             PushDiagnostics.Record("PUSHME", "REJECTED_COUNT",
                 accounts.Count - parsed.Accepted.Count);
+            for (var i = 0; i < orderedAccounts.Length; i++)
+                PushDiagnostics.RecordAccount("PUSHME",
+                    parsed.Accepted.Contains(orderedAccounts[i])
+                        ? "ACCOUNT_SUBSCRIBE_ACCEPTED" : "ACCOUNT_SUBSCRIBE_REJECTED",
+                    orderedAccounts[i], groupTag, i + 1, orderedAccounts.Length,
+                    operationId);
             return parsed;
         }
         finally { SharedSubscriptionGate.Release(); }
+        }
+        catch (Exception error)
+        {
+            for (var i = 0; i < orderedAccounts.Length; i++)
+                PushDiagnostics.RecordAccount("PUSHME", "ACCOUNT_SUBSCRIBE_UNCONFIRMED",
+                    orderedAccounts[i], groupTag, i + 1, orderedAccounts.Length,
+                    operationId);
+            PushDiagnostics.Failure("GROUP_BATCH", error);
+            throw;
+        }
     }
 
 
@@ -398,6 +427,7 @@ internal sealed partial class MailRuPushProbe
                     !shouldDeliver(account, data))
                     continue;
                 PushDiagnostics.Record("MCS", "NEW_MAIL_EVENT");
+                PushDiagnostics.RecordAccount("MCS", "NEW_MAIL_EVENT", account);
                 onStatus(account, "MAILRU_NEW_MAIL_EVENT_RECEIVED=YES.");
                 onNewMail(account);
             }
@@ -500,8 +530,14 @@ internal sealed partial class MailRuPushProbe
     // IMPORTANT:  HTTP failure must NOT clear the pending account from DPAPI.
     // A next connection retries, while other accounts remain registered.
     internal async Task<bool> UnsubscribeAccountAsync(
-        string account, CancellationToken cancellationToken)
+        string account, CancellationToken cancellationToken,
+        string? groupId = null, int? index = null, int? total = null)
     {
+        var operationId = Guid.NewGuid().ToString("N")[..12];
+        PushDiagnostics.RecordAccount("PUSHME", "ACCOUNT_UNSUBSCRIBE_START",
+            account, groupId, index, total, operationId);
+        try
+        {
         await SharedSubscriptionGate.WaitAsync(cancellationToken);
         try
         {
@@ -509,7 +545,11 @@ internal sealed partial class MailRuPushProbe
             var saved = store.Load();
             if (saved is null ||
                 !saved.SubscribedAccounts.Contains(account, StringComparer.OrdinalIgnoreCase))
+            {
+                PushDiagnostics.RecordAccount("PUSHME", "ACCOUNT_UNSUBSCRIBE_NOT_TRACKED",
+                    account, groupId, index, total, operationId);
                 return true;
+            }
             using var request = new HttpRequestMessage(HttpMethod.Post, UnsubscribeAccountUrl);
             request.Headers.TryAddWithoutValidation("User-Agent", AppUserAgent);
             request.Content = new FormUrlEncodedContent(
@@ -520,20 +560,42 @@ internal sealed partial class MailRuPushProbe
                     "mailru-windows-" + saved.DeviceId.ToString("x")));
             await PaceNetworkRequestAsync(cancellationToken);
             using var response = await _http.SendAsync(request, cancellationToken);
-            if (!response.IsSuccessStatusCode) return false;
+            PushDiagnostics.RecordAccount("PUSHME", "ACCOUNT_UNSUBSCRIBE_HTTP",
+                account, groupId, index, total, operationId, (int)response.StatusCode);
+            if (!response.IsSuccessStatusCode)
+            {
+                PushDiagnostics.RecordAccount("PUSHME", "ACCOUNT_UNSUBSCRIBE_REJECTED",
+                    account, groupId, index, total, operationId);
+                return false;
+            }
             var raw = await response.Content.ReadAsStringAsync(cancellationToken);
-            if (!ClassifyCleanup(raw)) return false;
+            if (!ClassifyCleanup(raw))
+            {
+                PushDiagnostics.RecordAccount("PUSHME", "ACCOUNT_UNSUBSCRIBE_REJECTED",
+                    account, groupId, index, total, operationId);
+                return false;
+            }
             store.Save(saved with
             {
                 SubscribedAccounts = saved.SubscribedAccounts
                     .Where(a => !string.Equals(a, account, StringComparison.OrdinalIgnoreCase))
                     .ToArray()
             });
+            PushDiagnostics.RecordAccount("PUSHME", "ACCOUNT_UNSUBSCRIBE_OK",
+                account, groupId, index, total, operationId);
             return true;
         }
         finally
         {
             SharedSubscriptionGate.Release();
+        }
+        }
+        catch (Exception error)
+        {
+            PushDiagnostics.RecordAccount("PUSHME", "ACCOUNT_UNSUBSCRIBE_UNCONFIRMED",
+                account, groupId, index, total, operationId);
+            PushDiagnostics.Failure("ACCOUNT_UNSUBSCRIBE", error);
+            throw;
         }
     }
 
