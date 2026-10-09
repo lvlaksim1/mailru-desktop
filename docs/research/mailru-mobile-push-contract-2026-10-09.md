@@ -93,3 +93,9 @@ AndroidManifest.xml подтверждает зарегистрированну�
 Оригинальный APK, сохранённая ветка `research/mail-apk-15.107.0.148045`, контрольные результаты GitHub Actions №37870637190, №37872182332, №37874537322.
 
 Основной отчёт: `docs/research/android-new-mail-notifications-2026-10-09.md`. Для сравнения независимой доставки в Windows: `superhuman/push-receiver` v2.1.7, но не объявлять его автоматически совместимым с Mail.ru.
+
+## Дополнительная проверка — различие Android Firebase и самостоятельной настольной библиотеки
+
+Реализация `superhuman/push-receiver` действительно получает уведомления в обычном процессе через `mtalk.google.com:5228`. Однако её `src/register/index.js` сначала создаёт собственную регистрацию GCM с `app='org.chromium.linux'`, а `src/fcm/index.js` формирует **web**-регистрацию `fcmregistrations.googleapis.com` с полями `web.endpoint`, `web.p256dh`, `web.auth` и необязательным `vapidKey`. Официальный Mail.ru APK, напротив, использует `FirebaseMessagingService` и `FirebaseInfoProvider.getToken(push_sender_id)` для мобильной доставки.
+
+Поэтому Superhuman — **доказательство реальной технической возможности автономного приёма FCM на компьютере, а не готовый эквивалент Android-токена Mail.ru**. Google FCM токен, сформированный как веб-подписка и/или для иного отправителя, нельзя заранее считать пригодным для `platform=android` в PushMe. До получения исходников `FirebaseInfoProvider` и проверки независимого получателя не копировать эту регистрацию в клиент.
