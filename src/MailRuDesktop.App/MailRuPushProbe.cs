@@ -24,8 +24,8 @@ internal sealed class MailRuPushProbe : IDisposable
     internal const string PublicApkCertSha1 = "daa4e5d1b055cdce8cdf297e412238a3476e70cf";
     private const string GoogleCheckin = "https://android.clients.google.com/checkin";
     private const string GoogleRegister = "https://android.clients.google.com/c2dm/register3";
-    private const string SubscribeUrl = "https://alt-push-me.mail.ru/api/v2/set_settings";
-    private const string UnsubscribeUrl = "https://alt-push-me.mail.ru/api/v2/unsubscribe_by_token";
+    private const string SubscribeUrl = "https://push-me.mail.ru/api/v2/set_settings";
+    private const string UnsubscribeUrl = "https://push-me.mail.ru/api/v2/unsubscribe_by_token";
     private const string AppUserAgent = "mobmail android 11.13.0.29089 ru.mail.mailapp";
     private static readonly TimeSpan RequestPause = TimeSpan.FromSeconds(5);
     private readonly HttpClient _http = new() { Timeout = TimeSpan.FromSeconds(25) };
