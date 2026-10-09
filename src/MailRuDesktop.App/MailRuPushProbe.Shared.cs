@@ -102,7 +102,7 @@ internal sealed partial class MailRuPushProbe
 
             // Keep earlier server-confirmed subscriptions (all still desired),
             // plus newly accepted ones. Removed accounts force rotation above.
-            var associated = saved.SubscribedAccounts.Concat(accepted)
+            var associated = saved.SubscribedAccounts.Concat(accounts.Keys)
                 .Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
             store.Save(saved with { SubscribedAccounts = associated });
             foreach (var login in accepted)
