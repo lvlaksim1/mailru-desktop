@@ -47,6 +47,20 @@ internal static class Program
             Check(Require<Grid>(mail, "SettingsWorkspace").Visibility == Visibility.Visible,
                 "Settings can actually be opened by its button");
 
+            var pushSettings = Require<Button>(mail, "OpenPushProbeButton");
+            Check(pushSettings.IsVisible, "Native push experiment is accessible in Settings");
+            pushSettings.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent, pushSettings));
+            mail.UpdateLayout();
+            var pushWindow = Application.Current.Windows.OfType<Window>()
+                .FirstOrDefault(w => w.Title.Contains("Проверка мгновенных уведомлений", StringComparison.Ordinal));
+            Check(pushWindow is not null && pushWindow.IsVisible,
+                "Native push experiment opens a separate diagnostics window");
+            var runControl = FindDescendant<Button>(pushWindow!,
+                b => b.Content?.ToString() == "Начать проверку");
+            Check(runControl is not null && !runControl.IsEnabled,
+                "No push subscription can start without explicit consent");
+            pushWindow!.Close();
+
             var palette = FindDescendant<Expander>(mail,
                 e => string.Equals(e.Header?.ToString(),
                     "Цвета элементов интерфейса", StringComparison.Ordinal));
