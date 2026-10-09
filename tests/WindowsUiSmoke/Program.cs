@@ -50,6 +50,8 @@ internal static class Program
             var backgroundSwitch = Require<CheckBox>(mail, "BackgroundPushEnabledCheckBox");
             Check(backgroundSwitch.IsVisible,
                 "Persistent push opt-out is visible within Settings");
+            Check(Require<CheckBox>(mail, "TaskbarNotificationsEnabledCheckBox").IsVisible,
+                "Windows popup notification setting is visible and independent");
             Check(Require<TextBlock>(mail, "BackgroundPushStatusText").IsVisible,
                 "Persistent push per-account connection state is visible");
             var pushSettings = Require<Button>(mail, "OpenPushProbeButton");
@@ -154,6 +156,25 @@ internal static class Program
             colorPicker = null;
 
             VerifyPermanentBrowserShell(mail, reader);
+
+            var tray = typeof(MainWindow).GetField("_pushNotificationArea",
+                BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(mail)
+                as System.Windows.Forms.NotifyIcon;
+            Check(tray is not null && tray.Visible,
+                "tray icon remains visible independently of push subscription");
+            Check(tray.ContextMenuStrip?.Items.Count == 2 &&
+                  tray.ContextMenuStrip.Items[0].Text == "Развернуть" &&
+                  tray.ContextMenuStrip.Items[1].Text == "Выход",
+                "tray offers Restore and Exit");
+            mail.Close();
+            Check(!mail.IsVisible && !mail.ShowInTaskbar,
+                "window X hides application into tray without terminating it");
+            typeof(MainWindow).GetMethod("RestoreFromTray",
+                BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(mail, null);
+            Check(mail.IsVisible && mail.ShowInTaskbar,
+                "tray Restore makes application visible again");
+            typeof(MainWindow).GetMethod("ExitFromTray",
+                BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(mail, null);
 
             Console.WriteLine("Windows WPF UI interaction smoke: PASS");
             return 0;
