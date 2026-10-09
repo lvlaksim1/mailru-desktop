@@ -86,7 +86,10 @@ internal static class PushDiagnostics
     internal static string SafeServerReason(string? serverMessage)
     {
         if (string.IsNullOrWhiteSpace(serverMessage)) return "EMPTY";
-        var safe = Regex.Matches(serverMessage, @"\p{L}+")
+        var cleaned = Regex.Replace(serverMessage,
+            @"(?i)\b[\w.+%-]+@[\w.-]+\.[a-z]{2,}\b|https?://\S+|\b[A-Za-z0-9_-]{24,}\b",
+            " ");
+        var safe = Regex.Matches(cleaned, @"\p{L}+")
             .Select(m => m.Value.ToLowerInvariant())
             .Where(word => SafeServerTerms.Contains(word))
             .Select(word => word switch
@@ -112,7 +115,7 @@ internal static class PushDiagnostics
             .ToArray();
         if (safe.Length == 0) return "UNCLASSIFIED";
         var code = string.Join("_", safe);
-        return SafeCode(code.Length > 60 ? code[..60] : code);
+        return SafeCode(code.Length > 45 ? code[..45] : code);
     }
 
     internal static string FailureCategory(Exception failure)
