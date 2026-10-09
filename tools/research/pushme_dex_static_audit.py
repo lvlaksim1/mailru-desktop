@@ -39,6 +39,8 @@ wants = {
     "Lcom/vk/pushme/logic/SubscriptionBatcher;": {"batch"},
     "Lcom/vk/pushme/logic/usecase/SubscriptionUseCase;": {"invoke"},
     "Lru/mail/util/push/pusher/PushMeSDKPusherTransport;": {"unsubscribeAppByDeviceId"},
+    "Lcom/vk/commonid/CommonIdProvider;": {"getCommonIdGenerated", "getCommonId", "generate", "create"},
+    "Lcom/vk/commonid/CommonIdProvider$Companion;": {"getCommonIdGenerated", "getCommonIdGenerated$default", "getCommonId", "generate", "create"},
 }
 results: dict[str, list[str]] = {}
 scanned = 0
@@ -75,7 +77,7 @@ with zipfile.ZipFile(archive) as outer:
                         lines.extend(["~~~", ""])
                         key = clsname + "." + method.get_name()
                         results.setdefault(key, []).append("\n".join(lines))
-        if len(results) >= 7:
+        if len(results) >= 11:
             break
 
 required = [
