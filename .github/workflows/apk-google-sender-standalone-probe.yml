@@ -1,0 +1,55 @@
+name: Original APK Google sender one-shot experiment
+on:
+  push:
+    branches:
+      - research/mail-apk-15.107.0.148045
+    paths:
+      - '.github/workflows/apk-google-sender-standalone-probe.yml'
+permissions:
+  contents: write
+concurrency:
+  group: apk-google-sender-standalone-probe
+  cancel-in-progress: false
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/mail-apk-15.107.0.148045
+          fetch-depth: 1
+      - name: Verify original APK archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=research/apk-15.107.0.148045
+          cat "$R"/package/parts/Mail_ru_15.107.0.148045_APKs.zip.part-* > /tmp/apk-research-original.zip
+          echo '42c976a0c2f3d5fb186a88bc855f782c81c8ce35f952fcf22f99c64828880af6  /tmp/apk-research-original.zip' | sha256sum -c -
+          mkdir -p /tmp/apk-research-original
+          unzip -q /tmp/apk-research-original.zip -d /tmp/apk-research-original
+          test -s /tmp/apk-research-original/Mail-15.107.0.148045.apk
+      - name: Offline protocol parsing verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/push_research/google_sender_probe.py --self-test
+      - name: Controlled registration trial (one check-in and one register attempt)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/push_research/google_sender_probe.py \
+            --live --apk /tmp/apk-research-original/Mail-15.107.0.148045.apk \
+            --report research/apk-15.107.0.148045/GOOGLE_SENDER_REGISTRATION_TRIAL.md
+      - name: Preserve only non-secret status
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name mailru-apk-research
+          git config user.email actions@users.noreply.github.com
+          git add research/apk-15.107.0.148045/GOOGLE_SENDER_REGISTRATION_TRIAL.md
+          git diff --cached --quiet && exit 0
+          git commit -m 'research: record one-shot Google sender registration outcomes without tokens'
+          sleep 5
+          git pull --rebase origin research/mail-apk-15.107.0.148045
+          git push origin HEAD:research/mail-apk-15.107.0.148045
