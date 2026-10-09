@@ -290,6 +290,33 @@ using (var folder = new System.IO.MemoryStream())
     if (folder.Length < 2) throw new Exception("protobuf multi-byte varint not encoded");
 }
 
+// Offline regression against the EXACT v0.3.35 single-mailbox request profile
+// that previously obtained ACCOUNT_ACCEPTED and a real new-mail event.
+const string historicalTrialId = "mailru-windows-abcdef0123456789abcdef01";
+var historicalSingle = MailRuPushProbe.BuildVerifiedSingleAccountSubscription(
+    "SINGLE@EXAMPLE.INVALID", "FAKE_OAUTH", "FAKE_GOOGLE_TOKEN",
+    123456789UL, historicalTrialId);
+using (var oneRequest = System.Text.Json.JsonDocument.Parse(
+    System.Text.Json.JsonSerializer.Serialize(new[] { historicalSingle })))
+{
+    Expect(oneRequest.RootElement.GetArrayLength(), 1,
+        "manual verification sends exactly one selected account");
+    var message = oneRequest.RootElement[0];
+    Expect(message.GetProperty("account").GetString(), "single@example.invalid",
+        "single-account test selects only the explicitly requested mailbox");
+    Expect(message.GetProperty("token").GetString(), "FAKE_GOOGLE_TOKEN",
+        "single-account test binds its own temporary Google token");
+    Expect(message.GetProperty("android_id").GetString(), "123456789",
+        "v0.3.35 verified single-mailbox wire format uses decimal Google device ID");
+    Expect(message.GetProperty("sdk_device_id").GetString(), historicalTrialId,
+        "v0.3.35 trial device identifier is not silently changed to CommonId");
+    Expect(message.GetProperty("settings").GetProperty("device_id").GetString(),
+        historicalTrialId,
+        "v0.3.35 trial subscription device ID matches SDK device ID");
+    Expect(message.GetProperty("application").GetString(), "mail",
+        "manual test preserves original Mail.ru subscription application");
+}
+
 // Original Android-app push protocol: all tests are offline and use fake tokens.
 var pushRequest = MailRuPushProbe.BuildSubscription(
     "TEST@EXAMPLE.INVALID", "NOT_A_REAL_OAUTH", "NOT_A_REAL_GOOGLE_TOKEN",
