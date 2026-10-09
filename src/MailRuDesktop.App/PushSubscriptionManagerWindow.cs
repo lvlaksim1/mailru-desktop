@@ -13,16 +13,30 @@ internal sealed class PushSubscriptionManagerWindow : Window
 {
     private readonly string[] _authorized;
     private readonly Func<PushGroupRegistryStore.Registry> _readGroups;
-    private readonly Func<bool> _googlePresent;
+    private readonly Func<string[]> _googleIds;
     private readonly Func<Task<string>> _registerGoogle;
-    private readonly Func<Task<string>> _removeGoogle;
+    private readonly Func<string, Task<string>> _removeGoogle;
     private readonly Func<IReadOnlyList<string>, Task<string>> _registerBatch;
-    private readonly Func<string, Task<string>> _deleteGroup;
+    private readonly Func<string, Action<int, int, string, string>, Task<string>> _deleteGroup;
     private readonly Action _startMcs;
     private readonly Action _stopMcs;
     private readonly Func<string> _mcsState;
     private readonly List<(string Login, CheckBox Box)> _accountBoxes = [];
     private readonly TextBlock _googleStatus = new();
+    private readonly ComboBox _googleRecipients = new()
+    {
+        MinWidth = 340, Margin = new Thickness(0, 5, 0, 8)
+    };
+    private readonly ProgressBar _deleteProgress = new()
+    {
+        Minimum = 0, Maximum = 100, Height = 17,
+        Visibility = Visibility.Collapsed
+    };
+    private readonly TextBlock _deleteProgressText = new()
+    {
+        TextWrapping = TextWrapping.Wrap,
+        Visibility = Visibility.Collapsed
+    };
     private readonly TextBlock _mcsStatus = new();
     private readonly TextBlock _summary = new();
     private readonly TextBlock _selectionCount = new();
@@ -70,17 +84,17 @@ internal sealed class PushSubscriptionManagerWindow : Window
     internal PushSubscriptionManagerWindow(
         IEnumerable<string> authorized,
         Func<PushGroupRegistryStore.Registry> readGroups,
-        Func<bool> googlePresent,
+        Func<string[]> googleIds,
         Func<Task<string>> registerGoogle,
-        Func<Task<string>> removeGoogle,
+        Func<string, Task<string>> removeGoogle,
         Func<IReadOnlyList<string>, Task<string>> registerBatch,
-        Func<string, Task<string>> deleteGroup,
+        Func<string, Action<int, int, string, string>, Task<string>> deleteGroup,
         Action startMcs, Action stopMcs, Func<string> mcsState)
     {
         _authorized = authorized.Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(x => x, StringComparer.CurrentCultureIgnoreCase).ToArray();
         _readGroups = readGroups;
-        _googlePresent = googlePresent;
+        _googleIds = googleIds;
         _registerGoogle = registerGoogle;
         _removeGoogle = removeGoogle;
         _registerBatch = registerBatch;
@@ -99,10 +113,12 @@ internal sealed class PushSubscriptionManagerWindow : Window
         SetResourceReference(ForegroundProperty, "AppTextBrush");
 
         var content = new StackPanel { Margin = new Thickness(18) };
-        content.Children.Add(Heading("Этап 1. Сохранённый получатель Google"));
+        content.Children.Add(Heading("Этап 1. Независимые получатели Google"));
         content.Children.Add(_googleStatus);
-        content.Children.Add(Info("Идентификатор и два токена сохраняются защищённо. " +
-            "Повторное подключение MCS не создаёт новую регистрацию Google."));
+        content.Children.Add(_googleRecipients);
+        content.Children.Add(Info("Кнопка регистрации создаёт нового независимого получателя. " +
+            "Каждая группа использует отдельный свободный Google-токен; " +
+            "повторное подключение MCS не создаёт новую регистрацию."));
         content.Children.Add(Buttons(_registerGoogleButton, _deleteGoogleButton));
 
         content.Children.Add(Heading("Google MCS — состояние соединения"));
@@ -113,10 +129,11 @@ internal sealed class PushSubscriptionManagerWindow : Window
 
         content.Children.Add(Heading("Этап 2. Группы PushMe"));
         content.Children.Add(_summary);
-        content.Children.Add(Info("Выберите любое число свободных аккаунтов. " +
-            "Один запрос = одна группа, использующая прежний Google-токен. " +
-            "Аккаунты из других групп не изменяются."));
+        content.Children.Add(Info("Выберите не более 30 свободных аккаунтов. " +
+            "Один запрос = одна группа с отдельным свободным получателем Google. " +
+            "Другие группы и их Google-получатели не затрагиваются."));
         _groups.SelectionChanged += (_, _) => UpdateControls();
+        _googleRecipients.SelectionChanged += (_, _) => UpdateControls();
         content.Children.Add(_groups);
         content.Children.Add(Buttons(_deleteGroupButton));
         content.Children.Add(Heading("Аккаунты и принадлежность к группам"));
@@ -130,6 +147,8 @@ internal sealed class PushSubscriptionManagerWindow : Window
         content.Children.Add(_selectionCount);
         content.Children.Add(Buttons(_registerGroupButton));
         content.Children.Add(_actionStatus);
+        content.Children.Add(_deleteProgressText);
+        content.Children.Add(_deleteProgress);
         content.Children.Add(Heading("Журнал действий с аккаунтами"));
         content.Children.Add(Info(
             "Локальный подробный журнал: аккаунт, группа, номер операции, ответ. " +
@@ -148,7 +167,8 @@ internal sealed class PushSubscriptionManagerWindow : Window
                 "все группы PushMe. Это отдельное действие, не остановка приёма.",
                 "Удаление Google", MessageBoxButton.YesNo, MessageBoxImage.Warning)
                 != MessageBoxResult.Yes) return;
-            await ExecuteAsync(_removeGoogle);
+            if (_googleRecipients.SelectedItem is not RecipientEntry selected) return;
+            await ExecuteAsync(() => _removeGoogle(selected.Id));
         };
         _registerGroupButton.Click += async (_, _) =>
         {
@@ -171,7 +191,20 @@ internal sealed class PushSubscriptionManagerWindow : Window
                 "Отписка выполняется адресно и может занять несколько минут.",
                 "Удалить группу", MessageBoxButton.YesNo, MessageBoxImage.Warning)
                 != MessageBoxResult.Yes) return;
-            await ExecuteAsync(() => _deleteGroup(selected.Id));
+            _deleteProgress.Visibility = Visibility.Visible;
+            _deleteProgressText.Visibility = Visibility.Visible;
+            _deleteProgress.Value = 0;
+            _deleteProgressText.Text = "Удаление: 0 из " + selected.Count;
+            await ExecuteAsync(() => _deleteGroup(selected.Id, (done, total, login, result) =>
+            {
+                if (!Dispatcher.CheckAccess())
+                {
+                    _ = Dispatcher.BeginInvoke(new Action(() =>
+                        SetDeleteProgress(done, total, login, result)));
+                    return;
+                }
+                SetDeleteProgress(done, total, login, result);
+            }));
         };
         _startMcsButton.Click += (_, _) => { _startMcs(); UpdateView(); };
         _stopMcsButton.Click += (_, _) => { _stopMcs(); UpdateView(); };
@@ -179,6 +212,13 @@ internal sealed class PushSubscriptionManagerWindow : Window
         Closed += (_, _) => PushDiagnostics.Changed -= RefreshOperationTrace;
         RefreshOperationTrace();
         UpdateView();
+    }
+
+    private void SetDeleteProgress(int done, int total, string login, string result)
+    {
+        _deleteProgress.Value = total == 0 ? 0 : done * 100.0 / total;
+        _deleteProgressText.Text = "Обработано " + done + " из " + total +
+            (login.Length == 0 ? "" : " — " + login + ": " + result);
     }
 
     private void RefreshOperationTrace()
@@ -193,11 +233,19 @@ internal sealed class PushSubscriptionManagerWindow : Window
         _operationTrace.ScrollToEnd();
     }
 
-    private sealed record GroupEntry(string Id, int Position, int Count, string State)
+    private sealed record RecipientEntry(string Id, int Position, bool InUse)
+    {
+        public override string ToString() => "Google №" + Position +
+            (InUse ? " — занят" : " — свободен") +
+            (Id == SharedGooglePushIdentityStore.PrimaryRecipientId ? " (исходный)" : "");
+    }
+
+    private sealed record GroupEntry(string Id, int Position, int Count,
+        string State, string RecipientId)
     {
         public override string ToString() =>
             "Группа №" + Position + " — " + Count +
-            " аккаунтов (" + (State switch
+            " аккаунтов, Google " + RecipientId + " (" + (State switch
             {
                 "IMPORTED" => "состав восстановлен, доставка не проверена",
                 "RECHECK_REQUIRED" => "доставка после другой группы не проверена",
@@ -291,10 +339,23 @@ internal sealed class PushSubscriptionManagerWindow : Window
             _actionStatus.Text = "Не удалось прочитать реестр: " + ex.GetType().Name;
             return;
         }
-        var present = _googlePresent();
-        _googleStatus.Text = present
-            ? "Регистрация Google сохранена. Токены скрыты."
-            : "Регистрация Google отсутствует. Сначала выполните этап 1.";
+        var ids = _googleIds();
+        var previousId = (_googleRecipients.SelectedItem as RecipientEntry)?.Id;
+        _googleRecipients.Items.Clear();
+        var occupied = new HashSet<string>(registry.Groups.Select(g => g.RecipientId),
+            StringComparer.Ordinal);
+        for (var i = 0; i < ids.Length; i++)
+        {
+            var entry = new RecipientEntry(ids[i], i + 1, occupied.Contains(ids[i]));
+            _googleRecipients.Items.Add(entry);
+            if (entry.Id == previousId) _googleRecipients.SelectedItem = entry;
+        }
+        if (_googleRecipients.SelectedItem is null && ids.Length > 0)
+            _googleRecipients.SelectedIndex = 0;
+        _googleStatus.Text = ids.Length == 0
+            ? "Регистрация Google отсутствует. Сначала выполните этап 1."
+            : "Сохранено Google-регистраций: " + ids.Length +
+              ". Свободно: " + ids.Count(id => !occupied.Contains(id)) + ".";
         _mcsStatus.Text = "MCS: " + _mcsState();
 
         var lastId = (_groups.SelectedItem as GroupEntry)?.Id;
@@ -304,7 +365,7 @@ internal sealed class PushSubscriptionManagerWindow : Window
         {
             var group = registry.Groups[i];
             var display = new GroupEntry(group.Id, i + 1,
-                group.Accounts.Length, group.State);
+                group.Accounts.Length, group.State, group.RecipientId);
             _groups.Items.Add(display);
             if (group.Id == lastId) _groups.SelectedItem = display;
             foreach (var login in group.Accounts)
@@ -338,18 +399,22 @@ internal sealed class PushSubscriptionManagerWindow : Window
     {
         var count = _accountBoxes.Count(x => x.Box.IsChecked == true);
         _selectionCount.Text = "Выбрано для следующей группы: " + count +
-            ". Граница количества не установлена.";
-        var hasGoogle = _googlePresent();
-        _registerGoogleButton.IsEnabled = !_busy && !hasGoogle;
-        _deleteGoogleButton.IsEnabled = !_busy && hasGoogle &&
-            _readGroups().Groups.Length == 0;
-        _registerGroupButton.IsEnabled = !_busy && hasGoogle && count > 0;
+            " из 30 максимально допустимых.";
+        var groups = _readGroups().Groups;
+        var selectedGoogle = _googleRecipients.SelectedItem as RecipientEntry;
+        var hasFreeGoogle = _googleIds().Any(id =>
+            !groups.Any(g => g.RecipientId == id));
+        _registerGoogleButton.IsEnabled = !_busy;
+        _deleteGoogleButton.IsEnabled = !_busy && selectedGoogle is not null &&
+            !selectedGoogle.InUse;
+        _registerGroupButton.IsEnabled = !_busy && hasFreeGoogle &&
+            count is > 0 and <= 30;
         _deleteGroupButton.IsEnabled = !_busy && _groups.SelectedItem is GroupEntry;
         // The persisted receiving intent, not merely an instantaneous network
         // status, controls Start/Stop. A user must be able to press Stop even
         // while the worker reports ERROR and awaits its reconnect delay.
         var receiveEnabled = _readGroups().ReceiveEnabled;
-        _startMcsButton.IsEnabled = !_busy && hasGoogle &&
+        _startMcsButton.IsEnabled = !_busy && _googleIds().Length > 0 &&
             _readGroups().Groups.Length > 0 && !receiveEnabled;
         _stopMcsButton.IsEnabled = !_busy && receiveEnabled;
     }
