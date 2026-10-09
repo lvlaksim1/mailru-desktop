@@ -413,7 +413,7 @@ internal sealed partial class MailRuPushProbe : IDisposable
 /// Minimal bounded Google MCS/protobuf wire encoding and decoding. No dependencies
 /// on Android and no messages, credentials or personal information are logged.
 /// </summary>
-internal static class PushWire
+internal static partial class PushWire
 {
     internal static byte[] Fields(params (int Field, ulong Value)[] pairs) =>
         Append(pairs.Select(p => VarintField(p.Field, p.Value)).ToArray());
