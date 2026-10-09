@@ -1,0 +1,34 @@
+name: Verify public PushMe API POST response without account data
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/pushme-public-request-contract.yml]
+permissions:
+  contents: read
+jobs:
+  public-api:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Check verified TLS host and API path with empty, non-account request
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --silent --show-error --max-time 15 \
+            --header 'Content-Type: application/json' \
+            --data '[]' \
+            --output /dev/null --write-out 'PUSHME_PROD_POST_HTTP=%{http_code} TLS_VERIFY=%{ssl_verify_result}\n' \
+            https://push-me.mail.ru/api/v2/set_settings || true
+          sleep 5
+          python3 - <<'PY'
+          import socket,ssl
+          host='alt-push-me.mail.ru'
+          try:
+            with socket.create_connection((host,443),timeout=10) as raw:
+              with ssl.create_default_context().wrap_socket(raw,server_hostname=host) as sock:
+                print('ALT_TLS=VALID')
+          except ssl.SSLCertVerificationError as exc:
+            print('ALT_TLS=INVALID CODE='+str(exc.verify_code)+' WHY='+str(exc.verify_message)[:120])
+          except Exception as exc:
+            print('ALT_TLS='+type(exc).__name__)
+          PY
