@@ -8,13 +8,10 @@ namespace MailRuDesktop.App;
 
 public partial class MainWindow
 {
-    // Deliberate diagnostic release: never subscribe all saved accounts.
-    // Re-enable automatic multi-account delivery only in a subsequent
-    // source-verified release after the selected-account test is accepted.
-    private const bool SingleAccountManualTestRelease = true;
+    // Block the obsolete auto-register-all receiver. Only persisted,
+    // explicitly confirmed groups can be restored into MCS listen-only mode.
+    private const bool ManualGroupManagementRelease = true;
     private PushProbeWindow? _pushProbeWindow;
-    private Group19PushProbeWindow? _group19Window;
-    private bool _group19Running;
     private MailRuPushBackgroundService? _pushBackground;
     private readonly SemaphoreSlim _pushRefreshGate = new(1, 1);
     private readonly Dictionary<string, string> _pushStates =
@@ -79,17 +76,19 @@ public partial class MainWindow
             {
                 if (_pushShuttingDown || Dispatcher.HasShutdownStarted) return;
                 _ = Dispatcher.BeginInvoke(new Action(() => OnPushNewMail(login)));
-            });
+            },
+            SetGoogleMcsState);
         // Keep the user's previous preference in settings for future versions,
         // but NEVER enable the multi-account receiver in this test release.
-        BackgroundPushEnabledCheckBox.IsChecked = SingleAccountManualTestRelease
+        BackgroundPushEnabledCheckBox.IsChecked = ManualGroupManagementRelease
             ? false : _settingsStore.LoadBackgroundPushEnabled();
-        BackgroundPushEnabledCheckBox.IsEnabled = !SingleAccountManualTestRelease;
+        BackgroundPushEnabledCheckBox.IsEnabled = !ManualGroupManagementRelease;
         TaskbarNotificationsEnabledCheckBox.IsChecked =
             _settingsStore.LoadTaskbarNotificationsEnabled();
         _pushSettingsInitialized = true;
-        BackgroundPushStatusText.Text = SingleAccountManualTestRelease
-            ? "Проверочная версия: запуск только вручную — 1 или 19 аккаунтов."
+        BackgroundPushStatusText.Text = ManualGroupManagementRelease
+            ? "Автоматическая регистрация всех аккаунтов отключена. " +
+              "Получение через сохранённые группы управляется отдельно."
             : BackgroundPushEnabledCheckBox.IsChecked == true
                 ? "Ожидание загрузки сохранённых аккаунтов…"
                 : "Автоматическое получение уведомлений выключено.";
@@ -99,11 +98,12 @@ public partial class MainWindow
     private void StartBackgroundPush()
     {
         _pushBackgroundReady = true;
-        if (SingleAccountManualTestRelease)
+        if (ManualGroupManagementRelease)
         {
             // Do not call Reconcile(false): the normal opt-out path revokes
             // the common Google token, which this test MUST NOT touch.
-            PushDiagnostics.Record("SERVICE", "MANUAL_TESTS_ONE_OR_NINETEEN_ONLY");
+            PushDiagnostics.Record("SERVICE", "PERSISTENT_GROUPS_ONLY");
+            InitializePersistedPushGroups();
             return;
         }
         SyncBackgroundPush();
@@ -113,7 +113,7 @@ public partial class MainWindow
     {
         // Explicit kill-switch: no accidental connection or token-wide
         // unsubscribe for any of the 32 saved accounts.
-        if (SingleAccountManualTestRelease) return;
+        if (ManualGroupManagementRelease) return;
         if (!_pushBackgroundReady || _pushShuttingDown || _pushBackground is null)
             return;
         var userEnabled = BackgroundPushEnabledCheckBox.IsChecked == true;
@@ -178,7 +178,7 @@ public partial class MainWindow
 
     private void BackgroundPushEnabledCheckBox_Changed(object sender, RoutedEventArgs e)
     {
-        if (SingleAccountManualTestRelease ||
+        if (ManualGroupManagementRelease ||
             !_pushSettingsInitialized || _pushShuttingDown) return;
         var selected = BackgroundPushEnabledCheckBox.IsChecked == true;
         PushDiagnostics.Record("UI", selected ? "AUTO_NOTIFICATIONS_ENABLED" :
@@ -200,8 +200,8 @@ public partial class MainWindow
                  state.Contains("Аккаунт отклонён", StringComparison.OrdinalIgnoreCase) ||
                  state.Contains("Ошибка этапа", StringComparison.OrdinalIgnoreCase))
             _pushConnectedAccounts.Remove(login);
-        if (BackgroundPushEnabledCheckBox.IsChecked != true && !_group19Running) return;
-        _group19Window?.ReportStatus(state);
+        if (BackgroundPushEnabledCheckBox.IsChecked != true &&
+            !(_pushBackground.Enabled)) return;
         var enabled = _pushBackground.ActiveAccountCount;
         var connected = _pushConnectedAccounts.Count;
         var displayedState = state;
@@ -288,13 +288,6 @@ public partial class MainWindow
 
     private void OpenPushProbeButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_group19Running)
-        {
-            MessageBox.Show(this,
-                "Сначала остановите проверку 19 аккаунтов.",
-                "Проверка уведомлений", MessageBoxButton.OK, MessageBoxImage.Information);
-            return;
-        }
         if (_pushProbeWindow is { IsVisible: true })
         {
             _pushProbeWindow.Activate();
@@ -309,88 +302,12 @@ public partial class MainWindow
         window.Closed += (_, _) =>
         {
             _pushProbeWindow = null;
-            OpenGroup19ProbeButton.IsEnabled = true;
+            OpenPushGroupManagerButton.IsEnabled = true;
             SyncBackgroundPush();
         };
         window.Show();
-        OpenGroup19ProbeButton.IsEnabled = false;
+        OpenPushGroupManagerButton.IsEnabled = false;
         SyncBackgroundPush();
-    }
-
-    // Only the explicitly selected nineteen mailboxes are passed to the shared
-    // receiver. No implicit register-all and no token-wide unregister.
-    private bool StartGroup19(IReadOnlyList<string> selected)
-    {
-        if (_pushShuttingDown || !_pushBackgroundReady || _pushBackground is null ||
-            _group19Running || _pushProbeWindow is { IsVisible: true } ||
-            selected.Count != Group19PushProbeWindow.RequiredCount ||
-            selected.Distinct(StringComparer.OrdinalIgnoreCase).Count() !=
-                Group19PushProbeWindow.RequiredCount)
-            return false;
-        var accounts = new List<(string Login, string Token)>();
-        foreach (var login in selected)
-        {
-            if (!_authStore.TryRestore(login, out var auth) ||
-                string.IsNullOrWhiteSpace(auth?.AccessToken))
-                return false;
-            accounts.Add((login, auth.AccessToken));
-        }
-        if (accounts.Count != Group19PushProbeWindow.RequiredCount)
-            return false;
-        _group19Running = true;
-        OpenPushProbeButton.IsEnabled = false;
-        PushDiagnostics.Record("UI", "MANUAL_GROUP19_START", accounts.Count);
-        BackgroundPushStatusText.Text = "Проверка 19 аккаунтов: подключение…";
-        _pushBackground.Reconcile(accounts, enabled: true,
-            retryOnFailure: false, preserveOtherAccounts: true);
-        return true;
-    }
-
-    private void StopGroup19()
-    {
-        if (!_group19Running) return;
-        _group19Running = false;
-        OpenPushProbeButton.IsEnabled = true;
-        _pushConnectedAccounts.Clear();
-        PushDiagnostics.Record("UI", "MANUAL_GROUP19_STOP");
-        // enabled:true with zero desired addresses removes only the selected
-        // mailbox subscriptions, never revokes the shared Google token.
-        _pushBackground?.Reconcile(
-            Array.Empty<(string Login, string Token)>(), enabled: true,
-            retryOnFailure: false);
-        BackgroundPushStatusText.Text =
-            "Проверка 19 аккаунтов остановлена. Адресные подписки снимаются.";
-    }
-
-    private void OpenGroup19ProbeButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (_pushProbeWindow is { IsVisible: true })
-        {
-            MessageBox.Show(this,
-                "Сначала завершите одиночную проверку.",
-                "Проверка уведомлений", MessageBoxButton.OK, MessageBoxImage.Information);
-            return;
-        }
-        if (_group19Window is { IsVisible: true })
-        {
-            _group19Window.Activate();
-            return;
-        }
-        var available = _authStore.Logins
-            .Where(login => _authStore.TryRestore(login, out var auth) &&
-                !string.IsNullOrWhiteSpace(auth?.AccessToken))
-            .ToArray();
-        var window = new Group19PushProbeWindow(available, StartGroup19, StopGroup19)
-        {
-            Owner = this
-        };
-        _group19Window = window;
-        window.Closed += (_, _) =>
-        {
-            StopGroup19();
-            _group19Window = null;
-        };
-        window.Show();
     }
 
     private void OnPushNewMail(string login)
