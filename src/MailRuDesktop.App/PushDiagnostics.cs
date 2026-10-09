@@ -86,14 +86,33 @@ internal static class PushDiagnostics
     internal static string SafeServerReason(string? serverMessage)
     {
         if (string.IsNullOrWhiteSpace(serverMessage)) return "EMPTY";
-        var safe = Regex.Matches(serverMessage, @"[\\p{L}]+")
+        var safe = Regex.Matches(serverMessage, @"\p{L}+")
             .Select(m => m.Value.ToLowerInvariant())
             .Where(word => SafeServerTerms.Contains(word))
-            .Take(7)
+            .Select(word => word switch
+            {
+                "неверный" or "неверная" or "неверное" or "невалидный" or
+                    "недопустимый" => "INVALID",
+                "ошибка" => "ERROR",
+                "токен" => "TOKEN",
+                "доступ" => "ACCESS",
+                "истёк" or "истек" => "EXPIRED",
+                "авторизация" => "AUTHORIZATION",
+                "аккаунт" => "ACCOUNT",
+                "устройство" => "DEVICE",
+                "клиент" => "CLIENT",
+                "приложение" => "APPLICATION",
+                "лимит" => "LIMIT",
+                "превышен" => "EXCEEDED",
+                "параметр" => "PARAMETER",
+                "отказано" or "отклонён" or "отклонен" => "REJECTED",
+                _ => word.ToUpperInvariant()
+            })
+            .Take(6)
             .ToArray();
         if (safe.Length == 0) return "UNCLASSIFIED";
-        var code = string.Join("_", safe).ToUpperInvariant();
-        return SafeCode(code);
+        var code = string.Join("_", safe);
+        return SafeCode(code.Length > 60 ? code[..60] : code);
     }
 
     internal static string FailureCategory(Exception failure)
