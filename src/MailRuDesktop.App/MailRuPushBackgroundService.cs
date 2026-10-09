@@ -18,6 +18,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
     private Dictionary<string, string> _accounts = new(StringComparer.OrdinalIgnoreCase);
     private CancellationTokenSource? _currentCancellation;
     private Task _tail = Task.CompletedTask;
+    private Task _removalTail = Task.CompletedTask;
     private bool _enabled;
     private bool _paused;
     private bool _stopping;
@@ -57,6 +58,21 @@ internal sealed class MailRuPushBackgroundService : IDisposable
             if (_enabled == enabled && _paused == pauseForDiagnostics &&
                 SameAccounts(_accounts, desired)) return;
 
+            // Original SDK keeps the Firebase receiver when a mailbox is deleted.
+            // Only remove these subscriptions; keep the active MCS channel, token,
+            // and subscriptions of every retained mailbox untouched.
+            if (enabled && !pauseForDiagnostics && _enabled && !_paused &&
+                desired.Count > 0 && desired.Count < _accounts.Count &&
+                desired.All(pair => _accounts.TryGetValue(pair.Key, out var token) &&
+                                   string.Equals(token, pair.Value, StringComparison.Ordinal)))
+            {
+                var removed = _accounts.Keys.Except(
+                    desired.Keys, StringComparer.OrdinalIgnoreCase).ToArray();
+                _accounts = desired;
+                QueueAccountRemoval(removed);
+                return;
+            }
+
             var previousAccounts = _accounts.Keys.ToArray();
             _accounts = desired;
             _enabled = enabled;
@@ -76,6 +92,18 @@ internal sealed class MailRuPushBackgroundService : IDisposable
                     await AwaitQuietly(previous);
                     if (!current.IsCancellationRequested)
                         await RunSharedWorkerAsync(snapshot, current.Token);
+                });
+            }
+            else if (enabled && desired.Count == 0)
+            {
+                // Removing the last mailbox is not a global Google opt-out.
+                // Keep the Google identity, unregister just that mailbox.
+                var pending = previousAccounts;
+                _tail = Task.Run(async () =>
+                {
+                    await AwaitQuietly(previous);
+                    QueueAccountRemoval(pending);
+                    await AwaitQuietly(_removalTail);
                 });
             }
             else if (pauseForDiagnostics)
@@ -110,6 +138,36 @@ internal sealed class MailRuPushBackgroundService : IDisposable
                 });
             }
         }
+    }
+
+    // Called only while holding _sync. A serial queue prevents overlapping
+    // removal requests from clearing each other's persisted subscriber roster.
+    private void QueueAccountRemoval(string[] removed)
+    {
+        if (removed.Length == 0) return;
+        var preceding = _removalTail;
+        _removalTail = Task.Run(async () =>
+        {
+            await AwaitQuietly(preceding);
+            using var probe = new MailRuPushProbe();
+            foreach (var account in removed)
+            {
+                try
+                {
+                    using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(35));
+                    var removedFromServer = await probe.UnsubscribeAccountAsync(
+                        account, timeout.Token);
+                    _onStatus(account, removedFromServer
+                        ? "PushMe: адресная подписка удалена."
+                        : "PushMe: адресная отписка ожидает повторной попытки.");
+                }
+                catch (Exception)
+                {
+                    _onStatus(account, "PushMe: адресная отписка ожидает повторной попытки.");
+                    // DPAPI roster remains unchanged; next connection retries.
+                }
+            }
+        });
     }
 
     private async Task RunSharedWorkerAsync(
@@ -223,6 +281,9 @@ internal sealed class MailRuPushBackgroundService : IDisposable
         var id = login.ToLowerInvariant() + ":" + PushWire.MessageIdentifier(data);
         lock (_sync)
         {
+            // Drop events for removed mailboxes even before server unsubscribe
+            // has completed. Never apply an old MCS event to another account.
+            if (!_enabled || !_accounts.ContainsKey(login) || _stopping) return false;
             if (_recentMessages.Contains(id)) return false;
             _recentMessages.Add(id);
             _recentOrder.Enqueue(id);
@@ -243,7 +304,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
             _stopping = true;
             _enabled = false;
             _currentCancellation?.Cancel();
-            pending = _tail;
+            pending = Task.WhenAll(_tail, _removalTail);
             _accounts.Clear();
         }
         try { await pending.WaitAsync(TimeSpan.FromSeconds(90)); }
