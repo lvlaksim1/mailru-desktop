@@ -189,6 +189,14 @@ using (var manager = new MailRuPushBackgroundService(
         store.Save(original);
         Expect(store.Load()!.RegistrationToken, original.RegistrationToken,
             "shared Google identity survives app restart");
+        Expect(store.Load()!.PushMeCommonId, null,
+            "legacy DPAPI Google registration remains readable for safe CommonId migration");
+        var migrated = original with { PushMeCommonId = generatedCommonId };
+        store.Save(migrated);
+        Expect(store.Load()!.PushMeCommonId, generatedCommonId,
+            "independent PushMe CommonId persists across app restart without changing Google token");
+        Expect(store.Load()!.RegistrationToken, original.RegistrationToken,
+            "migrating PushMe device ID does not rotate the working Google token");
         var protectedContent = File.ReadAllText(
             Path.Combine(secretRoot, "google-push-receiver.dat"));
         Expect(protectedContent.Contains(original.RegistrationToken, StringComparison.Ordinal),
