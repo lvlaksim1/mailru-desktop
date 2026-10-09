@@ -70,6 +70,11 @@ internal static class Program
                      })
                 Check(Require<Button>(mail, name).IsVisible,
                     "push diagnostics action exists: " + name);
+            var exportMode = Require<ComboBox>(
+                mail, "PushDiagnosticsExportModeComboBox");
+            Check(exportMode.IsVisible && exportMode.Items.Count == 2 &&
+                  exportMode.SelectedIndex == 0,
+                "diagnostic report defaults to anonymized, with explicit full-address option");
             var refreshPushLog = Require<Button>(mail, "RefreshPushDiagnosticsButton");
             refreshPushLog.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent, refreshPushLog));
             Check(pushLog.Text.Contains("Google / PushMe", StringComparison.Ordinal),
