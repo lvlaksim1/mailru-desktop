@@ -47,3 +47,7 @@ Main содержит native .NET PushMe + Google/MCS и WPF окно прове
 ## 2026-10-09 — in-app Mail.ru network failure diagnosed, official Prod repair shipped v0.3.34
 
 User's v0.3.33 in-app test: Google check-in OK, TOKEN_ISSUED, MCS LOGIN_OK, network failure at Mail.ru subscription; cleanup not confirmed. Independent public endpoint diagnostics Actions 37881120525/37881273739: AltProd alt-push-me.mail.ru certificate chain error 20, Prod push-me.mail.ru valid TLS and POST /api/v2/set_settings with empty [] returns HTTP200. Original APK PusherHost.Prod explicitly defines Prod. Main changed subscription and cleanup host to Prod without bypassing certificates, added sanitized error classifications. CI 37881506882 SUCCESS, release 37881628473 SUCCESS, download https://github.com/lvlaksim1/mailru-desktop/releases/tag/v0.3.34. No actual Mail.ru ACCOUNT_ACCEPTED or delivered event4 proved yet. User already received update links.
+
+
+## 09.10.2026 — передача в новый чат
+Текущая версия MailRu Desktop: v0.3.35. Полный установщик и обновление опубликованы в GitHub Releases. Первое реальное уведомление о новом письме доставлено и подтверждено пользователем; длительная работа нескольких аккаунтов ещё не проверена. Следующий разговор продолжить с вопросов о кодах событий и организации общего получения уведомлений мобильным приложением. Не изменять продукт только ради переноса контекста.
