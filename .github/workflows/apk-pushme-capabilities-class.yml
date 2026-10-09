@@ -1,0 +1,77 @@
+name: Extract exact original Mail capabilities producer
+on:
+  push:
+    branches: [research/mail-apk-15.107.0.148045]
+    paths: ['.github/workflows/apk-pushme-capabilities-class.yml']
+permissions:
+  contents: write
+jobs:
+  exact-capabilities:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/mail-apk-15.107.0.148045
+          fetch-depth: 1
+      - name: Restore SHA-256 verified APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          R=research/apk-15.107.0.148045
+          cat "$R"/package/parts/Mail_ru_15.107.0.148045_APKs.zip.part-* > /tmp/mail-orig.zip
+          echo '42c976a0c2f3d5fb186a88bc855f782c81c8ce35f952fcf22f99c64828880af6  /tmp/mail-orig.zip' | sha256sum -c -
+          mkdir -p /tmp/mail-orig
+          unzip -q /tmp/mail-orig.zip -d /tmp/mail-orig
+      - name: Retrieve pinned JADX
+        shell: bash
+        run: |
+          set -euo pipefail
+          sleep 5
+          curl -fL --retry 2 --retry-delay 5 --connect-timeout 30 --max-time 600 'https://github.com/skylot/jadx/releases/download/v1.5.6/jadx-1.5.6.zip' -o /tmp/jadx.zip
+          echo '545ea2be9c242511bc145755cf4bda2485ade42966e096f8b4d3da2a230e8974  /tmp/jadx.zip' | sha256sum -c -
+          mkdir -p /tmp/jadx
+          unzip -q /tmp/jadx.zip -d /tmp/jadx
+          chmod +x /tmp/jadx/bin/jadx
+          /tmp/jadx/bin/jadx --help | grep -q -- '--single-class'
+      - name: Decompile exact mail capabilities producer
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT=research/apk-15.107.0.148045/pushme-capabilities-exact
+          mkdir -p "$OUT"
+          APK=/tmp/mail-orig/Mail-15.107.0.148045.apk
+          for CLASS in \
+            ru.mail.util.push.provider.impl.MailCapabilitiesProvider \
+            ru.mail.util.analytics.Distributors
+          do
+            sleep 5
+            /tmp/jadx/bin/jadx -r --show-bad-code --single-class "$CLASS" -j 4 -d /tmp/jadx-single "$APK" > /tmp/jadx-single.log 2>&1 || true
+            PATH_CLASS="$(printf '%s' "$CLASS" | tr . /)"
+            if [ -s "/tmp/jadx-single/sources/$PATH_CLASS.java" ]; then
+              mkdir -p "$OUT/sources/$(dirname "$PATH_CLASS")"
+              cp "/tmp/jadx-single/sources/$PATH_CLASS.java" "$OUT/sources/$PATH_CLASS.java"
+            fi
+          done
+          test -s "$OUT/sources/ru/mail/util/push/provider/impl/MailCapabilitiesProvider.java"
+          {
+            echo '# Exact original APK Mail capabilities producer'
+            echo
+            echo 'APK 15.107.0.148045, ZIP SHA-256 verified; JADX 1.5.6 selected classes.'
+            echo 'No mailbox data or OAuth tokens were used.'
+            echo
+            echo '## Java source classes'
+            find "$OUT/sources" -type f | sort
+          } > "$OUT/README.md"
+      - name: Publish exact targeted classes only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name mailru-apk-research
+          git config user.email actions@users.noreply.github.com
+          git add research/apk-15.107.0.148045/pushme-capabilities-exact
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'research: retain verified original mail push capability implementation'
+          sleep 5
+          git pull --rebase origin research/mail-apk-15.107.0.148045
+          git push origin HEAD:research/mail-apk-15.107.0.148045
