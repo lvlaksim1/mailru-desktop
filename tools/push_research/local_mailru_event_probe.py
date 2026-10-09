@@ -261,6 +261,7 @@ def mcs_receive(sock: ssl.SSLSocket, seconds: int) -> bool:
             continue
         except (OSError, ValueError):
             print("mcs_connection_closed_or_invalid_frame")
+            print("MAILRU_NEW_MAIL_EVENT_RECEIVED=NO")
             return False
         if tag == 0:  # HeartbeatPing -> HeartbeatAck
             ping_count += 1
@@ -268,6 +269,7 @@ def mcs_receive(sock: ssl.SSLSocket, seconds: int) -> bool:
             continue
         if tag == 4:
             print("mcs_server_closed_stream")
+            print("MAILRU_NEW_MAIL_EVENT_RECEIVED=NO")
             return False
         if tag == 8:
             data_events += 1
@@ -332,7 +334,8 @@ def run(live: bool, subscribe: bool, login: str | None, seconds: int) -> None:
                 raise SystemExit("No explicit validated account subscription; stopping")
             print("Send a test message to your own selected mailbox on another device.")
             print("No message subject/sender/body will be printed or persisted.")
-            mcs_receive(session, seconds)
+            if not mcs_receive(session, seconds):
+                raise SystemExit("No verified new-mail event delivered during the trial")
         finally:
             # Always release precisely this trial token even on timeouts and
             # interrupted delivery checks. The real phone has another token.
