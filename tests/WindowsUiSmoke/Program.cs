@@ -52,8 +52,8 @@ internal static class Program
                   backgroundSwitch.IsChecked != true,
                 "single-account test release disables multi-account automatic subscription");
             Check(Require<TextBlock>(mail, "BackgroundPushStatusText").Text
-                    .Contains("Проверочная версия", StringComparison.Ordinal),
-                "manual-only testing mode is clearly explained in Settings");
+                    .Contains("Автоматическая регистрация", StringComparison.Ordinal),
+                "automatic all-accounts registration remains disabled");
             Check(Require<CheckBox>(mail, "TaskbarNotificationsEnabledCheckBox").IsVisible,
                 "Windows popup notification setting is visible and independent");
             Check(Require<TextBlock>(mail, "BackgroundPushStatusText").IsVisible,
