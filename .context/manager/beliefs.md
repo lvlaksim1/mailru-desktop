@@ -369,3 +369,11 @@ statement: На новом непрерывном видео пользоват�
 source: Owner frame/video + explicit direction, PR #102, main CI 37865347046, MainWindow.ReaderPresentation.cs, ReaderShellScripts.cs, WindowsUiSmoke.
 authority: Owner reproduction v0.3.31 + source/CI for v0.3.32; user runtime acceptance pending.
 supersedes: B-045 for latest reader architecture; v0.3.31 Stop/Hidden and WPF overlay are retired.
+
+
+## B-047 — владелец подтвердил решение задач 1–3 в v0.3.32
+
+statement: 2026-10-09 владелец прямо подтвердил, что мерцание писем, некорректные встроенные изображения и задержки отображения устранены. Это подтверждение владельца на его установленном приложении, не независимый замер менеджера. Не изменять принятую схему одного WebView2 без нового дефекта.
+source: прямое сообщение владельца в чате 2026-10-09: «задачи 1-3 решены».
+authority: owner-runtime-report.
+supersedes: B-046 в части ожидания пользовательской приёмки задач 1–3.

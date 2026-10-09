@@ -28,3 +28,12 @@ Current Owner-gated release (2026-10-09): v0.3.32. Mail body no longer blocks on
 Current user-gated release: v0.3.32 staged reader (PR #100, Windows CI passed); K-001.mp4 shows old v0.3.30 image-driven flicker. Real correction unconfirmed until Owner re-test. Issue #77 blocked.
 
 New product branch (2026-10-09): v0.3.32 / PR #102, one WebView2 persistent browser-shell DOM staging (zero per-letter top-level navigation, no WPF overlay/Visibility flip), branch and main CI passed, Owner visual acceptance pending. Issue #77 Send Now blocked.
+
+
+## 2026-10-09 — входящие уведомления оригинального APK и закрытие v0.3.32
+
+Владелец сообщил о решении задач 1–3 (мерцание, встроенные изображения, скорость); считать их закрытыми на основании сообщения владельца, не повторять исправление без нового дефекта.
+
+В сохранённом декомпилированном коде Android 15.107.0.148045 `PushMeParamsPreparerImpl` формирует подписку для каждого провайдера с отдельным токеном доставки, данными учётной записи, OAuth/cookie, настройками и устройством; выявлены значения платформ `android`, `huawei`, `vkpns`. APK содержит `push_default_host=alt-push-me.mail.ru`. Это доказывает наличие механизма регистрации уведомлений, но НЕ доказывает конкретный приёмник событий, задержку, поведение при восстановлении сети или возможность прямого подключения Windows. Техническая заметка: `docs/research/android-new-mail-notifications-2026-10-09.md`.
+
+Наш Windows-клиент в `MainWindow.FolderCounters.cs` проверяет счётчики активного аккаунта раз в 90 с. Проверка числа непрочитанных сама по себе не распознаёт новое письмо и не является уведомлением Windows.

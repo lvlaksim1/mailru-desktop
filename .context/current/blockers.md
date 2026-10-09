@@ -1,8 +1,8 @@
-# Open issues — MailRu Desktop v0.3.32 (2026-10-09)
+# Открытые ограничения — MailRu Desktop, 2026-10-09
 
-1. **User-side visual acceptance of reader flicker is pending.** Earlier continuous video showed Magnet receipt and technical-support content visually overlapping during fast switches. v0.3.32 now uses one continuously visible WebView2, one permanent top-level browser document and a browser-native loading layer; WPF overlay, Stop and per-letter NavigateToString removed. Live WindowsUiSmoke with two synthetic HTML letters passed, but Owner's original clip is not yet retested. Camera exposure may also combine adjacent monitor frames, so do not assert exact pixel cause without user-side comparison.
-2. **Fidelity of private HTML emails.** Embedded images afNN.mail.ru still require user's authenticated context. The staged document uses sandboxed frames and image readiness bounded to 3 s, replacing incomplete late images before publish. Owner must verify real Magnet images, hyperlinks, scrolling and layout. CI checks synthetic data: GIF and DOM replacement, not full Mail.ru credentials.
-3. **Performance under real mail-server delay.** Async mailbox fetch and original image handler remain. The browser shell staging may add up to 3 seconds for slow images; measure real timings in reader_visual_ready and mail_render_timing without exposing private content.
-4. **Issue #77 scheduled Outbox Send Now remains DISABLED.** There is no proven atomic server unschedule/convert operation and duplicate-free immediate send. See docs/protocol/scheduled-send-now-safety.md.
-5. **Other debts:** real delayed delivery, recipient read receipts and alternative server-search routes not fully verified. Never send real mail in tests without Owner permission.
-6. **Do not regress accepted functionality:** independent sending account, drafts, Markdown Save As, contact selection, avatar retrieval, dragged account groups, UI themes, updater. Do not research already working sender photos again.
+Владелец закрыл проверки v0.3.32 по трём проблемам: мерцание, встроенные картинки и задержка отображения. Они более не считаются блокирующими. Подтверждение — прямое сообщение владельца, без числовых замеров.
+
+1. Issue #77: немедленная отправка уже запланированного письма остаётся отключённой, так как не доказана атомарная отмена/перевод существующего серверного задания без повторной доставки.
+2. Отдельно не завершено доказательство фактической доставки по расписанию, подтверждения прочтения получателем, нового альтернативного серверного поиска.
+3. Новое исследование механизма входящих уведомлений Android: способ доставки на Windows и допустимость повторного применения не доказаны.
+4. Сохранять подтверждённые функции: один постоянный WebView2, авторизация аккаунтов, независимый отправитель, контакты, шаблоны Markdown, изображения отправителей, перетаскивание групп, оформление и обновление.
