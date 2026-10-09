@@ -22,6 +22,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
     private bool _enabled;
     private bool _paused;
     private bool _stopping;
+    private bool _retryOnFailure = true;
 
     internal MailRuPushBackgroundService(
         Action<string, string> onStatus, Action<string> onNewMail)
@@ -41,7 +42,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
     }
 
     internal void Reconcile(IEnumerable<(string Login, string Token)> accounts, bool enabled,
-        bool pauseForDiagnostics = false)
+        bool pauseForDiagnostics = false, bool retryOnFailure = true)
     {
         var desired = enabled
             ? accounts
@@ -57,6 +58,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
         {
             if (_stopping) return;
             if (_enabled == enabled && _paused == pauseForDiagnostics &&
+                _retryOnFailure == retryOnFailure &&
                 SameAccounts(_accounts, desired)) return;
 
             // Original SDK keeps the Firebase receiver when a mailbox is deleted.
@@ -77,6 +79,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
             _accounts = desired;
             _enabled = enabled;
             _paused = pauseForDiagnostics;
+            _retryOnFailure = retryOnFailure;
             // Cancels the active MCS reader, NOT the persisted Google identity.
             PushDiagnostics.Record("SERVICE", "RECEIVER_RESTART_REQUIRED");
             _currentCancellation?.Cancel();
@@ -266,6 +269,13 @@ internal sealed class MailRuPushBackgroundService : IDisposable
                         _onStatus(account, "Google/PushMe: непредвиденная ошибка обработки.");
                 }
                 if (cancellationToken.IsCancellationRequested) break;
+                bool retry;
+                lock (_sync) retry = _retryOnFailure;
+                if (!retry)
+                {
+                    PushDiagnostics.Record("WORKER", "MANUAL_TEST_NO_AUTOMATIC_RETRY");
+                    break;
+                }
                 failures = (DateTimeOffset.UtcNow - started) > TimeSpan.FromMinutes(15)
                     ? 0 : Math.Min(failures + 1, 5);
                 var delay = RetryDelay(failures);
