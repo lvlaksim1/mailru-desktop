@@ -77,7 +77,7 @@ public partial class MainWindow
                 if (_pushShuttingDown || Dispatcher.HasShutdownStarted) return;
                 _ = Dispatcher.BeginInvoke(new Action(() => OnPushNewMail(login)));
             },
-            SetGoogleMcsState);
+            phase => SetGoogleMcsState(phase));
         // Keep the user's previous preference in settings for future versions,
         // but NEVER enable the multi-account receiver in this test release.
         BackgroundPushEnabledCheckBox.IsChecked = ManualGroupManagementRelease
