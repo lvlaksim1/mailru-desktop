@@ -1,7 +1,7 @@
 {
   "schema": "context-capsule-manager-state-integrity",
   "schema_version": 1,
-  "generation": 63,
+  "generation": 64,
   "algorithm": "git-blob-sha1",
   "coupled_paths": [
     ".context/manager/beliefs.md",
@@ -14,7 +14,7 @@
     ".context/handoffs/latest.md"
   ],
   "digests": {
-    ".context/manager/beliefs.md": "git-blob-sha1:e7d10d94b13298e3b4101f845ee42dcc385d6deb",
+    ".context/manager/beliefs.md": "git-blob-sha1:781f76454ef21f09d1d44ff5a33900bd9211d3e4",
     ".context/manager/goals.md": "git-blob-sha1:28d6536f20464b297c7730edf83eba67551147b7",
     ".context/manager/intentions.md": "git-blob-sha1:13db20d5943347e3f1ac2603ebb061f369e1e881",
     ".context/manager/plans.md": "git-blob-sha1:398e46e56263ad2378e4bc8ed7ba92958b32575f",
