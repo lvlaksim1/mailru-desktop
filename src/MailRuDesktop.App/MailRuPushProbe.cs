@@ -523,6 +523,34 @@ internal static partial class PushWire
     internal static bool HasField(byte[] bytes, int field) =>
         Parse(bytes).Any(p => p.Field == field);
 
+    // Chromium's original google_apis/gcm/protocol/mcs.proto:
+    // LoginResponse(tag 3): field 1 = required id, field 3 = ErrorInfo.
+    // ErrorInfo field 1 = required int32 code. Chromium's MCS client only
+    // fails login when error is present AND error.code != 0.
+    // Never expose the id, jid, error message, or raw protobuf to diagnostics.
+    internal sealed record McsLoginResult(
+        bool Accepted, bool IdPresent, bool ErrorPresent, int? ErrorCode);
+
+    internal static McsLoginResult ClassifyMcsLoginResponse(
+        int version, int tag, byte[] response)
+    {
+        var parsed = Parse(response).ToArray();
+        var idPresent = parsed.Any(f => f.Field == 1 && f.Bytes is not null);
+        var errorField = parsed.FirstOrDefault(f => f.Field == 3);
+        var errorPresent = parsed.Any(f => f.Field == 3);
+        int? errorCode = null;
+        if (errorPresent && errorField.Bytes is not null)
+        {
+            var code = Parse(errorField.Bytes).FirstOrDefault(f => f.Field == 1);
+            if (Parse(errorField.Bytes).Any(f => f.Field == 1 &&
+                f.Bytes is null))
+                errorCode = unchecked((int)code.Number);
+        }
+        var accepted = (version == 41 || version == 38) && tag == 3 &&
+                       idPresent && (!errorPresent || errorCode == 0);
+        return new McsLoginResult(accepted, idPresent, errorPresent, errorCode);
+    }
+
     internal static string MessageIdentifier(byte[] bytes)
     {
         // MCS persistent_id is field 9, not the user-facing mailbox ID.
