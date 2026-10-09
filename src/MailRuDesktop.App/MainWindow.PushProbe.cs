@@ -290,7 +290,8 @@ public partial class MainWindow
 
     private void OpenPushProbeButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_pushBackground?.Enabled == true)
+        if (_pushBackground?.Enabled == true ||
+            _supplementalReceivers.Values.Any(worker => worker.Enabled))
         {
             MessageBox.Show(this,
                 "Сначала остановите общий приём MCS в управлении группами. " +
