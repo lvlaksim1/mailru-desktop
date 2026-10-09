@@ -20462,6 +20462,92 @@
     },
     {
       "color_roles_and_values": {},
+      "id": "PushProbeWindow/runtime/src/MailRuDesktop.App/PushProbeWindow.cs:15:ComboBox",
+      "line": 15,
+      "location": {
+        "Height": "30",
+        "MinWidth": "310",
+        "Padding": "new Thickness(12"
+      },
+      "name": null,
+      "parent": "PushProbeWindow/runtime",
+      "source": "src/MailRuDesktop.App/PushProbeWindow.cs",
+      "states": null,
+      "style": null,
+      "type": "ComboBox",
+      "typography": {},
+      "window": "PushProbeWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "PushProbeWindow/runtime/src/MailRuDesktop.App/PushProbeWindow.cs:16:Button",
+      "line": 16,
+      "location": {
+        "MinWidth": "155",
+        "Padding": "new Thickness(12"
+      },
+      "name": null,
+      "parent": "PushProbeWindow/runtime",
+      "source": "src/MailRuDesktop.App/PushProbeWindow.cs",
+      "states": null,
+      "style": null,
+      "type": "Button",
+      "typography": {},
+      "window": "PushProbeWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "PushProbeWindow/runtime/src/MailRuDesktop.App/PushProbeWindow.cs:17:Button",
+      "line": 17,
+      "location": {
+        "Margin": "new Thickness(0",
+        "MinWidth": "110",
+        "Padding": "new Thickness(12"
+      },
+      "name": null,
+      "parent": "PushProbeWindow/runtime",
+      "source": "src/MailRuDesktop.App/PushProbeWindow.cs",
+      "states": null,
+      "style": null,
+      "type": "Button",
+      "typography": {},
+      "window": "PushProbeWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "PushProbeWindow/runtime/src/MailRuDesktop.App/PushProbeWindow.cs:18:CheckBox",
+      "line": 18,
+      "location": {
+        "Margin": "new Thickness(0"
+      },
+      "name": null,
+      "parent": "PushProbeWindow/runtime",
+      "source": "src/MailRuDesktop.App/PushProbeWindow.cs",
+      "states": null,
+      "style": null,
+      "type": "CheckBox",
+      "typography": {},
+      "window": "PushProbeWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "PushProbeWindow/runtime/src/MailRuDesktop.App/PushProbeWindow.cs:23:TextBox",
+      "line": 23,
+      "location": {
+        "MinHeight": "230",
+        "Padding": "new Thickness(9)"
+      },
+      "name": null,
+      "parent": "PushProbeWindow/runtime",
+      "source": "src/MailRuDesktop.App/PushProbeWindow.cs",
+      "states": null,
+      "style": null,
+      "type": "TextBox",
+      "typography": {},
+      "window": "PushProbeWindow"
+    },
+    {
+      "color_roles_and_values": {},
       "id": "PushProbeWindow/runtime/src/MailRuDesktop.App/PushProbeWindow.cs:50:StackPanel",
       "line": 50,
       "location": {
@@ -20980,7 +21066,7 @@
     "PushProbeWindow": {
       "colors": {},
       "declared_as": "C#",
-      "element_count": 7,
+      "element_count": 12,
       "geometry": {},
       "id": "PushProbeWindow",
       "source": "src/MailRuDesktop.App/PushProbeWindow.cs",
