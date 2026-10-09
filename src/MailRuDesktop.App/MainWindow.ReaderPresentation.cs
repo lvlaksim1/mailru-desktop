@@ -1,223 +1,173 @@
 using System.Diagnostics;
-using System.Windows;
+using System.Threading;
 using System.Windows.Threading;
-using Microsoft.Web.WebView2.Core;
+using MailRuDesktop.Protocol;
 
 namespace MailRuDesktop.App;
 
 public partial class MainWindow
 {
-    private readonly DispatcherTimer _readerResourceDeadline = new()
-    {
-        Interval = TimeSpan.FromMilliseconds(160)
-    };
-    private ulong _readerStageNavigationId;
-    private long _readerStageRevision;
-    private bool _readerStageDomReady;
-    private bool _readerStageResourcesFinished;
-    private bool _readerStageDeadlineReached;
-    private bool _readerStageRevealing;
-    private bool _readerImageStatusChecking;
+    private long _readerGeneration;
+    private CancellationTokenSource? _readerStageCancellation;
+    private Task _readerLoadingOperation = Task.CompletedTask;
+    private MailRuMessageSummary? _readerPendingHeader;
     private Stopwatch? _readerStageWatch;
 
-    private void InitializeReaderPresentation()
+    /// <summary>
+    /// Only browser DOM state is changed on selection. WebView2 itself
+    /// remains visible and its top-level document remains unchanged.
+    /// </summary>
+    private void BeginReaderTransition(MailRuMessageSummary? target,
+        string loadingText = "Загрузка письма…")
     {
-        _readerResourceDeadline.Tick += ReaderResourceDeadline_Tick;
-    }
-
-    // Called on selecting a new message, before stopping any previous load.
-    private void CancelReaderPresentation()
-    {
-        _readerResourceDeadline.Stop();
-        ++_readerStageRevision;
-        _readerStageNavigationId = 0;
-        _readerStageDomReady = false;
-        _readerStageResourcesFinished = false;
-        _readerStageDeadlineReached = false;
-        _readerStageRevealing = false;
-        _readerImageStatusChecking = false;
-        _readerStageWatch = null;
-    }
-
-    private void ReaderNavigationStarting(object? sender,
-        CoreWebView2NavigationStartingEventArgs args)
-    {
-        // Older navigations can still raise events after Stop(). They do
-        // not belong to the newly selected message.
-        if (!_readerNavigationPending)
-            return;
-
-        CancelReaderPresentation();
-        _readerStageNavigationId = args.NavigationId;
-        _latestReaderNavigationId = args.NavigationId;
-        _readerNavigationPending = false;
-        _readerWaitingForFullMessage = false;
+        _readerGeneration++;
+        _readerStageCancellation?.Cancel();
+        _readerStageCancellation = new CancellationTokenSource();
+        _readerPendingHeader = target;
         _readerStageWatch = Stopwatch.StartNew();
+        _readerWaitingForFullMessage = target is not null;
 
-        MessageWebView.Visibility = Visibility.Hidden;
-        ReaderLoadingOverlay.Visibility = Visibility.Visible;
-        ReaderLoadingText.Text = "Загрузка письма…";
+        if (target is not null)
+        {
+            // Do not show the NEXT subject above the PREVIOUS mail body.
+            SelectedSubjectText.Text = "Загрузка письма…";
+            SelectedSenderNameText.Text = string.Empty;
+            SelectedSenderText.Text = string.Empty;
+            SelectedToText.Text = string.Empty;
+            SelectedDateText.Text = string.Empty;
+            SelectedMetaText.Text = string.Empty;
+        }
+
+        _readerLoadingOperation = SetReaderLoadingAsync(
+            _readerGeneration, loadingText);
     }
 
-    private async void ReaderDomContentLoaded(object? sender,
-        CoreWebView2DOMContentLoadedEventArgs args)
+    private async Task SetReaderLoadingAsync(long generation, string text)
     {
-        if (!IsCurrentReaderNavigation(args.NavigationId))
+        if (!_readerReady || MessageWebView.CoreWebView2 is null)
             return;
-
-        // Even when a message uses loading=lazy the reader must request its
-        // images while hidden, otherwise they only start loading on reveal.
-        // Host-initiated WebView2 scripts work independently of the mail's
-        // disabled page-script setting. No untrusted email text enters script.
         try
         {
             await MessageWebView.CoreWebView2.ExecuteScriptAsync(
-                "(function(){for(const i of document.images){i.loading='eager';}})();");
+                ReaderShellScripts.Begin(generation,
+                    ThemeManager.ReaderBackgroundHtml, text));
         }
         catch (Exception ex)
         {
-            DiagnosticLog.Write("reader_staging_script", ex.GetType().Name);
+            DiagnosticLog.Write("reader_shell_begin", ex.GetType().Name);
         }
-
-        if (!IsCurrentReaderNavigation(args.NavigationId))
-            return;
-
-        _readerStageDomReady = true;
-        _readerResourceDeadline.Stop();
-        _readerResourceDeadline.Start();
-        await TryRevealIfImagesSettledAsync(args.NavigationId);
-        // Nothing becomes visible merely because DOMContentLoaded fired.
     }
 
-    private async void ReaderNavigationCompleted(object? sender,
-        CoreWebView2NavigationCompletedEventArgs args)
+    private async Task SetReaderEmptyAsync(string text)
     {
-        if (!IsCurrentReaderNavigation(args.NavigationId))
-            return;
-
-        if (!args.IsSuccess && !_readerStageDeadlineReached)
-        {
-            _readerResourceDeadline.Stop();
-            ReaderLoadingText.Text = "Не удалось отобразить содержимое письма.";
-            DiagnosticLog.Write("reader_navigation",
-                "WebView2 error=" + args.WebErrorStatus);
-            return;
-        }
-
-        _readerStageResourcesFinished = true;
-        if (_readerStageDomReady)
-            await TryRevealIfImagesSettledAsync(args.NavigationId);
-    }
-
-    // Poll the actual page images, not only navigation completion: an eager
-    // image started after DOMContentLoaded can outlive NavigationCompleted.
-    private async Task TryRevealIfImagesSettledAsync(ulong navigationId)
-    {
-        if (!IsCurrentReaderNavigation(navigationId) ||
-            !_readerStageDomReady || _readerImageStatusChecking ||
-            _readerStageRevealing)
-            return;
-
-        _readerImageStatusChecking = true;
-        bool imagesReady = false;
+        var generation = _readerGeneration;
         try
         {
-            var result = await MessageWebView.CoreWebView2.ExecuteScriptAsync(
-                "(function(){return Array.from(document.images).every(i=>i.complete);})()");
-            imagesReady = string.Equals(result, "true", StringComparison.Ordinal) ||
-                (string.Equals(result, "null", StringComparison.Ordinal) &&
-                    _readerStageResourcesFinished);
+            await _readerLoadingOperation;
+            if (generation == _readerGeneration &&
+                MessageWebView.CoreWebView2 is not null)
+                await MessageWebView.CoreWebView2.ExecuteScriptAsync(
+                    ReaderShellScripts.StatusOnly(generation, text));
         }
         catch (Exception ex)
         {
-            DiagnosticLog.Write("reader_image_check", ex.GetType().Name);
-            imagesReady = _readerStageResourcesFinished;
-        }
-        finally
-        {
-            _readerImageStatusChecking = false;
-        }
-
-        if (imagesReady && IsCurrentReaderNavigation(navigationId) &&
-            _readerStageResourcesFinished)
-        {
-            _readerResourceDeadline.Stop();
-            await RevealReaderOnceAsync(navigationId, "complete");
+            DiagnosticLog.Write("reader_shell_empty", ex.GetType().Name);
         }
     }
 
-    private async void ReaderResourceDeadline_Tick(object? sender, EventArgs args)
+    private async Task StageReaderDocumentAsync(long generation, string html)
     {
-        var navigationId = _readerStageNavigationId;
-        if (!IsCurrentReaderNavigation(navigationId) || !_readerStageDomReady)
-        {
-            _readerResourceDeadline.Stop();
+        if (!_readerReady || MessageWebView.CoreWebView2 is null)
             return;
-        }
 
-        if (_readerStageWatch?.Elapsed < ReaderPresentationPolicy.MaximumResourceWait)
+        var cancellation = _readerStageCancellation?.Token ?? CancellationToken.None;
+        try
         {
-            await TryRevealIfImagesSettledAsync(navigationId);
-            return;
-        }
+            await _readerLoadingOperation;
+            if (generation != _readerGeneration || cancellation.IsCancellationRequested)
+                return;
 
-        _readerResourceDeadline.Stop();
-        if (!ReaderPresentationPolicy.ShouldStopLoading(
-                _readerStageDomReady,
-                imagesSettled: _readerStageRevealing,
-                deadlineReached: true))
+            var browser = MessageWebView.CoreWebView2;
+            var staged = await browser.ExecuteScriptAsync(
+                ReaderShellScripts.Stage(generation, html));
+            if (staged != "true")
+                return;
+
+            var wait = Stopwatch.StartNew();
+            var ready = false;
+            while (generation == _readerGeneration &&
+                   !cancellation.IsCancellationRequested &&
+                   wait.Elapsed < TimeSpan.FromSeconds(3))
+            {
+                var outcome = await browser.ExecuteScriptAsync(
+                    ReaderShellScripts.Poll(generation));
+                if (outcome == "\"ready\"")
+                {
+                    ready = true;
+                    break;
+                }
+                if (outcome == "\"stale\"")
+                    return;
+                await Task.Delay(90, cancellation);
+            }
+
+            if (generation != _readerGeneration || cancellation.IsCancellationRequested)
+                return;
+
+            if (!ready)
+            {
+                // Replace unfinished image sources before publication; never
+                // stop the entire browser or discard the persistent page.
+                await browser.ExecuteScriptAsync(
+                    ReaderShellScripts.FinishPendingImages(generation));
+                await Task.Delay(70, cancellation);
+            }
+
+            // The old iframe and loading layer are replaced by a single DOM
+            // operation inside the browser. No WPF airspace overlay involved.
+            var committed = await browser.ExecuteScriptAsync(
+                ReaderShellScripts.Commit(generation));
+            if (committed != "true" ||
+                generation != _readerGeneration || cancellation.IsCancellationRequested)
+                return;
+
+            if (_readerPendingHeader is { } mail &&
+                string.Equals(_activePreviewMailId, mail.Id, StringComparison.Ordinal))
+            {
+                UpdateSelectedMessageHeader(mail);
+                ApplyLoadedPreviewFields();
+            }
+
+            DiagnosticLog.Write("reader_visual_ready",
+                $"reason={(ready ? "complete" : "limited")}; " +
+                $"elapsed-ms={_readerStageWatch?.ElapsedMilliseconds ?? 0}");
+        }
+        catch (OperationCanceledException)
         {
-            await TryRevealIfImagesSettledAsync(navigationId);
-            return;
+            // A newer selection owns the single browser shell.
         }
-
-        _readerStageDeadlineReached = true;
-        // Cancel unfinished image requests *before* showing the document.
-        // Otherwise a delayed image would reflow the visible receipt later.
-        try { MessageWebView.CoreWebView2?.Stop(); }
         catch (Exception ex)
         {
-            DiagnosticLog.Write("reader_staging_stop", ex.GetType().Name);
-        }
+            if (generation != _readerGeneration)
+                return;
 
-        // Give the hidden document a rendering turn to settle broken/missing
-        // image placeholders after Stop(), not on the visible surface.
-        await Task.Delay(110);
-        if (IsCurrentReaderNavigation(navigationId))
-            await RevealReaderOnceAsync(navigationId, "limited");
+            DiagnosticLog.Write("reader_shell_stage", ex.GetType().Name);
+            try
+            {
+                await MessageWebView.CoreWebView2.ExecuteScriptAsync(
+                    ReaderShellScripts.StatusOnly(generation,
+                        "Не удалось отобразить содержимое письма."));
+            }
+            catch (Exception nested)
+            {
+                DiagnosticLog.Write("reader_shell_error", nested.GetType().Name);
+            }
+        }
     }
 
-    private bool IsCurrentReaderNavigation(ulong navigationId) =>
-        _readerReady &&
-        !_readerNavigationPending &&
-        !_readerWaitingForFullMessage &&
-        _readerStageNavigationId == navigationId &&
-        _latestReaderNavigationId == navigationId;
-
-    private async Task RevealReaderOnceAsync(ulong navigationId, string reason)
+    private void CancelReaderPresentation()
     {
-        if (!IsCurrentReaderNavigation(navigationId) ||
-            _readerStageRevealing ||
-            !ReaderPresentationPolicy.CanReveal(
-                _readerStageDomReady, _readerStageResourcesFinished,
-                _readerStageDeadlineReached))
-            return;
-
-        _readerStageRevealing = true;
-        var revision = _readerStageRevision;
-        _readerResourceDeadline.Stop();
-
-        // Wait a rendering turn while still hidden so the image sizes and
-        // table columns do not change immediately after the first visible paint.
-        await Task.Delay(65);
-
-        if (revision != _readerStageRevision ||
-            !IsCurrentReaderNavigation(navigationId))
-            return;
-
-        MessageWebView.Visibility = Visibility.Visible;
-        ReaderLoadingOverlay.Visibility = Visibility.Collapsed;
-        DiagnosticLog.Write("reader_visual_ready",
-            $"reason={reason}; elapsed-ms={_readerStageWatch?.ElapsedMilliseconds ?? 0}");
+        _readerStageCancellation?.Cancel();
+        _readerStageCancellation = null;
     }
 }
