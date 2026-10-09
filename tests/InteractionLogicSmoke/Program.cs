@@ -114,6 +114,8 @@ using (var manager = new MailRuPushBackgroundService(
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase));
     Expect(manager.AcceptMessage("test@example.invalid", distinctMessage), false,
         "removed account cannot receive an event even before remote unsubscribe");
+    // Restore neutral fake service state; tests must NEVER start network cleanup.
+    typeof(MailRuPushBackgroundService).GetField("_enabled", f)!.SetValue(manager, false);
     var secretRoot = Path.Combine(Path.GetTempPath(), "MailRuGoogleReceiver-" +
         Guid.NewGuid().ToString("N"));
     try
