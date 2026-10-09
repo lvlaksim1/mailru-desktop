@@ -77,7 +77,8 @@ internal sealed class PushGroupRegistryStore
     }
 
     internal static Registry Register(
-        Registry prior, string[] selected, IReadOnlyCollection<string> accepted)
+        Registry prior, string[] selected, IReadOnlyCollection<string> accepted,
+        string? groupId = null)
     {
         if (selected.Length == 0 ||
             selected.Distinct(StringComparer.OrdinalIgnoreCase).Count() != selected.Length)
@@ -89,7 +90,7 @@ internal sealed class PushGroupRegistryStore
         var confirmed = selected.Where(a => accepted.Contains(a,
             StringComparer.OrdinalIgnoreCase)).ToArray();
         if (confirmed.Length == 0) return prior;
-        var group = new Group(Guid.NewGuid().ToString("N"), confirmed, DateTimeOffset.UtcNow);
+        var group = new Group(groupId ?? Guid.NewGuid().ToString("N"), confirmed, DateTimeOffset.UtcNow);
         // A second batch may replace earlier server-side registrations;
         // until real events arrive for those groups, never present their
         // continuing delivery as verified.
