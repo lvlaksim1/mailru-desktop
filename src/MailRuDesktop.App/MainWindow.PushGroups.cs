@@ -171,16 +171,20 @@ public partial class MainWindow
                     return "Выбранный аккаунт не авторизован. Регистрация не выполнена.";
                 accounts[login] = auth.AccessToken;
             }
+            var newGroupId = Guid.NewGuid().ToString("N");
+            PushDiagnostics.Record("PUSHME", "GROUP_SUBSCRIBE_START", accounts.Count);
             using var probe = new MailRuPushProbe();
             using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(90));
-            var result = await probe.RegisterGroupAsync(accounts, timeout.Token);
+            var result = await probe.RegisterGroupAsync(
+                accounts, timeout.Token, newGroupId);
             if (result.Error is not null)
                 return "PushMe отклонил запрос для " + accounts.Count +
                     " аккаунтов. Причина и код — в обезличенной диагностике. " +
                     "Существующие группы не изменены.";
             var updated = PushGroupRegistryStore.Register(registry,
-                selected.ToArray(), result.Accepted);
+                selected.ToArray(), result.Accepted, newGroupId);
             _pushGroups.Save(updated);
+            PushDiagnostics.Record("PUSHME", "GROUP_SUBSCRIBE_CONFIRMED", result.Accepted.Count);
             if (updated.Groups.Length != registry.Groups.Length &&
                 registry.ReceiveEnabled)
                 StartMcsListening(); // Reopen MCS, NEVER resubscribe in PushMe.
@@ -200,30 +204,42 @@ public partial class MainWindow
             var group = registry.Groups.FirstOrDefault(x => x.Id == groupId);
             if (group is null) return "Группа отсутствует.";
             var shouldResume = registry.ReceiveEnabled;
+            PushDiagnostics.Record("PUSHME", "GROUP_UNSUBSCRIBE_START", group.Accounts.Length);
+            foreach (var account in group.Accounts)
+                PushDiagnostics.RecordAccount("PUSHME", "GROUP_MEMBER_BEFORE_REMOVAL",
+                    account, group.Id);
             // Close only MCS, never revoke Google's stored device/tokens.
             _pushBackground?.StopListeningOnly();
             SetGoogleMcsState("STOPPED");
             var removed = new List<string>();
             using var probe = new MailRuPushProbe();
-            foreach (var account in group.Accounts)
+            for (var index = 0; index < group.Accounts.Length; index++)
             {
+                var account = group.Accounts[index];
                 try
                 {
                     using var timeout = new CancellationTokenSource(
                         TimeSpan.FromSeconds(35));
-                    if (await probe.UnsubscribeAccountAsync(account, timeout.Token))
+                    if (await probe.UnsubscribeAccountAsync(
+                            account, timeout.Token, group.Id,
+                            index + 1, group.Accounts.Length))
                     {
                         removed.Add(account);
+                        PushDiagnostics.RecordAccount("PUSHME", "GROUP_MEMBER_REMOVED",
+                            account, group.Id, index + 1, group.Accounts.Length);
                         // Commit every confirmed address-level removal. On a
                         // network error remaining members stay tracked.
                         registry = PushGroupRegistryStore.RemoveAccounts(registry, [account]);
                         _pushGroups.Save(registry);
                     }
                     else
-                        PushDiagnostics.Record("PUSHME", "GROUP_ACCOUNT_REMOVE_DEFERRED");
+                        PushDiagnostics.RecordAccount("PUSHME", "GROUP_MEMBER_REMOVE_DEFERRED",
+                            account, group.Id, index + 1, group.Accounts.Length);
                 }
                 catch (Exception error)
                 {
+                    PushDiagnostics.RecordAccount("PUSHME", "GROUP_MEMBER_REMOVE_UNCONFIRMED",
+                        account, group.Id, index + 1, group.Accounts.Length);
                     PushDiagnostics.Failure("GROUP_ACCOUNT_REMOVE", error);
                 }
             }
@@ -231,6 +247,9 @@ public partial class MainWindow
                 _pushGroups.Save(registry with { ReceiveEnabled = false });
             if (shouldResume && registry.Groups.Length > 0)
                 StartMcsListening();
+            PushDiagnostics.Record("PUSHME", "GROUP_UNSUBSCRIBE_CONFIRMED", removed.Count);
+            PushDiagnostics.Record("PUSHME", "GROUP_UNSUBSCRIBE_REMAINING",
+                group.Accounts.Length - removed.Count);
             return "Подтверждено адресных отписок: " + removed.Count + " из " +
                 group.Accounts.Length + ". Неподтверждённые остаются в реестре.";
         }
@@ -274,7 +293,10 @@ public partial class MainWindow
             {
                 _pushGroups.Save(updated);
                 _pushManagerWindow?.UpdateView();
-                PushDiagnostics.Record("PUSHME", "GROUP_DELIVERY_OBSERVED");
+                var matching = updated.Groups.FirstOrDefault(g =>
+                    g.Accounts.Contains(login, StringComparer.OrdinalIgnoreCase));
+                PushDiagnostics.RecordAccount("PUSHME", "GROUP_DELIVERY_OBSERVED",
+                    login, matching?.Id);
             }
         }
         catch (Exception error)
