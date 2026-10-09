@@ -1,0 +1,98 @@
+name: Research APK push registration resources
+on:
+  push:
+    branches: [research/mail-apk-15.107.0.148045]
+    paths:
+      - '.github/workflows/apk-push-registration-resources.yml'
+permissions:
+  contents: write
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: research/mail-apk-15.107.0.148045
+          fetch-depth: 1
+      - name: Verify and restore original official APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT=research/apk-15.107.0.148045
+          cat "$ROOT"/package/parts/Mail_ru_15.107.0.148045_APKs.zip.part-* > /tmp/mail-original.zip
+          echo '42c976a0c2f3d5fb186a88bc855f782c81c8ce35f952fcf22f99c64828880af6  /tmp/mail-original.zip' | sha256sum -c -
+          mkdir -p /tmp/mail-original
+          unzip -q /tmp/mail-original.zip -d /tmp/mail-original
+          test -s /tmp/mail-original/Mail-15.107.0.148045.apk
+      - name: Extract exact allowlisted non-secret registration identifiers
+        shell: bash
+        run: |
+          set -euo pipefail
+          AAPT2=$(find "$ANDROID_HOME/build-tools" -type f -name aapt2 | sort -V | tail -n 1)
+          test -x "$AAPT2"
+          "$AAPT2" dump resources /tmp/mail-original/Mail-15.107.0.148045.apk > /tmp/resources.txt
+          "$AAPT2" dump xmltree /tmp/mail-original/Mail-15.107.0.148045.apk AndroidManifest.xml > /tmp/manifest.txt
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          lines=Path('/tmp/resources.txt').read_text(errors='replace').splitlines()
+          manifest=Path('/tmp/manifest.txt').read_text(errors='replace').splitlines()
+          allowlist=['push_sender_id','gcm_defaultSenderId','google_app_id','project_id',
+                     'push_default_api','push_default_host','push_default_scheme']
+          out=[
+            '# Original APK: push registration identifiers (non-secret allowlist)',
+            '',
+            'APK Mail.ru 15.107.0.148045 (ZIP SHA-256 verified).',
+            'Only fixed public identifiers and matching manifest registrations are retained.',
+            'No API keys, service-account keys, auth tokens, personal data, full resources or APK binaries.',
+            '',
+            '## Explicit resources',
+            ''
+          ]
+          for key in allowlist:
+            found=[]
+            for i,line in enumerate(lines):
+              if re.search(r'\bstring/'+re.escape(key)+r'\b',line):
+                raw=lines[i:i+12]
+                default=next((x.strip() for x in raw[1:] if x.strip().startswith('() ') or x.strip().startswith('()\t')),None)
+                found.append((line.strip(),default))
+            out.append('### '+key)
+            if not found: out.append('not present')
+            for declaration, value in found[:3]:
+              out.append('- '+declaration)
+              if value:
+                # Fixed allowlist excludes secret-valued keys; still refuse suspicious values.
+                if len(value)>240 or re.search(r'(?i)(private[_-]?key|api[_-]?key|bearer|sk-[a-z]|token=)',value):
+                  out.append('- value omitted by protection rule')
+                else: out.append('- '+value)
+            out.append('')
+          out+=['## Manifest push-related components and events','']
+          terms=['FirebaseMessagingService','ru.mail.util.push.gcm.MailMessagingService',
+                 'ru.mail.util.push.huawei.MailMessagingService','ru.mail.rustoresdk.MailMessagingService',
+                 'com.google.firebase.MESSAGING_EVENT','RuStoreMessagingService']
+          selected=[]
+          for i,line in enumerate(manifest):
+            if any(term in line for term in terms):
+              selected.extend(manifest[max(0,i-3):min(len(manifest),i+4)])
+          selected=list(dict.fromkeys(x.strip() for x in selected))
+          out+=['- '+s[:400] for s in selected[:80]]
+          out+=['','## Boundaries','',
+                'Static registration metadata does not establish successful enrollment or delivery to Windows.',
+                'The exact FCM registration and server acceptance must be tested separately with an owned test account.']
+          dest=Path('research/apk-15.107.0.148045/PUSH_REGISTRATION_RESOURCES.md')
+          dest.write_text('\n'.join(out)+'\n',encoding='utf-8')
+          print('Wrote',dest, 'with',len(out),'lines')
+          PY
+      - name: Commit research note only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name mailru-apk-research
+          git config user.email actions@users.noreply.github.com
+          git add research/apk-15.107.0.148045/PUSH_REGISTRATION_RESOURCES.md
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'research: retain non-secret APK notification registration identifiers'
+          git pull --rebase origin research/mail-apk-15.107.0.148045
+          git push origin HEAD:research/mail-apk-15.107.0.148045
