@@ -20,6 +20,8 @@ public partial class MainWindow
     private string? _pushWindowTitle;
     private System.Windows.Forms.NotifyIcon? _pushNotificationArea;
     private System.Drawing.Icon? _pushNotificationIcon;
+    private System.Windows.Forms.ContextMenuStrip? _pushTrayMenu;
+    private bool _pushExitRequested;
 
     private void InitializeBackgroundPush()
     {
@@ -33,22 +35,25 @@ public partial class MainWindow
             {
                 Icon = _pushNotificationIcon ?? System.Drawing.SystemIcons.Application,
                 Text = "MailRu Desktop — новые письма",
-                Visible = _settingsStore.LoadBackgroundPushEnabled()
+                Visible = true
             };
+            _pushTrayMenu = new System.Windows.Forms.ContextMenuStrip();
+            var restoreItem = _pushTrayMenu.Items.Add("Развернуть");
+            restoreItem.Click += (_, _) =>
+                _ = Dispatcher.BeginInvoke(new Action(RestoreFromTray));
+            var exitItem = _pushTrayMenu.Items.Add("Выход");
+            exitItem.Click += (_, _) =>
+                _ = Dispatcher.BeginInvoke(new Action(ExitFromTray));
+            _pushNotificationArea.ContextMenuStrip = _pushTrayMenu;
             _pushNotificationArea.DoubleClick += (_, _) =>
-            {
-                _ = Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    WindowState = WindowState.Normal;
-                    Show();
-                    Activate();
-                }));
-            };
+                _ = Dispatcher.BeginInvoke(new Action(RestoreFromTray));
         }
         catch
         {
             _pushNotificationArea?.Dispose();
             _pushNotificationArea = null;
+            _pushTrayMenu?.Dispose();
+            _pushTrayMenu = null;
             _pushNotificationIcon?.Dispose();
             _pushNotificationIcon = null;
         }
@@ -65,6 +70,7 @@ public partial class MainWindow
                 _ = Dispatcher.BeginInvoke(new Action(() => OnPushNewMail(login)));
             });
         BackgroundPushEnabledCheckBox.IsChecked = _settingsStore.LoadBackgroundPushEnabled();
+        TaskbarNotificationsEnabledCheckBox.IsChecked = _settingsStore.LoadTaskbarNotificationsEnabled();
         _pushSettingsInitialized = true;
         BackgroundPushStatusText.Text = BackgroundPushEnabledCheckBox.IsChecked == true
             ? "Ожидание загрузки сохранённых аккаунтов…"
@@ -101,7 +107,7 @@ public partial class MainWindow
                 string.Equals(account.Login, login, StringComparison.OrdinalIgnoreCase)));
         _pushBackground.Reconcile(accounts, enabled);
         if (_pushNotificationArea is not null)
-            _pushNotificationArea.Visible = enabled;
+            _pushNotificationArea.Visible = true; // Tray icon is independent of push subscription.
         if (!enabled)
         {
             _pushConnectedAccounts.Clear();
@@ -114,6 +120,30 @@ public partial class MainWindow
             BackgroundPushStatusText.Text = "Нет подключённых почтовых аккаунтов.";
         else
             BackgroundPushStatusText.Text = $"Подключение аккаунтов: {accounts.Count}.";
+    }
+
+    private void TaskbarNotificationsEnabledCheckBox_Changed(object sender, RoutedEventArgs e)
+    {
+        if (!_pushSettingsInitialized || _pushShuttingDown) return;
+        _settingsStore.SaveTaskbarNotificationsEnabled(
+            TaskbarNotificationsEnabledCheckBox.IsChecked == true);
+    }
+
+    private void RestoreFromTray()
+    {
+        if (_pushShuttingDown) return;
+        ShowInTaskbar = true;
+        Show();
+        if (WindowState == WindowState.Minimized)
+            WindowState = WindowState.Normal;
+        Activate();
+    }
+
+    private void ExitFromTray()
+    {
+        if (_pushShuttingDown) return;
+        _pushExitRequested = true;
+        Close();
     }
 
     private void BackgroundPushEnabledCheckBox_Changed(object sender, RoutedEventArgs e)
@@ -172,10 +202,11 @@ public partial class MainWindow
         BackgroundPushStatusText.Text = "Получено новое письмо. Обновление почтовых папок…";
         try
         {
-            _pushNotificationArea?.ShowBalloonTip(
-                5000, "MailRu Desktop — новое письмо",
-                "Новое письмо: " + login,
-                System.Windows.Forms.ToolTipIcon.Info);
+            if (TaskbarNotificationsEnabledCheckBox.IsChecked == true)
+                _pushNotificationArea?.ShowBalloonTip(
+                    5000, "MailRu Desktop — новое письмо",
+                    "Новое письмо: " + login,
+                    System.Windows.Forms.ToolTipIcon.Info);
         }
         catch
         {
@@ -219,6 +250,22 @@ public partial class MainWindow
     {
         if (_pushShutdownComplete) return;
         e.Cancel = true;
+        // Closing the window hides it in the tray. Only explicit Exit
+        // terminates the application and closes the MCS channel.
+        if (!_pushExitRequested)
+        {
+            if (_pushNotificationArea is null)
+            {
+                // Never trap an invisible application without a tray icon.
+                _pushExitRequested = true;
+            }
+            else
+            {
+                Hide();
+                ShowInTaskbar = false;
+                return;
+            }
+        }
         if (_pushShuttingDown) return;
         _pushShuttingDown = true;
         _pushBackgroundReady = false;
@@ -232,6 +279,8 @@ public partial class MainWindow
             _pushBackground?.Dispose();
             _pushNotificationArea?.Dispose();
             _pushNotificationArea = null;
+            _pushTrayMenu?.Dispose();
+            _pushTrayMenu = null;
             _pushNotificationIcon?.Dispose();
             _pushNotificationIcon = null;
             _pushShutdownComplete = true;
