@@ -202,7 +202,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
                 }
                 if (current.Count == 0) break;
                 var started = DateTimeOffset.UtcNow;
-                PushDiagnostics.Record("WORKER", "CONNECT_ATTEMPT", ++attempt);
+                PushDiagnostics.BeginAttempt(++attempt);
                 try
                 {
                     using var probe = new MailRuPushProbe();
