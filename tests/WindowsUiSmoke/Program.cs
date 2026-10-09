@@ -98,6 +98,27 @@ internal static class Program
                 "taskbar popup preference remains adjustable during manual-only test");
             pushWindow!.Close();
 
+            var groupButton = Require<Button>(mail, "OpenGroup19ProbeButton");
+            Check(groupButton.IsVisible && groupButton.IsEnabled &&
+                groupButton.Content?.ToString() == "Проверить 19 аккаунтов",
+                "19-account test available separately from single-account test");
+            groupButton.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent, groupButton));
+            mail.UpdateLayout();
+            var groupWindow = Application.Current.Windows.OfType<Window>()
+                .FirstOrDefault(w =>
+                    w.Title.Contains("Проверка 19 аккаунтов", StringComparison.Ordinal));
+            Check(groupWindow is not null && groupWindow.IsVisible,
+                "manual 19-account selector opens without network startup");
+            var groupStart = FindDescendant<Button>(groupWindow!,
+                b => b.Content?.ToString() == "Зарегистрировать 19 аккаунтов");
+            Check(groupStart is not null && !groupStart.IsEnabled,
+                "19-account subscription requires explicit user confirmation");
+            var groupStop = FindDescendant<Button>(groupWindow!,
+                b => b.Content?.ToString() == "Остановить приём");
+            Check(groupStop is not null && !groupStop.IsEnabled,
+                "19-account receiver is not automatically started");
+            groupWindow!.Close();
+
             var palette = FindDescendant<Expander>(mail,
                 e => string.Equals(e.Header?.ToString(),
                     "Цвета элементов интерфейса", StringComparison.Ordinal));
