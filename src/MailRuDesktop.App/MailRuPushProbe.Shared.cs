@@ -18,12 +18,13 @@ internal sealed partial class MailRuPushProbe
     // Stage 1: create Google recipient ONLY by explicit user request.
     // Subsequent PushMe batches and MCS reconnections reuse these credentials.
     internal async Task<SharedGooglePushIdentityStore.State> EnsureGoogleRecipientAsync(
-        Action<string> progress, CancellationToken cancellationToken)
+        Action<string> progress, CancellationToken cancellationToken,
+        string recipientId = SharedGooglePushIdentityStore.PrimaryRecipientId)
     {
         await SharedSubscriptionGate.WaitAsync(cancellationToken);
         try
         {
-            var store = new SharedGooglePushIdentityStore();
+            var store = new SharedGooglePushIdentityStore(recipientId: recipientId);
             var saved = store.Load();
             if (saved is null)
             {
@@ -53,10 +54,11 @@ internal sealed partial class MailRuPushProbe
     // registering a Google token, or affecting nonselected subscriptions.
     internal async Task<SharedSubscriptionOutcome> RegisterGroupAsync(
         IReadOnlyDictionary<string, string> accounts, CancellationToken cancellationToken,
-        string? groupId = null)
+        string? groupId = null,
+        string recipientId = SharedGooglePushIdentityStore.PrimaryRecipientId)
     {
-        if (accounts.Count == 0 || accounts.Count > 50)
-            throw new ArgumentException("Выберите от 1 до 50 аккаунтов.");
+        if (accounts.Count == 0 || accounts.Count > 30)
+            throw new ArgumentException("Выберите от 1 до 30 аккаунтов.");
         var operationId = Guid.NewGuid().ToString("N")[..12];
         var orderedAccounts = accounts.Keys.ToArray();
         var groupTag = groupId ?? "NEW";
@@ -68,7 +70,7 @@ internal sealed partial class MailRuPushProbe
         await SharedSubscriptionGate.WaitAsync(cancellationToken);
         try
         {
-            var store = new SharedGooglePushIdentityStore();
+            var store = new SharedGooglePushIdentityStore(recipientId: recipientId);
             var saved = store.Load() ??
                 throw new InvalidOperationException("Сначала зарегистрируйте Google-получатель.");
             if (saved.PushMeCommonId is null)
@@ -144,8 +146,8 @@ internal sealed partial class MailRuPushProbe
 
 
     /// <summary>
-    /// One protected Google identity and one MCS connection serve all authorized
-    /// mailboxes. Only the account field inside an actual event=4 can route it.
+    /// One selected, protected Google identity serves only its assigned
+    /// group. Multiple instances can maintain independent MCS connections. Only the account field inside an actual event=4 can route it.
     /// Closing the app or removing one mailbox never revokes Google identity.
     /// </summary>
     internal async Task RunSharedAsync(
@@ -156,7 +158,8 @@ internal sealed partial class MailRuPushProbe
         CancellationToken cancellationToken,
         bool preserveOtherAccounts = false,
         bool listenOnly = false,
-        Action<string>? onMcsState = null)
+        Action<string>? onMcsState = null,
+        string recipientId = SharedGooglePushIdentityStore.PrimaryRecipientId)
     {
         if (accounts.Count == 0) return;
         var phase = "BEGIN";
@@ -179,7 +182,7 @@ internal sealed partial class MailRuPushProbe
         }
 
         Phase("IDENTITY_LOAD");
-        var store = new SharedGooglePushIdentityStore();
+        var store = new SharedGooglePushIdentityStore(recipientId: recipientId);
         var saved = store.Load();
         if (saved is not null) Phase("IDENTITY_REUSED");
         if (preserveOtherAccounts)
@@ -191,7 +194,8 @@ internal sealed partial class MailRuPushProbe
             {
                 try
                 {
-                    if (await UnsubscribeAccountAsync(removed, cancellationToken))
+                    if (await UnsubscribeAccountAsync(removed, cancellationToken,
+                            recipientId: recipientId))
                         onStatus(removed, "PushMe: адресная подписка удалена.");
                     else
                         onStatus(removed, "PushMe: отписка аккаунта ожидает повтора.");
@@ -531,7 +535,8 @@ internal sealed partial class MailRuPushProbe
     // A next connection retries, while other accounts remain registered.
     internal async Task<bool> UnsubscribeAccountAsync(
         string account, CancellationToken cancellationToken,
-        string? groupId = null, int? index = null, int? total = null)
+        string? groupId = null, int? index = null, int? total = null,
+        string recipientId = SharedGooglePushIdentityStore.PrimaryRecipientId)
     {
         var operationId = Guid.NewGuid().ToString("N")[..12];
         PushDiagnostics.RecordAccount("PUSHME", "ACCOUNT_UNSUBSCRIBE_START",
@@ -541,14 +546,15 @@ internal sealed partial class MailRuPushProbe
         await SharedSubscriptionGate.WaitAsync(cancellationToken);
         try
         {
-            var store = new SharedGooglePushIdentityStore();
+            var store = new SharedGooglePushIdentityStore(recipientId: recipientId);
             var saved = store.Load();
             if (saved is null ||
                 !saved.SubscribedAccounts.Contains(account, StringComparer.OrdinalIgnoreCase))
             {
                 PushDiagnostics.RecordAccount("PUSHME", "ACCOUNT_UNSUBSCRIBE_NOT_TRACKED",
                     account, groupId, index, total, operationId);
-                return true;
+                // Missing local tracking is NOT proof of server-side removal.
+                return false;
             }
             using var request = new HttpRequestMessage(HttpMethod.Post, UnsubscribeAccountUrl);
             request.Headers.TryAddWithoutValidation("User-Agent", AppUserAgent);
@@ -604,9 +610,10 @@ internal sealed partial class MailRuPushProbe
     /// retired (user disables push) or a removed account requires rotation.
     /// Never call this for an ordinary access-token refresh or app shutdown.
     /// </summary>
-    internal async Task<bool> UnsubscribeSharedAsync(CancellationToken cancellationToken)
+    internal async Task<bool> UnsubscribeSharedAsync(CancellationToken cancellationToken,
+        string recipientId = SharedGooglePushIdentityStore.PrimaryRecipientId)
     {
-        var store = new SharedGooglePushIdentityStore();
+        var store = new SharedGooglePushIdentityStore(recipientId: recipientId);
         var saved = store.Load();
         if (saved is null) return true;
         await SharedSubscriptionGate.WaitAsync(cancellationToken);
