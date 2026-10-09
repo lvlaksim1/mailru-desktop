@@ -164,6 +164,7 @@ public partial class MainWindow
             _pushConnectedAccounts.Add(login);
         else if (state.Contains("Соединение прервано", StringComparison.OrdinalIgnoreCase) ||
                  state.Contains("Получение уведомлений остановлено", StringComparison.OrdinalIgnoreCase) ||
+                 state.Contains("Аккаунт отклонён", StringComparison.OrdinalIgnoreCase) ||
                  state.Contains("Ошибка этапа", StringComparison.OrdinalIgnoreCase))
             _pushConnectedAccounts.Remove(login);
         if (BackgroundPushEnabledCheckBox.IsChecked != true) return;
