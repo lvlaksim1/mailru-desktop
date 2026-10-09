@@ -138,7 +138,7 @@ internal sealed class MailRuPushProbe : IDisposable
             using var stream = new SslStream(socket.GetStream(), false);
             await stream.AuthenticateAsClientAsync(
                 new SslClientAuthenticationOptions { TargetHost = "mtalk.google.com" },
-                cancellationToken).WaitAsync(TimeSpan.FromSeconds(20), cancellationToken);
+                cancellationToken);
 
             var loginBody = PushWire.LoginRequest(identity.DeviceId, identity.SecurityToken);
             await stream.WriteAsync(new byte[] { 41, 2 }, cancellationToken);
