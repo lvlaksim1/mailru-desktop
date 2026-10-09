@@ -154,6 +154,31 @@ class LocalProbeTests(unittest.TestCase):
             self.assertEqual(received, "IN_MEMORY_OAUTH")
             decrypt.assert_called_once_with("PROTECTED_TEXT")
 
+    def test_temporary_subscription_is_removed_after_server_rejection(self):
+        from types import SimpleNamespace
+        fake_socket = FakeSocket(b"")
+        fake_socket.__enter__ = None  # socket context protocol mocked below
+
+        class FakeSession:
+            def __enter__(self):
+                return self
+            def __exit__(self, *_):
+                pass
+
+        with mock.patch.object(probe, "os", SimpleNamespace(name="nt")):
+            with mock.patch.object(probe, "find_saved_oauth", return_value="FAKE_OAUTH"):
+                with mock.patch.object(probe, "own_google_identity",
+                                       return_value=(123, 456, "NEW_TOKEN_ONLY")):
+                    with mock.patch.object(probe, "mcs_start", return_value=FakeSession()):
+                        with mock.patch.object(probe, "subscribe_mailru",
+                                               return_value="ACCOUNT_REJECTED"):
+                            with mock.patch.object(probe, "remove_only_own_token") as cleanup:
+                                with mock.patch.object(probe.time, "sleep"):
+                                    with redirect_stdout(io.StringIO()):
+                                        with self.assertRaises(SystemExit):
+                                            probe.run(True, True, "probe@example.invalid", 60)
+        cleanup.assert_called_once_with("NEW_TOKEN_ONLY")
+
     def test_local_flow_does_not_auto_send_to_mailru(self):
         with mock.patch.object(probe, "own_google_identity") as google_identity:
             with mock.patch.object(probe, "subscribe_mailru") as mailru:
