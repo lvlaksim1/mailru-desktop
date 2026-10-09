@@ -8,6 +8,10 @@ namespace MailRuDesktop.App;
 
 public partial class MainWindow
 {
+    // Deliberate diagnostic release: never subscribe all saved accounts.
+    // Re-enable automatic multi-account delivery only in a subsequent
+    // source-verified release after the selected-account test is accepted.
+    private const bool SingleAccountManualTestRelease = true;
     private PushProbeWindow? _pushProbeWindow;
     private MailRuPushBackgroundService? _pushBackground;
     private readonly SemaphoreSlim _pushRefreshGate = new(1, 1);
@@ -74,23 +78,41 @@ public partial class MainWindow
                 if (_pushShuttingDown || Dispatcher.HasShutdownStarted) return;
                 _ = Dispatcher.BeginInvoke(new Action(() => OnPushNewMail(login)));
             });
-        BackgroundPushEnabledCheckBox.IsChecked = _settingsStore.LoadBackgroundPushEnabled();
-        TaskbarNotificationsEnabledCheckBox.IsChecked = _settingsStore.LoadTaskbarNotificationsEnabled();
+        // Keep the user's previous preference in settings for future versions,
+        // but NEVER enable the multi-account receiver in this test release.
+        BackgroundPushEnabledCheckBox.IsChecked = SingleAccountManualTestRelease
+            ? false : _settingsStore.LoadBackgroundPushEnabled();
+        BackgroundPushEnabledCheckBox.IsEnabled = !SingleAccountManualTestRelease;
+        TaskbarNotificationsEnabledCheckBox.IsChecked =
+            _settingsStore.LoadTaskbarNotificationsEnabled();
         _pushSettingsInitialized = true;
-        BackgroundPushStatusText.Text = BackgroundPushEnabledCheckBox.IsChecked == true
-            ? "Ожидание загрузки сохранённых аккаунтов…"
-            : "Автоматическое получение уведомлений выключено.";
+        BackgroundPushStatusText.Text = SingleAccountManualTestRelease
+            ? "Проверочная версия: массовая подписка отключена. " +
+              "Нажмите «Выбрать аккаунт для проверки»."
+            : BackgroundPushEnabledCheckBox.IsChecked == true
+                ? "Ожидание загрузки сохранённых аккаунтов…"
+                : "Автоматическое получение уведомлений выключено.";
         Closing += MainWindow_PushClosing;
     }
 
     private void StartBackgroundPush()
     {
         _pushBackgroundReady = true;
+        if (SingleAccountManualTestRelease)
+        {
+            // Do not call Reconcile(false): the normal opt-out path revokes
+            // the common Google token, which this test MUST NOT touch.
+            PushDiagnostics.Record("SERVICE", "MANUAL_SINGLE_ACCOUNT_ONLY");
+            return;
+        }
         SyncBackgroundPush();
     }
 
     private void SyncBackgroundPush()
     {
+        // Explicit kill-switch: no accidental connection or token-wide
+        // unsubscribe for any of the 32 saved accounts.
+        if (SingleAccountManualTestRelease) return;
         if (!_pushBackgroundReady || _pushShuttingDown || _pushBackground is null)
             return;
         var userEnabled = BackgroundPushEnabledCheckBox.IsChecked == true;
@@ -155,7 +177,8 @@ public partial class MainWindow
 
     private void BackgroundPushEnabledCheckBox_Changed(object sender, RoutedEventArgs e)
     {
-        if (!_pushSettingsInitialized || _pushShuttingDown) return;
+        if (SingleAccountManualTestRelease ||
+            !_pushSettingsInitialized || _pushShuttingDown) return;
         var selected = BackgroundPushEnabledCheckBox.IsChecked == true;
         PushDiagnostics.Record("UI", selected ? "AUTO_NOTIFICATIONS_ENABLED" :
             "AUTO_NOTIFICATIONS_DISABLED");
@@ -268,8 +291,8 @@ public partial class MainWindow
             _pushProbeWindow.Activate();
             return;
         }
-        // The three-minute diagnostic remains available, but does not run
-        // simultaneously with the continuous subscription.
+        // The selected-account test creates a separate temporary recipient;
+        // the 32-account worker is disabled in this release.
         var window = new PushProbeWindow(_authStore, _activeLogin, OnPushNewMail);
         window.Owner = this;
         _pushProbeWindow = window;
