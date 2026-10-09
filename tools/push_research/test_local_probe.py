@@ -97,6 +97,11 @@ class LocalProbeTests(unittest.TestCase):
         self.assertEqual(data[0]["access_token"], "TEST_OAUTH_SECRET")
         self.assertEqual(data[0]["platform"], "android")
         self.assertEqual(data[0]["application"], "mail")
+        # The exact current APK can_mail filters must be present.
+        filters = data[0]["settings"]["capabilities"]["can_mail"]["Filter"]
+        self.assertEqual(filters["Folder"], {"filterList": [], "enabled": False})
+        self.assertEqual(filters["SocialNetwork"], {"excludeList": [], "enabled": False})
+        self.assertEqual(filters["SocialService"], {"excludeList": [], "enabled": False})
         self.assertNotIn("TEST_OAUTH_SECRET", capture.getvalue())
         self.assertNotIn("TEST_GOOGLE_SECRET", capture.getvalue())
         self.assertNotIn("probe@example.invalid", capture.getvalue())
