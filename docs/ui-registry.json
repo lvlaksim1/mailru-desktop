@@ -16397,6 +16397,36 @@
     },
     {
       "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[1]/StackPanel[0]/BackgroundPushEnabledCheckBox",
+      "location": {},
+      "name": "BackgroundPushEnabledCheckBox",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[1]/StackPanel[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "CheckBox",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {
+        "Foreground": "{DynamicResource AppMutedTextBrush}"
+      },
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[1]/StackPanel[0]/BackgroundPushStatusText",
+      "location": {
+        "Margin": "0,8,0,4"
+      },
+      "name": "BackgroundPushStatusText",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[1]/StackPanel[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
       "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[1]/StackPanel[0]/OpenPushProbeButton",
       "location": {
         "HorizontalAlignment": "Left",
@@ -16416,7 +16446,7 @@
       "color_roles_and_values": {
         "Foreground": "{DynamicResource AppMutedTextBrush}"
       },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[1]/StackPanel[0]/TextBlock[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[1]/StackPanel[0]/TextBlock[2]",
       "location": {},
       "name": null,
       "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[0]/StackPanel[0]/GroupBox[1]/StackPanel[0]",
@@ -20993,7 +21023,7 @@
         "Foreground": "{DynamicResource AppTextBrush}"
       },
       "declared_as": "XAML",
-      "element_count": 762,
+      "element_count": 764,
       "geometry": {
         "Height": "900",
         "MinHeight": "720",
