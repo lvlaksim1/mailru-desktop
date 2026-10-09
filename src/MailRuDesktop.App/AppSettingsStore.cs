@@ -107,6 +107,20 @@ internal sealed class AppSettingsStore
     // The switch is stored with existing app settings, not in the registry.
     public bool LoadBackgroundPushEnabled() => LoadState().BackgroundPushEnabled;
 
+    // Controls Windows notification popups only; never stops PushMe delivery.
+    public bool LoadTaskbarNotificationsEnabled() =>
+        LoadState().TaskbarNotificationsEnabled;
+
+    public void SaveTaskbarNotificationsEnabled(bool value)
+    {
+        lock (_sync)
+        {
+            var state = LoadStateCore();
+            state.TaskbarNotificationsEnabled = value;
+            SaveStateCore(state);
+        }
+    }
+
     public void SaveBackgroundPushEnabled(bool value)
     {
         lock (_sync)
@@ -367,6 +381,7 @@ internal sealed class AppSettingsStore
     {
         public string Theme { get; set; } = AppThemeMode.Dark.ToString();
         public bool BackgroundPushEnabled { get; set; } = true;
+        public bool TaskbarNotificationsEnabled { get; set; } = true;
         public int InterfaceFontSize { get; set; } = ThemeTypography.DefaultSize;
         public Dictionary<string, string>? DarkPalette { get; set; }
         public Dictionary<string, string>? LightPalette { get; set; }
