@@ -273,3 +273,7 @@ Diagnostic release purposely disables automatic shared push for all 32 logins an
 
 ## I-046 — accept nineteen selected mailboxes trial
 Use v0.3.44 to register exactly 19 user-selected mailboxes via the group receiver and record sanitized SERVER_API_CODE, SERVER_REASON, PUSHME_ACCEPTED and new-mail event. Compare 19 against previous 32 PushMe 499 INVALID_FORMAT without changes to group JSON. Single selected mailbox three-minute test from v0.3.43 remains intact. No automatic retries and no speculative protocol requests. Distinguish web 20-account limit from unverified PushMe limits.
+
+## I-047 — сохранение контрольной рабочей группы 19
+status: успешно проверена реальная регистрация и одно событие нового письма; ничего автоматически не расширять
+Поддерживать v0.3.44 как проверенный одноканальный рабочий сценарий для 19 выбранных аккаунтов; исходная проверка одного аккаунта также работает. Следующая задача только по согласованию с владельцем: выяснить документально/контролируемой ручной проверкой точную границу количества аккаунтов и метод расширения обслуживания остальных, не изменяя рабочие 19, не запуская автоматические серийные запросы, не отзывая общий Google-токен.
