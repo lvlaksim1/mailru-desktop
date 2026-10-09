@@ -103,6 +103,20 @@ internal sealed class AppSettingsStore
         }
     }
 
+    // Enabled by default after user approved the permanent notification feature.
+    // The switch is stored with existing app settings, not in the registry.
+    public bool LoadBackgroundPushEnabled() => LoadState().BackgroundPushEnabled;
+
+    public void SaveBackgroundPushEnabled(bool value)
+    {
+        lock (_sync)
+        {
+            var state = LoadStateCore();
+            state.BackgroundPushEnabled = value;
+            SaveStateCore(state);
+        }
+    }
+
     public int LoadInterfaceFontSize() =>
         ThemeTypography.Normalize(LoadState().InterfaceFontSize);
 
@@ -352,6 +366,7 @@ internal sealed class AppSettingsStore
     private sealed class SettingsState
     {
         public string Theme { get; set; } = AppThemeMode.Dark.ToString();
+        public bool BackgroundPushEnabled { get; set; } = true;
         public int InterfaceFontSize { get; set; } = ThemeTypography.DefaultSize;
         public Dictionary<string, string>? DarkPalette { get; set; }
         public Dictionary<string, string>? LightPalette { get; set; }
