@@ -135,7 +135,8 @@ internal sealed class MailRuPushProbe : IDisposable
 
     public async Task RunAsync(
         string login, string oauth, Action<string> onState, Action onNewMail,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken, bool continuous = false,
+        Func<byte[], bool>? shouldDeliver = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(login);
         ArgumentException.ThrowIfNullOrWhiteSpace(oauth);
@@ -192,18 +193,44 @@ internal sealed class MailRuPushProbe : IDisposable
                     return;
             }
             registered = true;
-            onState("Подписка подтверждена. Ожидание нового письма — до 3 минут.");
+            onState(continuous
+                ? "Подписка подтверждена. Постоянный приём уведомлений включён."
+                : "Подписка подтверждена. Ожидание нового письма — до 3 минут.");
             using var watch = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            watch.CancelAfter(TimeSpan.FromMinutes(3));
+            if (!continuous) watch.CancelAfter(TimeSpan.FromMinutes(3));
             try
             {
+                var heartbeatAwaiting = false;
                 while (!watch.Token.IsCancellationRequested)
                 {
-                    var messageTag = await PushWire.ReadByteAsync(stream, watch.Token);
-                    var data = await PushWire.ReadFrameAsync(stream, watch.Token);
+                    int messageTag;
+                    byte[] data;
+                    // An idle connection must not silently die forever: probe
+                    // the MCS channel after four quiet minutes, require a reply.
+                    using (var idle = CancellationTokenSource.CreateLinkedTokenSource(watch.Token))
+                    {
+                        if (continuous)
+                            idle.CancelAfter(heartbeatAwaiting
+                                ? TimeSpan.FromMinutes(1)
+                                : TimeSpan.FromMinutes(4));
+                        try
+                        {
+                            messageTag = await PushWire.ReadByteAsync(stream, idle.Token);
+                            data = await PushWire.ReadFrameAsync(stream, idle.Token);
+                        }
+                        catch (OperationCanceledException) when (continuous &&
+                            !watch.Token.IsCancellationRequested)
+                        {
+                            if (heartbeatAwaiting)
+                                throw new IOException("MCS keepalive reply was not received");
+                            await stream.WriteAsync(new byte[] { 0, 0 }, watch.Token);
+                            heartbeatAwaiting = true;
+                            continue;
+                        }
+                    }
+                    heartbeatAwaiting = false;
                     if (messageTag == 0)
                     {
-                        // Google MCS HeartbeatPing => HeartbeatAck.
                         await stream.WriteAsync(new byte[] { 1, 0 }, watch.Token);
                         continue;
                     }
@@ -214,13 +241,22 @@ internal sealed class MailRuPushProbe : IDisposable
                     }
                     if (messageTag != 8)
                         continue;
-                    if (PushWire.IsMailNewMessage(data))
+                    if (continuous)
                     {
-                        onState("MAILRU_NEW_MAIL_EVENT_RECEIVED=YES. Событие нового письма получено!");
-                        onNewMail();
-                        return;
+                        var acknowledgment = PushWire.SelectiveAcknowledgment(data);
+                        if (acknowledgment is not null)
+                        {
+                            await stream.WriteAsync(new byte[] { 7 }, watch.Token);
+                            await PushWire.WriteFrameAsync(stream, acknowledgment, watch.Token);
+                        }
                     }
-                    onState("Доставлено событие Google, но это не подтверждённое новое письмо.");
+                    if (!PushWire.IsMailNewMessage(data))
+                        continue;
+                    if (continuous && shouldDeliver is not null && !shouldDeliver(data))
+                        continue;
+                    onState("MAILRU_NEW_MAIL_EVENT_RECEIVED=YES. Событие нового письма получено!");
+                    onNewMail();
+                    if (!continuous) return;
                 }
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
@@ -456,6 +492,26 @@ internal static class PushWire
 
     internal static bool HasField(byte[] bytes, int field) =>
         Parse(bytes).Any(p => p.Field == field);
+
+    internal static string MessageIdentifier(byte[] bytes)
+    {
+        // MCS persistent_id is field 9, not the user-facing mailbox ID.
+        var id = Parse(bytes).FirstOrDefault(x => x.Field == 9).Bytes;
+        return id is { Length: > 0 }
+            ? Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(id))
+            : Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes));
+    }
+
+    internal static byte[]? SelectiveAcknowledgment(byte[] bytes)
+    {
+        // MCS IqStanza(type=SET, extension.id=12 SelectiveAck).
+        var id = Parse(bytes).FirstOrDefault(x => x.Field == 9).Bytes;
+        if (id is null || id.Length == 0 || id.Length > 256) return null;
+        var ids = BytesField(1, id);
+        var extension = Append(VarintField(1, 12), BytesField(2, ids));
+        return Append(VarintField(2, 1), TextField(3, "push-mail"),
+            BytesField(7, extension));
+    }
 
     internal static bool IsMailNewMessage(byte[] bytes)
     {
