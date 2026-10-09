@@ -76,7 +76,8 @@ public partial class MainWindow
 
     private bool StartMcsListening()
     {
-        if (!_pushBackgroundReady || _pushShuttingDown || _pushBackground is null)
+        if (!_pushBackgroundReady || _pushShuttingDown || _pushBackground is null ||
+            _pushProbeWindow is { IsVisible: true })
             return false;
         var identity = new SharedGooglePushIdentityStore().Load();
         if (identity is null) return false;
@@ -150,6 +151,8 @@ public partial class MainWindow
             return "Другая операция ещё выполняется.";
         try
         {
+            if (_pushProbeWindow is { IsVisible: true })
+                return "Сначала завершите отдельную проверку одного аккаунта.";
             var registry = _pushGroups.Load();
             if (new SharedGooglePushIdentityStore().Load() is null)
                 return "Сначала зарегистрируйте Google на этапе 1.";
@@ -224,6 +227,8 @@ public partial class MainWindow
                     PushDiagnostics.Failure("GROUP_ACCOUNT_REMOVE", error);
                 }
             }
+            if (registry.Groups.Length == 0 && registry.ReceiveEnabled)
+                _pushGroups.Save(registry with { ReceiveEnabled = false });
             if (shouldResume && registry.Groups.Length > 0)
                 StartMcsListening();
             return "Подтверждено адресных отписок: " + removed.Count + " из " +
