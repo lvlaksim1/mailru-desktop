@@ -128,7 +128,9 @@ public partial class MainWindow
         var registry = _pushGroups.Load();
         var running = new HashSet<string>(StringComparer.Ordinal);
         var total = 0;
-        foreach (var groupByRecipient in registry.Groups.GroupBy(x => x.RecipientId))
+        foreach (var groupByRecipient in registry.Groups
+                     .Where(g => g.ReceiveEnabled ?? registry.ReceiveEnabled)
+                     .GroupBy(x => x.RecipientId))
         {
             var recipientId = groupByRecipient.Key;
             var identity = new SharedGooglePushIdentityStore(
@@ -167,17 +169,41 @@ public partial class MainWindow
                 "Нет подтверждённых групп с действующей авторизацией почты.";
             return false;
         }
-        _pushGroups.Save(registry with { ReceiveEnabled = true });
         PushDiagnostics.Record("UI", "MCS_RECEIVE_ENABLED", total);
         BackgroundPushStatusText.Text = "Google MCS: подключение " +
             running.Count + " независимых получателей для " + total + " аккаунтов.";
         return true;
     }
 
+    private bool StartAllMcsListening()
+    {
+        var current = _pushGroups.Load();
+        _pushGroups.Save(PushGroupRegistryStore.SetAllReceiving(current, true));
+        return StartMcsListening();
+    }
+
+    private void StartGroupMcsListening(string groupId)
+    {
+        var current = _pushGroups.Load();
+        _pushGroups.Save(PushGroupRegistryStore.SetGroupReceiving(current, groupId, true));
+        StartMcsListening();
+    }
+
+    private void StopGroupMcsListening(string groupId)
+    {
+        var current = _pushGroups.Load();
+        var target = current.Groups.FirstOrDefault(g => g.Id == groupId);
+        if (target is null) return;
+        _pushGroups.Save(PushGroupRegistryStore.SetGroupReceiving(current, groupId, false));
+        GetGroupReceiver(target.RecipientId)?.StopListeningOnly();
+        SetGoogleMcsState("STOPPED", target.RecipientId);
+        StartMcsListening();
+    }
+
     private void StopMcsListening()
     {
         var current = _pushGroups.Load();
-        _pushGroups.Save(current with { ReceiveEnabled = false });
+        _pushGroups.Save(PushGroupRegistryStore.SetAllReceiving(current, false));
         PushDiagnostics.Record("UI", "MCS_RECEIVE_DISABLED_ONLY");
         _pushBackground?.StopListeningOnly();
         foreach (var worker in _supplementalReceivers.Values)
@@ -404,7 +430,8 @@ public partial class MainWindow
             _authStore.Logins, () => _pushGroups.Load(), RegisteredGoogleIds,
             RegisterGooglePushAsync, DeleteGooglePushAsync,
             RegisterPushGroupAsync, DeletePushGroupAsync,
-            () => StartMcsListening(), StopMcsListening, () => _googleMcsState)
+            () => StartAllMcsListening(), StopMcsListening, () => _googleMcsState,
+            StartGroupMcsListening, StopGroupMcsListening)
         {
             Owner = this
         };
