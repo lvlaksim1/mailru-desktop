@@ -12,3 +12,8 @@
 
 
 Последнее подтверждение 2026-10-09: GitHub Actions 37872182332 SUCCESS; исследовательский коммит 7d5de6c41af591c0e4eaca30ee601bba4a2ea004, 93 файла исходников GCM и PushMe. SetUpPushComponent выбирает GCM при наличии Google Play Services, иначе HMS, опционально VKPNS. GcmPushKitWrapper получает FCM токен по push_sender_id; MailMessagingService принимает данные Firebase и передаёт в PushMeSdk и почтовый уведомитель; SetUpPushMeSdk и PushMeSDKPusherTransport подписывают все аккаунты через ru.mail.oauth2.access. Полное исследование docs/research/android-new-mail-notifications-2026-10-09.md. Реальный Windows путь и принятие нового FCM токена сервером Mail.ru ещё не проверены; следующий безопасный отдельный опыт. Основной MailRuDesktop не изменён.
+
+
+## Передача исследования: 09.10.2026
+
+Правило владельца: максимальное использование исходного APK, никаких новых приложений/проектов Mail.ru, запросы строго по мобильному протоколу; собственный токен доставки Windows допустим и обязателен, копировать телефонный нельзя. Проверка оригинальных ресурсов Actions 37874537322 PASS: push_sender_id=1098335887158, gcm_defaultSenderId=61247752867, google_app_id=1:61247752867:android:d199c9f145040309, project fluorcorpmailru, alt-push-me.mail.ru, api. GcmPushKitWrapper использует push_sender_id; InternalSubscriptionRequest network platform=android, application=mail, token FCM и access_token почты раздельно. Windows-клиент уже имеет мобильную авторизацию, но PushMe её не подтверждал. Спецификация docs/research/mailru-mobile-push-contract-2026-10-09.md. Запущена проверка FirebaseInfoProvider (Actions 37874791066), итог пока не подтверждён. Рабочая программа не изменена.

@@ -12,3 +12,8 @@
 ## Итог дополнительного анализа Google FCM 2026-10-09
 
 Целевая декомпиляция оригинального APK завершена SUCCESS (37872182332, исследовательская ветка 7d5de6c41af591c0e4eaca30ee601bba4a2ea004): 93 файла, 528770 байт. Код напрямую подтверждает выбор GCM при доступных Google Play Services, HMS как альтернативы; FirebaseInfoProvider.getToken(senderId), FirebaseMessagingService.onMessageReceived → PushMeSdk + уведомитель, onNewToken → PushMeSdk, регистрацию всех аккаунтов через ru.mail.oauth2.access. Совместимость нового Windows токена с почтовым PushMe и реальная доставка на Windows не проверены. Рабочий продукт не изменён.
+
+
+## 2026-10-09 — исходная идентичность мобильных уведомлений
+
+По указанию владельца не создаём новое приложение Mail.ru, сохраняем параметры официального APK и формируем запросы по его протоколу. Ресурсный анализ APK (SHA-256 PASS), GitHub Actions 37874537322 SUCCESS: push_sender_id 1098335887158, gcm_defaultSenderId 61247752867, google_app_id 1:61247752867:android:d199c9f145040309, project fluorcorpmailru, PushMe alt-push-me.mail.ru, api=api. GcmPushKitWrapper.getToken использует первый идентификатор. Исследована подписка на все аккаунты, application mail, on-wire platform android, access_token и отдельный token доставки. Current Desktop хранит мобильные OAuth access/refresh токены; принятие их PushMe не проверено. Детальная спецификация docs/research/mailru-mobile-push-contract-2026-10-09.md. Actions 37874791066 (FirebaseInfoProvider) запущено, результата пока нет. Продукт не меняли.
