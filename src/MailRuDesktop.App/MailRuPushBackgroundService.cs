@@ -113,7 +113,15 @@ internal sealed class MailRuPushBackgroundService : IDisposable
                     using var probe = new MailRuPushProbe();
                     await probe.RunSharedAsync(snapshot,
                         (account, text) => _onStatus(account, SanitizedState(text)),
-                        account => _onNewMail(account),
+                        account =>
+                        {
+                            lock (_sync)
+                            {
+                                if (!_enabled || !_accounts.ContainsKey(account) || _stopping)
+                                    return;
+                            }
+                            _onNewMail(account);
+                        },
                         AcceptMessage,
                         cancellationToken);
                 }
