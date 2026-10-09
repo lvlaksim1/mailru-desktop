@@ -156,9 +156,6 @@ class LocalProbeTests(unittest.TestCase):
 
     def test_temporary_subscription_is_removed_after_server_rejection(self):
         from types import SimpleNamespace
-        fake_socket = FakeSocket(b"")
-        fake_socket.__enter__ = None  # socket context protocol mocked below
-
         class FakeSession:
             def __enter__(self):
                 return self
