@@ -1,0 +1,6 @@
+com/vk/pushme/network/PushMeApiImpl.java
+ru/mail/dependecies/MailUtilsModule_ProvideFirebaseInfoProviderFactory.java
+ru/mail/util/push/gcm/GcmPushKitWrapper.java
+ru/mail/utils/FirebaseAppInitializer.java
+ru/mail/utils/FirebaseInfoProvider.java
+ru/mail/utils/FirebaseInstanceInfoProvider.java
