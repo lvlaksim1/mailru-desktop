@@ -7,7 +7,7 @@ using System.Text.Json;
 namespace MailRuDesktop.App;
 
 /// <summary>
-/// Exactly one durable Google recipient per Windows user/application installation.
+/// One durable Google recipient per protected, independently named slot.
 /// Device credentials, registration token and subscribed mailbox identifiers are
 /// protected with the same current-user DPAPI boundary as AuthorizationStore.
 /// </summary>
@@ -55,14 +55,45 @@ internal sealed class SharedGooglePushIdentityStore
         return commonId[..16];
     }
 
+    internal const string PrimaryRecipientId = "primary";
     private readonly string _file;
 
-    internal SharedGooglePushIdentityStore(string? directoryOverride = null)
+    internal static bool ValidRecipientId(string id) =>
+        id == PrimaryRecipientId ||
+        Regex.IsMatch(id, @"\A[a-f0-9]{12}\z", RegexOptions.CultureInvariant);
+
+    private static string DataDirectory => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "MailRuDesktop");
+
+    internal SharedGooglePushIdentityStore(
+        string? directoryOverride = null, string recipientId = PrimaryRecipientId)
     {
-        var directory = directoryOverride ?? Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "MailRuDesktop");
-        _file = Path.Combine(directory, "google-push-receiver.dat");
+        if (!ValidRecipientId(recipientId))
+            throw new ArgumentException("Invalid Google recipient slot.", nameof(recipientId));
+        var directory = directoryOverride ?? DataDirectory;
+        _file = Path.Combine(directory, recipientId == PrimaryRecipientId
+            ? "google-push-receiver.dat"
+            : "google-push-receiver-" + recipientId + ".dat");
+    }
+
+    internal static string[] ListRecipientIds(string? directoryOverride = null)
+    {
+        var directory = directoryOverride ?? DataDirectory;
+        if (!Directory.Exists(directory)) return [];
+        var ids = new List<string>();
+        if (File.Exists(Path.Combine(directory, "google-push-receiver.dat")))
+            ids.Add(PrimaryRecipientId);
+        foreach (var file in Directory.EnumerateFiles(directory,
+                     "google-push-receiver-*.dat", SearchOption.TopDirectoryOnly))
+        {
+            var name = Path.GetFileNameWithoutExtension(file);
+            var id = name["google-push-receiver-".Length..];
+            if (ValidRecipientId(id) && id != PrimaryRecipientId)
+                ids.Add(id);
+        }
+        return ids.Distinct(StringComparer.Ordinal).OrderBy(x =>
+            x == PrimaryRecipientId ? "" : x, StringComparer.Ordinal).ToArray();
     }
 
     internal State? Load()
