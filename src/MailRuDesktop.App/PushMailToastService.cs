@@ -93,7 +93,10 @@ internal static class PushMailToastService
                 .AddArgument("sender", mail.Sender ?? "")
                 .AddArgument("subject", mail.Subject ?? "")
                 .AddArgument("snippet", mail.Snippet ?? "")
-                .AddText(PushMailEvent.MailboxLabel(mail))
+                .AddText(PushMailEvent.MailboxLabel(mail) +
+                    (mail.ReceivedAt is DateTimeOffset received
+                        ? " · " + received.ToLocalTime().ToString("HH:mm", CultureInfo.CurrentCulture)
+                        : ""))
                 .AddText(PushMailEvent.SenderAndSubject(mail))
                 .AddText(PushMailEvent.PreviewLine(mail));
             toast.Show();
