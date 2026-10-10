@@ -39,12 +39,11 @@ public partial class MainWindow
                 if (expanded.Members.Count > conversation.Members.Count)
                 {
                     conversation = expanded;
+                    var enrichedIndex = _conversationIndex.ToDictionary(
+                        pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
                     foreach (var member in expanded.Members)
-                        _conversationIndex = new Dictionary<string, MailRuConversation>(
-                            _conversationIndex, StringComparer.Ordinal)
-                        {
-                            [member.Id] = expanded
-                        };
+                        enrichedIndex[member.Id] = expanded;
+                    _conversationIndex = enrichedIndex;
                 }
                 PushDiagnostics.Record("MAIL", "THREAD_DETAIL_MEMBERS",
                     conversation.Members.Count);
