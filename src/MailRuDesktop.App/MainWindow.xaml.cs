@@ -1843,7 +1843,8 @@ public partial class MainWindow : Window
                     SendDate: sendDate,
                     RequestReadReceipt: RequestReadReceiptCheckBox.IsChecked == true,
                     AttachmentIds: attachmentIds,
-                    MessageId: messageId));
+                    MessageId: messageId,
+                    ReplyToId: _composeReplyToId));
 
             ResponseTextBox.Text = result.RawResponse;
 
@@ -1862,6 +1863,7 @@ public partial class MainWindow : Window
             ComposeToTextBox.Clear();
             ComposeSubjectTextBox.Clear();
             ComposeBodyTextBox.Clear();
+            _composeReplyToId = null;
             ResetComposeTemplateSelectors();
             _attachmentPaths.Clear();
             RefreshComposeAttachments();
