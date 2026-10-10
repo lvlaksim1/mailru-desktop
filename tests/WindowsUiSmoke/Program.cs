@@ -215,6 +215,35 @@ internal static class Program
                     DependencyProperty.UnsetValue),
                 "send button uses the shared theme without a forced blue fill");
 
+            editor.Close();
+            editor = null;
+            var showReply = typeof(MainWindow).GetMethod("OpenReplyComposeWindow",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            Check(showReply is not null,
+                "standalone New Mail reply handler is available");
+            var sample = new MailRuDesktop.Protocol.MailRuMessageSummary(
+                "reply-test-123", "Договор", "Текст письма", "Тест",
+                "sender@example.invalid", null, null, 0, true, false, false);
+            showReply!.Invoke(mail, new object?[] { sample, null });
+            editor = Application.Current.Windows.OfType<Window>()
+                .FirstOrDefault(w => w.Title.StartsWith("Новое письмо", StringComparison.Ordinal));
+            Check(editor is { IsVisible: true },
+                "Reply launches the independent New Mail window");
+            Check(Require<TextBox>(mail, "ComposeToTextBox").Text ==
+                    "sender@example.invalid" &&
+                  Require<TextBox>(mail, "ComposeSubjectTextBox").Text == "Re: Договор" &&
+                  Require<TextBox>(mail, "ComposeBodyTextBox").Text.Contains("Текст письма"),
+                "reply fills recipient, Re subject, and original quote");
+            var replyId = typeof(MainWindow).GetField("_composeReplyToId",
+                BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(mail) as string;
+            Check(replyId == "reply-test-123",
+                "sending from standalone reply retains precise source message ID");
+            Check(Require<FrameworkElement>(mail, "PreviewComposePanel").Visibility !=
+                  Visibility.Visible,
+                "Reply no longer opens the inline editor above the mail body");
+            editor.Close();
+            editor = null;
+
             var dialogType = typeof(MainWindow).Assembly.GetType("MailRuDesktop.App.AppDialog");
             var createNotice = dialogType?.GetMethod("CreateWindow",
                 BindingFlags.Static | BindingFlags.NonPublic);
