@@ -53,6 +53,42 @@ Expect(PushMailEvent.Parse(PushWire.Append(
     PushKv("event", "10"), PushKv("account", "test@example.invalid"))) is null,
     true, "counter events remain unhandled");
 
+// A live preference switch bypasses both the memory and DPAPI replay
+// suppressors but cannot bypass mailbox authorization or MCS transport ACK.
+bool replayProtectionOn = false;
+var toggleFrame = PushWire.Append(
+    PushWire.TextField(5, "ru.mail.mailapp"),
+    PushKv("event", "4"),
+    PushKv("account", "test@example.invalid"),
+    PushKv("id", "toggle-" + Guid.NewGuid().ToString("N")),
+    PushWire.TextField(9, "toggle-persistent-id"));
+using (var toggleReceiver = new MailRuPushBackgroundService(
+    (_, _) => { }, _ => { },
+    suppressReplays: () => replayProtectionOn))
+{
+    var flags = System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic;
+    typeof(MailRuPushBackgroundService).GetField("_accounts", flags)!
+        .SetValue(toggleReceiver, new Dictionary<string, string>(
+            StringComparer.OrdinalIgnoreCase) { ["test@example.invalid"] = "FAKE_ACCESS" });
+    typeof(MailRuPushBackgroundService).GetField("_enabled", flags)!
+        .SetValue(toggleReceiver, true);
+    Expect(toggleReceiver.AcceptMessage("test@example.invalid", toggleFrame), true,
+        "disabled suppression accepts first event");
+    Expect(toggleReceiver.AcceptMessage("test@example.invalid", toggleFrame), true,
+        "disabled suppression accepts same event again, without restart");
+    replayProtectionOn = true;
+    Expect(toggleReceiver.AcceptMessage("test@example.invalid", toggleFrame), true,
+        "enabling suppression immediately begins recording already received IDs");
+    Expect(toggleReceiver.AcceptMessage("test@example.invalid", toggleFrame), false,
+        "enabled suppression blocks repeated local delivery");
+    replayProtectionOn = false;
+    Expect(toggleReceiver.AcceptMessage("test@example.invalid", toggleFrame), true,
+        "disabling suppression immediately allows duplicates again");
+    Expect(toggleReceiver.AcceptMessage("other@example.invalid", toggleFrame), false,
+        "disabling local filtering never bypasses mailbox authorization");
+}
+
 // Conversation membership is sourced from independent message records, never
 // from citations inside the body or duplicate folder representations.
 var conversationJson = """
@@ -594,6 +630,18 @@ try
         false, "disabling Windows popups persists independently");
     Expect(storedSettings.LoadBackgroundPushEnabled(), true,
         "turning off popups does not stop mail delivery");
+    Expect(storedSettings.LoadReplaySuppressionEnabled(), true,
+        "local duplicate-notification filter defaults to enabled");
+    storedSettings.SaveReplaySuppressionEnabled(false);
+    Expect(new AppSettingsStore(pushSettingsDirectory).LoadReplaySuppressionEnabled(),
+        false, "user can disable persistent replay suppression");
+    Expect(storedSettings.LoadBackgroundPushEnabled(), true,
+        "disabling replay filtering never revokes background push");
+    Expect(storedSettings.LoadTaskbarNotificationsEnabled(), false,
+        "replay filter is independent of Windows popups preference");
+    storedSettings.SaveReplaySuppressionEnabled(true);
+    Expect(new AppSettingsStore(pushSettingsDirectory).LoadReplaySuppressionEnabled(),
+        true, "replay filter can be restored without resetting other settings");
 }
 finally
 {
