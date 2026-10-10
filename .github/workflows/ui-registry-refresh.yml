@@ -2,7 +2,7 @@ name: Refresh checked UI registry
 # v3: include automatic notifications switch and connection-state label
 on:
   push:
-    branches: [main]
+    branches: [main, fix/verified-thread-detail-v0353]
     paths:
       - '.github/workflows/ui-registry-refresh.yml'
       - 'src/MailRuDesktop.App/**/*.xaml'
@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main
+          ref: fix/verified-thread-detail-v0353
           fetch-depth: 1
       - name: Rebuild verified window/control registry
         run: |
@@ -34,5 +34,5 @@ jobs:
           if git diff --cached --quiet; then exit 0; fi
           git commit -m 'ui: register native push diagnostics window and control elements'
           sleep 5
-          git pull --rebase origin main
-          git push origin HEAD:main
+          git pull --rebase origin fix/verified-thread-detail-v0353
+          git push origin HEAD:fix/verified-thread-detail-v0353
