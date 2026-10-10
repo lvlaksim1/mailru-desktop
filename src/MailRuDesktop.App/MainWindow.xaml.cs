@@ -709,7 +709,9 @@ public partial class MainWindow : Window
             _accessToken,
             _currentFolderId,
             folders,
-            _currentFullMessage?.Id == message.Id ? _currentFullMessage : null)
+            _currentFullMessage?.Id == message.Id ? _currentFullMessage : null,
+            _conversationIndex.TryGetValue(message.Id, out var thread)
+                ? thread : null)
         {
             Owner = this
         };
@@ -733,6 +735,10 @@ public partial class MainWindow : Window
 
     private void DisplaySummary(MailRuMessageSummary message)
     {
+        // A new selection invalidates the previous thread's composed view.
+        _displayedConversation = null;
+        _displayedConversationBodies = null;
+        _displayedConversationSelectedId = null;
         BeginReaderTransition(message);
 
         IncomingAttachmentsListBox.ItemsSource = null;
@@ -820,7 +826,12 @@ public partial class MainWindow : Window
             if (!Equals(message, completeSender))
                 ReplaceMessage(message, completeSender);
 
-            if (!string.IsNullOrWhiteSpace(full.Html))
+            if (await ShowConversationIfAvailableAsync(
+                    message, full, generation, requestCancellation.Token))
+            {
+                // Only real server-listed messages appear as separate cards.
+            }
+            else if (!string.IsNullOrWhiteSpace(full.Html))
             {
                 // Images load independently from the WebView2 resource handler.
                 // Never serialize image requests ahead of rendering the body.
@@ -1884,6 +1895,11 @@ public partial class MainWindow : Window
                 ComposeStatusText.Text =
                     $"Запланировано на {scheduledFor.Value.LocalDateTime:dd.MM.yyyy HH:mm}.";
             }
+
+            // Close only when the mail server has confirmed successful send
+            // or schedule. On any error the current editor and attachments
+            // remain intact for correction and retry.
+            _composeWindow?.Close();
         }
         catch (Exception ex)
         {
@@ -2053,7 +2069,9 @@ public partial class MainWindow : Window
         {
             BeginReaderTransition(ActivePreviewMessage);
             _readerWaitingForFullMessage = false;
-            if (!string.IsNullOrWhiteSpace(_currentPreparedHtml))
+            if (_displayedConversation is not null)
+                ShowTrustedConversationHtml();
+            else if (!string.IsNullOrWhiteSpace(_currentPreparedHtml))
                 ShowReaderHtml(_currentPreparedHtml);
             else if (!string.IsNullOrWhiteSpace(_currentFullMessage.Html))
                 ShowReaderHtml(_currentFullMessage.Html);

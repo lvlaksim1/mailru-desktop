@@ -108,21 +108,33 @@ public partial class MainWindow
         view.Refresh();
     }
 
+    private IReadOnlyDictionary<string, MailRuConversation> _conversationIndex =
+        new Dictionary<string, MailRuConversation>(StringComparer.Ordinal);
+
     private void RefreshThreadCountIndex()
     {
         var raw = ResponseTextBox.Text;
         if (string.IsNullOrWhiteSpace(raw))
         {
+            _conversationIndex = new Dictionary<string, MailRuConversation>(StringComparer.Ordinal);
             MailThreadCountRegistry.Replace(new Dictionary<string, int>(StringComparer.Ordinal));
             return;
         }
 
         try
         {
-            MailThreadCountRegistry.Replace(BuildThreadCountIndex(raw));
+            _conversationIndex = MailRuConversationParser.Parse(raw);
+            var counts = BuildThreadCountIndex(raw);
+            foreach (var (id, conversation) in _conversationIndex)
+            {
+                if (conversation.VerifiedCount is int serverCount && serverCount > 1)
+                    counts[id] = Math.Max(counts.GetValueOrDefault(id), serverCount);
+            }
+            MailThreadCountRegistry.Replace(counts);
         }
         catch (JsonException ex)
         {
+            _conversationIndex = new Dictionary<string, MailRuConversation>(StringComparer.Ordinal);
             MailThreadCountRegistry.Replace(new Dictionary<string, int>(StringComparer.Ordinal));
             DiagnosticLog.Write("thread_count_index", ex.Message);
         }

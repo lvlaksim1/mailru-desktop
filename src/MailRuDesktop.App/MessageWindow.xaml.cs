@@ -15,6 +15,7 @@ public partial class MessageWindow : Window
     private readonly string? _accessToken;
     private readonly IReadOnlyList<MailRuFolderSummary> _folders;
     private readonly MailRuFullMessage? _initialFullMessage;
+    private readonly MailRuConversation? _conversation;
 
     private bool _readerReady;
     private MailRuFullMessage? _fullMessage;
@@ -32,12 +33,14 @@ public partial class MessageWindow : Window
         string? accessToken,
         int currentFolderId,
         IReadOnlyList<MailRuFolderSummary> folders,
-        MailRuFullMessage? initialFullMessage = null)
+        MailRuFullMessage? initialFullMessage = null,
+        MailRuConversation? conversation = null)
     {
         _mailRu = mailRu;
         _summary = summary;
         _accessToken = accessToken;
         _folders = folders;
+        _conversation = conversation;
         _initialFullMessage = initialFullMessage?.Id == summary.Id
             ? initialFullMessage
             : null;
@@ -80,7 +83,7 @@ public partial class MessageWindow : Window
 
         if (_initialFullMessage is not null)
         {
-            ApplyFullMessage(_initialFullMessage);
+            await ApplyFullMessageAsync(_initialFullMessage);
             return;
         }
 
@@ -135,7 +138,7 @@ public partial class MessageWindow : Window
                 _accessToken,
                 _summary.Id,
                 markRead: false);
-            ApplyFullMessage(full);
+            await ApplyFullMessageAsync(full);
             StatusText.Text = "Письмо загружено.";
         }
         catch (Exception ex)
@@ -146,7 +149,7 @@ public partial class MessageWindow : Window
         }
     }
 
-    private void ApplyFullMessage(MailRuFullMessage full)
+    private async Task ApplyFullMessageAsync(MailRuFullMessage full)
     {
         _fullMessage = full;
 
@@ -162,7 +165,37 @@ public partial class MessageWindow : Window
         AttachmentsItemsControl.Visibility =
             full.Attachments.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
 
-        if (!string.IsNullOrWhiteSpace(full.Html))
+        if (_conversation is { Members.Count: > 1 } && _accessToken is not null)
+        {
+            var bodies = new Dictionary<string, MailRuFullMessage>(StringComparer.Ordinal)
+            {
+                [full.Id] = full
+            };
+            foreach (var member in _conversation.Members
+                         .Where(x => x.Id != full.Id)
+                         .OrderByDescending(x => x.DateUnix ?? long.MinValue).Take(18))
+            {
+                try
+                {
+                    var historical = await _mailRu.GetFullMessageAsync(
+                        _accessToken, member.Id, markRead: false);
+                    if (historical.Id == member.Id)
+                        bodies[member.Id] = historical;
+                }
+                catch (Exception error)
+                {
+                    DiagnosticLog.Write("detached_conversation",
+                        error.GetType().Name);
+                }
+            }
+            if (_readerReady)
+                MessageWebView.NavigateToString(
+                    MailRuConversationHtml.Render(_conversation, full.Id, bodies,
+                        ThemeManager.ReaderBackgroundHtml,
+                        ThemeManager.ReaderForegroundHtml,
+                        ThemeManager.ReaderMutedHtml));
+        }
+        else if (!string.IsNullOrWhiteSpace(full.Html))
             ShowBody(full.Html, html: true);
         else if (!string.IsNullOrWhiteSpace(full.Text))
             ShowBody(full.Text, html: false);

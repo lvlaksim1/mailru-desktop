@@ -97,6 +97,8 @@ public partial class MainWindow
 
         ShowComposeWindow();
         _composeReplyToId = source.Id;
+        if (_composeWindow is { } replyWindow)
+            replyWindow.Title = "Ответ: " + (full?.Subject ?? source.Subject);
         _attachmentPaths.Clear();
         RefreshComposeAttachments();
         ResetComposeTemplateSelectors();
