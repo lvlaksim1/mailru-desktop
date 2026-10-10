@@ -1,6 +1,6 @@
 using System.Globalization;
 using System.Windows;
-using CommunityToolkit.WinUI.Notifications;
+using Microsoft.Toolkit.Uwp.Notifications;
 
 namespace MailRuDesktop.App;
 
