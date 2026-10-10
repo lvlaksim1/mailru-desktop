@@ -102,6 +102,7 @@ public partial class MainWindow : Window
         await InitializeReaderAsync();
         await EnsureStartupAccountAsync();
         StartBackgroundPush();
+        PushMailToastService.Attach(mail => _ = NavigateToPushMailAsync(mail));
     }
 
     private async Task InitializeReaderAsync()
