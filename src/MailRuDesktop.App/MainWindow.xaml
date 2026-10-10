@@ -972,6 +972,15 @@
                                           Content="Показывать уведомления Windows о новых письмах"
                                           Checked="TaskbarNotificationsEnabledCheckBox_Changed"
                                           Unchecked="TaskbarNotificationsEnabledCheckBox_Changed"/>
+                                <CheckBox x:Name="ReplaySuppressionEnabledCheckBox"
+                                          Margin="0,9,0,0"
+                                          Content="Не показывать повторно ранее полученные уведомления"
+                                          Checked="ReplaySuppressionEnabledCheckBox_Changed"
+                                          Unchecked="ReplaySuppressionEnabledCheckBox_Changed"/>
+                                <TextBlock Margin="20,3,0,0"
+                                           Text="Локальная защита от повторов. Отключение не меняет подтверждения Google."
+                                           TextWrapping="Wrap"
+                                           Foreground="{DynamicResource AppMutedTextBrush}"/>
                                 <TextBlock x:Name="BackgroundPushStatusText" Margin="0,9,0,0"
                                            TextWrapping="Wrap"
                                            Foreground="{DynamicResource AppMutedTextBrush}"
