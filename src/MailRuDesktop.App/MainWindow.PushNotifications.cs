@@ -181,20 +181,12 @@ public partial class MainWindow
     private static MailRuMessageSummary? FindPushTarget(
         PushMailEvent mail, IEnumerable<MailRuMessageSummary> messages)
     {
-        if (!string.IsNullOrWhiteSpace(mail.MessageId))
-            return messages.FirstOrDefault(m =>
-                string.Equals(m.Id, mail.MessageId, StringComparison.Ordinal));
-
-        // If an event has no message ID, selecting on subject alone is unsafe.
-        // Allow only one independently matching sender + subject combination.
-        if (string.IsNullOrWhiteSpace(mail.Subject) ||
-            string.IsNullOrWhiteSpace(mail.Sender)) return null;
-        var matching = messages.Where(m =>
-            string.Equals(m.Subject, mail.Subject, StringComparison.OrdinalIgnoreCase) &&
-            (string.Equals(m.SenderDisplay, mail.Sender, StringComparison.OrdinalIgnoreCase) ||
-             string.Equals(m.SenderEmail, mail.Sender, StringComparison.OrdinalIgnoreCase)))
-            .Take(2).ToArray();
-        return matching.Length == 1 ? matching[0] : null;
+        // Only the PushMe id can identify the exact letter. Sender + subject
+        // are display/search hints, never permission to open another message.
+        if (string.IsNullOrWhiteSpace(mail.MessageId))
+            return null;
+        return messages.FirstOrDefault(m =>
+            string.Equals(m.Id, mail.MessageId, StringComparison.Ordinal));
     }
 
     private void ClearPushNavigationFilters()
