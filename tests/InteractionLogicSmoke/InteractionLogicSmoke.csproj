@@ -23,6 +23,7 @@
     <Compile Include="../../src/MailRuDesktop.App/MailRuPushProbe.Shared.cs" Link="MailRuPushProbe.Shared.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/PushMailEvent.cs" Link="PushMailEvent.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/PushProcessedEventStore.cs" Link="PushProcessedEventStore.cs"/>
+    <Compile Include="../../src/MailRuDesktop.App/McsPendingReceiptStore.cs" Link="McsPendingReceiptStore.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/MailRuConversationHtml.cs" Link="MailRuConversationHtml.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/SharedGooglePushIdentityStore.cs" Link="SharedGooglePushIdentityStore.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/PushGroupRegistryStore.cs" Link="PushGroupRegistryStore.cs"/>
