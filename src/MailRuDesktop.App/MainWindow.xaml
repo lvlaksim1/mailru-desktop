@@ -954,85 +954,32 @@
             </Grid>
 
             <Grid x:Name="SettingsWorkspace" Visibility="Collapsed">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" MinWidth="450"/>
+                    <ColumnDefinition Width="420"/>
+                </Grid.ColumnDefinitions>
+                <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
                     <StackPanel MaxWidth="800" HorizontalAlignment="Left">
                         <TextBlock FontSize="{DynamicResource AppFontHeroSize}" FontWeight="SemiBold" Text="Настройки"/>
                         <GroupBox Margin="0,16,0,0" Header="Уведомления о новых письмах">
                             <StackPanel Margin="12">
-                                <CheckBox x:Name="BackgroundPushEnabledCheckBox"
-                                          Content="Получать новые письма автоматически, пока работает приложение"
+                                <!-- Retained only for backward-compatible background-setting code.
+                                     Manual group management owns MCS; don't show an inert toggle. -->
+                                <CheckBox x:Name="BackgroundPushEnabledCheckBox" Visibility="Collapsed"
                                           Checked="BackgroundPushEnabledCheckBox_Changed"
                                           Unchecked="BackgroundPushEnabledCheckBox_Changed"/>
                                 <CheckBox x:Name="TaskbarNotificationsEnabledCheckBox"
-                                          Margin="0,8,0,0"
                                           Content="Показывать уведомления Windows о новых письмах"
                                           Checked="TaskbarNotificationsEnabledCheckBox_Changed"
                                           Unchecked="TaskbarNotificationsEnabledCheckBox_Changed"/>
-                                <TextBlock x:Name="BackgroundPushStatusText"
-                                           Margin="0,8,0,4"
+                                <TextBlock x:Name="BackgroundPushStatusText" Margin="0,9,0,0"
                                            TextWrapping="Wrap"
                                            Foreground="{DynamicResource AppMutedTextBrush}"
-                                           Text="Подключение к службе уведомлений не запущено."/>
-                                <TextBlock x:Name="GoogleRecipientStatusText"
-                                           Margin="0,8,0,0" TextWrapping="Wrap"
-                                           Foreground="{DynamicResource AppMutedTextBrush}"
-                                           Text="Google: проверка сохранённой регистрации…"/>
-                                <TextBlock x:Name="GoogleMcsStatusText"
-                                           Margin="0,4,0,4" TextWrapping="Wrap"
-                                           Foreground="{DynamicResource AppMutedTextBrush}"
-                                           Text="Google MCS: Остановлен"/>
-                                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource AppMutedTextBrush}"
-                                           Text="Получение уведомлений настраивается поэтапно: сначала однократная регистрация Google, затем самостоятельные группы PushMe. Остановка MCS не снимает подписки. Состав каждой группы и принадлежность аккаунтов сохраняются. Проверка одного аккаунта оставлена отдельно."/>
-                                <Button x:Name="OpenPushProbeButton" Content="Выбрать аккаунт для проверки"
-                                        Margin="0,10,0,0" Padding="12,7"
-                                        HorizontalAlignment="Left"
-                                        Click="OpenPushProbeButton_Click"/>
+                                           Text="Состояние приёма уведомлений…"/>
                                 <Button x:Name="OpenPushGroupManagerButton" Content="Google и группы PushMe"
-                                        Margin="0,8,0,0" Padding="12,7"
+                                        Margin="0,12,0,0" Padding="12,7"
                                         HorizontalAlignment="Left"
                                         Click="OpenPushGroupManagerButton_Click"/>
-                            </StackPanel>
-                        </GroupBox>
-                        <GroupBox Margin="0,16,0,0" Header="Диагностика Google и PushMe">
-                            <StackPanel Margin="12">
-                                <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource AppMutedTextBrush}"
-                                           Text="Подробный локальный журнал: адрес каждого аккаунта, группа, порядок операции, HTTP-код и результат. Токены, пароли и содержимое писем не записываются. Для отправки отчёта выберите обезличенный вариант."/>
-                                <TextBox x:Name="PushDiagnosticsLogTextBox"
-                                         Margin="0,9,0,0"
-                                         Height="205"
-                                         MinWidth="420"
-                                         FontFamily="Consolas"
-                                         FontSize="11"
-                                         IsReadOnly="True"
-                                         IsUndoEnabled="False"
-                                         TextWrapping="NoWrap"
-                                         ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                         ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
-                                <StackPanel Orientation="Horizontal" Margin="0,9,0,2">
-                                    <TextBlock VerticalAlignment="Center" Text="Формат копирования / сохранения: " Margin="0,0,10,0"/>
-                                    <ComboBox x:Name="PushDiagnosticsExportModeComboBox" SelectedIndex="0"
-                                              MinWidth="240" VerticalAlignment="Center">
-                                        <ComboBoxItem Content="Без адресов (для отправки)"/>
-                                        <ComboBoxItem Content="Полный (с адресами)"/>
-                                    </ComboBox>
-                                </StackPanel>
-                                <WrapPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                    <Button x:Name="RefreshPushDiagnosticsButton" Content="Обновить журнал"
-                                            Padding="11,6" Margin="0,0,8,6"
-                                            Click="RefreshPushDiagnosticsButton_Click"/>
-                                    <Button x:Name="CopyPushDiagnosticsButton" Content="Копировать отчёт"
-                                            Padding="11,6" Margin="0,0,8,6"
-                                            Click="CopyPushDiagnosticsButton_Click"/>
-                                    <Button x:Name="SavePushDiagnosticsButton" Content="Сохранить в TXT"
-                                            Padding="11,6" Margin="0,0,8,6"
-                                            Click="SavePushDiagnosticsButton_Click"/>
-                                    <Button x:Name="ClearPushDiagnosticsButton" Content="Очистить журнал"
-                                            Padding="11,6" Margin="0,0,8,6"
-                                            Click="ClearPushDiagnosticsButton_Click"/>
-                                </WrapPanel>
-                                <TextBlock x:Name="PushDiagnosticsActionStatusText"
-                                           Foreground="{DynamicResource AppMutedTextBrush}"
-                                           TextWrapping="Wrap"/>
                             </StackPanel>
                         </GroupBox>
                         <GroupBox Margin="0,16,0,0" Header="Внешний вид">
@@ -1286,18 +1233,126 @@
                                            Text="Обновления проверяются напрямую в выпусках GitHub."/>
                             </StackPanel>
                         </GroupBox>
-                        <Expander Margin="0,16,0,0" Header="Для разработчика · диагностика протокола" IsExpanded="False">
-                            <StackPanel>
-                                <Button Content="Копировать всё" HorizontalAlignment="Left" Margin="0,8,0,0"
-                                        Padding="12,5" Click="CopyDiagnosticsButton_Click"/>
-                                <TextBox x:Name="ResponseTextBox" Height="220" Margin="0,8,0,0"
-                                         FontFamily="Consolas" FontSize="{DynamicResource AppFontBodySize}"
-                                         AcceptsReturn="True" AcceptsTab="True"
-                                         HorizontalScrollBarVisibility="Auto"
-                                         VerticalScrollBarVisibility="Auto" IsReadOnly="True" TextWrapping="NoWrap"/>
-                            </StackPanel>
-                        </Expander>
+
                     </StackPanel>
+                </ScrollViewer>
+
+                <!-- All diagnostics share one collapsed instrument in the right-hand
+                     settings column. The ordinary notifications area stays clean. -->
+                <ScrollViewer Grid.Column="1" Margin="14,0,0,0"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                    <Expander x:Name="UnifiedDiagnosticsExpander"
+                              Margin="0,16,0,0"
+                              Header="Диагностика"
+                              IsExpanded="False"
+                              Foreground="{DynamicResource AppTextBrush}">
+                        <StackPanel Margin="10,8,10,10">
+                            <TextBlock Text="Технические журналы и проверка подключения"
+                                       TextWrapping="Wrap"
+                                       Foreground="{DynamicResource AppMutedTextBrush}"/>
+                            <TabControl x:Name="UnifiedDiagnosticsTabs"
+                                        Margin="0,12,0,0"
+                                        SelectionChanged="UnifiedDiagnosticsTabs_SelectionChanged">
+                                <TabItem Header="Google / PushMe">
+                                    <StackPanel Margin="7,10,7,6">
+                                        <TextBlock x:Name="GoogleRecipientStatusText"
+                                                   TextWrapping="Wrap"
+                                                   Foreground="{DynamicResource AppMutedTextBrush}"/>
+                                        <TextBlock x:Name="GoogleMcsStatusText"
+                                                   Margin="0,5,0,0"
+                                                   TextWrapping="Wrap"
+                                                   Foreground="{DynamicResource AppMutedTextBrush}"/>
+                                        <Button x:Name="OpenPushProbeButton"
+                                                Content="Проверить один аккаунт"
+                                                Margin="0,11,0,0" Padding="10,6"
+                                                HorizontalAlignment="Left"
+                                                Click="OpenPushProbeButton_Click"/>
+                                        <TextBox x:Name="PushDiagnosticsLogTextBox"
+                                                 Margin="0,11,0,0" Height="215"
+                                                 FontFamily="Consolas" FontSize="11"
+                                                 IsReadOnly="True" IsUndoEnabled="False"
+                                                 TextWrapping="NoWrap"
+                                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                                 ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
+                                        <TextBlock Margin="0,9,0,4"
+                                                   Text="Сведения об аккаунтах в отчёте:"/>
+                                        <ComboBox x:Name="PushDiagnosticsExportModeComboBox"
+                                                  SelectedIndex="0">
+                                            <ComboBoxItem Content="Без адресов"/>
+                                            <ComboBoxItem Content="С адресами"/>
+                                        </ComboBox>
+                                        <WrapPanel Margin="0,10,0,0">
+                                            <Button x:Name="RefreshPushDiagnosticsButton"
+                                                    Content="Обновить" Padding="9,6"
+                                                    Margin="0,0,6,6"
+                                                    Click="RefreshPushDiagnosticsButton_Click"/>
+                                            <Button x:Name="CopyPushDiagnosticsButton"
+                                                    Content="Копировать" Padding="9,6"
+                                                    Margin="0,0,6,6"
+                                                    Click="CopyPushDiagnosticsButton_Click"/>
+                                            <Button x:Name="SavePushDiagnosticsButton"
+                                                    Content="Сохранить" Padding="9,6"
+                                                    Margin="0,0,6,6"
+                                                    Click="SavePushDiagnosticsButton_Click"/>
+                                            <Button x:Name="ClearPushDiagnosticsButton"
+                                                    Content="Очистить" Padding="9,6"
+                                                    Margin="0,0,6,6"
+                                                    Click="ClearPushDiagnosticsButton_Click"/>
+                                        </WrapPanel>
+                                        <TextBlock x:Name="PushDiagnosticsActionStatusText"
+                                                   TextWrapping="Wrap"
+                                                   Foreground="{DynamicResource AppMutedTextBrush}"/>
+                                    </StackPanel>
+                                </TabItem>
+                                <TabItem Header="Протокол">
+                                    <StackPanel Margin="7,10,7,6">
+                                        <TextBlock Text="Последний ответ почтового сервера и сведения о запросах."
+                                                   TextWrapping="Wrap"
+                                                   Foreground="{DynamicResource AppMutedTextBrush}"/>
+                                        <TextBox x:Name="ResponseTextBox" Height="270"
+                                                 Margin="0,10,0,0"
+                                                 FontFamily="Consolas" FontSize="11"
+                                                 AcceptsReturn="True" AcceptsTab="True"
+                                                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                                 IsReadOnly="True" TextWrapping="NoWrap"/>
+                                        <Button Content="Копировать" Margin="0,10,0,0"
+                                                Padding="10,6" HorizontalAlignment="Left"
+                                                Click="CopyDiagnosticsButton_Click"/>
+                                    </StackPanel>
+                                </TabItem>
+                                <TabItem Header="Приложение">
+                                    <StackPanel Margin="7,10,7,6">
+                                        <TextBlock Text="Журнал работы приложения. При копировании личные данные скрываются."
+                                                   Foreground="{DynamicResource AppMutedTextBrush}"
+                                                   TextWrapping="Wrap"/>
+                                        <TextBox x:Name="ApplicationDiagnosticsLogTextBox"
+                                                 Margin="0,10,0,0" Height="260"
+                                                 FontFamily="Consolas" FontSize="11"
+                                                 IsReadOnly="True" IsUndoEnabled="False"
+                                                 TextWrapping="NoWrap"
+                                                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                                 ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                                        <WrapPanel Margin="0,10,0,0">
+                                            <Button Content="Обновить" Padding="9,6"
+                                                    Margin="0,0,6,6"
+                                                    Click="RefreshApplicationDiagnosticsButton_Click"/>
+                                            <Button Content="Копировать" Padding="9,6"
+                                                    Margin="0,0,6,6"
+                                                    Click="CopyApplicationDiagnosticsButton_Click"/>
+                                            <Button Content="Сохранить" Padding="9,6"
+                                                    Margin="0,0,6,6"
+                                                    Click="SaveApplicationDiagnosticsButton_Click"/>
+                                        </WrapPanel>
+                                        <TextBlock x:Name="ApplicationDiagnosticsStatusText"
+                                                   TextWrapping="Wrap"
+                                                   Foreground="{DynamicResource AppMutedTextBrush}"/>
+                                    </StackPanel>
+                                </TabItem>
+                            </TabControl>
+                        </StackPanel>
+                    </Expander>
                 </ScrollViewer>
             </Grid>
         </Grid>
