@@ -53,6 +53,61 @@ Expect(PushMailEvent.Parse(PushWire.Append(
     PushKv("event", "10"), PushKv("account", "test@example.invalid"))) is null,
     true, "counter events remain unhandled");
 
+// Conversation membership is sourced from independent message records, never
+// from citations inside the body or duplicate folder representations.
+var conversationJson = """
+{"body":{"folders":[{"folder":0,"threads":[{
+ "id":"thread-A","messages_count":5,
+ "base_message":{"id":"m5","subject":"Re: договор","snippet":"Последнее","date":500,"folder":0,
+   "correspondents":{"from":[{"name":"Иван","email":"sender@example.invalid"}]}},
+ "messages":[
+   {"id":"m5","subject":"Re: договор","date":500},
+   {"id":"m4","subject":"Договор","date":400,"snippet":"Ответ"},
+   {"id":"m3","subject":"Договор","date":300,"snippet":"Исходное"}],
+ "representations":[{"id":"m5","date":500,"folder":0},
+                    {"id":"m4","date":400,"folder":500010}]
+}]}]}}
+""";
+var allConversations = MailRuConversationParser.Parse(conversationJson);
+Expect(allConversations["m5"].VerifiedCount, 5,
+    "server-declared conversation count is shown in existing mail-list column");
+Expect(allConversations["m5"].Members.Count, 3,
+    "multiple representations of the same message are not independent mail");
+Expect(allConversations["m4"].ThreadId, "thread-A",
+    "an older message can open its real conversation by exact id");
+var renderedBodies = new Dictionary<string, MailRuFullMessage>(StringComparer.Ordinal)
+{
+    ["m5"] = new MailRuFullMessage("m5", "Re: договор", "Иван",
+        "sender@example.invalid", ["test@example.invalid"], [],
+        500, "<p>Текущий ответ</p>", "Текущий ответ", [],
+        ""),
+    ["m4"] = new MailRuFullMessage("m4", "Договор", "Анна",
+        "other@example.invalid", ["test@example.invalid"], [],
+        400, "<p>Другое письмо</p>", "Другое письмо", [], "")
+};
+var conversationMarkup =
+    MailRuConversationHtml.Render(allConversations["m5"], "m4", renderedBodies);
+Expect(conversationMarkup.Split("<details").Length - 1, 3,
+    "three separate server messages become separate expandable cards");
+Expect(conversationMarkup.Split("<details open").Length - 1, 1,
+    "when opening old push notification only its exact message is expanded");
+Expect(conversationMarkup.Contains("Писем в диалоге: 5"), true,
+    "conversation header uses authoritative count");
+Expect(conversationMarkup.Contains("Текущий ответ"), true,
+    "newest message body is present");
+Expect(conversationMarkup.Contains("Другое письмо"), true,
+    "historical message has a distinct original body");
+Expect(conversationMarkup.Contains("sandbox=\"allow-same-origin\""), true,
+    "individual untrusted mail HTML is sandboxed separately");
+var quotingJson = """
+{"threads":[{"id":"thread-quote","base_message":
+    {"id":"only","subject":"Re: вопрос","snippet":"----- Исходное письмо -----\\n> старое сообщение"},
+    "representations":[{"id":"only","subject":"Re: вопрос"}]}]}
+""";
+var quotedConversation = MailRuConversationParser.Parse(quotingJson);
+Expect(quotedConversation["only"].Members.Count, 1,
+    "quoted text does not produce fake conversation members");
+
 // Diagnostic tests are entirely offline. No fake or real token may appear in a report.
 PushDiagnostics.Clear();
 PushDiagnostics.Record("GOOGLE", "MCS_LOGIN_OK");
