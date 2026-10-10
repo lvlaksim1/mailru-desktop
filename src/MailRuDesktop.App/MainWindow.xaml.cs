@@ -709,7 +709,9 @@ public partial class MainWindow : Window
             _accessToken,
             _currentFolderId,
             folders,
-            _currentFullMessage?.Id == message.Id ? _currentFullMessage : null)
+            _currentFullMessage?.Id == message.Id ? _currentFullMessage : null,
+            _conversationIndex.TryGetValue(message.Id, out var thread)
+                ? thread : null)
         {
             Owner = this
         };
