@@ -69,7 +69,7 @@ public static class MailRuConversationParser
             reps.ValueKind == JsonValueKind.Array)
             foreach (var item in reps.EnumerateArray())
             {
-                var id = Value(item, "id");
+                var id = MessageId(item);
                 if (id is not null && byId.TryGetValue(id, out var existing))
                     byId[id] = Merge(existing, Extract(item, id));
             }
@@ -114,7 +114,7 @@ public static class MailRuConversationParser
         JsonElement element, Dictionary<string, MailRuConversationMember> members)
     {
         if (element.ValueKind != JsonValueKind.Object) return;
-        var id = Value(element, "id");
+        var id = MessageId(element);
         if (string.IsNullOrWhiteSpace(id)) return;
         var candidate = Extract(element, id);
         members[id] = members.TryGetValue(id, out var existing)
@@ -172,6 +172,11 @@ public static class MailRuConversationParser
         else if (from.ValueKind == JsonValueKind.String)
             email = from.GetString() ?? email;
     }
+
+    // Smart-thread responses can expose a logical object id alongside the
+    // last *actual mail* ID. Match the established message-list resolver.
+    private static string? MessageId(JsonElement item) =>
+        Value(item, "message_id_last") ?? Value(item, "id");
 
     private static string? Value(JsonElement item, string key)
     {
