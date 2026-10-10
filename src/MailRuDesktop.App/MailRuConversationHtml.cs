@@ -48,7 +48,7 @@ font-size:12px;color:#596675;overflow-wrap:anywhere}
 </style></head><body>
 """);
         var n = conversation.VerifiedCount ?? members.Length;
-        e.Append("<div class="summary">Писем в диалоге: ")
+        e.Append("<div class=\"summary\">Писем в диалоге: ")
             .Append(n).Append("</div>");
         foreach (var member in members)
         {
@@ -60,47 +60,47 @@ font-size:12px;color:#596675;overflow-wrap:anywhere}
                 (member.DateUnix is long unix ? SafeDate(unix) : "");
             var open = member.Id == selectedId;
             e.Append("<details").Append(open ? " open" : "")
-                .Append("><summary><span class="chevron">&#8250;</span><span style="min-width:0">")
-                .Append("<span class="who">").Append(H(sender)).Append("</span>");
+                .Append("><summary><span class=\"chevron\">&#8250;</span><span style=\"min-width:0\">")
+                .Append("<span class=\"who\">").Append(H(sender)).Append("</span>");
             var email = full?.FromEmail ?? member.SenderEmail;
             if (email.Length > 0 && !sender.Contains(email, StringComparison.OrdinalIgnoreCase))
-                e.Append(" <span class="email">&lt;").Append(H(email))
+                e.Append(" <span class=\"email\">&lt;").Append(H(email))
                     .Append("&gt;</span>");
-            e.Append("<span class="preview">").Append(H(
+            e.Append("<span class=\"preview\">").Append(H(
                     full?.Subject ?? (member.Subject.Length == 0
                         ? member.Snippet : member.Subject)))
-                .Append("</span></span><span class="when">")
+                .Append("</span></span><span class=\"when\">")
                 .Append(H(date)).Append("</span></summary>")
-                .Append("<div class="mail-body">");
+                .Append("<div class=\"mail-body\">");
             var to = full?.To;
             if (to is { Count: > 0 })
-                e.Append("<div class="mail-to">Кому: ")
+                e.Append("<div class=\"mail-to\">Кому: ")
                     .Append(H(string.Join(", ", to))).Append("</div>");
             if (full is not null && !string.IsNullOrWhiteSpace(full.Html))
             {
                 // Attribute encoding is essential: untrusted mail markup
                 // must stay inside its own sandboxed browser document.
-                e.Append("<iframe class="mail-html" sandbox="allow-same-origin" ")
-                    .Append("referrerpolicy="no-referrer" srcdoc="")
-                    .Append(H(full.Html)).Append(""></iframe>");
+                e.Append("<iframe class=\"mail-html\" sandbox=\"allow-same-origin\" ")
+                    .Append("referrerpolicy=\"no-referrer\" srcdoc=\"")
+                    .Append(H(full.Html)).Append("\"></iframe>");
             }
             else if (full is not null)
-                e.Append("<div class="mail-text">")
+                e.Append("<div class=\"mail-text\">")
                     .Append(H(full.Text)).Append("</div>");
             else
-                e.Append("<div class="not-loaded">")
+                e.Append("<div class=\"not-loaded\">")
                     .Append(H(member.Snippet.Length == 0
                         ? "Содержимое этого письма пока недоступно."
                         : member.Snippet))
                     .Append("</div>");
             if (full?.Attachments.Count > 0)
-                e.Append("<div class="attachments">Вложения: ")
+                e.Append("<div class=\"attachments\">Вложения: ")
                     .Append(H(string.Join(", ", full.Attachments.Select(x => x.DisplayName))))
                     .Append("</div>");
             e.Append("</div></details>");
         }
         if (n > members.Length)
-            e.Append("<p class="summary">Сервер указал ").Append(n)
+            e.Append("<p class=\"summary\">Сервер указал ").Append(n)
                 .Append(" писем, но передал идентификаторы только ")
                 .Append(members.Length)
                 .Append(". Остальная история не подменяется догадками.</p>");
