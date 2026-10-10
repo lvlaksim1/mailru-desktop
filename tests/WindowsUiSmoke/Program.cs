@@ -226,9 +226,9 @@ internal static class Program
                 "sender@example.invalid", null, null, 0, true, false, false);
             showReply!.Invoke(mail, new object?[] { sample, null });
             editor = Application.Current.Windows.OfType<Window>()
-                .FirstOrDefault(w => w.Title.StartsWith("Новое письмо", StringComparison.Ordinal));
+                .FirstOrDefault(w => w.Title.StartsWith("Ответ: Договор", StringComparison.Ordinal));
             Check(editor is { IsVisible: true },
-                "Reply launches the independent New Mail window");
+                "Reply launches the independent composer without the New Mail caption");
             Check(Require<TextBox>(mail, "ComposeToTextBox").Text ==
                     "sender@example.invalid" &&
                   Require<TextBox>(mail, "ComposeSubjectTextBox").Text == "Re: Договор" &&
