@@ -15,7 +15,7 @@ internal sealed class McsPendingReceiptStore
 {
     private sealed record Receipt(string Id, long At);
     private sealed record Document(int Version, ulong DeviceId, Receipt[] Pending);
-    private const int MaxPending = 768;
+    private const int MaxPending = 192;
     private const int RetentionDays = 14;
     private readonly object _sync = new();
     private readonly string _path;
