@@ -12,7 +12,9 @@ namespace MailRuDesktop.App;
 internal static class MailRuConversationHtml
 {
     internal static string Render(MailRuConversation conversation,
-        string selectedId, IReadOnlyDictionary<string, MailRuFullMessage> bodies)
+        string selectedId, IReadOnlyDictionary<string, MailRuFullMessage> bodies,
+        string? background = null, string? foreground = null,
+        string? muted = null)
     {
         var members = conversation.Members
             .OrderByDescending(m => m.DateUnix ?? long.MinValue).ToArray();
@@ -23,30 +25,33 @@ internal static class MailRuConversationHtml
 <meta http-equiv="Content-Security-Policy"
 content="default-src 'none'; img-src https: http: data:; frame-src 'self' about: data:; style-src 'unsafe-inline';">
 <style>
+:root{--surface:__SURFACE__;--ink:__INK__;--muted:__MUTED__}
 *{box-sizing:border-box} body{font:14px Segoe UI,Arial,sans-serif;
-margin:0;padding:10px 12px;background:#fff;color:#252525;overflow:auto}
-.summary{margin-bottom:12px;color:#616975;font-size:12px}
+margin:0;padding:10px 12px;background:var(--surface);color:var(--ink);overflow:auto}
+.summary{margin-bottom:12px;color:var(--muted);font-size:12px}
 details{border:1px solid #e0e3e7;border-radius:8px;margin-bottom:9px;
-background:#fff;overflow:hidden}
+background:var(--surface);overflow:hidden}
 summary{cursor:pointer;list-style:none;display:flex;align-items:center;
 gap:10px;padding:13px 14px;min-height:62px}
 summary::-webkit-details-marker{display:none}
-.chevron{width:18px;color:#758394;font-size:17px;flex-shrink:0}
+.chevron{width:18px;color:var(--muted);font-size:17px;flex-shrink:0}
 details[open] .chevron{transform:rotate(90deg)}
 .who{font-weight:600;overflow-wrap:anywhere}
-.email{color:#667281;font-weight:400;font-size:12px}
-.when{color:#757f8a;font-size:12px;margin-left:auto;white-space:nowrap}
+.email{color:var(--muted);font-weight:400;font-size:12px}
+.when{color:var(--muted);font-size:12px;margin-left:auto;white-space:nowrap}
 .preview{display:block;color:#667281;font-size:12px;margin-top:5px;
 font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:640px}
 .mail-body{border-top:1px solid #eceef0;padding:13px 16px}
-.mail-to{font-size:12px;color:#687586;margin-bottom:9px;overflow-wrap:anywhere}
+.mail-to{font-size:12px;color:var(--muted);margin-bottom:9px;overflow-wrap:anywhere}
 .mail-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5}
-.mail-html{display:block;border:0;width:100%;height:460px;max-height:78vh;background:white}
+.mail-html{display:block;border:0;width:100%;height:460px;max-height:78vh;background:var(--surface)}
 .attachments{border-top:1px solid #eceef0;padding-top:9px;margin-top:10px;
-font-size:12px;color:#596675;overflow-wrap:anywhere}
-.not-loaded{color:#7b8490;font-size:13px}
+font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.not-loaded{color:var(--muted);font-size:13px}
 </style></head><body>
-""");
+""".Replace("__SURFACE__", CssHex(background, "#ffffff"))
+   .Replace("__INK__", CssHex(foreground, "#252525"))
+   .Replace("__MUTED__", CssHex(muted, "#667281")));
         var n = conversation.VerifiedCount ?? members.Length;
         e.Append("<div class=\"summary\">Писем в диалоге: ")
             .Append(n).Append("</div>");
@@ -106,6 +111,15 @@ font-size:12px;color:#596675;overflow-wrap:anywhere}
                 .Append(". Остальная история не подменяется догадками.</p>");
         e.Append("</body></html>");
         return e.ToString();
+    }
+
+    private static string CssHex(string? candidate, string fallback)
+    {
+        if (candidate is null || candidate.Length is not (7 or 9) ||
+            candidate[0] != '#' ||
+            !candidate.AsSpan(1).ToArray().All(Uri.IsHexDigit))
+            return fallback;
+        return candidate;
     }
 
     private static string H(string value) => WebUtility.HtmlEncode(value);
