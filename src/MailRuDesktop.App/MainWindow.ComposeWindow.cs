@@ -97,6 +97,11 @@ public partial class MainWindow
 
         ShowComposeWindow();
         _composeReplyToId = source.Id;
+        _attachmentPaths.Clear();
+        RefreshComposeAttachments();
+        ResetComposeTemplateSelectors();
+        ScheduleSendCheckBox.IsChecked = false;
+        RequestReadReceiptCheckBox.IsChecked = false;
         ComposeToTextBox.Text = sender;
         ComposeSubjectTextBox.Text = ReplySubject(full?.Subject ?? source.Subject);
         ComposeBodyTextBox.Text = BuildQuotedReply(full, source);
