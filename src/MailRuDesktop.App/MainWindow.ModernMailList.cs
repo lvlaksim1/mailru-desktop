@@ -210,6 +210,7 @@ public partial class MainWindow
             return;
 
         var count =
+            ReadPositiveThreadCount(thread, "length") ??
             ReadPositiveThreadCount(thread, "messages_count") ??
             ReadPositiveThreadCount(thread, "message_count") ??
             ReadPositiveThreadCount(thread, "messages_total") ??
@@ -249,6 +250,7 @@ public partial class MainWindow
         if (thread.TryGetProperty("representations", out var representations) &&
             representations.ValueKind == JsonValueKind.Array)
         {
+            long represented = 0;
             foreach (var representation in representations.EnumerateArray())
             {
                 if (representation.ValueKind != JsonValueKind.Object)
@@ -256,12 +258,18 @@ public partial class MainWindow
 
                 AddThreadId(representation, "id", ids);
                 AddThreadId(representation, "message_id_last", ids);
+                represented += ReadPositiveThreadCount(representation, "length") ?? 0;
                 count = Math.Max(
                     count,
                     ReadPositiveThreadCount(representation, "messages_count") ??
                     ReadPositiveThreadCount(representation, "message_count") ??
                     0);
             }
+            // Only derive totals from folder representations when the
+            // authoritative threads[].length is absent.
+            if (ReadPositiveThreadCount(thread, "length") is null &&
+                represented is > 0 and <= int.MaxValue)
+                count = Math.Max(count, (int)represented);
         }
 
         count = Math.Max(count, 1);
