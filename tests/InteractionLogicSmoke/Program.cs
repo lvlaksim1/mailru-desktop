@@ -9,6 +9,50 @@ static void Expect<T>(T actual, T expected, string label)
     Console.WriteLine("PASS " + label);
 }
 
+// Synthetic MCS event=4: only structured data is extracted. Other events
+// and remote commands remain ignored; no external requests in these tests.
+static byte[] PushKv(string key, string value) =>
+    PushWire.BytesField(7, PushWire.Append(
+        PushWire.TextField(1, key), PushWire.TextField(2, value)));
+var mailFrame = PushWire.Append(
+    PushWire.TextField(5, "ru.mail.mailapp"),
+    PushKv("event", "4"),
+    PushKv("account", "test@example.invalid"),
+    PushKv("id", "exact-message-42"),
+    PushKv("folder_id", "0"),
+    PushKv("sender_orig", "Иван Петров"),
+    PushKv("text", "Документы к согласованию"),
+    PushKv("snippet", "Договор приложен"),
+    PushKv("uts", "1760000000"),
+    PushKv("has_attachment", "1"),
+    PushKv("importance", "1"),
+    PushKv("ack", "https://untrusted.invalid/side-effect"));
+var parsedMail = PushMailEvent.Parse(mailFrame);
+Expect(parsedMail?.Account, "test@example.invalid",
+    "event 4 notification keeps exact destination mailbox");
+Expect(parsedMail?.MessageId, "exact-message-42",
+    "event 4 keeps exact message identity for click navigation");
+Expect(parsedMail?.Sender, "Иван Петров",
+    "event 4 reads the sender displayed in notification");
+Expect(parsedMail?.Subject, "Документы к согласованию",
+    "event 4 reads the subject displayed in notification");
+Expect(parsedMail?.HasAttachment, true,
+    "notification shows confirmed attachment flag");
+Expect(parsedMail?.Important, true,
+    "notification shows confirmed importance flag");
+Expect(PushMailEvent.MailboxLabel(parsedMail!), "test@example.invalid",
+    "mailbox, not redundant new-message title, occupies notification header");
+Expect(PushMailEvent.PreviewLine(parsedMail!).Contains("Вложения"), true,
+    "notification includes attachment information");
+Expect(PushMailEvent.Parse(PushWire.Append(
+    PushWire.TextField(5, "ru.mail.mailapp"),
+    PushKv("event", "30"), PushKv("account", "test@example.invalid"))) is null,
+    true, "remote-command events remain unhandled");
+Expect(PushMailEvent.Parse(PushWire.Append(
+    PushWire.TextField(5, "ru.mail.mailapp"),
+    PushKv("event", "10"), PushKv("account", "test@example.invalid"))) is null,
+    true, "counter events remain unhandled");
+
 // Diagnostic tests are entirely offline. No fake or real token may appear in a report.
 PushDiagnostics.Clear();
 PushDiagnostics.Record("GOOGLE", "MCS_LOGIN_OK");
