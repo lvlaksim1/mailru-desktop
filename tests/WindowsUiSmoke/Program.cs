@@ -48,16 +48,26 @@ internal static class Program
                 "Settings can actually be opened by its button");
 
             var backgroundSwitch = Require<CheckBox>(mail, "BackgroundPushEnabledCheckBox");
-            Check(backgroundSwitch.IsVisible && !backgroundSwitch.IsEnabled &&
-                  backgroundSwitch.IsChecked != true,
-                "single-account test release disables multi-account automatic subscription");
-            Check(Require<TextBlock>(mail, "BackgroundPushStatusText").Text
-                    .Contains("Автоматическая регистрация", StringComparison.Ordinal),
-                "automatic all-accounts registration remains disabled");
+            Check(!backgroundSwitch.IsVisible,
+                "legacy automatic-subscription checkbox is removed from everyday settings");
             Check(Require<CheckBox>(mail, "TaskbarNotificationsEnabledCheckBox").IsVisible,
-                "Windows popup notification setting is visible and independent");
+                "only Windows popup preference is visible in ordinary notifications settings");
             Check(Require<TextBlock>(mail, "BackgroundPushStatusText").IsVisible,
-                "Persistent push per-account connection state is visible");
+                "brief connection status remains visible");
+            var diagnosticExpander = Require<Expander>(mail, "UnifiedDiagnosticsExpander");
+            Check(!diagnosticExpander.IsExpanded && Grid.GetColumn(diagnosticExpander.Parent as UIElement ?? diagnosticExpander) == 1,
+                "all diagnostics are collapsed and placed on the right");
+            diagnosticExpander.IsExpanded = true;
+            mail.UpdateLayout();
+            var diagTabs = Require<TabControl>(mail, "UnifiedDiagnosticsTabs");
+            Check(diagTabs.Items.Count == 3,
+                "Google PushMe, protocol and application diagnostics share one tool");
+            diagTabs.SelectedIndex = 2;
+            mail.UpdateLayout();
+            Check(Require<TextBox>(mail, "ApplicationDiagnosticsLogTextBox").IsReadOnly,
+                "old application diagnostic log is read-only in unified tool");
+            diagTabs.SelectedIndex = 0;
+            mail.UpdateLayout();
             var pushLog = Require<TextBox>(mail, "PushDiagnosticsLogTextBox");
             Check(pushLog.IsReadOnly && pushLog.IsVisible,
                 "read-only Google PushMe diagnostic journal visible in Settings");
@@ -81,8 +91,8 @@ internal static class Program
                 "diagnostic viewer refreshes without making network calls");
             var pushSettings = Require<Button>(mail, "OpenPushProbeButton");
             Check(pushSettings.IsVisible &&
-                  pushSettings.Content?.ToString() == "Выбрать аккаунт для проверки",
-                "explicit single-account selection button is accessible in Settings");
+                  pushSettings.Content?.ToString() == "Проверить один аккаунт",
+                "single-account diagnostic test is inside collapsed unified tool");
             pushSettings.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent, pushSettings));
             mail.UpdateLayout();
             var pushWindow = Application.Current.Windows.OfType<Window>()
@@ -204,6 +214,35 @@ internal static class Program
                     send.ReadLocalValue(Control.BackgroundProperty),
                     DependencyProperty.UnsetValue),
                 "send button uses the shared theme without a forced blue fill");
+
+            editor.Close();
+            editor = null;
+            var showReply = typeof(MainWindow).GetMethod("OpenReplyComposeWindow",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            Check(showReply is not null,
+                "standalone New Mail reply handler is available");
+            var sample = new MailRuDesktop.Protocol.MailRuMessageSummary(
+                "reply-test-123", "Договор", "Текст письма", "Тест",
+                "sender@example.invalid", null, null, 0, true, false, false);
+            showReply!.Invoke(mail, new object?[] { sample, null });
+            editor = Application.Current.Windows.OfType<Window>()
+                .FirstOrDefault(w => w.Title.StartsWith("Новое письмо", StringComparison.Ordinal));
+            Check(editor is { IsVisible: true },
+                "Reply launches the independent New Mail window");
+            Check(Require<TextBox>(mail, "ComposeToTextBox").Text ==
+                    "sender@example.invalid" &&
+                  Require<TextBox>(mail, "ComposeSubjectTextBox").Text == "Re: Договор" &&
+                  Require<TextBox>(mail, "ComposeBodyTextBox").Text.Contains("Текст письма"),
+                "reply fills recipient, Re subject, and original quote");
+            var replyId = typeof(MainWindow).GetField("_composeReplyToId",
+                BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(mail) as string;
+            Check(replyId == "reply-test-123",
+                "sending from standalone reply retains precise source message ID");
+            Check(Require<FrameworkElement>(mail, "PreviewComposePanel").Visibility !=
+                  Visibility.Visible,
+                "Reply no longer opens the inline editor above the mail body");
+            editor.Close();
+            editor = null;
 
             var dialogType = typeof(MainWindow).Assembly.GetType("MailRuDesktop.App.AppDialog");
             var createNotice = dialogType?.GetMethod("CreateWindow",

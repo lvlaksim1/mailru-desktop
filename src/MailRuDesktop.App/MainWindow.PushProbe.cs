@@ -77,7 +77,12 @@ public partial class MainWindow
                 if (_pushShuttingDown || Dispatcher.HasShutdownStarted) return;
                 _ = Dispatcher.BeginInvoke(new Action(() => OnPushNewMail(login)));
             },
-            phase => SetGoogleMcsState(phase));
+            phase => SetGoogleMcsState(phase),
+            onMailEvent: mail =>
+            {
+                if (_pushShuttingDown || Dispatcher.HasShutdownStarted) return;
+                _ = Dispatcher.BeginInvoke(new Action(() => OnPushMailEvent(mail)));
+            });
         // Keep the user's previous preference in settings for future versions,
         // but NEVER enable the multi-account receiver in this test release.
         BackgroundPushEnabledCheckBox.IsChecked = ManualGroupManagementRelease
@@ -322,7 +327,9 @@ public partial class MainWindow
         SyncBackgroundPush();
     }
 
-    private void OnPushNewMail(string login)
+    private void OnPushNewMail(string login) => OnPushNewMail(login, null);
+
+    private void OnPushNewMail(string login, PushMailEvent? mail)
     {
         if (_pushShuttingDown) return;
         _pushWindowTitle ??= Title;
@@ -332,14 +339,18 @@ public partial class MainWindow
         try
         {
             if (TaskbarNotificationsEnabledCheckBox.IsChecked == true)
-                _pushNotificationArea?.ShowBalloonTip(
-                    5000, "MailRu Desktop — новое письмо",
-                    "Новое письмо: " + login,
-                    System.Windows.Forms.ToolTipIcon.Info);
+            {
+                if (mail is not null)
+                    _ = ShowPushNotificationAsync(mail);
+                else
+                    _pushNotificationArea?.ShowBalloonTip(
+                        5000, login, "Получено новое письмо.",
+                        System.Windows.Forms.ToolTipIcon.Info);
+            }
         }
-        catch
+        catch (Exception error)
         {
-            // Notification-area availability must not break mail refresh.
+            DiagnosticLog.Write("push_notification", error.GetType().Name);
         }
         _ = RecordPushDeliveryAsync(login);
         _ = RefreshAfterPushAsync(login);

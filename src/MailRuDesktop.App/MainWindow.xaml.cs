@@ -102,6 +102,7 @@ public partial class MainWindow : Window
         await InitializeReaderAsync();
         await EnsureStartupAccountAsync();
         StartBackgroundPush();
+        PushMailToastService.Attach(mail => _ = NavigateToPushMailAsync(mail));
     }
 
     private async Task InitializeReaderAsync()
@@ -717,6 +718,8 @@ public partial class MainWindow : Window
 
         if (window.MailboxChanged)
             await LoadFolderAsync(_currentFolderId);
+        if (window.ReplyRequested)
+            OpenReplyComposeWindow(message, window.ReplySource);
     }
 
     private void MessagesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1842,7 +1845,8 @@ public partial class MainWindow : Window
                     SendDate: sendDate,
                     RequestReadReceipt: RequestReadReceiptCheckBox.IsChecked == true,
                     AttachmentIds: attachmentIds,
-                    MessageId: messageId));
+                    MessageId: messageId,
+                    ReplyToId: _composeReplyToId));
 
             ResponseTextBox.Text = result.RawResponse;
 
@@ -1861,6 +1865,7 @@ public partial class MainWindow : Window
             ComposeToTextBox.Clear();
             ComposeSubjectTextBox.Clear();
             ComposeBodyTextBox.Clear();
+            _composeReplyToId = null;
             ResetComposeTemplateSelectors();
             _attachmentPaths.Clear();
             RefreshComposeAttachments();

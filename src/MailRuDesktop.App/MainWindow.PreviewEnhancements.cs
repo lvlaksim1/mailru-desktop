@@ -169,24 +169,9 @@ public partial class MainWindow
 
     private void PreviewReplyButton_Click(object sender, RoutedEventArgs e)
     {
-        if (ActivePreviewMessage is not MailRuMessageSummary message)
-            return;
-
-        _previewComposeMode = PreviewComposeMode.Reply;
-        ResetPreviewSendOptions();
-        ResetPreviewTemplateSelectors();
-        PreviewComposePanel.Visibility = Visibility.Visible;
-        PreviewComposeToTextBox.Text = !string.IsNullOrWhiteSpace(_currentFullMessage?.FromEmail)
-            ? _currentFullMessage.FromEmail
-            : message.SenderEmail;
-        PreviewComposeSubjectTextBox.Text = PrefixPreviewSubject(
-            "Re:",
-            _currentFullMessage?.Subject ?? message.Subject);
-        PreviewComposeBodyTextBox.Clear();
-        _previewAttachmentPaths.Clear();
-        RefreshPreviewAttachments();
-        PreviewComposeStatusText.Text = string.Empty;
-        _previewRichEditor?.Focus();
+        if (ActivePreviewMessage is MailRuMessageSummary message)
+            OpenReplyComposeWindow(message, _currentFullMessage?.Id == message.Id
+                ? _currentFullMessage : null);
     }
 
     private void PreviewForwardButton_Click(object sender, RoutedEventArgs e)

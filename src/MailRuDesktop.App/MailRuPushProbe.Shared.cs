@@ -159,7 +159,8 @@ internal sealed partial class MailRuPushProbe
         bool preserveOtherAccounts = false,
         bool listenOnly = false,
         Action<string>? onMcsState = null,
-        string recipientId = SharedGooglePushIdentityStore.PrimaryRecipientId)
+        string recipientId = SharedGooglePushIdentityStore.PrimaryRecipientId,
+        Action<PushMailEvent>? onMailEvent = null)
     {
         if (accounts.Count == 0) return;
         var phase = "BEGIN";
@@ -433,7 +434,13 @@ internal sealed partial class MailRuPushProbe
                 PushDiagnostics.Record("MCS", "NEW_MAIL_EVENT");
                 PushDiagnostics.RecordAccount("MCS", "NEW_MAIL_EVENT", account);
                 onStatus(account, "MAILRU_NEW_MAIL_EVENT_RECEIVED=YES.");
-                onNewMail(account);
+                // Send the structured event to the UI; a legacy subscriber
+                // retains the older account-only callback.
+                var mail = PushMailEvent.Parse(data);
+                if (mail is not null && onMailEvent is not null)
+                    onMailEvent(mail);
+                else
+                    onNewMail(account);
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)

@@ -45,7 +45,12 @@ public partial class MainWindow
                 _ = Dispatcher.BeginInvoke(new Action(() => OnPushNewMail(login)));
             },
             phase => SetGoogleMcsState(phase, recipientId),
-            recipientId);
+            recipientId,
+            mail =>
+            {
+                if (_pushShuttingDown || Dispatcher.HasShutdownStarted) return;
+                _ = Dispatcher.BeginInvoke(new Action(() => OnPushMailEvent(mail)));
+            });
         _supplementalReceivers.Add(recipientId, worker);
         return worker;
     }

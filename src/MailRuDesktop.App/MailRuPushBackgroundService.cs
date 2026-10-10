@@ -15,6 +15,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
     private readonly Queue<string> _recentOrder = new();
     private readonly Action<string, string> _onStatus;
     private readonly Action<string> _onNewMail;
+    private readonly Action<PushMailEvent>? _onMailEvent;
     private readonly Action<string> _onMcsState;
     private Dictionary<string, string> _accounts = new(StringComparer.OrdinalIgnoreCase);
     private CancellationTokenSource? _currentCancellation;
@@ -30,13 +31,15 @@ internal sealed class MailRuPushBackgroundService : IDisposable
     internal MailRuPushBackgroundService(
         Action<string, string> onStatus, Action<string> onNewMail,
         Action<string>? onMcsState = null,
-        string recipientId = SharedGooglePushIdentityStore.PrimaryRecipientId)
+        string recipientId = SharedGooglePushIdentityStore.PrimaryRecipientId,
+        Action<PushMailEvent>? onMailEvent = null)
     {
         if (!SharedGooglePushIdentityStore.ValidRecipientId(recipientId))
             throw new ArgumentException("Invalid recipient slot.", nameof(recipientId));
         _recipientId = recipientId;
         _onStatus = onStatus;
         _onNewMail = onNewMail;
+        _onMailEvent = onMailEvent;
         _onMcsState = onMcsState ?? (_ => { });
     }
 
@@ -258,7 +261,8 @@ internal sealed class MailRuPushBackgroundService : IDisposable
                         preserveOtherAccounts: _preserveOtherAccounts,
                         listenOnly: _listenOnly,
                         onMcsState: _onMcsState,
-                        recipientId: _recipientId);
+                        recipientId: _recipientId,
+                        onMailEvent: _onMailEvent);
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {

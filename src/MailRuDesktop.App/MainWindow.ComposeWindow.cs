@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using MailRuDesktop.Protocol;
 
 namespace MailRuDesktop.App;
 
@@ -11,6 +12,7 @@ public partial class MainWindow
     // selected mailbox in the main window changes.
     private string? _composeSenderLogin;
     private string? _composeSenderToken;
+    private string? _composeReplyToId;
 
     // Keep the existing compose controls and rich-editor state in a separate
     // owned window. Do not duplicate the send, draft or attachment logic.
@@ -28,6 +30,7 @@ public partial class MainWindow
         if (ComposeWorkspace.Parent is not Panel originalParent)
             throw new InvalidOperationException("Compose workspace has no panel parent.");
 
+        _composeReplyToId = null;
         _composeSenderLogin = _activeLogin;
         _composeSenderToken = _accessToken;
         ComposeFromTextBox.Text = _composeSenderLogin ?? "Не выбран аккаунт";
@@ -56,6 +59,7 @@ public partial class MainWindow
             _composeWindow = null;
             _composeSenderLogin = null;
             _composeSenderToken = null;
+            _composeReplyToId = null;
         };
 
         _composeWindow = window;
@@ -68,6 +72,60 @@ public partial class MainWindow
         window.Show();
         ThemeManager.RefreshWindowChrome(window);
         ComposeToTextBox.Focus();
+    }
+
+    // Reply uses the same independent composition window as a new letter.
+    // Existing drafts are never silently overwritten by another reply.
+    private void OpenReplyComposeWindow(
+        MailRuMessageSummary source, MailRuFullMessage? full)
+    {
+        if (_composeWindow is not null)
+        {
+            ShowComposeWindow();
+            ComposeStatusText.Text =
+                "Сначала отправьте или закройте открытое письмо. Черновик не изменён.";
+            return;
+        }
+
+        var sender = !string.IsNullOrWhiteSpace(full?.FromEmail)
+            ? full.FromEmail : source.SenderEmail;
+        if (string.IsNullOrWhiteSpace(sender))
+        {
+            AppDialog.Info(this, "Ответить", "У исходного письма не найден адрес отправителя.");
+            return;
+        }
+
+        ShowComposeWindow();
+        _composeReplyToId = source.Id;
+        _attachmentPaths.Clear();
+        RefreshComposeAttachments();
+        ResetComposeTemplateSelectors();
+        ScheduleSendCheckBox.IsChecked = false;
+        RequestReadReceiptCheckBox.IsChecked = false;
+        ComposeToTextBox.Text = sender;
+        ComposeSubjectTextBox.Text = ReplySubject(full?.Subject ?? source.Subject);
+        ComposeBodyTextBox.Text = BuildQuotedReply(full, source);
+        ComposeStatusText.Text = string.Empty;
+        _composeRichEditor?.Focus();
+    }
+
+    private static string ReplySubject(string subject) =>
+        subject.StartsWith("Re:", StringComparison.OrdinalIgnoreCase)
+            ? subject : "Re: " + subject;
+
+    private static string BuildQuotedReply(
+        MailRuFullMessage? full, MailRuMessageSummary summary)
+    {
+        var text = full?.Text;
+        if (string.IsNullOrWhiteSpace(text))
+            text = summary.Snippet;
+        if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+        var sender = full?.SenderDisplay ?? summary.SenderDisplay;
+        return "\n\n----- Исходное письмо -----\n" +
+               "От: " + sender + "\n" +
+               "Тема: " + (full?.Subject ?? summary.Subject) + "\n\n" +
+               string.Join("\n", text.Replace("\r\n", "\n")
+                   .Split('\n').Select(line => "> " + line));
     }
 
     private sealed record ContactChoice(string Caption, string Email);

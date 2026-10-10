@@ -21,6 +21,7 @@
     <Compile Include="../../src/MailRuDesktop.App/AuthorizationStore.cs" Link="AuthorizationStore.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/MailRuPushProbe.cs" Link="MailRuPushProbe.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/MailRuPushProbe.Shared.cs" Link="MailRuPushProbe.Shared.cs"/>
+    <Compile Include="../../src/MailRuDesktop.App/PushMailEvent.cs" Link="PushMailEvent.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/SharedGooglePushIdentityStore.cs" Link="SharedGooglePushIdentityStore.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/PushGroupRegistryStore.cs" Link="PushGroupRegistryStore.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/MailRuPushBackgroundService.cs" Link="MailRuPushBackgroundService.cs"/>
