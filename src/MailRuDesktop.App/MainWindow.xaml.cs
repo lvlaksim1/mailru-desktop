@@ -820,7 +820,12 @@ public partial class MainWindow : Window
             if (!Equals(message, completeSender))
                 ReplaceMessage(message, completeSender);
 
-            if (!string.IsNullOrWhiteSpace(full.Html))
+            if (await ShowConversationIfAvailableAsync(
+                    message, full, generation, requestCancellation.Token))
+            {
+                // Only real server-listed messages appear as separate cards.
+            }
+            else if (!string.IsNullOrWhiteSpace(full.Html))
             {
                 // Images load independently from the WebView2 resource handler.
                 // Never serialize image requests ahead of rendering the body.
