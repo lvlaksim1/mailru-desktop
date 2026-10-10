@@ -51,7 +51,20 @@ internal static class Program
             Check(!backgroundSwitch.IsVisible,
                 "legacy automatic-subscription checkbox is removed from everyday settings");
             Check(Require<CheckBox>(mail, "TaskbarNotificationsEnabledCheckBox").IsVisible,
-                "only Windows popup preference is visible in ordinary notifications settings");
+                "Windows popup preference remains visible in ordinary settings");
+            var filterSwitch = Require<CheckBox>(
+                mail, "ReplaySuppressionEnabledCheckBox");
+            Check(filterSwitch.IsVisible && filterSwitch.IsEnabled,
+                "local replay filter switch is visible and adjustable");
+            var originalReplaySetting = filterSwitch.IsChecked == true;
+            filterSwitch.IsChecked = !originalReplaySetting;
+            Check(new AppSettingsStore().LoadReplaySuppressionEnabled() ==
+                  !originalReplaySetting,
+                "toggling the replay filter saves a real preference immediately");
+            filterSwitch.IsChecked = originalReplaySetting;
+            Check(new AppSettingsStore().LoadReplaySuppressionEnabled() ==
+                  originalReplaySetting,
+                "replay-filter preference can be restored without app restart");
             Check(Require<TextBlock>(mail, "BackgroundPushStatusText").IsVisible,
                 "brief connection status remains visible");
             var diagnosticExpander = Require<Expander>(mail, "UnifiedDiagnosticsExpander");
