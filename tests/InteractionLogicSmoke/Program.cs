@@ -108,6 +108,62 @@ var quotedConversation = MailRuConversationParser.Parse(quotingJson);
 Expect(quotedConversation["only"].Members.Count, 1,
     "quoted text does not produce fake conversation members");
 
+// Some smart-thread responses contain one mailbox row per real mail.
+// A shared server-supplied thread_id, not a matching subject, must join them.
+var splitThreadResponse = """
+{"body":{"folders_content":[{"id":0,"threads":[
+{"id":"independent-1","thread_id":"shared-conversation-5",
+ "base_message":{"id":"m1","date":100,"subject":"Re: договор"}},
+{"id":"independent-2","thread_id":"shared-conversation-5",
+ "base_message":{"id":"m2","date":200,"subject":"Договор"}},
+{"id":"independent-3","thread_id":"unrelated",
+ "base_message":{"id":"m3","date":300,"subject":"Договор"}}
+]}]}}
+""";
+var splitConversations = MailRuConversationParser.Parse(splitThreadResponse);
+Expect(splitConversations["m1"].Members.Count, 2,
+    "separate smart-thread objects with the same explicit server thread id form one conversation");
+Expect(splitConversations["m2"].VerifiedCount, 2,
+    "real thread count is rebuilt from confirmed unique message IDs");
+Expect(splitConversations["m3"].Members.Count, 1,
+    "same-looking subjects never merge into a different server conversation");
+var replayTestDir = Path.Combine(Path.GetTempPath(),
+    "mailru-event-replay-" + Guid.NewGuid().ToString("N"));
+Directory.CreateDirectory(replayTestDir);
+try
+{
+    var frameA = PushWire.Append(PushWire.TextField(5, "ru.mail.mailapp"),
+        PushWire.BytesField(9, [1, 2, 3]));
+    var frameRetransmitted = PushWire.Append(PushWire.TextField(5, "ru.mail.mailapp"),
+        PushWire.BytesField(9, [4, 5, 6]));
+    var firstStore = new PushProcessedEventStore(replayTestDir);
+    Expect(firstStore.Record("first@example.invalid", "message-42", frameA,
+        out var firstRemembered), true,
+        "first occurrence of a real mail is delivered");
+    Expect(firstRemembered, true, "first event is persisted under user DPAPI");
+    var afterRestart = new PushProcessedEventStore(replayTestDir);
+    Expect(afterRestart.Record("first@example.invalid", "message-42",
+        frameRetransmitted, out var replayRemembered), false,
+        "same mailbox and mail id is suppressed after restart even with a new MCS id");
+    Expect(replayRemembered, true, "replay was verified against protected storage");
+    Expect(afterRestart.Record("first@example.invalid", "message-43",
+        frameA, out _), true,
+        "another genuine new mail is never blocked");
+    Expect(afterRestart.Record("second@example.invalid", "message-42",
+        frameA, out _), true,
+        "same mail id in another account cannot be suppressed");
+    var file = File.ReadAllText(Path.Combine(replayTestDir,
+        "processed-push-events.dat"));
+    Expect(file.Contains("first@example.invalid"), false,
+        "persisted replay store contains no plaintext mailbox addresses");
+    Expect(file.Contains("message-42"), false,
+        "persisted replay store contains no plaintext message ids");
+}
+finally
+{
+    Directory.Delete(replayTestDir, true);
+}
+
 // Diagnostic tests are entirely offline. No fake or real token may appear in a report.
 PushDiagnostics.Clear();
 PushDiagnostics.Record("GOOGLE", "MCS_LOGIN_OK");
