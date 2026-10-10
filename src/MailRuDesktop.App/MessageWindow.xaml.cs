@@ -23,6 +23,8 @@ public partial class MessageWindow : Window
     private RichComposeEditor? _messageRichEditor;
 
     public bool MailboxChanged { get; private set; }
+    public bool ReplyRequested { get; private set; }
+    public MailRuFullMessage? ReplySource => _fullMessage ?? _initialFullMessage;
 
     public MessageWindow(
         MailRuClient mailRu,
@@ -207,20 +209,10 @@ public partial class MessageWindow : Window
 
     private void ReplyButton_Click(object sender, RoutedEventArgs e)
     {
-        _composeMode = ComposeMode.Reply;
-        ComposePanel.Visibility = Visibility.Visible;
-
-        var target = _fullMessage?.FromEmail;
-        if (string.IsNullOrWhiteSpace(target))
-            target = _summary.SenderEmail;
-
-        ComposeToTextBox.Text = target ?? string.Empty;
-        ComposeSubjectTextBox.Text = PrefixSubject("Re:", _fullMessage?.Subject ?? _summary.Subject);
-        ComposeBodyTextBox.Clear();
-        _composeAttachmentPaths.Clear();
-        RefreshComposeAttachments();
-        ComposeStatusText.Text = string.Empty;
-        _messageRichEditor?.Focus();
+        // The caller opens the normal separate compose window when this modal
+        // reader closes, preserving the original mailbox and reply-to thread.
+        ReplyRequested = true;
+        Close();
     }
 
     private void ForwardButton_Click(object sender, RoutedEventArgs e)
