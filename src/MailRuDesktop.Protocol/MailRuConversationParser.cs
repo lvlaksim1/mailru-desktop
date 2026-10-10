@@ -51,6 +51,56 @@ public static class MailRuConversationParser
         return result;
     }
 
+    /// <summary>
+    /// Augment a compact smart-status entry with the real individual messages
+    /// returned by the official mobile GET /api/v1/m/threads/thread operation.
+    /// Never infer membership from the subject, quotes or folder counts.
+    /// </summary>
+    public static MailRuConversation ExpandFromThreadDetail(
+        MailRuConversation original, string payload)
+    {
+        using var document = JsonDocument.Parse(payload);
+        var root = document.RootElement;
+        if (root.ValueKind != JsonValueKind.Object) return original;
+        var body = root.TryGetProperty("body", out var container) ? container : root;
+        if (body.ValueKind != JsonValueKind.Object) return original;
+
+        var reportedThreadId = Value(body, "id") ?? Value(body, "thread_id");
+        if (!string.IsNullOrWhiteSpace(reportedThreadId) &&
+            !string.Equals(reportedThreadId, original.ThreadId, StringComparison.Ordinal))
+            return original;
+
+        if (!body.TryGetProperty("messages", out var messages) ||
+            messages.ValueKind != JsonValueKind.Array)
+            return original;
+
+        var members = original.Members.ToDictionary(x => x.Id, StringComparer.Ordinal);
+        foreach (var item in messages.EnumerateArray())
+        {
+            if (item.ValueKind != JsonValueKind.Object) continue;
+            var itemThread = Value(item, "thread_id");
+            if (!string.IsNullOrWhiteSpace(itemThread) &&
+                !string.Equals(itemThread, original.ThreadId, StringComparison.Ordinal))
+                continue;
+            // These are individual messages; representation IDs never become
+            // additional messages merely because they occur in another folder.
+            var id = Value(item, "id") ?? Value(item, "uidl");
+            if (string.IsNullOrWhiteSpace(id)) continue;
+            var candidate = Extract(item, id);
+            members[id] = members.TryGetValue(id, out var previous)
+                ? Merge(candidate, previous) : candidate;
+        }
+        var ordered = members.Values
+            .OrderBy(x => x.DateUnix ?? long.MinValue)
+            .ThenBy(x => x.Id, StringComparer.Ordinal).ToArray();
+        return original with
+        {
+            ServerCount = Math.Max(original.ServerCount ?? 0,
+                Math.Max(ReadPositive(body, "length") ?? 0, ordered.Length)),
+            Members = ordered
+        };
+    }
+
     private static void Scan(JsonElement node, Dictionary<string, MailRuConversation> result)
     {
         if (node.ValueKind == JsonValueKind.Object)
@@ -91,15 +141,19 @@ public static class MailRuConversationParser
             foreach (var message in messages.EnumerateArray())
                 AddMessage(message, byId);
 
-        // A representation is an alternate view of an existing member.
-        // Only enrich an already recognized ID; never count it as a new mail.
+        // In compact /status/smart, representations identify the last REAL
+        // message in each folder via message_id_last. The representation's
+        // length counts mail, but it does not disclose the other mail IDs.
         if (thread.TryGetProperty("representations", out var reps) &&
             reps.ValueKind == JsonValueKind.Array)
             foreach (var item in reps.EnumerateArray())
             {
+                if (item.ValueKind != JsonValueKind.Object) continue;
                 var id = MessageId(item);
-                if (id is not null && byId.TryGetValue(id, out var existing))
-                    byId[id] = Merge(existing, Extract(item, id));
+                if (string.IsNullOrWhiteSpace(id)) continue;
+                var candidate = Extract(item, id);
+                byId[id] = byId.TryGetValue(id, out var existing)
+                    ? Merge(existing, candidate) : candidate;
             }
 
         // message_id_last is a verifiable message ID, even when the compact
@@ -110,15 +164,21 @@ public static class MailRuConversationParser
                 lastId, "", "", "", "", null, null);
 
         if (byId.Count == 0) return;
-        int? declared = null;
+        int? declared = ReadPositive(thread, "length");
         foreach (var key in new[] { "messages_count", "message_count",
                                     "messages_total", "count" })
         {
-            if (ReadPositive(thread, key) is int value)
-            {
+            if (declared is null && ReadPositive(thread, key) is int value)
                 declared = value;
-                break;
-            }
+        }
+        if (declared is null && thread.TryGetProperty("representations", out var allReps) &&
+            allReps.ValueKind == JsonValueKind.Array)
+        {
+            long represented = 0;
+            foreach (var item in allReps.EnumerateArray())
+                represented += ReadPositive(item, "length") ?? 0;
+            if (represented is > 0 and <= int.MaxValue)
+                declared = (int)represented;
         }
         if (declared is null && thread.TryGetProperty("base_message", out var b) &&
             b.ValueKind == JsonValueKind.Object)

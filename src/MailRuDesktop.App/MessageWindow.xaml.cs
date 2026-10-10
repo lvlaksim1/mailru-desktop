@@ -165,13 +165,30 @@ public partial class MessageWindow : Window
         AttachmentsItemsControl.Visibility =
             full.Attachments.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
 
-        if (_conversation is { Members.Count: > 1 } && _accessToken is not null)
+        if (_conversation is { VerifiedCount: > 1 } && _accessToken is not null)
         {
+            var conversation = _conversation;
+            if (conversation.Members.Count < conversation.VerifiedCount &&
+                !string.IsNullOrWhiteSpace(conversation.ThreadId))
+            {
+                try
+                {
+                    var raw = await _mailRu.GetThreadMessagesAsync(
+                        _accessToken, conversation.ThreadId,
+                        limit: Math.Clamp(conversation.VerifiedCount ?? 1, 1, 200));
+                    conversation = MailRuConversationParser.ExpandFromThreadDetail(
+                        conversation, raw);
+                }
+                catch (Exception error)
+                {
+                    DiagnosticLog.Write("detached_thread_detail", error.GetType().Name);
+                }
+            }
             var bodies = new Dictionary<string, MailRuFullMessage>(StringComparer.Ordinal)
             {
                 [full.Id] = full
             };
-            foreach (var member in _conversation.Members
+            foreach (var member in conversation.Members
                          .Where(x => x.Id != full.Id)
                          .OrderByDescending(x => x.DateUnix ?? long.MinValue).Take(18))
             {
@@ -190,7 +207,7 @@ public partial class MessageWindow : Window
             }
             if (_readerReady)
                 MessageWebView.NavigateToString(
-                    MailRuConversationHtml.Render(_conversation, full.Id, bodies,
+                    MailRuConversationHtml.Render(conversation, full.Id, bodies,
                         ThemeManager.ReaderBackgroundHtml,
                         ThemeManager.ReaderForegroundHtml,
                         ThemeManager.ReaderMutedHtml));

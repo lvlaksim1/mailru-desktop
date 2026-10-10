@@ -17,9 +17,47 @@ public partial class MainWindow
     {
         if (_serverSearchMode ||
             !_conversationIndex.TryGetValue(selected.Id, out var conversation) ||
-            (conversation.VerifiedCount ?? 0) <= 1 ||
-            conversation.Members.Count <= 1)
+            (conversation.VerifiedCount ?? 0) <= 1)
             return false;
+
+        if (conversation.Members.Count < (conversation.VerifiedCount ?? 0) &&
+            !string.IsNullOrWhiteSpace(conversation.ThreadId) &&
+            !string.IsNullOrWhiteSpace(_accessToken))
+        {
+            try
+            {
+                var raw = await _mailRu.GetThreadMessagesAsync(
+                    _accessToken, conversation.ThreadId,
+                    limit: Math.Clamp(conversation.VerifiedCount ?? 1, 1, 200),
+                    cancellationToken: cancellationToken);
+                if (loadGeneration != _messageLoadGeneration ||
+                    !string.Equals(_activePreviewMailId, selected.Id,
+                        StringComparison.Ordinal))
+                    return true;
+                var expanded = MailRuConversationParser.ExpandFromThreadDetail(
+                    conversation, raw);
+                if (expanded.Members.Count > conversation.Members.Count)
+                {
+                    conversation = expanded;
+                    foreach (var member in expanded.Members)
+                        _conversationIndex = new Dictionary<string, MailRuConversation>(
+                            _conversationIndex, StringComparer.Ordinal)
+                        {
+                            [member.Id] = expanded
+                        };
+                }
+                PushDiagnostics.Record("MAIL", "THREAD_DETAIL_MEMBERS",
+                    conversation.Members.Count);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                DiagnosticLog.Write("thread_detail", ex.GetType().Name);
+            }
+        }
 
         var keyPrefix = (_activeLogin ?? "") + "|";
         var bodies = new Dictionary<string, MailRuFullMessage>(StringComparer.Ordinal)

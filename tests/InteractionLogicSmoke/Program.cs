@@ -163,6 +163,64 @@ Expect(splitConversations["m2"].VerifiedCount, 2,
     "real thread count is rebuilt from confirmed unique message IDs");
 Expect(splitConversations["m3"].Members.Count, 1,
     "same-looking subjects never merge into a different server conversation");
+// Real compact smart-thread schema reported by the Owner: each folder
+// representation exposes just its latest mail ID and a folder-local count.
+var compactRealShape = """
+{"body":{"folders_content":[{"id":0,"threads":[
+ {"id":"thread-5","length":5,"representations":[
+   {"folder":0,"length":1,"message_id_last":"m5","date":500,"subject":"Ответ"},
+   {"folder":500010,"length":4,"message_id_last":"m4","date":400}]},
+ {"id":"thread-2","length":2,"representations":[
+   {"folder":0,"length":1,"message_id_last":"n2","date":600},
+   {"folder":500010,"length":1,"message_id_last":"n1","date":300}]}
+]}]}}
+""";
+var compactConversations = MailRuConversationParser.Parse(compactRealShape);
+Expect(compactConversations["m5"].VerifiedCount, 5,
+    "original smart status threads.length gives actual five-mail count");
+Expect(compactConversations["m5"].Members.Count, 2,
+    "folder representations reveal only two IDs, not five invented messages");
+Expect(compactConversations["m4"].ThreadId, "thread-5",
+    "outgoing folder last message remains in same verified thread");
+Expect(compactConversations["n2"].VerifiedCount, 2,
+    "original second thread count remains two");
+Expect(compactConversations.ContainsKey("thread-5"), false,
+    "logical thread id is never substituted for an actual mail id");
+var compactRows = MailRuThreadStatusParser.Parse(compactRealShape, 0).Messages;
+Expect(compactRows.Count, 2, "compact input renders one mailbox row per thread");
+Expect(compactRows[0].Id, "n2", "mailbox row retains actual latest mail id");
+var threadDetails = """
+{"status":200,"body":{"id":"thread-5","messages":[
+ {"id":"m1","date":100,"subject":"Начало"},
+ {"id":"m2","date":200,"subject":"Ответ"},
+ {"id":"m3","date":300,"subject":"Ответ"},
+ {"id":"m4","date":400,"subject":"Ответ"},
+ {"id":"m5","date":500,"subject":"Ответ"}]}}
+""";
+var enriched = MailRuConversationParser.ExpandFromThreadDetail(
+    compactConversations["m5"], threadDetails);
+Expect(enriched.Members.Count, 5,
+    "official per-thread endpoint materializes all five original messages");
+Expect(enriched.Members.Select(x => x.Id).Distinct().Count(), 5,
+    "each message is represented once even across folders");
+Expect(enriched.VerifiedCount, 5, "conversation count is not inflated by folder views");
+var wrongThreadDetails = threadDetails.Replace("thread-5", "other-thread", StringComparison.Ordinal);
+Expect(MailRuConversationParser.ExpandFromThreadDetail(
+    compactConversations["m5"], wrongThreadDetails).Members.Count, 2,
+    "mismatched server thread response is ignored without merging unrelated mail");
+
+using (var handler = new RecordingHandler())
+using (var http = new HttpClient(handler))
+using (var client = new MailRuClient(httpClient: http))
+{
+    await client.GetThreadMessagesAsync("test-token", "thread-5", limit: 5);
+    Expect(handler.LastPath, "/api/v1/m/threads/thread",
+        "real Android per-thread route is used on demand");
+    Expect(Uri.UnescapeDataString(handler.LastUrl).Contains("id=thread-5",
+        StringComparison.Ordinal), true,
+        "thread details are requested using server-proven thread id");
+}
+
 var replayTestDir = Path.Combine(Path.GetTempPath(),
     "mailru-event-replay-" + Guid.NewGuid().ToString("N"));
 Directory.CreateDirectory(replayTestDir);
@@ -1342,12 +1400,14 @@ Console.WriteLine("All interaction logic tests passed.");
 sealed class RecordingHandler : HttpMessageHandler
 {
     public string LastPath { get; private set; } = "";
+    public string LastUrl { get; private set; } = "";
     public string LastForm { get; private set; } = "";
 
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request, CancellationToken cancellationToken)
     {
         LastPath = request.RequestUri?.AbsolutePath ?? "";
+        LastUrl = request.RequestUri?.ToString() ?? "";
         LastForm = request.Content is null ? "" :
             await request.Content.ReadAsStringAsync(cancellationToken);
         return new HttpResponseMessage(HttpStatusCode.OK)

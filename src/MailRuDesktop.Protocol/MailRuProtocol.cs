@@ -29,6 +29,7 @@ public static class MailRuEndpointCatalog
     [
         new("auth.mobile", "POST", "aj-https.mail.ru", "/cgi-bin/auth", EndpointEvidence.VerifiedLocal, "Mobile OAuth-style authentication"),
         new("threads.status.smart", "GET", "aj-https.mail.ru", "/api/v1/m/threads/status/smart", EndpointEvidence.VerifiedLocal, "Folder/thread status"),
+        new("threads.thread", "GET", "aj-https.mail.ru", "/api/v1/m/threads/thread", EndpointEvidence.StaticOfficialClient, "Read real conversation members on explicit thread opening"),
         new("messages.message", "GET", "aj-https.mail.ru", "/api/v1/messages/message", EndpointEvidence.VerifiedLocal, "Full message"),
         new("messages.marks", "POST", "aj-https.mail.ru", "/api/v1/messages/marks", EndpointEvidence.VerifiedLocal, "Unread/read marks"),
         new("messages.move", "POST", "aj-https.mail.ru", "/api/v1/messages/move", EndpointEvidence.VerifiedLocal, "Move/archive/trash"),
@@ -545,6 +546,39 @@ public sealed partial class MailRuClient : IDisposable
         if (!response.IsSuccessStatusCode)
             throw new MailRuProtocolException($"Thread status request failed with HTTP {(int)response.StatusCode}.");
 
+        return payload;
+    }
+
+    // Original Android APK ThreadRequestCommand (TORNADO_MPOP).
+    // Read-only, on-demand; until live acceptance this remains StaticOfficialClient.
+    public async Task<string> GetThreadMessagesAsync(
+        string accessToken, string threadId, int limit = 200, int offset = 0,
+        CancellationToken cancellationToken = default)
+    {
+        RequireToken(accessToken);
+        if (string.IsNullOrWhiteSpace(threadId))
+            throw new ArgumentException("Thread id is required.", nameof(threadId));
+        if (limit is < 1 or > 200) throw new ArgumentOutOfRangeException(nameof(limit));
+        if (offset < 0) throw new ArgumentOutOfRangeException(nameof(offset));
+
+        var uri = BuildUri("/api/v1/m/threads/thread", new Dictionary<string, string?>
+        {
+            ["id"] = threadId,
+            ["limit"] = limit.ToString(CultureInfo.InvariantCulture),
+            ["offset"] = offset.ToString(CultureInfo.InvariantCulture),
+            ["last_modified"] = "1",
+            ["snippet_limit"] = "200",
+            ["refresh_mailbox"] = "1",
+            ["access_token"] = accessToken
+        });
+
+        using var request = CreateRequest(HttpMethod.Get, uri);
+        using var response = await SendSerializedAsync(request, cancellationToken).ConfigureAwait(false);
+        var payload = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        ValidateAuthorizationResponse(response, payload);
+        if (!response.IsSuccessStatusCode)
+            throw new MailRuProtocolException(
+                $"Thread detail request failed with HTTP {(int)response.StatusCode}.");
         return payload;
     }
 
