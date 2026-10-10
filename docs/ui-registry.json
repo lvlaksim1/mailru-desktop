@@ -16579,6 +16579,21 @@
     },
     {
       "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[1]/StackPanel[0]/GroupBox[1]/StackPanel[0]/ReplaySuppressionEnabledCheckBox",
+      "location": {
+        "Margin": "0,9,0,0"
+      },
+      "name": "ReplaySuppressionEnabledCheckBox",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[1]/StackPanel[0]/GroupBox[1]/StackPanel[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "CheckBox",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
       "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[1]/StackPanel[0]/GroupBox[1]/StackPanel[0]/TaskbarNotificationsEnabledCheckBox",
       "location": {},
       "name": "TaskbarNotificationsEnabledCheckBox",
@@ -16587,6 +16602,23 @@
       "states": null,
       "style": null,
       "type": "CheckBox",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {
+        "Foreground": "{DynamicResource AppMutedTextBrush}"
+      },
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[1]/StackPanel[0]/GroupBox[1]/StackPanel[0]/TextBlock[3]",
+      "location": {
+        "Margin": "20,3,0,0"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[1]/StackPanel[0]/GroupBox[1]/StackPanel[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
       "typography": {},
       "window": "MainWindow"
     },
@@ -21801,7 +21833,7 @@
         "Foreground": "{DynamicResource AppTextBrush}"
       },
       "declared_as": "XAML",
-      "element_count": 798,
+      "element_count": 800,
       "geometry": {
         "Height": "900",
         "MinHeight": "720",
