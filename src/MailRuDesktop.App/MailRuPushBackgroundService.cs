@@ -17,6 +17,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
     private readonly Action<string> _onNewMail;
     private readonly Action<PushMailEvent>? _onMailEvent;
     private readonly Action<string> _onMcsState;
+    private readonly Func<bool> _suppressReplays;
     private Dictionary<string, string> _accounts = new(StringComparer.OrdinalIgnoreCase);
     private CancellationTokenSource? _currentCancellation;
     private Task _tail = Task.CompletedTask;
@@ -32,7 +33,8 @@ internal sealed class MailRuPushBackgroundService : IDisposable
         Action<string, string> onStatus, Action<string> onNewMail,
         Action<string>? onMcsState = null,
         string recipientId = SharedGooglePushIdentityStore.PrimaryRecipientId,
-        Action<PushMailEvent>? onMailEvent = null)
+        Action<PushMailEvent>? onMailEvent = null,
+        Func<bool>? suppressReplays = null)
     {
         if (!SharedGooglePushIdentityStore.ValidRecipientId(recipientId))
             throw new ArgumentException("Invalid recipient slot.", nameof(recipientId));
@@ -41,6 +43,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
         _onNewMail = onNewMail;
         _onMailEvent = onMailEvent;
         _onMcsState = onMcsState ?? (_ => { });
+        _suppressReplays = suppressReplays ?? (() => true);
     }
 
     internal bool Enabled
@@ -382,6 +385,10 @@ internal sealed class MailRuPushBackgroundService : IDisposable
             // Drop events for removed mailboxes even before server unsubscribe
             // has completed. Never apply an old MCS event to another account.
             if (!_enabled || !_accounts.ContainsKey(login) || _stopping) return false;
+            // The user may disable the local workaround at runtime.
+            // Both in-memory and on-disk replay suppression are bypassed;
+            // transport acknowledgments are handled earlier by MCS.
+            if (!_suppressReplays()) return true;
             if (_recentMessages.Contains(id))
             {
                 PushDiagnostics.Record("MCS", "REPLAY_MEMORY_SUPPRESSED");
