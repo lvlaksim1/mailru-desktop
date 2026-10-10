@@ -164,6 +164,54 @@ finally
     Directory.Delete(replayTestDir, true);
 }
 
+// Per-device MCS delivery confirmations survive a process restart. Chromium
+// LoginRequest.received_persistent_id (field 10) reconciles receipts that the
+// server has not yet acknowledged, without deleting messages or subscriptions.
+var mcsReceiptsDir = Path.Combine(Path.GetTempPath(),
+    "mcs-receipt-regression-" + Guid.NewGuid().ToString("N"));
+Directory.CreateDirectory(mcsReceiptsDir);
+try
+{
+    var receiverA = new McsPendingReceiptStore("primary", 12345UL, mcsReceiptsDir);
+    var receivedFrame = PushWire.TextField(9, "pending-receipt-017");
+    Expect(receiverA.Remember(receivedFrame), true,
+        "server MCS persistent ID saved before selective ACK");
+    var receiverReloaded = new McsPendingReceiptStore("primary", 12345UL,
+        mcsReceiptsDir);
+    var pending = receiverReloaded.Snapshot();
+    Expect(pending.Count, 1, "unconfirmed transport receipt survives restart");
+    Expect(pending[0], "pending-receipt-017",
+        "resumed login includes the exact transport receipt, not its hash");
+    var loginWithReceipts = PushWire.LoginRequest(12345UL, 777UL, pending);
+    var actualIds = PushWire.Parse(loginWithReceipts)
+        .Where(x => x.Field == 10 && x.Bytes is not null)
+        .Select(x => System.Text.Encoding.UTF8.GetString(x.Bytes!)).ToArray();
+    Expect(actualIds.Length, 1, "LoginRequest populates field 10 received_persistent_id");
+    Expect(actualIds[0], "pending-receipt-017",
+        "MCS login carries the pending receipt matching the previous session");
+    Expect(PushWire.Parse(PushWire.LoginRequest(12345UL, 777UL))
+        .Any(x => x.Field == 10), false,
+        "normal first-time login sends no invented transport receipts");
+    var otherDevice = new McsPendingReceiptStore("primary", 54321UL,
+        mcsReceiptsDir);
+    Expect(otherDevice.Snapshot().Count, 0,
+        "new Google device never inherits an old device's receipts");
+    var anotherRecipient = new McsPendingReceiptStore("aaaaaaaaaaaa", 33333UL,
+        mcsReceiptsDir);
+    Expect(anotherRecipient.Snapshot().Count, 0,
+        "independent Google recipient never inherits primary acknowledgments");
+    var stateFile = File.ReadAllText(Path.Combine(mcsReceiptsDir,
+        "mcs-receipts-primary.dat"));
+    Expect(stateFile.Contains("pending-receipt-017"), false,
+        "MCS delivery IDs remain DPAPI-encrypted at rest");
+    receiverReloaded.ConfirmLogin(pending);
+    var confirmed = new McsPendingReceiptStore("primary", 12345UL,
+        mcsReceiptsDir);
+    Expect(confirmed.Snapshot().Count, 0,
+        "server-confirmed login clears only transmitted pending receipts");
+}
+finally { Directory.Delete(mcsReceiptsDir, true); }
+
 // Diagnostic tests are entirely offline. No fake or real token may appear in a report.
 PushDiagnostics.Clear();
 PushDiagnostics.Record("GOOGLE", "MCS_LOGIN_OK");
