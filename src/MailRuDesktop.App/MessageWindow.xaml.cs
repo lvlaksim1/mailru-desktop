@@ -190,7 +190,10 @@ public partial class MessageWindow : Window
             }
             if (_readerReady)
                 MessageWebView.NavigateToString(
-                    MailRuConversationHtml.Render(_conversation, full.Id, bodies));
+                    MailRuConversationHtml.Render(_conversation, full.Id, bodies,
+                        ThemeManager.ReaderBackgroundHtml,
+                        ThemeManager.ReaderForegroundHtml,
+                        ThemeManager.ReaderMutedHtml));
         }
         else if (!string.IsNullOrWhiteSpace(full.Html))
             ShowBody(full.Html, html: true);
