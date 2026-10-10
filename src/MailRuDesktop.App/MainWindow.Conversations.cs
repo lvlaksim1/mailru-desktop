@@ -5,6 +5,9 @@ namespace MailRuDesktop.App;
 public partial class MainWindow
 {
     // RAM-only cache: no mail content or credentials are written to disk.
+    private MailRuConversation? _displayedConversation;
+    private Dictionary<string, MailRuFullMessage>? _displayedConversationBodies;
+    private string? _displayedConversationSelectedId;
     private readonly Dictionary<string, MailRuFullMessage> _conversationBodyCache =
         new(StringComparer.Ordinal);
 
@@ -82,9 +85,25 @@ public partial class MainWindow
         // The permanent reader shell gets one staged document: no extra
         // WebView2 instance, no XAML overlay and no half-painted history.
         _readerWaitingForFullMessage = false;
-        _currentPreparedHtml =
-            MailRuConversationHtml.Render(conversation, selected.Id, bodies);
-        ShowReaderHtml(_currentPreparedHtml);
+        _displayedConversation = conversation;
+        _displayedConversationBodies = bodies;
+        _displayedConversationSelectedId = selected.Id;
+        ShowTrustedConversationHtml();
         return true;
+    }
+    private void ShowTrustedConversationHtml()
+    {
+        if (_displayedConversation is null ||
+            _displayedConversationBodies is null ||
+            _displayedConversationSelectedId is null)
+            return;
+        _currentPreparedHtml = MailRuConversationHtml.Render(
+            _displayedConversation, _displayedConversationSelectedId,
+            _displayedConversationBodies,
+            ThemeManager.ReaderBackgroundHtml,
+            ThemeManager.ReaderForegroundHtml,
+            ThemeManager.ReaderMutedHtml);
+        if (_readerReady && MessageWebView.CoreWebView2 is not null)
+            _ = StageReaderDocumentAsync(_readerGeneration, _currentPreparedHtml);
     }
 }
