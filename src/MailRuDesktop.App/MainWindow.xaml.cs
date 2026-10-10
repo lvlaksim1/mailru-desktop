@@ -718,6 +718,8 @@ public partial class MainWindow : Window
 
         if (window.MailboxChanged)
             await LoadFolderAsync(_currentFolderId);
+        if (window.ReplyRequested)
+            OpenReplyComposeWindow(message, window.ReplySource);
     }
 
     private void MessagesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
