@@ -955,8 +955,8 @@
 
             <Grid x:Name="SettingsWorkspace" Visibility="Collapsed">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" MinWidth="450"/>
-                    <ColumnDefinition Width="660" MinWidth="450"/>
+                    <ColumnDefinition Width="620" MinWidth="450"/>
+                    <ColumnDefinition Width="*" MinWidth="600"/>
                 </Grid.ColumnDefinitions>
                 <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
                     <StackPanel MaxWidth="800" HorizontalAlignment="Left">
@@ -1269,7 +1269,7 @@
                                                 HorizontalAlignment="Left"
                                                 Click="OpenPushProbeButton_Click"/>
                                         <TextBox x:Name="PushDiagnosticsLogTextBox"
-                                                 Margin="0,11,0,0" Height="440"
+                                                 Margin="0,11,0,0" Height="590"
                                                  FontFamily="Consolas" FontSize="12"
                                                  IsReadOnly="True" IsUndoEnabled="False"
                                                  TextWrapping="NoWrap"
@@ -1310,7 +1310,7 @@
                                         <TextBlock Text="Последний ответ почтового сервера и сведения о запросах."
                                                    TextWrapping="Wrap"
                                                    Foreground="{DynamicResource AppMutedTextBrush}"/>
-                                        <TextBox x:Name="ResponseTextBox" Height="440"
+                                        <TextBox x:Name="ResponseTextBox" Height="590"
                                                  Margin="0,10,0,0"
                                                  FontFamily="Consolas" FontSize="11"
                                                  AcceptsReturn="True" AcceptsTab="True"
@@ -1328,7 +1328,7 @@
                                                    Foreground="{DynamicResource AppMutedTextBrush}"
                                                    TextWrapping="Wrap"/>
                                         <TextBox x:Name="ApplicationDiagnosticsLogTextBox"
-                                                 Margin="0,10,0,0" Height="440"
+                                                 Margin="0,10,0,0" Height="590"
                                                  FontFamily="Consolas" FontSize="11"
                                                  IsReadOnly="True" IsUndoEnabled="False"
                                                  TextWrapping="NoWrap"
