@@ -15694,7 +15694,7 @@
       "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/Grid.ColumnDefinitions[0]/ColumnDefinition[0]",
       "location": {
         "MinWidth": "450",
-        "Width": "*"
+        "Width": "620"
       },
       "name": null,
       "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/Grid.ColumnDefinitions[0]",
@@ -15709,8 +15709,8 @@
       "color_roles_and_values": {},
       "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/Grid.ColumnDefinitions[0]/ColumnDefinition[1]",
       "location": {
-        "MinWidth": "450",
-        "Width": "660"
+        "MinWidth": "600",
+        "Width": "*"
       },
       "name": null,
       "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/Grid.ColumnDefinitions[0]",
@@ -17928,7 +17928,7 @@
       "color_roles_and_values": {},
       "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[2]/UnifiedDiagnosticsExpander/StackPanel[0]/UnifiedDiagnosticsTabs/TabItem[0]/StackPanel[0]/PushDiagnosticsLogTextBox",
       "location": {
-        "Height": "440",
+        "Height": "590",
         "Margin": "0,11,0,0"
       },
       "name": "PushDiagnosticsLogTextBox",
@@ -18086,7 +18086,7 @@
       "color_roles_and_values": {},
       "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[2]/UnifiedDiagnosticsExpander/StackPanel[0]/UnifiedDiagnosticsTabs/TabItem[1]/StackPanel[0]/ResponseTextBox",
       "location": {
-        "Height": "440",
+        "Height": "590",
         "Margin": "0,10,0,0"
       },
       "name": "ResponseTextBox",
@@ -18148,7 +18148,7 @@
       "color_roles_and_values": {},
       "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/SettingsWorkspace/ScrollViewer[2]/UnifiedDiagnosticsExpander/StackPanel[0]/UnifiedDiagnosticsTabs/TabItem[2]/StackPanel[0]/ApplicationDiagnosticsLogTextBox",
       "location": {
-        "Height": "440",
+        "Height": "590",
         "Margin": "0,10,0,0"
       },
       "name": "ApplicationDiagnosticsLogTextBox",

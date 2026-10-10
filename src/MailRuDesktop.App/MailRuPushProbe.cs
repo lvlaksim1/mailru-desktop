@@ -460,8 +460,10 @@ internal static partial class PushWire
     internal static byte[] TextField(int number, string value) =>
         BytesField(number, Encoding.UTF8.GetBytes(value));
 
-    internal static byte[] LoginRequest(ulong deviceId, ulong secret) =>
-        Append(TextField(1, "chrome-63.0.3234.0"),
+    internal static byte[] LoginRequest(ulong deviceId, ulong secret,
+        IReadOnlyList<string>? receivedPendingIds = null)
+    {
+        var ordinaryLogin = Append(TextField(1, "chrome-63.0.3234.0"),
             TextField(2, "mcs.android.com"),
             TextField(3, deviceId.ToString(CultureInfo.InvariantCulture)),
             TextField(4, deviceId.ToString(CultureInfo.InvariantCulture)),
@@ -470,6 +472,14 @@ internal static partial class PushWire
             BytesField(8, Append(TextField(1, "new_vc"), TextField(2, "1"))),
             VarintField(12, 0), VarintField(14, 1),
             VarintField(16, 2), VarintField(17, 1));
+        // mcs.proto LoginRequest field 10 = received_persistent_id.
+        // Chromium retransmits receipts that the server has not confirmed
+        // during an earlier MCS connection; do not log the raw IDs.
+        if (receivedPendingIds is null || receivedPendingIds.Count == 0)
+            return ordinaryLogin;
+        return Append(ordinaryLogin,
+            Append(receivedPendingIds.Select(id => TextField(10, id)).ToArray()));
+    }
 
     private static ulong ReadVarint(ReadOnlySpan<byte> bytes, ref int index)
     {
