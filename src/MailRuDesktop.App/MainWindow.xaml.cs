@@ -1884,6 +1884,11 @@ public partial class MainWindow : Window
                 ComposeStatusText.Text =
                     $"Запланировано на {scheduledFor.Value.LocalDateTime:dd.MM.yyyy HH:mm}.";
             }
+
+            // Close only when the mail server has confirmed successful send
+            // or schedule. On any error the current editor and attachments
+            // remain intact for correction and retry.
+            _composeWindow?.Close();
         }
         catch (Exception ex)
         {
