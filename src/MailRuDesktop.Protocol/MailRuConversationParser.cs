@@ -31,7 +31,7 @@ public static class MailRuConversationParser
         // v0.3.49 did not join these records, so the list remained ungrouped.
         var groups = result.Values
             .Where(x => !string.IsNullOrWhiteSpace(x.ThreadId))
-            .GroupBy(x => x.ThreadId, StringComparer.Ordinal);
+            .GroupBy(x => x.ThreadId, StringComparer.Ordinal).ToArray();
         foreach (var group in groups)
         {
             var items = group.ToArray();
