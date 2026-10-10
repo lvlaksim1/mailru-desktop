@@ -735,6 +735,10 @@ public partial class MainWindow : Window
 
     private void DisplaySummary(MailRuMessageSummary message)
     {
+        // A new selection invalidates the previous thread's composed view.
+        _displayedConversation = null;
+        _displayedConversationBodies = null;
+        _displayedConversationSelectedId = null;
         BeginReaderTransition(message);
 
         IncomingAttachmentsListBox.ItemsSource = null;
@@ -2065,7 +2069,9 @@ public partial class MainWindow : Window
         {
             BeginReaderTransition(ActivePreviewMessage);
             _readerWaitingForFullMessage = false;
-            if (!string.IsNullOrWhiteSpace(_currentPreparedHtml))
+            if (_displayedConversation is not null)
+                ShowTrustedConversationHtml();
+            else if (!string.IsNullOrWhiteSpace(_currentPreparedHtml))
                 ShowReaderHtml(_currentPreparedHtml);
             else if (!string.IsNullOrWhiteSpace(_currentFullMessage.Html))
                 ShowReaderHtml(_currentFullMessage.Html);
