@@ -111,6 +111,21 @@ internal sealed class AppSettingsStore
     public bool LoadTaskbarNotificationsEnabled() =>
         LoadState().TaskbarNotificationsEnabled;
 
+    // Local UI replay filter only. Never changes MCS acknowledgments,
+    // PushMe subscriptions, or saved Google recipients.
+    public bool LoadReplaySuppressionEnabled() =>
+        LoadState().ReplaySuppressionEnabled;
+
+    public void SaveReplaySuppressionEnabled(bool enabled)
+    {
+        lock (_sync)
+        {
+            var state = LoadStateCore();
+            state.ReplaySuppressionEnabled = enabled;
+            SaveStateCore(state);
+        }
+    }
+
     public void SaveTaskbarNotificationsEnabled(bool value)
     {
         lock (_sync)
@@ -382,6 +397,7 @@ internal sealed class AppSettingsStore
         public string Theme { get; set; } = AppThemeMode.Dark.ToString();
         public bool BackgroundPushEnabled { get; set; } = true;
         public bool TaskbarNotificationsEnabled { get; set; } = true;
+        public bool ReplaySuppressionEnabled { get; set; } = true;
         public int InterfaceFontSize { get; set; } = ThemeTypography.DefaultSize;
         public Dictionary<string, string>? DarkPalette { get; set; }
         public Dictionary<string, string>? LightPalette { get; set; }

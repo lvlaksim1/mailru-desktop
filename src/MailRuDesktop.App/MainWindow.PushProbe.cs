@@ -19,6 +19,7 @@ public partial class MainWindow
     private readonly HashSet<string> _pushConnectedAccounts =
         new(StringComparer.OrdinalIgnoreCase);
     private bool _pushSettingsInitialized;
+    private int _suppressRepeatNotifications = 1;
     private bool _pushBackgroundReady;
     private bool _pushShuttingDown;
     private bool _pushShutdownComplete;
@@ -82,7 +83,8 @@ public partial class MainWindow
             {
                 if (_pushShuttingDown || Dispatcher.HasShutdownStarted) return;
                 _ = Dispatcher.BeginInvoke(new Action(() => OnPushMailEvent(mail)));
-            });
+            },
+            suppressReplays: () => Volatile.Read(ref _suppressRepeatNotifications) != 0);
         // Keep the user's previous preference in settings for future versions,
         // but NEVER enable the multi-account receiver in this test release.
         BackgroundPushEnabledCheckBox.IsChecked = ManualGroupManagementRelease
@@ -90,6 +92,9 @@ public partial class MainWindow
         BackgroundPushEnabledCheckBox.IsEnabled = !ManualGroupManagementRelease;
         TaskbarNotificationsEnabledCheckBox.IsChecked =
             _settingsStore.LoadTaskbarNotificationsEnabled();
+        var filterEnabled = _settingsStore.LoadReplaySuppressionEnabled();
+        Volatile.Write(ref _suppressRepeatNotifications, filterEnabled ? 1 : 0);
+        ReplaySuppressionEnabledCheckBox.IsChecked = filterEnabled;
         _pushSettingsInitialized = true;
         BackgroundPushStatusText.Text = ManualGroupManagementRelease
             ? "Автоматическая регистрация всех аккаунтов отключена. " +
@@ -162,6 +167,17 @@ public partial class MainWindow
         if (!_pushSettingsInitialized || _pushShuttingDown) return;
         _settingsStore.SaveTaskbarNotificationsEnabled(
             TaskbarNotificationsEnabledCheckBox.IsChecked == true);
+    }
+
+    private void ReplaySuppressionEnabledCheckBox_Changed(
+        object sender, RoutedEventArgs e)
+    {
+        if (!_pushSettingsInitialized || _pushShuttingDown) return;
+        var enabled = ReplaySuppressionEnabledCheckBox.IsChecked == true;
+        _settingsStore.SaveReplaySuppressionEnabled(enabled);
+        Volatile.Write(ref _suppressRepeatNotifications, enabled ? 1 : 0);
+        PushDiagnostics.Record("UI", enabled
+            ? "REPLAY_SUPPRESSION_ENABLED" : "REPLAY_SUPPRESSION_DISABLED");
     }
 
     private void RestoreFromTray()
