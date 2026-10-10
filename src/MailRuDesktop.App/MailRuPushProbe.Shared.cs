@@ -426,7 +426,10 @@ internal sealed partial class MailRuPushProbe
                 {
                     await stream.WriteAsync(new byte[] { 7 }, cancellationToken);
                     await PushWire.WriteFrameAsync(stream, ack, cancellationToken);
+                    PushDiagnostics.Record("MCS", "SELECTIVE_ACK_WRITTEN");
                 }
+                else
+                    PushDiagnostics.Record("MCS", "SELECTIVE_ACK_ID_MISSING");
                 var account = PushWire.NewMailAccount(data);
                 if (account is null || !accepted.Contains(account) ||
                     !shouldDeliver(account, data))
