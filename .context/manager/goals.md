@@ -17,3 +17,6 @@ Keep the public repository buildable in CI. Replace obsolete host-only guards wi
 
 ## G-006 — progressively complete mail-client functionality
 Prioritize permanent delete, flags/pinning, server search, address book, folders, drafts/scheduling and attachment lifecycle. Administrative or account-destructive endpoints remain documented but are not exposed without a separate product decision.
+
+## Следующая цель после выпуска 0.3.50
+Проверить отсутствие повторных всплывающих уведомлений между запусками и доставку новых сообщений. Не рассматривать MCS ACK как подтверждение сервером. Для группировки 5/2 обеспечить полный корректный состав реальных писем, но только при подтверждённой структуре AJ API. Диагностика справа увеличена, и её должно хватать для исследования.
