@@ -253,9 +253,12 @@ internal sealed partial class MailRuPushProbe
             cancellationToken);
         Phase("MCS_TLS_OK");
         Phase("MCS_LOGIN_SEND");
+        var receipts = new McsPendingReceiptStore(recipientId, saved.DeviceId);
+        var pendingReceipts = receipts.Snapshot();
+        PushDiagnostics.Record("MCS", "LOGIN_PENDING_RECEIPTS", pendingReceipts.Count);
         await stream.WriteAsync(new byte[] { 41, 2 }, cancellationToken);
-        await PushWire.WriteFrameAsync(
-            stream, PushWire.LoginRequest(saved.DeviceId, saved.SecurityToken),
+        await PushWire.WriteFrameAsync(stream,
+            PushWire.LoginRequest(saved.DeviceId, saved.SecurityToken, pendingReceipts),
             cancellationToken);
         var version = await PushWire.ReadByteAsync(stream, cancellationToken);
         var tag = await PushWire.ReadByteAsync(stream, cancellationToken);
@@ -278,6 +281,21 @@ internal sealed partial class MailRuPushProbe
             throw new InvalidOperationException("Ответ MCS не подтвердил авторизацию.");
         }
         Phase("MCS_LOGIN_OK");
+        if (pendingReceipts.Count > 0)
+        {
+            // mcs.proto LoginResponse field 6 acknowledges receipt of the
+            // initial login packet (client stream ID 1). Clear only IDs
+            // transmitted in that confirmed login.
+            if (PushWire.GetUnsigned(reply, 6) >= 1)
+            {
+                receipts.ConfirmLogin(pendingReceipts);
+                PushDiagnostics.Record("MCS", "LOGIN_RECEIPTS_CONFIRMED",
+                    pendingReceipts.Count);
+            }
+            else
+                PushDiagnostics.Record("MCS", "LOGIN_RECEIPTS_UNCONFIRMED",
+                    pendingReceipts.Count);
+        }
         ReportAll("Google: один защищённый канал для всех аккаунтов (LOGIN_OK).");
 
         HashSet<string> accepted;
@@ -424,6 +442,11 @@ internal sealed partial class MailRuPushProbe
                 var ack = PushWire.SelectiveAcknowledgment(data);
                 if (ack is not null)
                 {
+                    // Persist the incoming transport ID BEFORE writing the ACK.
+                    // If the connection dies before the server confirms it,
+                    // the next LoginRequest re-sends received_persistent_id.
+                    if (receipts.Remember(data))
+                        PushDiagnostics.Record("MCS", "RECEIPT_RETAINED");
                     await stream.WriteAsync(new byte[] { 7 }, cancellationToken);
                     await PushWire.WriteFrameAsync(stream, ack, cancellationToken);
                     PushDiagnostics.Record("MCS", "SELECTIVE_ACK_WRITTEN");
