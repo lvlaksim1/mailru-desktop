@@ -50,7 +50,8 @@ public partial class MainWindow
             {
                 if (_pushShuttingDown || Dispatcher.HasShutdownStarted) return;
                 _ = Dispatcher.BeginInvoke(new Action(() => OnPushMailEvent(mail)));
-            });
+            },
+            suppressReplays: () => Volatile.Read(ref _suppressRepeatNotifications) != 0);
         _supplementalReceivers.Add(recipientId, worker);
         return worker;
     }
