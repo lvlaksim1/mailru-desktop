@@ -26,6 +26,28 @@ public static class MailRuConversationParser
         using var document = JsonDocument.Parse(raw);
         var result = new Dictionary<string, MailRuConversation>(StringComparer.Ordinal);
         Scan(document.RootElement, result);
+        // The compact folder response can return one thread object per visible
+        // message while carrying the SAME explicit server conversation key.
+        // v0.3.49 did not join these records, so the list remained ungrouped.
+        var groups = result.Values
+            .Where(x => !string.IsNullOrWhiteSpace(x.ThreadId))
+            .GroupBy(x => x.ThreadId, StringComparer.Ordinal).ToArray();
+        foreach (var group in groups)
+        {
+            var items = group.ToArray();
+            if (items.Length < 2) continue;
+            var members = items.SelectMany(x => x.Members)
+                .GroupBy(x => x.Id, StringComparer.Ordinal)
+                .Select(x => x.OrderByDescending(v =>
+                    (v.Sender.Length > 0 ? 1 : 0) +
+                    (v.Subject.Length > 0 ? 1 : 0) +
+                    (v.DateUnix.HasValue ? 1 : 0)).First())
+                .OrderBy(x => x.DateUnix ?? long.MinValue).ToArray();
+            var known = items.Max(x => x.VerifiedCount ?? 0);
+            foreach (var member in members)
+                result[member.Id] = new MailRuConversation(
+                    member.Id, group.Key, Math.Max(known, members.Length), members);
+        }
         return result;
     }
 
@@ -51,7 +73,13 @@ public static class MailRuConversationParser
         JsonElement thread, Dictionary<string, MailRuConversation> index)
     {
         if (thread.ValueKind != JsonValueKind.Object) return;
-        var threadId = Value(thread, "id") ?? "";
+        var threadId = Value(thread, "thread_id") ??
+            Value(thread, "conversation_id") ??
+            (thread.TryGetProperty("base_message", out var origin) &&
+             origin.ValueKind == JsonValueKind.Object
+                ? Value(origin, "thread_id") ?? Value(origin, "conversation_id")
+                : null) ??
+            Value(thread, "id") ?? "";
         var byId = new Dictionary<string, MailRuConversationMember>(StringComparer.Ordinal);
 
         if (thread.TryGetProperty("base_message", out var baseMessage) &&

@@ -630,7 +630,7 @@ public partial class MainWindow : Window
             RefreshThreadCountIndex();
             var snapshot = MailRuThreadStatusParser.Parse(raw, folderId);
 
-            var completeRows = snapshot.Messages.ToList();
+            var completeRows = CollapseVerifiedConversations(snapshot.Messages);
             await PrefetchFirstMissingSendersAsync(completeRows, _accessToken);
             if (IsStaleAccountSwitch())
                 return;

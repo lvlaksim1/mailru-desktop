@@ -382,7 +382,24 @@ internal sealed class MailRuPushBackgroundService : IDisposable
             // Drop events for removed mailboxes even before server unsubscribe
             // has completed. Never apply an old MCS event to another account.
             if (!_enabled || !_accounts.ContainsKey(login) || _stopping) return false;
-            if (_recentMessages.Contains(id)) return false;
+            if (_recentMessages.Contains(id))
+            {
+                PushDiagnostics.Record("MCS", "REPLAY_MEMORY_SUPPRESSED");
+                return false;
+            }
+            string? messageId = null;
+            try { messageId = PushMailEvent.Parse(data)?.MessageId; }
+            catch (InvalidDataException) { /* MCS hash remains a fallback. */ }
+            if (!PushProcessedEventStore.MarkDelivered(login, messageId, data,
+                    out var recorded))
+            {
+                _recentMessages.Add(id);
+                _recentOrder.Enqueue(id);
+                PushDiagnostics.Record("MCS", "REPLAY_DISK_SUPPRESSED");
+                return false;
+            }
+            if (recorded)
+                PushDiagnostics.Record("MCS", "EVENT_DEDUP_PERSISTED");
             _recentMessages.Add(id);
             _recentOrder.Enqueue(id);
             while (_recentOrder.Count > 1024)

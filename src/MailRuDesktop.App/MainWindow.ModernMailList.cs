@@ -111,6 +111,27 @@ public partial class MainWindow
     private IReadOnlyDictionary<string, MailRuConversation> _conversationIndex =
         new Dictionary<string, MailRuConversation>(StringComparer.Ordinal);
 
+    private List<MailRuMessageSummary> CollapseVerifiedConversations(
+        IReadOnlyList<MailRuMessageSummary> incoming)
+    {
+        var visible = new List<MailRuMessageSummary>(incoming.Count);
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var row in incoming.OrderByDescending(x => x.DateUnix))
+        {
+            // An empty or unverified conversation key never causes merging.
+            if (!_conversationIndex.TryGetValue(row.Id, out var conversation) ||
+                conversation.Members.Count < 2 ||
+                string.IsNullOrWhiteSpace(conversation.ThreadId))
+            {
+                visible.Add(row);
+                continue;
+            }
+            if (seen.Add(conversation.ThreadId))
+                visible.Add(row);
+        }
+        return visible;
+    }
+
     private void RefreshThreadCountIndex()
     {
         var raw = ResponseTextBox.Text;
@@ -124,6 +145,10 @@ public partial class MainWindow
         try
         {
             _conversationIndex = MailRuConversationParser.Parse(raw);
+            var confirmed = _conversationIndex.Values
+                .Where(x => x.Members.Count > 1)
+                .Select(x => x.ThreadId).Distinct(StringComparer.Ordinal).Count();
+            PushDiagnostics.Record("MAIL", "CONVERSATIONS_CONFIRMED", confirmed);
             var counts = BuildThreadCountIndex(raw);
             foreach (var (id, conversation) in _conversationIndex)
             {
