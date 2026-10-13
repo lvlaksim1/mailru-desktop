@@ -308,6 +308,69 @@ public partial class MainWindow
     private void TemplateSignatureComboBox_DropDownOpened(object sender, EventArgs e) =>
         RefreshSignaturesFromDisk();
 
+    private void TemplateFormatButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.Tag is not string command)
+            return;
+        var editor = TemplateBodyTextBox;
+        var selected = editor.SelectedText;
+        var start = editor.SelectionStart;
+        string replacement;
+        int innerOffset;
+        switch (command)
+        {
+            case "bold":
+                replacement = "**" + (selected.Length == 0 ? "текст" : selected) + "**";
+                innerOffset = 2;
+                break;
+            case "italic":
+                replacement = "*" + (selected.Length == 0 ? "текст" : selected) + "*";
+                innerOffset = 1;
+                break;
+            case "underline":
+                replacement = "<u>" + (selected.Length == 0 ? "текст" : selected) + "</u>";
+                innerOffset = 3;
+                break;
+            case "heading":
+                replacement = "# " + (selected.Length == 0 ? "Заголовок" : selected);
+                innerOffset = 2;
+                break;
+            case "bullet":
+                replacement = "- " + (selected.Length == 0 ? "Элемент списка" : selected);
+                innerOffset = 2;
+                break;
+            case "link":
+                var prompt = new TextPromptWindow(this, "Ссылка",
+                    "Укажите адрес ссылки (HTTPS):", "https://");
+                if (prompt.ShowDialog() != true) return;
+                if (!Uri.TryCreate(prompt.Value, UriKind.Absolute, out var uri) ||
+                    uri.Scheme != Uri.UriSchemeHttps)
+                {
+                    AppDialog.Info(this, "Ссылка", "Допустима только HTTPS-ссылка.");
+                    return;
+                }
+                replacement = "[" + (selected.Length == 0 ? "текст ссылки" : selected) +
+                    "](" + uri.AbsoluteUri + ")";
+                innerOffset = 1;
+                break;
+            default:
+                return;
+        }
+        editor.SelectedText = replacement;
+        editor.Focus();
+        editor.Select(start + innerOffset,
+            selected.Length == 0 ? replacement.Length - innerOffset -
+            (command switch
+            {
+                "bold" => 2, "italic" => 1, "underline" => 4,
+                "link" => replacement.Length - innerOffset -
+                    (selected.Length == 0 ? "текст ссылки".Length : selected.Length),
+                _ => 0
+            }) : selected.Length);
+    }
+
+
+
     private void MailTemplatesListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (MailTemplatesListBox.SelectedItem is not SavedMailTemplate template)
