@@ -40,6 +40,8 @@ internal sealed class UserInterfaceState
     public double ContactsListPaneWidth { get; set; } = 390;
     public double SettingsPaneWidth { get; set; } = 620;
     public bool DiagnosticsExpanded { get; set; }
+    public bool SignaturesExpanded { get; set; }
+    public bool TemplatesExpanded { get; set; }
     public int DiagnosticsTabIndex { get; set; }
 
     public bool FolderManageExpanded { get; set; }
