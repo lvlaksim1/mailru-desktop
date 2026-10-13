@@ -872,8 +872,8 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <TextBlock FontSize="{DynamicResource AppFontHeroSize}" FontWeight="SemiBold" Text="Новое письмо"/>
-                        <Grid Grid.Row="1" Margin="0,12,0,8">
+                        <TextBlock x:Name="ComposeHeaderText" FontSize="{DynamicResource AppFontHeroSize}" FontWeight="SemiBold" Text="Новое письмо"/>
+                        <Grid x:Name="ComposeSenderRow" Grid.Row="1" Margin="0,12,0,8">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="70"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <TextBlock VerticalAlignment="Center" Text="От"/>
                             <TextBox x:Name="ComposeFromTextBox" Grid.Column="1" Padding="8"
@@ -1020,6 +1020,15 @@
                                 <TextBlock Margin="0,7,0,0" Foreground="{DynamicResource AppMutedTextBrush}"
                                            TextWrapping="Wrap"
                                            Text="Размер заголовков, подписей и обычного текста изменяется согласованно. Форматирование полученных писем не меняется."/>
+                                <Separator Margin="0,12,0,10"/>
+                                <CheckBox x:Name="SpellCheckEnabledCheckBox"
+                                          Content="Проверять орфографию при написании писем"
+                                          Checked="SpellCheckEnabledCheckBox_Changed"
+                                          Unchecked="SpellCheckEnabledCheckBox_Changed"/>
+                                <TextBlock Margin="20,4,0,0"
+                                           Foreground="{DynamicResource AppMutedTextBrush}"
+                                           TextWrapping="Wrap"
+                                           Text="Проверка выполняется средствами Windows без передачи текста в интернет. Для русского и английского нужны соответствующие языковые словари Windows."/>
                         <Expander Margin="0,16,0,0" IsExpanded="False" Header="Цветовая схема"
                                   Foreground="{DynamicResource AppTextBrush}"
                                   Background="{DynamicResource AppPanelBrush}">
