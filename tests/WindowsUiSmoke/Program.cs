@@ -147,14 +147,13 @@ internal static class Program
                 "Russian compose host and document use ru-RU, not en-US; host=" +
                 checkEditor.Language.IetfLanguageTag + ", document=" +
                 checkEditor.Document.Language.IetfLanguageTag);
-            Check(AvatarImageBehavior.IsSupportedAvatarUrl(
-                      "https://filin.mail.ru/pic?email=recipient%40example.org"),
-                "existing public Filin image route remains supported");
-            Check(!AvatarImageBehavior.IsSupportedAvatarUrl(
-                      "https://outside.example.org/pic?email=user") &&
-                  !AvatarImageBehavior.IsSupportedAvatarUrl(
-                      "http://filin.mail.ru/pic?email=user"),
-                "avatar retry never relaxes host or HTTPS safety");
+            Check(MailRuDesktop.Protocol.MailRuAvatarUrls.ForEmail(
+                      "recipient@example.org") ==
+                  "https://filin.mail.ru/pic?email=recipient%40example.org",
+                "restored native WPF avatar binding retains the known HTTPS endpoint");
+            Check(MailRuDesktop.Protocol.MailRuAvatarUrls.ForEmail(
+                      "invalid address@example.org") is null,
+                "invalid sender address never becomes an image URL");
             Check(VisualTreeHelper.GetParent(checkEditor!) is Border
                   { BorderThickness.Left: 1, CornerRadius.TopLeft: 5 },
                 "rich mail editing area has a rounded visible border");
