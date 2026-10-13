@@ -1,7 +1,7 @@
-name: Regenerate UI registry after canonical row refactor
+name: Final UI registry refresh for stage 1
 on:
   push:
-    branches: [refactor/mail-list-single-template-v0.3.60]
+    branches: [refactor/stage1-settings-composer-markdown-20261013]
     paths: [.github/workflows/regen-ui-stage1-final-once.yml]
 permissions:
   contents: write
@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: refactor/mail-list-single-template-v0.3.60
+          ref: refactor/stage1-settings-composer-markdown-20261013
       - name: Regenerate and check
         run: |
           python tools/ui_registry.py --write
@@ -22,6 +22,6 @@ jobs:
           git config user.email actions@users.noreply.github.com
           git add docs/ui-registry.json
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m "ui: refresh registry for v0.3.60"
-          git pull --rebase origin refactor/mail-list-single-template-v0.3.60
-          git push origin HEAD:refactor/mail-list-single-template-v0.3.60
+          git commit -m "ui: update registry after compose window state improvements"
+          git pull --rebase origin refactor/stage1-settings-composer-markdown-20261013
+          git push origin HEAD:refactor/stage1-settings-composer-markdown-20261013
