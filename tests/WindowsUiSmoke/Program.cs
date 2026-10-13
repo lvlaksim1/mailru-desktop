@@ -39,6 +39,42 @@ internal static class Program
             Check(mail.FindName("ReaderLoadingOverlay") is null,
                 "no WPF overlay can create WebView2 airspace flashes");
 
+            // Stage 0 regression: the ACTIVE modern mail-row template,
+            // not the obsolete XAML card, must expose a real pin control.
+            var modernList = Require<ListBox>(mail, "MessagesGrid");
+            var pinRow = modernList.ItemTemplate?.LoadContent() as Grid;
+            Check(pinRow is not null, "active mail template can be instantiated");
+            var pinAction = FindDescendant<Button>(pinRow!,
+                b => b.Name == "ModernPinActionButton");
+            Check(pinAction is not null, "active mail row contains a pin action");
+            Check(Grid.GetColumn(pinAction!) == 4 &&
+                  pinAction.ToolTip?.ToString() == "Закрепить / открепить",
+                "pin sits next to the star and advertises both operations");
+            var pinShape = FindDescendant<System.Windows.Shapes.Path>(
+                pinAction, _ => true);
+            Check(pinShape is not null,
+                "pin button uses the shared vector icon");
+            var pinnedTestMail = new MailRuDesktop.Protocol.MailRuMessageSummary(
+                "pin-test-123", "Письмо", "Текст", "Отправитель",
+                "sender@example.invalid", null, null, 0, false, false, false)
+                with { Pinned = true };
+            pinRow!.DataContext = pinnedTestMail;
+            pinRow.Measure(new Size(1200, 42));
+            pinRow.Arrange(new Rect(0, 0, 1200, 42));
+            pinRow.UpdateLayout();
+            Check(pinShape!.Fill is SolidColorBrush pinnedFill &&
+                  pinnedFill.Color == (Color)ColorConverter.ConvertFromString("#C62832"),
+                "pinned mail icon uses the fixed #C62832 in the modern row");
+            pinRow.DataContext = pinnedTestMail with { Pinned = false };
+            pinRow.UpdateLayout();
+            Check(pinShape.Fill is SolidColorBrush unpinnedFill &&
+                  unpinnedFill.Color.A == 0,
+                "unpinning switches the icon back to a hollow outline");
+            Check(FindDescendant<Button>(pinRow,
+                b => b.Name == "FlagActionButton") is not null,
+                "restoring pin does not remove the star button");
+
+
             var settingsAction = FindDescendant<Button>(mail,
                 b => b.Content?.ToString()?.Contains("Настройки", StringComparison.Ordinal) == true);
             Check(settingsAction is not null, "Settings navigation is visible");
