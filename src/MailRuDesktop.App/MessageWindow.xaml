@@ -99,7 +99,14 @@
                             MaxWidth="190"
                             Tag="{Binding}"
                             ToolTip="{Binding Name}"
-                            Click="AttachmentButton_Click">
+                            PreviewMouseLeftButtonDown="AttachmentButton_PreviewMouseLeftButtonDown">
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Сохранить вложение…"
+                                          Tag="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          Click="AttachmentButton_Click"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
                         <StackPanel Orientation="Horizontal">
                             <Path Width="14" Height="14"
                                   Margin="0,0,6,0"
