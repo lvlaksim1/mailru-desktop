@@ -250,9 +250,105 @@ internal static class Program
             Check(mail.FindName("ReaderLoadingOverlay") is null,
                 "no WPF overlay can create WebView2 airspace flashes");
 
+            var modernList = Require<ListBox>(mail, "MessagesGrid");
+            // Regression: the server finds matches inside FULL message bodies.
+            // Filtering its result again by only Subject/Snippet must not hide them.
+            var searchBox = Require<TextBox>(mail, "FilterQueryTextBox");
+            var existingQuery = searchBox.Text;
+            var existingStatus = Require<TextBlock>(mail, "FilterStatusText").Text;
+            var sourceField = typeof(MainWindow).GetField("_currentMessages",
+                BindingFlags.Instance | BindingFlags.NonPublic)!;
+            var searchModeField = typeof(MainWindow).GetField("_serverSearchMode",
+                BindingFlags.Instance | BindingFlags.NonPublic)!;
+            var applySearchFilters = typeof(MainWindow).GetMethod("ApplyFilters",
+                BindingFlags.Instance | BindingFlags.NonPublic)!;
+            var originalSource = sourceField.GetValue(mail);
+            var originalServerMode = searchModeField.GetValue(mail);
+            var serverResultA = new MailRuDesktop.Protocol.MailRuMessageSummary(
+                "body-hit-1", "Счёт", "Письмо без слов из полного текста",
+                "Компания", "one@example.org", 1700000000, 1, 0,
+                false, false, false);
+            var serverResultB = serverResultA with
+            {
+                Id = "body-hit-2",
+                Subject = "Документы",
+                Snippet = "Ещё один краткий фрагмент"
+            };
+            try
+            {
+                sourceField.SetValue(mail, new List<MailRuDesktop.Protocol.MailRuMessageSummary>
+                    { serverResultA, serverResultB });
+                searchModeField.SetValue(mail, true);
+                searchBox.Text = "совпадение-только-в-полном-тексте";
+                applySearchFilters.Invoke(mail, null);
+                Check(modernList.Items.Count == 2,
+                    "server search retains both full-body matches absent from subjects/snippets");
+                searchBox.Clear();
+                Check(modernList.Items.Count == 2,
+                    "clearing search text does not trigger server reload or hide fetched results");
+                searchBox.Text = "новый запрос без отправки";
+                Check(modernList.Items.Count == 2,
+                    "typing a new query does not filter previous server results before clicking search");
+
+                searchModeField.SetValue(mail, false);
+                applySearchFilters.Invoke(mail, null);
+                Check(modernList.Items.Count == 0,
+                    "ordinary folder mode still filters the loaded list locally");
+            }
+            finally
+            {
+                sourceField.SetValue(mail, originalSource);
+                searchModeField.SetValue(mail, originalServerMode);
+                searchBox.Text = existingQuery;
+                applySearchFilters.Invoke(mail, null);
+                Require<TextBlock>(mail, "FilterStatusText").Text = existingStatus;
+            }
+
+            // A server count above 200 triggers another offset-based page.
+            // The offset counts delivered records even if an ID repeats.
+            var collector = new MailServerSearchPages();
+            var firstPage = new MailRuDesktop.Protocol.MailRuSearchResult(
+                5, new[] { serverResultA, serverResultB }, "{}", "test-server")
+                { HasReportedTotal = true };
+            collector.AddPage(firstPage);
+            Check(collector.Messages.Count == 2 && collector.NextOffset == 2 &&
+                  collector.ReportedTotal == 5 && collector.HasMore,
+                "server paging continues when the reported total exceeds the first page");
+            var third = serverResultA with { Id = "body-hit-3" };
+            collector.AddPage(new MailRuDesktop.Protocol.MailRuSearchResult(
+                5, new[] { serverResultB, third }, "{}", "test-server")
+                { HasReportedTotal = true });
+            Check(collector.Messages.Count == 3 && collector.NextOffset == 4 &&
+                  collector.HasMore,
+                "overlapping pages deduplicate IDs but advance the server offset");
+            var fourth = serverResultA with { Id = "body-hit-4" };
+            var fifth = serverResultA with { Id = "body-hit-5" };
+            collector.AddPage(new MailRuDesktop.Protocol.MailRuSearchResult(
+                5, new[] { fourth, fifth }, "{}", "test-server")
+                { HasReportedTotal = true });
+            Check(collector.Messages.Count == 5 && !collector.HasMore &&
+                  collector.GetProgressText().Contains("загружено 5",
+                      StringComparison.Ordinal),
+                "all server results remain visible once the reported total is loaded");
+            var loopingPages = new MailServerSearchPages();
+            loopingPages.AddPage(new MailRuDesktop.Protocol.MailRuSearchResult(
+                400, new[] { serverResultA }, "{}", "test-server")
+                { HasReportedTotal = true });
+            loopingPages.AddPage(new MailRuDesktop.Protocol.MailRuSearchResult(
+                400, new[] { serverResultA }, "{}", "test-server")
+                { HasReportedTotal = true });
+            Check(!loopingPages.HasMore &&
+                  loopingPages.GetProgressText().Contains("не полностью",
+                      StringComparison.Ordinal),
+                "repeated server pages stop safely and report incomplete results");
+            var unknownTotal = new MailServerSearchPages();
+            unknownTotal.AddPage(new MailRuDesktop.Protocol.MailRuSearchResult(
+                1, new[] { serverResultA }, "{}", "test-server"));
+            Check(!unknownTotal.HasMore && unknownTotal.ReportedTotal is null,
+                "short page with no reported server count does not invent a total");
+
             // Stage 0 regression: the ACTIVE modern mail-row template,
             // not the obsolete XAML card, must expose a real pin control.
-            var modernList = Require<ListBox>(mail, "MessagesGrid");
             var mailWorkspace = Require<Grid>(mail, "MailWorkspace");
             // ConfigureResizableMailColumns is invoked from OnContentRendered,
             // which may not have fired yet in this synchronous smoke test.
