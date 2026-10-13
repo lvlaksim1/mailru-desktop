@@ -44,6 +44,7 @@ public partial class MainWindow
         PreviewSignatureComboBox.ItemsSource = _signatures;
         PreviewTemplateComboBox.ItemsSource = _mailTemplates;
         ComposeSignatureComboBox.ItemsSource = _signatures;
+        TemplateSignatureComboBox.ItemsSource = _signatures;
         ComposeTemplateComboBox.ItemsSource = _mailTemplates;
 
         StartTemplateWatcher();
@@ -290,6 +291,23 @@ public partial class MainWindow
         }
     }
 
+    private void InsertSignatureIntoTemplateButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (TemplateSignatureComboBox.SelectedItem is not SavedSignature signature)
+        {
+            AppDialog.Info(this, "Шаблоны", "Выберите подпись.");
+            return;
+        }
+        var result = SignaturePlacement.Replace(
+            TemplateBodyTextBox.Text, null, signature.Body,
+            _signatures.Select(item => item.Body));
+        TemplateBodyTextBox.Text = result;
+        TemplateBodyTextBox.CaretIndex = result.Length;
+    }
+
+    private void TemplateSignatureComboBox_DropDownOpened(object sender, EventArgs e) =>
+        RefreshSignaturesFromDisk();
+
     private void MailTemplatesListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (MailTemplatesListBox.SelectedItem is not SavedMailTemplate template)
@@ -519,15 +537,12 @@ public partial class MainWindow
 
     private void ApplyComposeSignature(SavedSignature signature, bool repeat)
     {
-        var body = ComposeBodyTextBox.Text;
-        if (!repeat && !string.IsNullOrWhiteSpace(_composeInsertedSignature) &&
-            body.EndsWith(_composeInsertedSignature, StringComparison.Ordinal))
-            body = body[..^_composeInsertedSignature.Length].TrimEnd();
-        ComposeBodyTextBox.Text = body.TrimEnd() +
-            (body.TrimEnd().Length == 0 ? "" : Environment.NewLine + Environment.NewLine) +
-            signature.Body;
+        var updated = SignaturePlacement.Replace(
+            ComposeBodyTextBox.Text, _composeInsertedSignature, signature.Body,
+            _signatures.Select(item => item.Body));
+        ComposeBodyTextBox.Text = updated;
         _composeInsertedSignature = signature.Body;
-        ComposeBodyTextBox.CaretIndex = ComposeBodyTextBox.Text.Length;
+        ComposeBodyTextBox.CaretIndex = updated.Length;
     }
 
     private void ComposeTemplateComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -617,23 +632,13 @@ public partial class MainWindow
 
     private void ApplySignature(SavedSignature signature, bool repeat = false)
     {
-        if (string.IsNullOrWhiteSpace(signature.Body))
-            return;
-
-        var body = PreviewComposeBodyTextBox.Text;
-        if (!repeat &&
-            !string.IsNullOrWhiteSpace(_previewInsertedSignature) &&
-            body.EndsWith(_previewInsertedSignature, StringComparison.Ordinal))
-        {
-            body = body[..^_previewInsertedSignature.Length].TrimEnd();
-        }
-
-        PreviewComposeBodyTextBox.Text =
-            body.TrimEnd() +
-            (body.TrimEnd().Length == 0 ? string.Empty : Environment.NewLine + Environment.NewLine) +
-            signature.Body;
+        if (string.IsNullOrWhiteSpace(signature.Body)) return;
+        var updated = SignaturePlacement.Replace(
+            PreviewComposeBodyTextBox.Text, _previewInsertedSignature, signature.Body,
+            _signatures.Select(item => item.Body));
+        PreviewComposeBodyTextBox.Text = updated;
         _previewInsertedSignature = signature.Body;
-        PreviewComposeBodyTextBox.CaretIndex = PreviewComposeBodyTextBox.Text.Length;
+        PreviewComposeBodyTextBox.CaretIndex = updated.Length;
     }
 
     private void PreviewTemplateComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
