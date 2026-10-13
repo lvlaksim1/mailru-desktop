@@ -250,6 +250,7 @@ internal static class Program
             Check(mail.FindName("ReaderLoadingOverlay") is null,
                 "no WPF overlay can create WebView2 airspace flashes");
 
+            var modernList = Require<ListBox>(mail, "MessagesGrid");
             // Regression: the server finds matches inside FULL message bodies.
             // Filtering its result again by only Subject/Snippet must not hide them.
             var searchBox = Require<TextBox>(mail, "FilterQueryTextBox");
@@ -348,7 +349,6 @@ internal static class Program
 
             // Stage 0 regression: the ACTIVE modern mail-row template,
             // not the obsolete XAML card, must expose a real pin control.
-            var modernList = Require<ListBox>(mail, "MessagesGrid");
             var mailWorkspace = Require<Grid>(mail, "MailWorkspace");
             // ConfigureResizableMailColumns is invoked from OnContentRendered,
             // which may not have fired yet in this synchronous smoke test.
