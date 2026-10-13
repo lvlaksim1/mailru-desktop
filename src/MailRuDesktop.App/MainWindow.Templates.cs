@@ -620,6 +620,7 @@ public partial class MainWindow
     {
         ComposeSubjectTextBox.Text = template.Subject;
         ComposeBodyTextBox.Text = template.Body;
+        _composeRichEditor?.LoadMarkdown(template.Body);
         _composeInsertedSignature = null;
         _attachmentPaths.Clear();
         var missing = 0;
@@ -715,6 +716,7 @@ public partial class MainWindow
     {
         PreviewComposeSubjectTextBox.Text = template.Subject;
         PreviewComposeBodyTextBox.Text = template.Body;
+        _previewRichEditor?.LoadMarkdown(template.Body);
         _previewInsertedSignature = null;
         _previewAttachmentPaths.Clear();
 
