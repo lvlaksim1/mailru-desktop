@@ -1,7 +1,7 @@
-name: One-time UI registry refresh for spelling editor
+name: Final UI registry refresh for stage 1
 on:
   push:
-    branches: [feature/spellcheck-compose-borders-v0.3.59]
+    branches: [refactor/stage1-settings-composer-markdown-20261013]
     paths: [.github/workflows/regen-ui-stage1-final-once.yml]
 permissions:
   contents: write
@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: feature/spellcheck-compose-borders-v0.3.59
+          ref: refactor/stage1-settings-composer-markdown-20261013
       - name: Regenerate and check
         run: |
           python tools/ui_registry.py --write
@@ -22,6 +22,6 @@ jobs:
           git config user.email actions@users.noreply.github.com
           git add docs/ui-registry.json
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m "ui: update catalog for spelling and editor borders"
-          git pull --rebase origin feature/spellcheck-compose-borders-v0.3.59
-          git push origin HEAD:feature/spellcheck-compose-borders-v0.3.59
+          git commit -m "ui: update registry after compose window state improvements"
+          git pull --rebase origin refactor/stage1-settings-composer-markdown-20261013
+          git push origin HEAD:refactor/stage1-settings-composer-markdown-20261013
