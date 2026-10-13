@@ -98,7 +98,7 @@ internal static class MarkdownRichLoader
                 }
                 else if (match.Groups["label"].Success &&
                          Uri.TryCreate(match.Groups["url"].Value, UriKind.Absolute, out var link) &&
-                         link.Scheme == Uri.UriSchemeHttps)
+                         link.Scheme is ("https" or "http" or "mailto"))
                     paragraph.Inlines.Add(new Hyperlink(new Run(match.Groups["label"].Value))
                         { NavigateUri = link });
                 else paragraph.Inlines.Add(new Run(match.Value));
