@@ -170,6 +170,8 @@ internal sealed class RichComposeEditor
         _rich.CaretPosition = _rich.Document.ContentEnd;
     }
 
+    public string ToMarkdown() => MarkdownRichWriter.Write(_rich.Document);
+
     public string ToHtml()
     {
         var builder = new StringBuilder();
