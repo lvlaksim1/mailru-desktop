@@ -21,8 +21,9 @@ internal static class SignaturePlacement
         {
             if (!body.EndsWith(known, StringComparison.Ordinal)) continue;
             var before = body[..^known.Length];
-            if (before.Length != 0 && !before.EndsWith("\n\n", StringComparison.Ordinal) &&
-                !before.EndsWith("\r\n\r\n", StringComparison.Ordinal))
+            // The signature must start on a new line; one or two separator
+            // lines are both valid. Never replace a matching word mid-sentence.
+            if (before.Length != 0 && !before.EndsWith('\n'))
                 continue;
             body = before.TrimEnd('\r', '\n');
             break;
