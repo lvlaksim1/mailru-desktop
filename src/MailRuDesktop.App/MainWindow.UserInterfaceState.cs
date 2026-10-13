@@ -36,6 +36,11 @@ public partial class MainWindow
             ClampFinite(state.MailListPaneWidth, 120, 1600, 455));
         ContactsListPaneColumn.Width = new GridLength(
             ClampFinite(state.ContactsListPaneWidth, 120, 1200, 390));
+        SettingsOptionsColumn.Width = new GridLength(
+            ClampFinite(state.SettingsPaneWidth, 390, 1400, 620));
+        UnifiedDiagnosticsExpander.IsExpanded = state.DiagnosticsExpanded;
+        UnifiedDiagnosticsTabs.SelectedIndex =
+            Math.Clamp(state.DiagnosticsTabIndex, 0, 2);
 
         FolderManageExpander.IsExpanded = state.FolderManageExpanded;
 
@@ -81,6 +86,9 @@ public partial class MainWindow
                 AccountPaneWidth = AccountPaneColumn.Width.Value,
                 MailListPaneWidth = MailListPaneColumn.Width.Value,
                 ContactsListPaneWidth = ContactsListPaneColumn.Width.Value,
+                SettingsPaneWidth = SettingsOptionsColumn.Width.Value,
+                DiagnosticsExpanded = UnifiedDiagnosticsExpander.IsExpanded,
+                DiagnosticsTabIndex = UnifiedDiagnosticsTabs.SelectedIndex,
 
                 FolderManageExpanded = FolderManageExpander.IsExpanded,
 
