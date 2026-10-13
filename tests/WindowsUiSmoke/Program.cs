@@ -104,6 +104,27 @@ internal static class Program
             // Preserve WPF's dispatcher synchronization context across await.
             SynchronizationContext.SetSynchronizationContext(
                 new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher));
+            // Formatting survives signature changes; a selection must replace
+            // rather than append the same signature twice.
+            var previewTestGrid = new Grid();
+            previewTestGrid.RowDefinitions.Add(new RowDefinition());
+            var previewTestPlain = new TextBox();
+            previewTestGrid.Children.Add(previewTestPlain);
+            var previewTestWindow = new Window { Content = previewTestGrid };
+            var previewTestRich = RichComposeEditor.Attach(previewTestPlain, previewTestWindow);
+            previewTestRich.LoadMarkdown("**Выделенный текст**");
+            Check(previewTestRich.ToHtml().Contains("<strong>Выделенный текст</strong>",
+                StringComparison.Ordinal), "template Markdown becomes actual formatted mail HTML");
+            previewTestRich.ApplyMarkdownSignature("**Подпись**", new[] { "**Подпись**" });
+            previewTestRich.ApplyMarkdownSignature("**Подпись**", new[] { "**Подпись**" });
+            var resultingHtml = previewTestRich.ToHtml();
+            Check(resultingHtml.Contains("<strong>Выделенный текст</strong>",
+                StringComparison.Ordinal), "changing signature preserves original bold text");
+            Check(resultingHtml.Split("<strong>Подпись</strong>",
+                StringSplitOptions.None).Length == 2,
+                "reselecting signature keeps exactly one formatted signature");
+            previewTestWindow.Content = null;
+
             mail = new MainWindow();
             mail.Show();
             mail.UpdateLayout();
