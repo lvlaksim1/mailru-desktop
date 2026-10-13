@@ -600,6 +600,13 @@ public partial class MainWindow
 
     private void ApplyComposeSignature(SavedSignature signature, bool repeat)
     {
+        if (_composeRichEditor is not null)
+        {
+            _composeRichEditor.ApplyMarkdownSignature(signature.Body,
+                _signatures.Select(item => item.Body));
+            _composeInsertedSignature = signature.Body;
+            return;
+        }
         var updated = SignaturePlacement.Replace(
             ComposeBodyTextBox.Text, _composeInsertedSignature, signature.Body,
             _signatures.Select(item => item.Body));
@@ -697,6 +704,13 @@ public partial class MainWindow
     private void ApplySignature(SavedSignature signature, bool repeat = false)
     {
         if (string.IsNullOrWhiteSpace(signature.Body)) return;
+        if (_previewRichEditor is not null)
+        {
+            _previewRichEditor.ApplyMarkdownSignature(signature.Body,
+                _signatures.Select(item => item.Body));
+            _previewInsertedSignature = signature.Body;
+            return;
+        }
         var updated = SignaturePlacement.Replace(
             PreviewComposeBodyTextBox.Text, _previewInsertedSignature, signature.Body,
             _signatures.Select(item => item.Body));
