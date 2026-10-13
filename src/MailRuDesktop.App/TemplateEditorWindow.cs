@@ -150,6 +150,12 @@ internal sealed class TemplateEditorWindow : Window
             _attachments.Add(path);
         ReloadSignatures();
 
+        _editor.Changed += (_, _) =>
+        {
+            if (_initializing) return;
+            _bodyChanged = true;
+            MarkDirty();
+        };
         _name.TextChanged += (_, _) => MarkDirty();
         _subject.TextChanged += (_, _) => MarkDirty();
         _plainBody.TextChanged += (_, _) =>
