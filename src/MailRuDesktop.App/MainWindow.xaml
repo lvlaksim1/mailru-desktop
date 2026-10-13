@@ -36,7 +36,7 @@
                                    FontWeight="SemiBold"
                                    Text="{Binding IconText}"/>
                         <Image Width="{DynamicResource AppAvatarSize}" Height="{DynamicResource AppAvatarSize}" Stretch="UniformToFill"
-                               Source="{Binding AvatarUrl}"/>
+                               local:AvatarImageBehavior.SourceUrl="{Binding AvatarUrl}"/>
                     </Grid>
                 </Border>
                 <TextBlock Grid.Column="1"
