@@ -16,7 +16,7 @@ namespace MailRuDesktop.App;
 /// client user-agent, decode off-thread and keep the letter initials fallback.
 /// No mailbox token, cookie or account content is transmitted.
 /// </summary>
-internal static class AvatarImageBehavior
+public static class AvatarImageBehavior
 {
     private static readonly HttpClient Images = new(new HttpClientHandler
     {
