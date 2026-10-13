@@ -61,7 +61,7 @@ internal sealed class RichComposeEditor
             Document = new FlowDocument(new Paragraph()),
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             AcceptsTab = true,
-            // Remove the default RichTextBox hover/focus outline animation.
+            // The visible outline belongs to the shared editor frame.
             BorderThickness = new Thickness(0),
             FocusVisualStyle = null,
             Padding = new Thickness(8),
@@ -79,11 +79,23 @@ internal sealed class RichComposeEditor
         foreach (var paragraph in rich.Document.Blocks.OfType<Paragraph>())
             paragraph.Margin = new Thickness(0);
 
+        // A single frame is used in new mail, replies, forwarding and
+        // the standalone template editor, including both visual themes.
+        var textFrame = new Border
+        {
+            CornerRadius = new CornerRadius(5),
+            BorderThickness = new Thickness(1),
+            ClipToBounds = true,
+            Child = rich
+        };
+        textFrame.SetResourceReference(Border.BorderBrushProperty, "AppBorderBrush");
+        Grid.SetRow(textFrame, 1);
+
+        ComposeSpellChecking.Register(rich);
         var editor = new RichComposeEditor(plain, rich);
         editor.CreateToolbar(toolbar, owner);
         host.Children.Add(toolbar);
-        Grid.SetRow(rich, 1);
-        host.Children.Add(rich);
+        host.Children.Add(textFrame);
 
         if (resizable)
         {
@@ -115,6 +127,10 @@ internal sealed class RichComposeEditor
         parent.Children.Add(host);
         return editor;
     }
+
+    // Exposed internally for UI regression checks; the shared editor remains
+    // the only owner of this control in production.
+    internal RichTextBox TextControl => _rich;
 
     public void Focus() => _rich.Focus();
 

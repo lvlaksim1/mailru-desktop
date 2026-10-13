@@ -36,10 +36,14 @@ public partial class MainWindow
         ComposeFromTextBox.Text = _composeSenderLogin ?? "Не выбран аккаунт";
         originalParent.Children.Remove(ComposeWorkspace);
         ComposeWorkspace.Visibility = Visibility.Visible;
+        ComposeHeaderText.Visibility = reply ? Visibility.Collapsed : Visibility.Visible;
+        ComposeSenderRow.Margin = reply
+            ? new Thickness(0, 0, 0, 8)
+            : new Thickness(0, 12, 0, 8);
         var window = new Window
         {
             Owner = this,
-            Title = "Новое письмо — MailRu Desktop",
+            Title = reply ? "Ответ — MailRu Desktop" : "Новое письмо — MailRu Desktop",
             Icon = Icon,
             Width = 950,
             Height = 800,

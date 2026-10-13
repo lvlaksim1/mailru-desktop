@@ -46,6 +46,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        InitializeSpellCheckSettings();
         InitializeRichComposeEditors();
 
         // The default date is based on local time at the moment the app opens.

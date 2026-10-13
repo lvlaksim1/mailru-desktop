@@ -160,6 +160,19 @@ internal sealed class AppSettingsStore
         }
     }
 
+    // Spell-check stays local to Windows and is enabled by default.
+    public bool LoadSpellCheckEnabled() => LoadState().SpellCheckEnabled;
+
+    public void SaveSpellCheckEnabled(bool enabled)
+    {
+        lock (_sync)
+        {
+            var state = LoadStateCore();
+            state.SpellCheckEnabled = enabled;
+            SaveStateCore(state);
+        }
+    }
+
     public int LoadInterfaceFontSize() =>
         ThemeTypography.Normalize(LoadState().InterfaceFontSize);
 
@@ -432,6 +445,7 @@ internal sealed class AppSettingsStore
         public bool BackgroundPushEnabled { get; set; } = true;
         public bool TaskbarNotificationsEnabled { get; set; } = true;
         public bool ReplaySuppressionEnabled { get; set; } = true;
+        public bool SpellCheckEnabled { get; set; } = true;
         public int InterfaceFontSize { get; set; } = ThemeTypography.DefaultSize;
         public string? PrimaryColor { get; set; }
         public Dictionary<string, string>? DarkPalette { get; set; }

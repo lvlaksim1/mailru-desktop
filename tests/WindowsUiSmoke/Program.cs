@@ -105,6 +105,27 @@ internal static class Program
             }
             
             
+            // The native spelling option belongs to application settings, not a cloud service.
+            var spellSettingsRoot = Path.Combine(Path.GetTempPath(),
+                "MailRuSpellCheck-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                var spellSettings = new AppSettingsStore(spellSettingsRoot);
+                Check(spellSettings.LoadSpellCheckEnabled(),
+                    "spelling is enabled by default for an existing installation");
+                spellSettings.SaveSpellCheckEnabled(false);
+                Check(!new AppSettingsStore(spellSettingsRoot).LoadSpellCheckEnabled(),
+                    "spelling toggle survives restart");
+                spellSettings.SaveSpellCheckEnabled(true);
+                Check(new AppSettingsStore(spellSettingsRoot).LoadSpellCheckEnabled(),
+                    "spelling can be re-enabled after restart");
+            }
+            finally
+            {
+                if (Directory.Exists(spellSettingsRoot))
+                    Directory.Delete(spellSettingsRoot, recursive: true);
+            }
+
             // The test owns the STA thread without Application.Run().
             // Preserve WPF's dispatcher synchronization context across await.
             SynchronizationContext.SetSynchronizationContext(
@@ -117,6 +138,17 @@ internal static class Program
             previewTestGrid.Children.Add(previewTestPlain);
             var previewTestWindow = new Window { Content = previewTestGrid };
             var previewTestRich = RichComposeEditor.Attach(previewTestPlain, previewTestWindow);
+            var checkEditor = previewTestRich.TextControl;
+            Check(checkEditor is not null, "rich editor surface exists for spell checking");
+            Check(VisualTreeHelper.GetParent(checkEditor!) is Border
+                  { BorderThickness.Left: 1, CornerRadius.TopLeft: 5 },
+                "rich mail editing area has a rounded visible border");
+            ComposeSpellChecking.SetEnabled(false);
+            Check(!checkEditor!.SpellCheck.IsEnabled,
+                "global spelling switch turns off a live editor");
+            ComposeSpellChecking.SetEnabled(true);
+            Check(checkEditor.SpellCheck.IsEnabled,
+                "global spelling switch turns on a live editor");
             previewTestRich.LoadMarkdown("# Заголовок\n- Пункт\n<u>Подчёркнуто</u>\n[Ссылка](https://example.org)");
             var roundTrip = previewTestRich.ToMarkdown();
             Check(roundTrip.Contains("# Заголовок", StringComparison.Ordinal) &&
@@ -364,6 +396,23 @@ internal static class Program
             Check(FindParent<GroupBox>(palette!)?.Header?.ToString() == "Внешний вид",
                 "palette section is inside Appearance rather than beside it");
 
+            var spellToggle = Require<CheckBox>(mail, "SpellCheckEnabledCheckBox");
+            Check(spellToggle.IsChecked == ComposeSpellChecking.Enabled,
+                "settings display the actual spelling state");
+            var livePreviewEditor = FindDescendant<RichTextBox>(
+                Require<FrameworkElement>(mail, "PreviewComposePanel"), _ => true);
+            Check(livePreviewEditor is not null &&
+                  VisualTreeHelper.GetParent(livePreviewEditor) is Border
+                  { BorderThickness.Left: 1 },
+                "inline forwarding/reply editor has the same themed border");
+            var previousSpellSetting = spellToggle.IsChecked == true;
+            spellToggle.IsChecked = !previousSpellSetting;
+            Check(ComposeSpellChecking.Enabled == !previousSpellSetting,
+                "spelling checkbox immediately changes the runtime setting");
+            spellToggle.IsChecked = previousSpellSetting;
+            Check(ComposeSpellChecking.Enabled == previousSpellSetting,
+                "spelling checkbox restores the runtime setting");
+
             var signature = FindDescendant<Expander>(mail,
                 e => e.Header?.ToString() == "Подписи");
             var template = FindDescendant<Expander>(mail,
@@ -406,8 +455,13 @@ internal static class Program
                 detached.UpdateLayout();
                 Check(detached.IsVisible && detached.MinWidth >= 600,
                     "template opens a separate resizable window");
-                Check(FindDescendant<RichTextBox>(detached, _ => true) is not null,
-                    "template editor reuses the rich mail formatting control");
+                var templateRich = FindDescendant<RichTextBox>(detached, _ => true);
+                Check(templateRich is not null, "template editor reuses rich mail formatting");
+                Check(templateRich!.SpellCheck.IsEnabled == ComposeSpellChecking.Enabled,
+                    "template editor inherits the shared spelling setting");
+                Check(VisualTreeHelper.GetParent(templateRich) is Border
+                      { BorderThickness.Left: 1 },
+                    "standalone template body has a visible themed border");
                 Check(FindDescendant<ComboBox>(detached,
                           x => x.DisplayMemberPath == nameof(SavedSignature.Name)) is not null,
                     "template editor exposes file-backed signature choices");
@@ -448,6 +502,13 @@ internal static class Program
                 "signature chooser is visible in New Mail");
             Check(Require<ComboBox>(mail, "ComposeTemplateComboBox").IsVisible,
                 "template chooser is visible in New Mail");
+            Check(Require<TextBlock>(mail, "ComposeHeaderText").IsVisible,
+                "New Mail keeps its visible heading");
+            var outgoingRich = FindDescendant<RichTextBox>(editor!, _ => true);
+            Check(outgoingRich is not null &&
+                  VisualTreeHelper.GetParent(outgoingRich) is Border
+                  { BorderThickness.Left: 1 },
+                "new-mail body has the same themed outline");
             var send = Require<Button>(mail, "SendButton");
             Check(ReferenceEquals(
                     send.ReadLocalValue(Control.BackgroundProperty),
@@ -468,6 +529,8 @@ internal static class Program
                 .FirstOrDefault(w => w.Title.StartsWith("Ответ: Договор", StringComparison.Ordinal));
             Check(editor is { IsVisible: true },
                 "Reply launches the independent composer without the New Mail caption");
+            Check(!Require<TextBlock>(mail, "ComposeHeaderText").IsVisible,
+                "reply form does not display the redundant New Mail heading");
             Check(Require<TextBox>(mail, "ComposeToTextBox").Text ==
                     "sender@example.invalid" &&
                   Require<TextBox>(mail, "ComposeSubjectTextBox").Text == "Re: Договор" &&
