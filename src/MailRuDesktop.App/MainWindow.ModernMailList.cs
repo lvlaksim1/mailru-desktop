@@ -621,8 +621,18 @@ public partial class MainWindow
                        Margin="3,0,5,0"
                        VerticalAlignment="Center"
                        HorizontalAlignment="Right"
-                       Foreground="{DynamicResource AppMutedTextBrush}"
-                       Text="{Binding DateUnix, Converter={StaticResource MailTimeConverter}}"/>
+                       Text="{Binding DateUnix, Converter={StaticResource MailTimeConverter}}">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Foreground" Value="{DynamicResource AppMutedTextBrush}"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Unread}" Value="True">
+                                <Setter Property="Foreground" Value="{DynamicResource AppUnreadTextBrush}"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
 
             <GridSplitter Grid.Column="2"
                           Width="4"
@@ -781,7 +791,19 @@ public partial class MainWindow
                            Margin="5,0,0,0"
                            VerticalAlignment="Center"
                            TextTrimming="CharacterEllipsis"
-                           Text="{Binding SenderDisplay}"/>
+                           Text="{Binding SenderDisplay}">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Unread}" Value="True">
+                                <Setter Property="Foreground" Value="{DynamicResource AppUnreadTextBrush}"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
             </Grid>
 
             <GridSplitter Grid.Column="12"
@@ -800,9 +822,11 @@ public partial class MainWindow
                 <TextBlock.Style>
                     <Style TargetType="TextBlock">
                         <Setter Property="FontWeight" Value="Normal"/>
+                        <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding Unread}" Value="True">
                                 <Setter Property="FontWeight" Value="SemiBold"/>
+                                <Setter Property="Foreground" Value="{DynamicResource AppUnreadTextBrush}"/>
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>

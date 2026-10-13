@@ -92,11 +92,10 @@ internal static class ThemeManager
             _ => IsSystemDark()
         };
 
-        // All 26 resources are bound by an immutable role catalog. A user can
-        // change only each role's hexadecimal value, never its mapped controls.
+        // The shared primary color is resolved once into eight tones for
+        // every semantic resource. Never feed a derived accent back as input.
         var resources = Application.Current.Resources;
-        _currentColors = ThemePalette.Merge(IsDarkEffective,
-            new AppSettingsStore().LoadPaletteOverrides(IsDarkEffective));
+        _currentColors = new AppSettingsStore().LoadPaletteOverrides(IsDarkEffective);
 
         foreach (var role in ThemePalette.Roles)
             SetBrush(resources, role.Key, _currentColors[role.Key]);
