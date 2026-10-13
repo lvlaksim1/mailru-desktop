@@ -128,12 +128,8 @@ public partial class MainWindow
         // Widths are restored by MainWindow.UserInterfaceState. This compatibility
         // layer must only enforce safe minimums and splitter behavior; assigning
         // star widths here used to erase the user's saved divider position.
-        // The previous 320+360 pixel hard minimum exceeded the available
-        // centre workspace on narrower windows.  GridSplitter could not keep
-        // both columns in bounds and caused layout thrashing / overlap.
-        // Allow either pane to contract without coercing the other outside.
-        MailWorkspace.ColumnDefinitions[0].MinWidth = 200;
-        MailWorkspace.ColumnDefinitions[2].MinWidth = 220;
+        MailWorkspace.ColumnDefinitions[0].MinWidth = 320;
+        MailWorkspace.ColumnDefinitions[2].MinWidth = 360;
 
         foreach (var splitter in MailWorkspace.Children.OfType<GridSplitter>())
         {

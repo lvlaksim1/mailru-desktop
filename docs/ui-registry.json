@@ -7669,8 +7669,8 @@
       "color_roles_and_values": {
         "Background": "Brushes.Transparent"
       },
-      "id": "MainWindow/runtime/src/MailRuDesktop.App/MainWindow.V033.cs:158:TextBox",
-      "line": 158,
+      "id": "MainWindow/runtime/src/MailRuDesktop.App/MainWindow.V033.cs:154:TextBox",
+      "line": 154,
       "location": {
         "Margin": "SelectedSubjectText.Margin",
         "Padding": "new Thickness(0)"
@@ -7688,8 +7688,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/runtime/src/MailRuDesktop.App/MainWindow.V033.cs:195:WrapPanel",
-      "line": 195,
+      "id": "MainWindow/runtime/src/MailRuDesktop.App/MainWindow.V033.cs:191:WrapPanel",
+      "line": 191,
       "location": {
         "Margin": "new Thickness(0",
         "Orientation": "Orientation.Horizontal",
@@ -7706,8 +7706,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/runtime/src/MailRuDesktop.App/MainWindow.V033.cs:228:TextBlock",
-      "line": 228,
+      "id": "MainWindow/runtime/src/MailRuDesktop.App/MainWindow.V033.cs:224:TextBlock",
+      "line": 224,
       "location": {
         "Padding": "new Thickness(6",
         "VerticalAlignment": "VerticalAlignment.Center",
@@ -13557,8 +13557,7 @@
       "color_roles_and_values": {},
       "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/MailWorkspace/Grid[1]",
       "location": {
-        "Grid.Column": "0",
-        "MinWidth": "0"
+        "Grid.Column": "0"
       },
       "name": null,
       "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/MailWorkspace",
