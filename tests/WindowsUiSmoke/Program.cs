@@ -171,6 +171,41 @@ internal static class Program
                   roundTrip.Contains("<u>Подчёркнуто</u>", StringComparison.Ordinal) &&
                   roundTrip.Contains("[Ссылка](https://example.org/)", StringComparison.Ordinal),
                 "rich editor preserves heading, bullets, underline and links as Markdown");
+            // Two additional Enter keystrokes create TWO empty paragraphs,
+            // both of which must take space in sent HTML (not <p></p>).
+            previewTestRich.LoadMarkdown(
+                "Здравствуйте!\n\n\nНаправляю документы.\n\n\nС уважением, Иван.");
+            var spacedHtml = previewTestRich.ToHtml();
+            Check(spacedHtml.Split("<br></p>", StringSplitOptions.None).Length == 5 &&
+                  spacedHtml.Contains("Здравствуйте!", StringComparison.Ordinal) &&
+                  spacedHtml.Contains("Направляю документы.", StringComparison.Ordinal) &&
+                  spacedHtml.Contains("С уважением, Иван.", StringComparison.Ordinal),
+                "outgoing HTML preserves all four empty Enter paragraphs");
+            Check(previewTestPlain.Text.Contains(
+                    "Здравствуйте!\r\n\r\n\r\nНаправляю документы.", StringComparison.Ordinal),
+                "plain-text outgoing body preserves repeated Enter lines");
+
+            previewTestRich.LoadMarkdown("**Жирный текст**\n\n\nВторая строка");
+            var richEditor = previewTestRich.TextControl;
+            richEditor.SelectAll();
+            var editorFrame = (Border)richEditor.Parent;
+            var editorHost = (Grid)editorFrame.Parent;
+            var cleanButton = editorHost.Children.OfType<WrapPanel>()
+                .SelectMany(panel => panel.Children.OfType<Button>())
+                .Single(button => button.ToolTip?.ToString() == "Удалить форматирование");
+            cleanButton.RaiseEvent(new RoutedEventArgs(
+                ButtonBase.ClickEvent, cleanButton));
+            var plainAfterClear = previewTestRich.ToHtml();
+            Check(!plainAfterClear.Contains("<strong>", StringComparison.Ordinal) &&
+                  plainAfterClear.Contains("Жирный текст", StringComparison.Ordinal) &&
+                  plainAfterClear.Split("<br></p>", StringSplitOptions.None).Length == 3,
+                "clear formatting removes bold without erasing extra empty lines");
+            Check(Equals(richEditor.Selection.GetPropertyValue(
+                      TextElement.FontFamilyProperty), richEditor.FontFamily) &&
+                  Equals(richEditor.Selection.GetPropertyValue(
+                      TextElement.FontSizeProperty), richEditor.FontSize),
+                "clear formatting restores application font family and body font size");
+
             previewTestRich.LoadMarkdown("**Выделенный текст**");
             Check(previewTestRich.ToHtml().Contains("<strong>", StringComparison.Ordinal) &&
                   previewTestRich.ToHtml().Contains("Выделенный текст", StringComparison.Ordinal),
@@ -218,12 +253,13 @@ internal static class Program
             // not the obsolete XAML card, must expose a real pin control.
             var modernList = Require<ListBox>(mail, "MessagesGrid");
             var mailWorkspace = Require<Grid>(mail, "MailWorkspace");
-            Check(mailWorkspace.ClipToBounds,
-                "the two-pane mail workspace clips overflowing layout at splitter boundaries");
-            Check(modernList.ClipToBounds &&
-                  ScrollViewer.GetHorizontalScrollBarVisibility(modernList) ==
+            Check(!mailWorkspace.ClipToBounds &&
+                  mailWorkspace.ColumnDefinitions[0].MinWidth <= 200 &&
+                  mailWorkspace.ColumnDefinitions[2].MinWidth <= 220,
+                "splitter remains smooth without a full WebView2 workspace clipping layer or oversized minima");
+            Check(ScrollViewer.GetHorizontalScrollBarVisibility(modernList) ==
                       ScrollBarVisibility.Disabled,
-                "mail rows cannot extend horizontally outside the resizable list pane");
+                "mail list retains a bounded horizontal viewport");
             var pinRow = modernList.ItemTemplate?.LoadContent() as Grid;
             Check(pinRow is not null, "active mail template can be instantiated");
             var pinAction = FindDescendant<Button>(pinRow!,
@@ -254,6 +290,11 @@ internal static class Program
             Check(FindDescendant<Button>(pinRow,
                 b => b.Name == "FlagActionButton") is not null,
                 "restoring pin does not remove the star button");
+            var senderAvatar = FindDescendant<Image>(pinRow, _ => true);
+            Check(senderAvatar is not null &&
+                  BindingOperations.GetBinding(senderAvatar, Image.SourceProperty)?.Path?.Path
+                    == "AvatarUrl",
+                "sender portraits use the original native WPF image binding");
 
             // Stage 1: only the active modern row owns columns and commands.
             // Legacy V033/XAML item templates must never silently replace it.
