@@ -233,6 +233,42 @@ internal static class Program
                 b => b.Name == "FlagActionButton") is not null,
                 "restoring pin does not remove the star button");
 
+            // Stage 1: only the active modern row owns columns and commands.
+            // Legacy V033/XAML item templates must never silently replace it.
+            Check(modernList.GroupStyle.Count == 1 &&
+                  modernList.GroupStyle[0].HeaderTemplate is not null,
+                "the single active list retains its date-group header");
+            Check(pinRow.ColumnDefinitions.Count == 15,
+                "the canonical row retains fifteen configurable column slots");
+            Check(FindDescendant<CheckBox>(pinRow,
+                c => c.Name == "BulkSelectCheckBox") is not null,
+                "the canonical row retains checkbox-based bulk selection");
+            Check(FindDescendant<Button>(pinRow,
+                b => b.Name == "ModernUnreadActionButton") is not null,
+                "the canonical row retains its unread marker command");
+            Check(FindDescendant<Button>(pinRow,
+                b => b.Name == "PinActionButton" ||
+                     b.Name == "UnreadActionButton" ||
+                     b.Name == "ArchiveActionButton") is null,
+                "obsolete V033 row actions cannot coexist in the active template");
+            Check(FindDescendant<System.Windows.Shapes.Path>(pinRow,
+                p => Grid.GetColumn(p) == 10) is not null,
+                "attachment indicator remains in the canonical row");
+
+            var singleRowOrdering = new MailDateThenPinnedComparer();
+            var earlier = pinnedTestMail with { Pinned = false, DateUnix = 1700000000 };
+            var later = pinnedTestMail with { Pinned = false, DateUnix = 1700003600 };
+            Check(singleRowOrdering.Compare(pinnedTestMail, later) < 0,
+                "pinned mail stays ahead of a newer unpinned message");
+            Check(singleRowOrdering.Compare(later, earlier) < 0,
+                "unpinned messages remain ordered by descending timestamp");
+            var dateGroups = new MailSectionGroupDescription();
+            Check((string)dateGroups.GroupNameFromItem(
+                      pinnedTestMail, 0, System.Globalization.CultureInfo.InvariantCulture)
+                  == "Закреплённые",
+                "pinned group remains distinct from ordinary date groups");
+
+
 
             var settingsAction = FindDescendant<Button>(mail,
                 b => b.Content?.ToString()?.Contains("Настройки", StringComparison.Ordinal) == true);

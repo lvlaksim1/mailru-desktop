@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Markup;
+using System.Windows.Media;
 using System.Windows.Threading;
 using MailRuDesktop.Protocol;
 
@@ -16,6 +17,18 @@ public partial class MainWindow
 {
     private bool _modernMailListConfigured;
     private DependencyPropertyDescriptor? _modernMailItemsSourceDescriptor;
+
+    private static Button? FindAncestorButton(DependencyObject? source)
+    {
+        while (source is not null)
+        {
+            if (source is Button button)
+                return button;
+            source = VisualTreeHelper.GetParent(source);
+        }
+
+        return null;
+    }
 
     private void ConfigureModernMailList()
     {
