@@ -39,6 +39,8 @@ public partial class MainWindow
         SettingsOptionsColumn.Width = new GridLength(
             ClampFinite(state.SettingsPaneWidth, 390, 1400, 620));
         UnifiedDiagnosticsExpander.IsExpanded = state.DiagnosticsExpanded;
+        SignaturesSettingsExpander.IsExpanded = state.SignaturesExpanded;
+        TemplatesSettingsExpander.IsExpanded = state.TemplatesExpanded;
         UnifiedDiagnosticsTabs.SelectedIndex =
             Math.Clamp(state.DiagnosticsTabIndex, 0, 2);
 
@@ -88,6 +90,8 @@ public partial class MainWindow
                 ContactsListPaneWidth = ContactsListPaneColumn.Width.Value,
                 SettingsPaneWidth = SettingsOptionsColumn.Width.Value,
                 DiagnosticsExpanded = UnifiedDiagnosticsExpander.IsExpanded,
+                SignaturesExpanded = SignaturesSettingsExpander.IsExpanded,
+                TemplatesExpanded = TemplatesSettingsExpander.IsExpanded,
                 DiagnosticsTabIndex = UnifiedDiagnosticsTabs.SelectedIndex,
 
                 FolderManageExpanded = FolderManageExpander.IsExpanded,
