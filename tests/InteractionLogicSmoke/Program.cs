@@ -186,6 +186,35 @@ Expect(compactConversations["n2"].VerifiedCount, 2,
     "original second thread count remains two");
 Expect(compactConversations.ContainsKey("thread-5"), false,
     "logical thread id is never substituted for an actual mail id");
+// Live Mail.ru smart inbox format: categories are represented by metathreads
+// whose message_id_last points at a real letter in a child smart folder.
+// It is not an inbox mail, even though representation.folder == 0.
+var metathreadInbox = """
+{"body":{"folders_content":[{"id":0,"threads":[
+ {"representations":[{"folder":0,"flags":{"metathread":true},
+   "metathread_data":{"category":"newsletters","folder":500013},
+   "message_id_last":"17918762291201186085","length":563,"date":1791876229}],"length":563},
+ {"representations":[{"folder":0,"flags":{"metathread":true},
+   "metathread_data":{"category":"receipts","folder":500020},
+   "message_id_last":"receipt-last","length":243}],"length":243},
+ {"id":"real-inbox","representations":[
+   {"folder":0,"message_id_last":"real-mail","subject":"Real",
+    "date":1791876230}],"length":1}
+]}]}}
+""";
+var actualInbox = MailRuThreadStatusParser.Parse(metathreadInbox, 0).Messages;
+Expect(actualInbox.Count, 1, "smart category aggregates do not appear as inbox mail");
+Expect(actualInbox[0].Id, "real-mail", "real inbox letter remains visible");
+var actualNewsletter = MailRuThreadStatusParser.Parse("""
+{"body":{"folders_content":[{"id":500013,"threads":[
+ {"id":"real-newsletter","representations":[{"folder":500013,
+   "message_id_last":"17918762291201186085","subject":"Лучшее от МКБ",
+   "date":1791876229}]}]}]}}
+""", 500013).Messages;
+Expect(actualNewsletter.Count, 1, "actual newsletter remains in the newsletters folder");
+Expect(actualNewsletter[0].Id, "17918762291201186085",
+    "newsletter uses the original exact server message id");
+
 var compactRows = MailRuThreadStatusParser.Parse(compactRealShape, 0).Messages;
 Expect(compactRows.Count, 2, "compact input renders one mailbox row per thread");
 Expect(compactRows[0].Id, "n2", "mailbox row retains actual latest mail id");
@@ -1029,64 +1058,71 @@ finally
 }
 
 var roles = ThemePalette.Roles;
-Expect(roles.Count, 26, "exactly 26 fixed color roles");
-Expect(roles.Select(r => r.Key).Distinct(StringComparer.Ordinal).Count(), 26,
-    "every role has a unique stable identifier");
+Expect(roles.Count, 27, "27 stable semantic roles including unread typography");
+Expect(roles.Select(r => r.Key).Distinct(StringComparer.Ordinal).Count(), 27,
+    "each role has a distinct stable resource key");
+Expect(ThemePalette.EditableRoles.Count, 1, "only primary color is editable");
+Expect(ThemePalette.EditableRoles[0].Key, "AppAccentBrush",
+    "primary color uses the stable accent resource");
+
 foreach (var dark in new[] { false, true })
 {
-    var defaults = ThemePalette.Defaults(dark);
-    Expect(defaults.Count, 26, "theme defaults cover every role");
-    foreach (var (_, hex) in defaults)
-        if (!ThemePalette.TryNormalize(hex, out var normalized) || normalized != hex)
-            throw new Exception("Invalid default HEX color " + hex);
+    var colors = ThemePalette.Defaults(dark);
+    Expect(colors.Count, 27, "all semantic roles are resolved");
+    foreach (var (_, hex) in colors)
+        if (!ThemePalette.TryNormalize(hex, out var normalized) || hex != normalized)
+            throw new Exception("Invalid derived HEX value " + hex);
+
+    var semantic = colors.Where(x =>
+        x.Key is not ("AppSuccessBrush" or "AppWarningBrush" or
+                      "AppDangerBrush" or "AppStarBrush" or "AppPinBrush"))
+        .Select(x => x.Value).Distinct(StringComparer.Ordinal).ToArray();
+    Expect(semantic.Length, 8, "entire UI uses exactly eight primary-color tones");
+    Expect(colors["AppStarBrush"], "#D49E00", "star color remains fixed");
+    Expect(colors["AppPinBrush"], "#C62832", "pin color remains fixed");
+    Expect(ThemePalette.Contrast(colors["AppUnreadTextBrush"],
+        colors["AppPanelBrush"]) >= 4.5, true,
+        "unread mail text is distinguishable on both themes");
 }
 Expect(ThemePalette.TryNormalize("#ffcc00", out var normalizedYellow), true,
     "hex input accepted");
 Expect(normalizedYellow, "#FFCC00", "hex color normalized");
 Expect(ThemePalette.TryNormalize("#12345Z", out _), false,
-    "invalid hex color rejected");
+    "invalid hex rejected");
 Expect(ThemePalette.TryNormalize("#11223344", out _), false,
-    "transparency not accepted in semantic palette");
+    "transparency not accepted");
 
-var changedLight = ThemePalette.Merge(false,
-    new Dictionary<string, string>
-    {
-        ["AppWindowBrush"] = "#123456",
-        ["ArbitraryOtherElement"] = "#ABCDEF",
-        ["AppTextBrush"] = "not a color"
-    });
-Expect(changedLight.Count, 26, "unknown roles not introduced by saved overrides");
-Expect(changedLight["AppWindowBrush"], "#123456", "valid override applied");
-Expect(changedLight["AppTextBrush"], ThemePalette.Defaults(false)["AppTextBrush"],
-    "invalid override ignored");
+var alternate = ThemePalette.Generate(false, "#8E6042");
+Expect(alternate["AppWindowBrush"] != ThemePalette.Defaults(false)["AppWindowBrush"],
+    true, "primary hue changes window background");
+Expect(alternate["AppTextBrush"] != ThemePalette.Defaults(false)["AppTextBrush"],
+    true, "primary hue changes text tone");
+Expect(alternate["AppStarBrush"], "#D49E00",
+    "status markers do not change with hue");
 Expect(ThemePalette.Contrast("#FFFFFF", "#000000") > 20, true,
-    "contrast calculation supports high contrast text");
+    "contrast supports high-contrast text");
 Expect(ThemePalette.Contrast("#777777", "#777777"), 1.0,
-    "identical colors contrast 1:1");
+    "identical colors have ratio 1");
 
 var isolatedPaletteFolder = Path.Combine(Path.GetTempPath(),
     "MailRuPalette-" + Guid.NewGuid().ToString("N"));
 try
 {
     var settings = new AppSettingsStore(isolatedPaletteFolder);
-    Expect(settings.LoadPaletteOverrides(true)["AppWindowBrush"],
-        ThemePalette.Defaults(true)["AppWindowBrush"], "new dark palette uses defaults");
-    settings.SavePaletteOverride(true, "AppWindowBrush", "#123456");
-    settings.SavePaletteOverride(false, "AppWindowBrush", "#ABCDEF");
+    Expect(settings.LoadPrimaryColor(), ThemePalette.DefaultPrimaryColor,
+        "default primary color");
+    settings.SavePrimaryColor("#8E6042");
     var reloaded = new AppSettingsStore(isolatedPaletteFolder);
-    Expect(reloaded.LoadPaletteOverrides(true)["AppWindowBrush"], "#123456",
-        "dark palette saved and reloaded");
-    Expect(reloaded.LoadPaletteOverrides(false)["AppWindowBrush"], "#ABCDEF",
-        "light palette saved independently and reloaded");
-    reloaded.ResetPaletteOverride(true, "AppWindowBrush");
-    Expect(reloaded.LoadPaletteOverrides(true)["AppWindowBrush"],
-        ThemePalette.Defaults(true)["AppWindowBrush"],
-        "one dark role reset without affecting light palette");
-    Expect(reloaded.LoadPaletteOverrides(false)["AppWindowBrush"], "#ABCDEF",
-        "light palette is unaffected by dark reset");
-    reloaded.ResetPaletteOverride(false);
+    Expect(reloaded.LoadPrimaryColor(), "#8E6042",
+        "primary color survives settings reload");
+    Expect(reloaded.LoadPaletteOverrides(true)["AppStarBrush"], "#D49E00",
+        "dark theme preserves fixed star");
     Expect(reloaded.LoadPaletteOverrides(false)["AppWindowBrush"],
-        ThemePalette.Defaults(false)["AppWindowBrush"], "whole light theme reset");
+        ThemePalette.Generate(false, "#8E6042")["AppWindowBrush"],
+        "same primary color drives light and dark schemes");
+    reloaded.ResetPrimaryColor();
+    Expect(reloaded.LoadPrimaryColor(), ThemePalette.DefaultPrimaryColor,
+        "one action restores primary color");
 }
 finally
 {
