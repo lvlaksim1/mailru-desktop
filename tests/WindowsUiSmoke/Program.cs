@@ -136,6 +136,21 @@ internal static class Program
                 "changing signature preserves original bold text");
             Check(resultingHtml.Split("Подпись", StringSplitOptions.None).Length == 2,
                 "reselecting signature keeps exactly one formatted signature");
+            previewTestRich.LoadReplyQuotedText("----- Исходное письмо -----\n> Прежняя переписка\n> С уважением");
+            previewTestRich.ApplyTemplateMarkdown("**Новый ответ**\n\n**Подпись**",
+                new[] { "**Подпись**" });
+            previewTestRich.ApplyMarkdownSignature("Другая подпись",
+                new[] { "**Подпись**", "Другая подпись" });
+            var structuredReply = previewTestPlain.Text;
+            Check(structuredReply.IndexOf("Новый ответ", StringComparison.Ordinal) <
+                  structuredReply.IndexOf("Другая подпись", StringComparison.Ordinal) &&
+                  structuredReply.IndexOf("Другая подпись", StringComparison.Ordinal) <
+                  structuredReply.IndexOf("Исходное письмо", StringComparison.Ordinal) &&
+                  structuredReply.Contains("> Прежняя переписка", StringComparison.Ordinal),
+                "reply template and signature precede the unchanged historical correspondence");
+            Check(!structuredReply.Contains("**Подпись**", StringComparison.Ordinal) &&
+                  structuredReply.Split("Другая подпись", StringSplitOptions.None).Length == 2,
+                "changing an embedded template signature does not duplicate it");
             previewTestWindow.Content = null;
 
             mail = new MainWindow();
@@ -399,6 +414,9 @@ internal static class Program
                 Check(FindDescendant<TextBox>(detached,
                           x => x.Name == "ComposeToTextBox") is null,
                     "template editor never includes a recipient address field");
+                Check(FindDescendant<TextBlock>(detached,
+                          x => x.Text == "Тема письма") is null,
+                    "template editor contains no subject field");
                 detached.Close();
                 var position = localSettings.LoadWindowGeometry("template-editor");
                 Check(position is not null && position.Width > 0 && position.Height > 0,
@@ -455,6 +473,36 @@ internal static class Program
                   Require<TextBox>(mail, "ComposeSubjectTextBox").Text == "Re: Договор" &&
                   Require<TextBox>(mail, "ComposeBodyTextBox").Text.Contains("Текст письма"),
                 "reply fills recipient, Re subject, and original quote");
+            var applyTemplate = typeof(MainWindow).GetMethod("ApplyComposeTemplate",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            Check(applyTemplate is not null, "compose template method exists");
+            var replyEditor = FindDescendant<RichTextBox>(editor!, _ => true);
+            Check(replyEditor is not null, "reply uses the rich editor");
+            replyEditor!.CaretPosition = replyEditor.Document.ContentEnd;
+            applyTemplate!.Invoke(mail, new object[] { new SavedMailTemplate
+            {
+                Name = "Ответ", Subject = "Запрещённая смена темы",
+                Body = "**Текст из шаблона**", Attachments = new List<string>()
+            } });
+            var composedText = Require<TextBox>(mail, "ComposeBodyTextBox").Text;
+            Check(Require<TextBox>(mail, "ComposeSubjectTextBox").Text == "Re: Договор" &&
+                  composedText.Contains("Текст из шаблона", StringComparison.Ordinal) &&
+                  composedText.Contains("> Текст письма", StringComparison.Ordinal) &&
+                  composedText.IndexOf("Текст из шаблона", StringComparison.Ordinal) <
+                  composedText.IndexOf("Исходное письмо", StringComparison.Ordinal),
+                "template never changes reply subject or removes quoted correspondence");
+            var applySignature = typeof(MainWindow).GetMethod("ApplyComposeSignature",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            replyEditor.CaretPosition = replyEditor.Document.ContentEnd;
+            applySignature!.Invoke(mail, new object[] { new SavedSignature
+            {
+                Name = "Рабочая", Body = "С уважением,\nОтдел"
+            }, true });
+            var afterSignature = Require<TextBox>(mail, "ComposeBodyTextBox").Text;
+            Check(afterSignature.IndexOf("С уважением,", StringComparison.Ordinal) <
+                  afterSignature.IndexOf("Исходное письмо", StringComparison.Ordinal) &&
+                  afterSignature.Contains("> Текст письма", StringComparison.Ordinal),
+                "signature position is independent of caret in the quoted history");
             var replyId = typeof(MainWindow).GetField("_composeReplyToId",
                 BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(mail) as string;
             Check(replyId == "reply-test-123",

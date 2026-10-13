@@ -19,6 +19,11 @@ internal sealed class RichComposeEditor
     private readonly TextBox _plain;
     private readonly RichTextBox _rich;
     private bool _syncing;
+    // A reply owns three independent document regions. Template/signature
+    // commands are directed at their regions, never at the current caret.
+    private Section? _replyBody;
+    private Section? _replySignature;
+    private Section? _replyHistory;
 
     // Formatting changes must mark a template dirty even when the plain
     // text does not change (e.g. applying bold or a text color).
@@ -115,6 +120,9 @@ internal sealed class RichComposeEditor
 
     public void LoadMarkdown(string markdown)
     {
+        _replyBody = null;
+        _replySignature = null;
+        _replyHistory = null;
         _syncing = true;
         try
         {
@@ -125,6 +133,111 @@ internal sealed class RichComposeEditor
         finally { _syncing = false; }
     }
 
+    public bool IsReplyMode => _replyBody is not null;
+
+    /// <summary>
+    /// The previous correspondence lives in a separate trailing document
+    /// section. A template can only replace _replyBody, while a signature
+    /// can only replace _replySignature, regardless of caret position.
+    /// </summary>
+    public void LoadReplyQuotedText(string quotedText)
+    {
+        _syncing = true;
+        try
+        {
+            _rich.Document.Blocks.Clear();
+            _replyBody = new Section(new Paragraph { Margin = new Thickness(0) })
+            {
+                Margin = new Thickness(0)
+            };
+            _replySignature = null;
+            _replyHistory = new Section { Margin = new Thickness(0) };
+            _rich.Document.Blocks.Add(_replyBody);
+
+            if (!string.IsNullOrWhiteSpace(quotedText))
+            {
+                _replyHistory.Blocks.Add(new Paragraph { Margin = new Thickness(0) });
+                foreach (var line in quotedText.Replace("\r\n", "\n", StringComparison.Ordinal)
+                             .TrimStart('\r', '\n').Split('\n'))
+                    _replyHistory.Blocks.Add(new Paragraph(new Run(line))
+                        { Margin = new Thickness(0) });
+                _rich.Document.Blocks.Add(_replyHistory);
+            }
+        }
+        finally { _syncing = false; }
+        SyncFromRich();
+        _rich.CaretPosition = _replyBody!.Blocks.FirstBlock!.ContentStart;
+    }
+
+    /// <summary>
+    /// Replace only this reply's text, preserving historical messages and any
+    /// separately chosen signature. An embedded known template signature is
+    /// moved into the signature region rather than duplicated.
+    /// </summary>
+    public void ApplyTemplateMarkdown(string markdown, IEnumerable<string> knownSignatures)
+    {
+        if (_replyBody is null)
+        {
+            LoadMarkdown(markdown);
+            return;
+        }
+
+        var available = knownSignatures.Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+        var staged = new FlowDocument();
+        MarkdownRichLoader.Load(staged, markdown);
+        string? templateSignature = null;
+        foreach (var signature in available
+                     .OrderByDescending(s => MarkdownRichLoader.ToPlain(s).Length))
+        {
+            var lines = MarkdownRichLoader.ToPlain(signature)
+                .Replace("\r\n", "\n", StringComparison.Ordinal)
+                .TrimEnd('\r', '\n').Split('\n');
+            var paragraphs = staged.Blocks.OfType<Paragraph>().ToList();
+            if (paragraphs.Count < lines.Length) continue;
+            var tail = paragraphs.Skip(paragraphs.Count - lines.Length).ToArray();
+            if (!tail.Select(p => new TextRange(p.ContentStart, p.ContentEnd)
+                    .Text.TrimEnd('\r', '\n')).SequenceEqual(lines, StringComparer.Ordinal))
+                continue;
+            foreach (var paragraph in tail) staged.Blocks.Remove(paragraph);
+            if (staged.Blocks.LastBlock is Paragraph blank &&
+                string.IsNullOrWhiteSpace(new TextRange(blank.ContentStart, blank.ContentEnd).Text))
+                staged.Blocks.Remove(blank);
+            templateSignature = signature;
+            break;
+        }
+
+        _syncing = true;
+        try
+        {
+            _replyBody.Blocks.Clear();
+            MoveBlocks(staged.Blocks, _replyBody.Blocks);
+            if (_replyBody.Blocks.FirstBlock is null)
+                _replyBody.Blocks.Add(new Paragraph { Margin = new Thickness(0) });
+        }
+        finally { _syncing = false; }
+
+        if (templateSignature is not null)
+            ApplyMarkdownSignature(templateSignature, available);
+        else
+            SyncFromRich();
+        _rich.CaretPosition = _replyBody.Blocks.LastBlock!.ContentEnd;
+    }
+
+    private static void MoveBlocks(BlockCollection from, BlockCollection to)
+    {
+        while (from.FirstBlock is Block block)
+        {
+            from.Remove(block);
+            to.Add(block);
+        }
+    }
+
+    public void ClearReplyMode()
+    {
+        if (_replyBody is not null)
+            LoadMarkdown("");
+    }
+
     /// <summary>
     /// Keep existing character formatting intact when changing the trailing
     /// signature; append or replace document paragraphs instead of rewriting
@@ -132,6 +245,30 @@ internal sealed class RichComposeEditor
     /// </summary>
     public void ApplyMarkdownSignature(string markdown, IEnumerable<string> knownMarkdown)
     {
+        if (_replyBody is not null)
+        {
+            _syncing = true;
+            try
+            {
+                if (_replySignature is null)
+                {
+                    _replySignature = new Section { Margin = new Thickness(0) };
+                    _rich.Document.Blocks.InsertAfter(_replyBody, _replySignature);
+                }
+                _replySignature.Blocks.Clear();
+                if (!string.IsNullOrWhiteSpace(markdown))
+                {
+                    var staging = new FlowDocument();
+                    MarkdownRichLoader.Load(staging, markdown);
+                    _replySignature.Blocks.Add(new Paragraph { Margin = new Thickness(0) });
+                    MoveBlocks(staging.Blocks, _replySignature.Blocks);
+                }
+            }
+            finally { _syncing = false; }
+            SyncFromRich();
+            _rich.CaretPosition = _replyBody.Blocks.LastBlock!.ContentEnd;
+            return;
+        }
         var candidates = knownMarkdown
             .Where(value => !string.IsNullOrWhiteSpace(value))
             .Select(MarkdownRichLoader.ToPlain)

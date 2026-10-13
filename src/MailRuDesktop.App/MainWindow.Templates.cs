@@ -465,9 +465,12 @@ public partial class MainWindow
 
     private void ApplyComposeTemplate(SavedMailTemplate template)
     {
-        ComposeSubjectTextBox.Text = template.Subject;
-        ComposeBodyTextBox.Text = template.Body;
-        _composeRichEditor?.LoadMarkdown(template.Body);
+        if (_composeRichEditor is { IsReplyMode: true } replyEditor)
+            replyEditor.ApplyTemplateMarkdown(template.Body, _signatures.Select(item => item.Body));
+        else if (_composeRichEditor is not null)
+            _composeRichEditor.LoadMarkdown(template.Body);
+        else
+            ComposeBodyTextBox.Text = template.Body;
         _composeInsertedSignature = null;
         _attachmentPaths.Clear();
         var missing = 0;
@@ -568,9 +571,10 @@ public partial class MainWindow
 
     private void ApplyTemplate(SavedMailTemplate template)
     {
-        PreviewComposeSubjectTextBox.Text = template.Subject;
-        PreviewComposeBodyTextBox.Text = template.Body;
-        _previewRichEditor?.LoadMarkdown(template.Body);
+        if (_previewRichEditor is not null)
+            _previewRichEditor.ApplyTemplateMarkdown(template.Body, _signatures.Select(item => item.Body));
+        else
+            PreviewComposeBodyTextBox.Text = template.Body;
         _previewInsertedSignature = null;
         _previewAttachmentPaths.Clear();
 

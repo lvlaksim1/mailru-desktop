@@ -944,7 +944,9 @@ try
         Attachments = [originalAttach]
     }, previousName: null);
     var saved = templates.LoadAll().Single(t => t.Name == "Reply");
-    Expect(saved.Subject, "Re: test", "template subject survives disk roundtrip");
+    Expect(saved.Subject, "", "template subject is not part of the stored template");
+    if (File.ReadAllText(Path.Combine(first, "Reply.md")).Contains("subject:", StringComparison.OrdinalIgnoreCase))
+        throw new Exception("New templates must not persist a subject field.");
     templates.Save(new SavedMailTemplate
     {
         Name = "Русское письмо",
@@ -953,17 +955,17 @@ try
         Attachments = []
     }, previousName: null);
     var readable = File.ReadAllText(Path.Combine(first, "Русское письмо.md"));
-    if (!readable.Contains("Тема письма — проверка", StringComparison.Ordinal) ||
-        readable.Contains("\\u0422", StringComparison.OrdinalIgnoreCase))
-        throw new Exception("Russian template metadata must be directly readable in Markdown.");
+    if (!readable.Contains("Здравствуйте! Текст сообщения.", StringComparison.Ordinal) ||
+        readable.Contains("subject:", StringComparison.OrdinalIgnoreCase))
+        throw new Exception("Russian template content must survive without subject metadata.");
     Expect(templates.LoadAll().Single(t => t.Name == "Русское письмо").Subject,
-        "Тема письма — проверка", "Cyrillic subject roundtrip");
+        "", "subject is ignored for Cyrillic templates");
 
     var escapedPath = Path.Combine(first, "Escaped.md");
     File.WriteAllText(escapedPath,
         "---\nsubject: \"\\u0422\\u0435\\u043C\\u0430\"\nattachments:\n---\nТело письма");
     var legacy = templates.LoadAll().Single(item => item.Name == "Escaped");
-    Expect(legacy.Subject, "Тема", "legacy escaped subject decoded");
+    Expect(legacy.Subject, "", "legacy subject metadata must be ignored");
     var rewritten = File.ReadAllText(escapedPath);
     if (!rewritten.Contains("Тема", StringComparison.Ordinal) ||
         rewritten.Contains("\\u0422", StringComparison.OrdinalIgnoreCase))
@@ -1024,8 +1026,8 @@ try
         Name = "Reply copy", Subject = "Разрешённая перезапись",
         Body = "Изменено", Attachments = []
     }, previousName: "Reply copy");
-    Expect(templates.LoadAll().Single(t => t.Name == "Reply copy").Subject,
-        "Разрешённая перезапись", "exact-target authorized overwrite is allowed");
+    Expect(templates.LoadAll().Single(t => t.Name == "Reply copy").Body,
+        "Изменено", "exact-target authorized overwrite is allowed");
     Expect(File.ReadAllBytes(originalReplyPath).SequenceEqual(originalReplyBytes), true,
         "original still unchanged after copy overwrite");
 
@@ -1381,7 +1383,7 @@ attachments:
     File.WriteAllText(importPath, original);
     var imported = new MarkdownTemplateStore(importRoot).ReadExternalFile(importPath);
     Expect(imported.Name, "External", "single external Markdown file name");
-    Expect(imported.Subject, "Тема", "external Markdown metadata is loaded");
+    Expect(imported.Subject, "", "legacy external subject is ignored");
     Expect(File.ReadAllText(importPath), original,
         "loading a template for editing never rewrites its source file");
 }

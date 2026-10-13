@@ -2,6 +2,7 @@ using System.IO;
 using System.Net;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using MailRuDesktop.Protocol;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Win32;
@@ -466,9 +467,36 @@ public partial class MessageWindow : Window
         }
     }
 
+    private async void AttachmentButton_PreviewMouseLeftButtonDown(
+        object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount != 2)
+            return;
+        if ((sender as FrameworkElement)?.Tag is not MailRuIncomingAttachment attachment ||
+            string.IsNullOrWhiteSpace(_accessToken) ||
+            string.IsNullOrWhiteSpace(attachment.Id))
+            return;
+        e.Handled = true;
+        StatusText.Text = $"Открытие «{attachment.DisplayName}»...";
+        try
+        {
+            var messageId = _fullMessage?.Id ?? _summary.Id;
+            await AttachmentQuickOpen.OpenAsync(attachment.DisplayName,
+                () => _mailRu.DownloadIncomingAttachmentAsync(
+                    _accessToken, messageId, attachment.Id));
+            StatusText.Text = "Вложение открыто.";
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = "Не удалось открыть вложение.";
+            DiagnosticLog.Write("message_window_attachment_open", ex.GetType().Name);
+            AppDialog.Info(this, "Открытие вложения", ex.Message);
+        }
+    }
+
     private async void AttachmentButton_Click(object sender, RoutedEventArgs e)
     {
-        if ((sender as Button)?.Tag is not MailRuIncomingAttachment attachment ||
+        if ((sender as FrameworkElement)?.Tag is not MailRuIncomingAttachment attachment ||
             string.IsNullOrWhiteSpace(_accessToken))
         {
             StatusText.Text = "Не удалось определить вложение.";

@@ -17,7 +17,6 @@ internal sealed class TemplateEditorWindow : Window
     private readonly MarkdownSignatureStore _signatureStore;
     private readonly AppSettingsStore _settings;
     private readonly TextBox _name;
-    private readonly TextBox _subject;
     private readonly TextBox _plainBody;
     private readonly RichComposeEditor _editor;
     private readonly ComboBox _signatureSelector;
@@ -54,16 +53,13 @@ internal sealed class TemplateEditorWindow : Window
 
         var root = new Grid { Margin = new Thickness(15) };
         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(100) });
         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
         _name = new TextBox { Padding = new Thickness(7) };
-        _subject = new TextBox { Padding = new Thickness(7) };
         AddLabeledInput(root, 0, "Название шаблона", _name);
-        AddLabeledInput(root, 1, "Тема письма", _subject);
 
         var contentGrid = new Grid { Margin = new Thickness(0, 8, 0, 8) };
         contentGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -78,7 +74,7 @@ internal sealed class TemplateEditorWindow : Window
         };
         Grid.SetRow(_plainBody, 1);
         contentGrid.Children.Add(_plainBody);
-        Grid.SetRow(contentGrid, 2);
+        Grid.SetRow(contentGrid, 1);
         root.Children.Add(contentGrid);
 
         var signatureRow = new WrapPanel { Margin = new Thickness(0, 4, 0, 8) };
@@ -105,7 +101,7 @@ internal sealed class TemplateEditorWindow : Window
                 _signatureStore.LoadAll().Select(s => s.Body));
             _dirty = true;
         }));
-        Grid.SetRow(signatureRow, 3);
+        Grid.SetRow(signatureRow, 2);
         root.Children.Add(signatureRow);
 
         var attachmentHost = new Grid();
@@ -127,7 +123,7 @@ internal sealed class TemplateEditorWindow : Window
         _attachmentList = new ListBox { ItemsSource = _attachments };
         Grid.SetRow(_attachmentList, 1);
         attachmentHost.Children.Add(_attachmentList);
-        Grid.SetRow(attachmentHost, 4);
+        Grid.SetRow(attachmentHost, 3);
         root.Children.Add(attachmentHost);
 
         var footer = new DockPanel { LastChildFill = false, Margin = new Thickness(0, 12, 0, 0) };
@@ -138,13 +134,12 @@ internal sealed class TemplateEditorWindow : Window
         save.Margin = new Thickness(0, 0, 8, 0);
         DockPanel.SetDock(save, Dock.Right);
         footer.Children.Add(save);
-        Grid.SetRow(footer, 5);
+        Grid.SetRow(footer, 4);
         root.Children.Add(footer);
 
         Content = root;
         _editor = RichComposeEditor.Attach(_plainBody, this);
         _name.Text = template?.Name ?? "";
-        _subject.Text = template?.Subject ?? "";
         _editor.LoadMarkdown(template?.Body ?? "");
         foreach (var path in template?.Attachments ?? [])
             _attachments.Add(path);
@@ -157,7 +152,6 @@ internal sealed class TemplateEditorWindow : Window
             MarkDirty();
         };
         _name.TextChanged += (_, _) => MarkDirty();
-        _subject.TextChanged += (_, _) => MarkDirty();
         _plainBody.TextChanged += (_, _) =>
         {
             if (!_initializing) _bodyChanged = true;
@@ -257,7 +251,7 @@ internal sealed class TemplateEditorWindow : Window
         {
             var output = new SavedMailTemplate
             {
-                Name = name, Subject = _subject.Text,
+                Name = name,
                 Body = _bodyChanged ? _editor.ToMarkdown() :
                     _initialTemplate?.Body ?? _editor.ToMarkdown(),
                 Attachments = _attachments.ToList()
