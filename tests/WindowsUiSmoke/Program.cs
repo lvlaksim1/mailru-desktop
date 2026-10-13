@@ -81,6 +81,13 @@ internal static class Program
             mail.UpdateLayout();
             Check(Require<Grid>(mail, "SettingsWorkspace").Visibility == Visibility.Visible,
                 "Settings can actually be opened by its button");
+            var settingsGrid = Require<Grid>(mail, "SettingsWorkspace");
+            Check(settingsGrid.ColumnDefinitions.Count == 3,
+                "settings and diagnostics have an independent splitter column");
+            Check(FindDescendant<GridSplitter>(settingsGrid, x => Grid.GetColumn(x) == 1) is not null,
+                "settings diagnostic divider can be dragged");
+            Check(settingsGrid.ColumnDefinitions[0].Width.Value >= 390,
+                "settings diagnostic splitter width is restored");
 
             var backgroundSwitch = Require<CheckBox>(mail, "BackgroundPushEnabledCheckBox");
             Check(!backgroundSwitch.IsVisible,
@@ -103,7 +110,7 @@ internal static class Program
             Check(Require<TextBlock>(mail, "BackgroundPushStatusText").IsVisible,
                 "brief connection status remains visible");
             var diagnosticExpander = Require<Expander>(mail, "UnifiedDiagnosticsExpander");
-            Check(!diagnosticExpander.IsExpanded && Grid.GetColumn(diagnosticExpander.Parent as UIElement ?? diagnosticExpander) == 1,
+            Check(!diagnosticExpander.IsExpanded && Grid.GetColumn(diagnosticExpander.Parent as UIElement ?? diagnosticExpander) == 2,
                 "all diagnostics are collapsed and placed on the right");
             diagnosticExpander.IsExpanded = true;
             mail.UpdateLayout();
