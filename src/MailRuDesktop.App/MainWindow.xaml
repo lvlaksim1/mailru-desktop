@@ -955,8 +955,9 @@
 
             <Grid x:Name="SettingsWorkspace" Visibility="Collapsed">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="620" MinWidth="450"/>
-                    <ColumnDefinition Width="*" MinWidth="600"/>
+                    <ColumnDefinition x:Name="SettingsOptionsColumn" Width="620" MinWidth="390"/>
+                    <ColumnDefinition Width="6"/>
+                    <ColumnDefinition Width="*" MinWidth="300"/>
                 </Grid.ColumnDefinitions>
                 <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
                     <StackPanel MaxWidth="800" HorizontalAlignment="Left">
@@ -1198,9 +1199,15 @@
                     </StackPanel>
                 </ScrollViewer>
 
+                <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch"
+                              VerticalAlignment="Stretch" ResizeDirection="Columns"
+                              ResizeBehavior="PreviousAndNext"
+                              Background="{DynamicResource AppBorderBrush}"
+                              ToolTip="Изменить ширину настроек и диагностики"/>
+
                 <!-- All diagnostics share one collapsed instrument in the right-hand
                      settings column. The ordinary notifications area stays clean. -->
-                <ScrollViewer Grid.Column="1" Margin="14,0,0,0"
+                <ScrollViewer Grid.Column="2" Margin="14,0,0,0"
                               VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled">
                     <Expander x:Name="UnifiedDiagnosticsExpander"
