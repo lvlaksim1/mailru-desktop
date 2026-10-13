@@ -109,6 +109,18 @@ internal sealed class RichComposeEditor
 
     public void Focus() => _rich.Focus();
 
+    public void LoadMarkdown(string markdown)
+    {
+        _syncing = true;
+        try
+        {
+            MarkdownRichLoader.Load(_rich.Document, markdown);
+            _plain.Text = new TextRange(_rich.Document.ContentStart,
+                _rich.Document.ContentEnd).Text.TrimEnd('\r', '\n');
+        }
+        finally { _syncing = false; }
+    }
+
     public string ToHtml()
     {
         var builder = new StringBuilder();
@@ -238,7 +250,13 @@ internal sealed class RichComposeEditor
                         _ => "left"
                     };
                     output.Append("<p style=\"margin:0;line-height:normal;text-align:")
-                        .Append(align).Append(";\">");
+                        .Append(align);
+                    if (paragraph.ReadLocalValue(TextElement.FontSizeProperty) is double fontSize)
+                        output.Append(";font-size:").Append(fontSize.ToString(
+                            System.Globalization.CultureInfo.InvariantCulture)).Append("px");
+                    if (paragraph.FontWeight == FontWeights.Bold)
+                        output.Append(";font-weight:bold");
+                    output.Append(";\">");
                     RenderInlines(paragraph.Inlines, output);
                     output.Append("</p>");
                     break;
