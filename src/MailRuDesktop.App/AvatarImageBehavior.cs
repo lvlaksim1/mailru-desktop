@@ -39,32 +39,104 @@ public static class AvatarImageBehavior
     public static void SetSourceUrl(DependencyObject target, string? value) =>
         target.SetValue(SourceUrlProperty, value);
 
-    private static async void OnSourceChanged(
+    // Image controls are recycled by the virtualized message list. Each one
+    // needs its own bounded retry state so a temporary network error does not
+    // leave a sender's avatar missing until the next application restart.
+    private sealed class ImageRequestState
+    {
+        public string? Url;
+        public int Attempts;
+        public bool InFlight;
+        public bool LoadedHooked;
+    }
+
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Image, ImageRequestState>
+        Requests = new();
+
+    internal static bool IsSupportedAvatarUrl(string? candidate) =>
+        Uri.TryCreate(candidate, UriKind.Absolute, out var uri) &&
+        uri.Scheme == Uri.UriSchemeHttps &&
+        uri.Host.Equals("filin.mail.ru", StringComparison.OrdinalIgnoreCase) &&
+        uri.AbsolutePath.Equals("/pic", StringComparison.Ordinal);
+
+    private static void OnSourceChanged(
         DependencyObject sender, DependencyPropertyChangedEventArgs e)
     {
         if (sender is not Image image) return;
         var url = e.NewValue as string;
         image.Source = null;
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) ||
-            uri.Scheme != Uri.UriSchemeHttps ||
-            !uri.Host.Equals("filin.mail.ru", StringComparison.OrdinalIgnoreCase) ||
-            !uri.AbsolutePath.Equals("/pic", StringComparison.Ordinal))
+        var state = Requests.GetValue(image, _ => new ImageRequestState());
+        state.Url = url;
+        state.Attempts = 0;
+
+        if (!state.LoadedHooked)
+        {
+            image.Loaded += AvatarImage_Loaded;
+            state.LoadedHooked = true;
+        }
+
+        if (!IsSupportedAvatarUrl(url))
+        {
+            if (!string.IsNullOrWhiteSpace(url))
+                DiagnosticLog.Write("avatar_image", "unsupported-url");
+            return;
+        }
+
+        _ = LoadImageAsync(image, url!, state);
+    }
+
+    private static void AvatarImage_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Image image || image.Source is not null)
+            return;
+        var state = Requests.GetValue(image, _ => new ImageRequestState());
+        var url = GetSourceUrl(image);
+        if (state.Url != url)
+        {
+            state.Url = url;
+            state.Attempts = 0;
+        }
+        if (IsSupportedAvatarUrl(url))
+            _ = LoadImageAsync(image, url!, state);
+    }
+
+    private static async Task LoadImageAsync(
+        Image image, string url, ImageRequestState state)
+    {
+        if (state.InFlight || state.Attempts >= 3 ||
+            !string.Equals(state.Url, url, StringComparison.Ordinal))
             return;
 
+        state.InFlight = true;
+        state.Attempts++;
         try
         {
-            var photo = await Cache.GetOrAdd(url!, ReadImageAsync);
-            // Item containers are reused on scroll. A late download must
-            // never display the previous sender's photo on a new account.
+            var photo = await Cache.GetOrAdd(url, ReadImageAsync);
             if (photo is null)
-                Cache.TryRemove(url!, out _); // allow retry after a transient failure
+                Cache.TryRemove(url, out _);
             if (string.Equals(GetSourceUrl(image), url, StringComparison.Ordinal))
                 image.Source = photo;
+            if (photo is not null) return;
         }
         catch (Exception ex)
         {
-            Cache.TryRemove(url!, out _);
+            Cache.TryRemove(url, out _);
             DiagnosticLog.Write("avatar_image", ex.GetType().Name);
+        }
+        finally
+        {
+            state.InFlight = false;
+        }
+
+        if (state.Attempts < 3 && image.IsLoaded &&
+            string.Equals(GetSourceUrl(image), url, StringComparison.Ordinal))
+        {
+            // Retry only this visible image and only twice, with a delay.
+            // No reload loop for empty/unsupported URLs or recycled rows.
+            await Task.Delay(TimeSpan.FromSeconds(state.Attempts * 7));
+            if (image.IsLoaded && image.Source is null &&
+                string.Equals(GetSourceUrl(image), url, StringComparison.Ordinal))
+                await LoadImageAsync(image, url, state);
         }
     }
 
