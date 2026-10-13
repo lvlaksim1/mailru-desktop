@@ -18,6 +18,19 @@ internal static class MarkdownRichLoader
     public static void Load(FlowDocument document, string markdown)
     {
         document.Blocks.Clear();
+        Append(document, markdown);
+    }
+
+    public static string ToPlain(string markdown)
+    {
+        var temp = new FlowDocument();
+        Load(temp, markdown);
+        return new TextRange(temp.ContentStart, temp.ContentEnd)
+            .Text.TrimEnd('\r', '\n');
+    }
+
+    public static void Append(FlowDocument document, string markdown)
+    {
         var lines = (markdown ?? "").Replace("\r\n", "\n", StringComparison.Ordinal)
             .Split('\n');
         foreach (var line in lines)
