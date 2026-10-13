@@ -381,12 +381,12 @@ internal static class Program
                 var signs = new MarkdownSignatureStore(Path.Combine(templateTestRoot, "Signatures"));
                 var localSettings = new AppSettingsStore(templateTestRoot);
                 signs.Save(new SavedSignature { Name = "Рабочая", Body = "**Подпись**" });
-                var sample = new SavedMailTemplate
+                var sampleTemplate = new SavedMailTemplate
                 {
                     Name = "Проверочный", Subject = "Тема", Body = "**Текст письма**",
                     Attachments = new List<string>()
                 };
-                var detached = new TemplateEditorWindow(mail, files, signs, localSettings, sample);
+                var detached = new TemplateEditorWindow(mail, files, signs, localSettings, sampleTemplate);
                 detached.Show();
                 detached.UpdateLayout();
                 Check(detached.IsVisible && detached.MinWidth >= 600,
