@@ -50,8 +50,7 @@ internal static class Program
             Check(Grid.GetColumn(pinAction!) == 4 &&
                   pinAction.ToolTip?.ToString() == "Закрепить / открепить",
                 "pin sits next to the star and advertises both operations");
-            var pinShape = FindDescendant<System.Windows.Shapes.Path>(
-                pinAction, _ => true);
+            var pinShape = pinAction!.Content as System.Windows.Shapes.Path;
             Check(pinShape is not null,
                 "pin button uses the shared vector icon");
             var pinnedTestMail = new MailRuDesktop.Protocol.MailRuMessageSummary(
