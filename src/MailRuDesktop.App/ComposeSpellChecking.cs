@@ -22,7 +22,9 @@ internal static class ComposeSpellChecking
         // That caused almost every Cyrillic word to be marked as misspelled.
         // Keep the language explicit; installed Windows dictionaries determine
         // whether Russian spellchecking is available on this machine.
-        editor.Language = XmlLanguage.GetLanguage("ru-RU");
+        var russian = XmlLanguage.GetLanguage("ru-RU");
+        editor.Language = russian;
+        editor.Document.Language = russian;
         editor.SpellCheck.IsEnabled = Enabled;
         Editors.Add(new WeakReference<RichTextBox>(editor));
     }
