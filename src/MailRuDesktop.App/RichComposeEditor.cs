@@ -67,6 +67,10 @@ internal sealed class RichComposeEditor
             Padding = new Thickness(8),
             MinHeight = Math.Max(90, plain.MinHeight > 0 ? plain.MinHeight - 36 : 90)
         };
+        // Use the same typography as the other MailRu Desktop editing controls.
+        // The body-size resource follows the user's saved interface font size.
+        rich.FontFamily = new FontFamily("Segoe UI");
+        rich.SetResourceReference(Control.FontSizeProperty, "AppFontBodySize");
         rich.SetResourceReference(Control.BackgroundProperty, "AppInputBrush");
         rich.SetResourceReference(Control.ForegroundProperty, "AppTextBrush");
         rich.SetResourceReference(Control.BorderBrushProperty, "AppBorderBrush");
@@ -413,7 +417,8 @@ internal sealed class RichComposeEditor
             selection.ApplyPropertyValue(TextElement.FontSizeProperty, _rich.FontSize);
             selection.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Normal);
             selection.ApplyPropertyValue(TextElement.FontStyleProperty, FontStyles.Normal);
-            selection.ApplyPropertyValue(TextElement.ForegroundProperty, _rich.Foreground);
+            // Foreground is inherited from the themed editor; do not freeze a
+            // one-time brush that becomes stale after changing the theme.
             _rich.Focus();
         });
         Add(toolbar, "A▾", "Цвет текста", () =>
