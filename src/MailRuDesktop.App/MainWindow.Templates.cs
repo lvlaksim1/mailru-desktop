@@ -77,6 +77,7 @@ public partial class MainWindow
             (SignaturesListBox.SelectedItem as SavedSignature)?.Name;
         var previewName = (PreviewSignatureComboBox.SelectedItem as SavedSignature)?.Name;
         var composeName = (ComposeSignatureComboBox.SelectedItem as SavedSignature)?.Name;
+        var templateName = (TemplateSignatureComboBox.SelectedItem as SavedSignature)?.Name;
         var disk = SignatureFiles.LoadAll();
         if (_signatures.Count == disk.Count &&
             _signatures.Zip(disk).All(p =>
@@ -96,6 +97,9 @@ public partial class MainWindow
             if (composeName is not null)
                 ComposeSignatureComboBox.SelectedItem = _signatures.FirstOrDefault(
                     entry => entry.Name.Equals(composeName, StringComparison.OrdinalIgnoreCase));
+            if (templateName is not null)
+                TemplateSignatureComboBox.SelectedItem = _signatures.FirstOrDefault(
+                    entry => entry.Name.Equals(templateName, StringComparison.OrdinalIgnoreCase));
         }
         finally { _refreshingSignatures = false; }
     }
