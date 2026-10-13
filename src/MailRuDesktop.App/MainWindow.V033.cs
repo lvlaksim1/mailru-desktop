@@ -314,18 +314,6 @@ public partial class MainWindow
             ApplyFilters();
     }
 
-    private static Button? FindAncestorButton(DependencyObject? source)
-    {
-        while (source is not null)
-        {
-            if (source is Button button)
-                return button;
-            source = VisualTreeHelper.GetParent(source);
-        }
-
-        return null;
-    }
-
     private static IEnumerable<DependencyObject> EnumerateVisualDescendants(DependencyObject root)
     {
         var count = VisualTreeHelper.GetChildrenCount(root);
