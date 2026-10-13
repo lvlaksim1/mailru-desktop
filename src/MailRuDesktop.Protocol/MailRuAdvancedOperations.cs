@@ -16,7 +16,11 @@ public sealed record MailRuSearchResult(
     int Found,
     IReadOnlyList<MailRuMessageSummary> Messages,
     string RawResponse,
-    string Source);
+    string Source)
+{
+    // An absent server total must not be confused with the first page size.
+    public bool HasReportedTotal { get; init; }
+}
 
 public sealed record MailRuTokenRefreshResult(
     bool Success,
@@ -590,8 +594,12 @@ public static class MailRuFeatureParser
         CollectMessages(document.RootElement, messages, seen);
         messages.Sort((a, b) => Nullable.Compare(b.DateUnix, a.DateUnix));
 
-        var found = FindInt(document.RootElement, "count") ?? messages.Count;
-        return new MailRuSearchResult(found, messages, payload, source);
+        var reportedCount = FindInt(document.RootElement, "count");
+        var found = reportedCount ?? messages.Count;
+        return new MailRuSearchResult(found, messages, payload, source)
+        {
+            HasReportedTotal = reportedCount is not null
+        };
     }
 
     private static void CollectMessages(JsonElement element, List<MailRuMessageSummary> result, HashSet<string> seen)
