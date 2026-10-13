@@ -43,6 +43,7 @@
             <SolidColorBrush x:Key="AppSelectionBrush" Color="#DCEBFA"/>
             <SolidColorBrush x:Key="AppSelectionTextBrush" Color="#202124"/>
             <SolidColorBrush x:Key="AppAccentBrush" Color="#0D6EFD"/>
+            <SolidColorBrush x:Key="AppUnreadTextBrush" Color="#355D8D"/>
             <SolidColorBrush x:Key="AppAccentTextBrush" Color="#FFFFFF"/>
             <SolidColorBrush x:Key="AppScrollTrackBrush" Color="#F2F4F7"/>
             <SolidColorBrush x:Key="AppScrollThumbBrush" Color="#AEB6C2"/>
