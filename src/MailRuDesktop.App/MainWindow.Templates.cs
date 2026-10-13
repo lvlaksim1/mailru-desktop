@@ -260,6 +260,10 @@ public partial class MainWindow
 
             SignatureFiles.Save(new SavedSignature { Name = name,
                 Body = SignatureBodyTextBox.Text });
+            // If an existing entry is renamed, remove its previous file only
+            // after the replacement was written successfully.
+            if (selected is not null && !sameFile)
+                SignatureFiles.Delete(selected.Name);
             RefreshSignaturesFromDisk(name);
             SignaturesListBox.SelectedItem = _signatures.FirstOrDefault(
                 entry => entry.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
