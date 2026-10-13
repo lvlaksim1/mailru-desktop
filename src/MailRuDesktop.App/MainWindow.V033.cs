@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -6,7 +5,6 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Threading;
 using MailRuDesktop.Protocol;
@@ -18,7 +16,6 @@ public partial class MainWindow
     private bool _v033Initialized;
     private bool _v033InitialFocusApplied;
     private TextBox? _v033SelectableSubject;
-    private DependencyPropertyDescriptor? _v033ItemsSourceDescriptor;
 
     protected override void OnSourceInitialized(EventArgs e)
     {
@@ -83,8 +80,6 @@ public partial class MainWindow
         ThemeManager.ThemeChanged -= V033_ThemeChanged;
         Closed -= V033_Closed;
 
-        if (_v033ItemsSourceDescriptor is not null)
-            _v033ItemsSourceDescriptor.RemoveValueChanged(MessagesGrid, V033_ItemsSourceChanged);
     }
 
     private void RefreshMainWindowChrome()
@@ -319,83 +314,6 @@ public partial class MainWindow
             ApplyFilters();
     }
 
-    private void ConfigureMessageListTemplate()
-    {
-        try
-        {
-            var dictionary = (ResourceDictionary)XamlReader.Parse(MessageTemplateXaml);
-            MessagesGrid.ItemTemplate = (DataTemplate)dictionary["V033MessageTemplate"];
-            MessagesGrid.AddHandler(
-                Button.ClickEvent,
-                new RoutedEventHandler(V033_MessageActionButton_Click));
-        }
-        catch (Exception ex)
-        {
-            DiagnosticLog.Write("v033_message_template", ex.GetType().Name + ": " + ex.Message);
-        }
-    }
-
-    private void V033_MessageActionButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (e.Handled)
-            return;
-
-        var button = FindAncestorButton(e.OriginalSource as DependencyObject);
-        if (button?.DataContext is not MailRuMessageSummary)
-            return;
-
-        switch (button.Name)
-        {
-            case "UnreadActionButton":
-                MessageUnreadWithCounterButton_Click(button, e);
-                break;
-            case "FlagActionButton":
-                MessageFlagButton_Click(button, e);
-                break;
-            case "PinActionButton":
-                MessagePinButton_Click(button, e);
-                break;
-            case "ArchiveActionButton":
-                MessageArchiveWithCounterButton_Click(button, e);
-                break;
-        }
-    }
-
-    private void ConfigurePinnedSorting()
-    {
-        _v033ItemsSourceDescriptor = DependencyPropertyDescriptor.FromProperty(
-            ItemsControl.ItemsSourceProperty,
-            typeof(ItemsControl));
-        _v033ItemsSourceDescriptor?.AddValueChanged(MessagesGrid, V033_ItemsSourceChanged);
-        ApplyPinnedSorting();
-    }
-
-    private void V033_ItemsSourceChanged(object? sender, EventArgs e) =>
-        Dispatcher.BeginInvoke(
-            DispatcherPriority.DataBind,
-            new Action(ApplyPinnedSorting));
-
-    private void ApplyPinnedSorting()
-    {
-        if (MessagesGrid.ItemsSource is null)
-            return;
-
-        var view = CollectionViewSource.GetDefaultView(MessagesGrid.ItemsSource);
-        if (!view.CanSort)
-            return;
-
-        using (view.DeferRefresh())
-        {
-            view.SortDescriptions.Clear();
-            view.SortDescriptions.Add(new SortDescription(
-                nameof(MailRuMessageSummary.Pinned),
-                ListSortDirection.Descending));
-            view.SortDescriptions.Add(new SortDescription(
-                nameof(MailRuMessageSummary.DateUnix),
-                ListSortDirection.Descending));
-        }
-    }
-
     private static Button? FindAncestorButton(DependencyObject? source)
     {
         while (source is not null)
@@ -436,142 +354,5 @@ public partial class MainWindow
         int cy,
         uint flags);
 
-    private const string MessageTemplateXaml = """
-<ResourceDictionary
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:MailRuDesktop.App;assembly=MailRuDesktop.App">
-    <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
-    <local:MailDateConverter x:Key="MailDateConverter"/>
-    <local:MailTimeConverter x:Key="MailTimeConverter"/>
-    <local:SenderLineConverter x:Key="SenderLineConverter"/>
-    <local:FirstLineConverter x:Key="FirstLineConverter"/>
 
-    <DataTemplate x:Key="V033MessageTemplate">
-        <Grid Height="58">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="64"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="34"/>
-            </Grid.ColumnDefinitions>
-
-            <StackPanel Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <TextBlock FontSize="11" HorizontalAlignment="Center"
-                           Foreground="{DynamicResource AppMutedTextBrush}"
-                           Text="{Binding DateUnix, Converter={StaticResource MailDateConverter}}"/>
-                <TextBlock Margin="0,3,0,0" FontSize="11" HorizontalAlignment="Center"
-                           Foreground="{DynamicResource AppMutedTextBrush}"
-                           Text="{Binding DateUnix, Converter={StaticResource MailTimeConverter}}"/>
-            </StackPanel>
-
-            <Grid Grid.Column="1">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="26"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="19"/>
-                    <RowDefinition Height="19"/>
-                    <RowDefinition Height="19"/>
-                </Grid.RowDefinitions>
-
-                <Button x:Name="UnreadActionButton" Grid.Row="0" Grid.Column="0"
-                        Width="21" Height="19" Padding="0" Tag="{Binding}"
-                        ToolTip="Прочитано / непрочитано">
-                    <TextBlock FontSize="13">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="{DynamicResource AppMutedTextBrush}"/>
-                                <Setter Property="Text" Value="○"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Unread}" Value="True">
-                                        <Setter Property="Text" Value="●"/>
-                                        <Setter Property="Foreground" Value="{DynamicResource AppAccentBrush}"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
-                </Button>
-
-                <Button x:Name="FlagActionButton" Grid.Row="1" Grid.Column="0"
-                        Width="21" Height="19" Padding="0" Tag="{Binding}" ToolTip="Флажок">
-                    <TextBlock FontSize="15">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="{DynamicResource AppMutedTextBrush}"/>
-                                <Setter Property="Text" Value="☆"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Flagged}" Value="True">
-                                        <Setter Property="Text" Value="★"/>
-                                        <Setter Property="Foreground" Value="{DynamicResource AppStarBrush}"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
-                </Button>
-
-                <Path Grid.Row="2" Grid.Column="0" Width="15" Height="15"
-                      VerticalAlignment="Center" HorizontalAlignment="Center"
-                      Visibility="{Binding HasAttachment, Converter={StaticResource BoolToVisibility}}"
-                      Stretch="Uniform" Stroke="{DynamicResource AppMutedTextBrush}"
-                      StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                      Data="M21.44,11.05 L12.25,20.24 C9.91,22.58 6.11,22.58 3.76,20.24 C1.42,17.90 1.42,14.10 3.76,11.75 L12.95,2.56 C14.51,1 17.05,1 18.61,2.56 C20.17,4.12 20.17,6.66 18.61,8.22 L9.41,17.41 C8.63,18.19 7.37,18.19 6.59,17.41 C5.81,16.63 5.81,15.37 6.59,14.59 L15.08,6.10"/>
-
-                <TextBlock Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"
-                           TextTrimming="CharacterEllipsis" FontWeight="SemiBold">
-                    <TextBlock.Text>
-                        <MultiBinding Converter="{StaticResource SenderLineConverter}">
-                            <Binding Path="SenderEmail"/>
-                            <Binding Path="SenderName"/>
-                        </MultiBinding>
-                    </TextBlock.Text>
-                </TextBlock>
-                <TextBlock Grid.Row="1" Grid.Column="1" VerticalAlignment="Center"
-                           TextTrimming="CharacterEllipsis" FontWeight="SemiBold"
-                           Text="{Binding Subject}"/>
-                <TextBlock Grid.Row="2" Grid.Column="1" VerticalAlignment="Center"
-                           TextTrimming="CharacterEllipsis"
-                           Foreground="{DynamicResource AppMutedTextBrush}"
-                           Text="{Binding Snippet, Converter={StaticResource FirstLineConverter}}"/>
-            </Grid>
-
-            <Grid Grid.Column="2" HorizontalAlignment="Stretch">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="29"/>
-                    <RowDefinition Height="29"/>
-                </Grid.RowDefinitions>
-
-                <Button x:Name="PinActionButton" Grid.Row="0" Width="25" Height="23" Padding="2"
-                        HorizontalAlignment="Right" Tag="{Binding}" ToolTip="Закрепить / открепить">
-                    <Path Width="16" Height="18" Stretch="Uniform" StrokeThickness="1.45"
-                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                          Data="M6,2 L18,2 L18,4 L16,6 L16,10 L19,13 L19,15 L13,15 L13,21 L12,24 L11,21 L11,15 L5,15 L5,13 L8,10 L8,6 L6,4 Z">
-                        <Path.Style>
-                            <Style TargetType="Path">
-                                <Setter Property="Stroke" Value="{DynamicResource AppMutedTextBrush}"/>
-                                <Setter Property="Fill" Value="Transparent"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Pinned}" Value="True">
-                                        <Setter Property="Stroke" Value="{DynamicResource AppPinBrush}"/>
-                                        <Setter Property="Fill" Value="{DynamicResource AppPinBrush}"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Path.Style>
-                    </Path>
-                </Button>
-
-                <Button x:Name="ArchiveActionButton" Grid.Row="1" Width="25" Height="23" Padding="2"
-                        HorizontalAlignment="Right" Tag="{Binding}" ToolTip="В архив">
-                    <Path Width="14" Height="14" Stretch="Uniform"
-                          Stroke="{DynamicResource AppMutedTextBrush}" StrokeThickness="1.4"
-                          Data="M2,4 L14,4 M3,5 L13,5 L12,14 L4,14 Z M6,8 L10,8"/>
-                </Button>
-            </Grid>
-        </Grid>
-    </DataTemplate>
-</ResourceDictionary>
-""";
 }
