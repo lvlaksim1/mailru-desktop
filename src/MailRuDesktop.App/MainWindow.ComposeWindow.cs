@@ -16,7 +16,7 @@ public partial class MainWindow
 
     // Keep the existing compose controls and rich-editor state in a separate
     // owned window. Do not duplicate the send, draft or attachment logic.
-    private void ShowComposeWindow()
+    private void ShowComposeWindow(bool reply = false)
     {
         if (_composeWindow is { } open)
         {
@@ -48,10 +48,10 @@ public partial class MainWindow
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             Content = ComposeWorkspace
         };
-        WindowGeometryPersistence.Restore(window, _settingsStore, "compose");
+        var geometryKind = reply ? "reply" : "compose";
+        WindowGeometryPersistence.Restore(window, _settingsStore, geometryKind);
         window.Closing += (_, _) =>
-            WindowGeometryPersistence.Save(window, _settingsStore,
-                _composeReplyToId is null ? "compose" : "reply");
+            WindowGeometryPersistence.Save(window, _settingsStore, geometryKind);
         ThemeManager.AttachWindowChrome(window);
         window.SetResourceReference(BackgroundProperty, "AppWindowBrush");
         window.SetResourceReference(ForegroundProperty, "AppTextBrush");
@@ -99,12 +99,11 @@ public partial class MainWindow
             return;
         }
 
-        ShowComposeWindow();
+        ShowComposeWindow(reply: true);
         _composeReplyToId = source.Id;
         if (_composeWindow is { } replyWindow)
         {
             replyWindow.Title = "Ответ: " + (full?.Subject ?? source.Subject);
-            WindowGeometryPersistence.Restore(replyWindow, _settingsStore, "reply");
         }
         _attachmentPaths.Clear();
         RefreshComposeAttachments();
