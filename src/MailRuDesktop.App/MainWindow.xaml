@@ -688,6 +688,7 @@
                                     Visibility="Collapsed">
                             <TextBlock FontWeight="SemiBold" Text="Вложения"/>
                             <ListBox x:Name="IncomingAttachmentsListBox"
+                                     PreviewMouseLeftButtonDown="IncomingAttachmentsListBox_PreviewMouseLeftButtonDown"
                                      MaxHeight="110"
                                      Margin="0,5,0,0"
                                      BorderThickness="0">
