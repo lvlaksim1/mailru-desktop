@@ -57,6 +57,8 @@ public partial class MainWindow
         window.SetResourceReference(ForegroundProperty, "AppTextBrush");
         window.Closed += (_, _) =>
         {
+            if (_composeReplyToId is not null)
+                _composeRichEditor?.ClearReplyMode();
             window.Content = null;
             ComposeWorkspace.Visibility = Visibility.Collapsed;
             originalParent.Children.Add(ComposeWorkspace);
@@ -112,7 +114,11 @@ public partial class MainWindow
         RequestReadReceiptCheckBox.IsChecked = false;
         ComposeToTextBox.Text = sender;
         ComposeSubjectTextBox.Text = ReplySubject(full?.Subject ?? source.Subject);
-        ComposeBodyTextBox.Text = BuildQuotedReply(full, source);
+        var quoted = BuildQuotedReply(full, source);
+        if (_composeRichEditor is not null)
+            _composeRichEditor.LoadReplyQuotedText(quoted);
+        else
+            ComposeBodyTextBox.Text = quoted;
         ComposeStatusText.Text = string.Empty;
         _composeRichEditor?.Focus();
     }
