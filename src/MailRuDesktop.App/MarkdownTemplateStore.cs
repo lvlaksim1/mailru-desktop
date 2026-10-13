@@ -9,7 +9,7 @@ namespace MailRuDesktop.App;
 /// <summary>
 /// Every top-level .md file in Templates is an independently editable template.
 /// Plain Markdown is a valid body-only template; optional front matter stores
-/// the subject and attachments. The filename (without extension) is its name.
+/// attachments. Historical subject metadata is ignored. The filename (without extension) is its name.
 /// </summary>
 internal sealed class MarkdownTemplateStore
 {
@@ -241,7 +241,6 @@ internal sealed class MarkdownTemplateStore
 
         var output = new StringBuilder();
         output.AppendLine("---");
-        output.Append("subject: ").AppendLine(JsonSerializer.Serialize(template.Subject, ReadableRussian));
         output.AppendLine("attachments:");
         foreach (var attachment in attachments)
             output.Append("  - ").AppendLine(JsonSerializer.Serialize(attachment, ReadableRussian));
@@ -295,7 +294,6 @@ internal sealed class MarkdownTemplateStore
     private SavedMailTemplate Parse(string name, string text)
     {
         var normalized = text.Replace("\r\n", "\n");
-        var subject = "";
         var attachments = new List<string>();
         var body = normalized;
 
@@ -310,7 +308,7 @@ internal sealed class MarkdownTemplateStore
                 {
                     if (line.StartsWith("subject:", StringComparison.OrdinalIgnoreCase))
                     {
-                        subject = DecodeScalar(line["subject:".Length..].Trim());
+                        // Ignore legacy subject metadata without treating it as body text.
                         inAttachments = false;
                     }
                     else if (line.Trim().Equals("attachments:", StringComparison.OrdinalIgnoreCase))
@@ -341,7 +339,7 @@ internal sealed class MarkdownTemplateStore
         {
             Id = name,
             Name = name,
-            Subject = subject,
+            Subject = string.Empty,
             Body = body,
             Attachments = attachments
         };
