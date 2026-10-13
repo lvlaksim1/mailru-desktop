@@ -163,55 +163,53 @@ internal sealed class AppSettingsStore
         }
     }
 
-    public Dictionary<string, string> LoadPaletteOverrides(bool dark)
+    // One color for both light/dark themes; legacy palette dictionaries stay
+    // in settings.json but no longer affect the interface.
+    public string LoadPrimaryColor()
     {
-        var state = LoadState();
-        var stored = dark ? state.DarkPalette : state.LightPalette;
-        return new Dictionary<string, string>(
-            ThemePalette.Merge(dark, stored), StringComparer.Ordinal);
+        var stored = LoadState().PrimaryColor;
+        return ThemePalette.TryNormalize(stored, out var normalized)
+            ? normalized : ThemePalette.DefaultPrimaryColor;
     }
 
-    public void SavePaletteOverride(bool dark, string key, string hex)
+    public void SavePrimaryColor(string hex)
     {
-        if (!ThemePalette.Roles.Any(role => role.Key == key) ||
-            !ThemePalette.TryNormalize(hex, out var normalized))
-            throw new ArgumentException("Недопустимый цвет или цветовая роль.");
-
+        if (!ThemePalette.TryNormalize(hex, out var normalized))
+            throw new ArgumentException("Основной цвет должен иметь вид #RRGGBB.");
         lock (_sync)
         {
             var state = LoadStateCore();
-            var current = dark
-                ? state.DarkPalette ?? new Dictionary<string, string>()
-                : state.LightPalette ?? new Dictionary<string, string>();
-            current[key] = normalized;
-            if (dark)
-                state.DarkPalette = current;
-            else
-                state.LightPalette = current;
+            state.PrimaryColor = normalized;
             SaveStateCore(state);
         }
+    }
+
+    public void ResetPrimaryColor()
+    {
+        lock (_sync)
+        {
+            var state = LoadStateCore();
+            state.PrimaryColor = null;
+            SaveStateCore(state);
+        }
+    }
+
+    public Dictionary<string, string> LoadPaletteOverrides(bool dark) =>
+        ThemePalette.Generate(dark, LoadPrimaryColor());
+
+    // Compatibility with older callers: the single editable role is Accent.
+    public void SavePaletteOverride(bool dark, string key, string hex)
+    {
+        if (key != "AppAccentBrush")
+            throw new ArgumentException("Доступен только основной цвет.", nameof(key));
+        SavePrimaryColor(hex);
     }
 
     public void ResetPaletteOverride(bool dark, string? key = null)
     {
-        if (key is not null && !ThemePalette.Roles.Any(role => role.Key == key))
-            throw new ArgumentException("Неизвестная цветовая роль.");
-
-        lock (_sync)
-        {
-            var state = LoadStateCore();
-            var current = dark ? state.DarkPalette : state.LightPalette;
-            if (key is null)
-            {
-                if (dark) state.DarkPalette = null;
-                else state.LightPalette = null;
-            }
-            else if (current is not null)
-            {
-                current.Remove(key);
-            }
-            SaveStateCore(state);
-        }
+        if (key is not null && key != "AppAccentBrush")
+            throw new ArgumentException("Доступен только основной цвет.", nameof(key));
+        ResetPrimaryColor();
     }
 
     public UserInterfaceState LoadUserInterfaceState() =>
@@ -399,6 +397,7 @@ internal sealed class AppSettingsStore
         public bool TaskbarNotificationsEnabled { get; set; } = true;
         public bool ReplaySuppressionEnabled { get; set; } = true;
         public int InterfaceFontSize { get; set; } = ThemeTypography.DefaultSize;
+        public string? PrimaryColor { get; set; }
         public Dictionary<string, string>? DarkPalette { get; set; }
         public Dictionary<string, string>? LightPalette { get; set; }
         public UserInterfaceState? UserInterface { get; set; }
