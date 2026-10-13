@@ -879,6 +879,38 @@ public partial class MainWindow : Window
         }
     }
 
+    private async void IncomingAttachmentsListBox_PreviewMouseLeftButtonDown(
+        object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount != 2 ||
+            _currentFullMessage is null ||
+            string.IsNullOrWhiteSpace(_accessToken))
+            return;
+        var item = ItemsControl.ContainerFromElement(IncomingAttachmentsListBox,
+            e.OriginalSource as DependencyObject) as ListBoxItem;
+        if (item?.DataContext is not MailRuIncomingAttachment attachment ||
+            string.IsNullOrWhiteSpace(attachment.Id))
+            return;
+
+        e.Handled = true;
+        var messageId = _currentFullMessage.Id;
+        var token = _accessToken;
+        FolderStatusText.Text = $"Открытие «{attachment.DisplayName}»...";
+        try
+        {
+            await AttachmentQuickOpen.OpenAsync(attachment.DisplayName,
+                () => _mailRu.DownloadIncomingAttachmentAsync(
+                    token, messageId, attachment.Id));
+            FolderStatusText.Text = "Вложение открыто.";
+        }
+        catch (Exception ex)
+        {
+            FolderStatusText.Text = "Не удалось открыть вложение.";
+            DiagnosticLog.Write("incoming_attachment_open", ex.GetType().Name);
+            AppDialog.Info(this, "Открытие вложения", ex.Message);
+        }
+    }
+
     private async void DownloadAttachmentButton_Click(object sender, RoutedEventArgs e)
     {
         if (_currentFullMessage is null ||
