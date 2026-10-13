@@ -117,6 +117,13 @@ internal static class Program
             previewTestGrid.Children.Add(previewTestPlain);
             var previewTestWindow = new Window { Content = previewTestGrid };
             var previewTestRich = RichComposeEditor.Attach(previewTestPlain, previewTestWindow);
+            previewTestRich.LoadMarkdown("# Заголовок\n- Пункт\n<u>Подчёркнуто</u>\n[Ссылка](https://example.org)");
+            var roundTrip = previewTestRich.ToMarkdown();
+            Check(roundTrip.Contains("# Заголовок", StringComparison.Ordinal) &&
+                  roundTrip.Contains("- Пункт", StringComparison.Ordinal) &&
+                  roundTrip.Contains("<u>Подчёркнуто</u>", StringComparison.Ordinal) &&
+                  roundTrip.Contains("[Ссылка](https://example.org/)", StringComparison.Ordinal),
+                "rich editor preserves heading, bullets, underline and links as Markdown");
             previewTestRich.LoadMarkdown("**Выделенный текст**");
             Check(previewTestRich.ToHtml().Contains("<strong>", StringComparison.Ordinal) &&
                   previewTestRich.ToHtml().Contains("Выделенный текст", StringComparison.Ordinal),
@@ -355,6 +362,54 @@ internal static class Program
             Check(settingsStack.Children.IndexOf(template!) ==
                   settingsStack.Children.IndexOf(signature!) + 1,
                 "Templates appears immediately after Signatures");
+            template!.IsExpanded = true;
+            mail.UpdateLayout();
+            Check(Require<ListBox>(mail, "MailTemplatesListBox") is { },
+                "settings keep a template list");
+            Check(Require<Button>(mail, "EditSelectedTemplateButton") is { IsEnabled: false },
+                "Edit is disabled with no selected template");
+            Check(Require<Button>(mail, "DeleteSelectedTemplateButton") is { IsEnabled: false },
+                "Delete is disabled with no selected template");
+            Check(mail.FindName("TemplateBodyTextBox") is null,
+                "template body no longer occupies the settings sidebar");
+
+            var templateTestRoot = Path.Combine(Path.GetTempPath(),
+                "MailRuTemplateEditor-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                var files = new MarkdownTemplateStore(Path.Combine(templateTestRoot, "Templates"));
+                var signs = new MarkdownSignatureStore(Path.Combine(templateTestRoot, "Signatures"));
+                var localSettings = new AppSettingsStore(templateTestRoot);
+                signs.Save(new SavedSignature { Name = "Рабочая", Body = "**Подпись**" });
+                var sampleTemplate = new SavedMailTemplate
+                {
+                    Name = "Проверочный", Subject = "Тема", Body = "**Текст письма**",
+                    Attachments = new List<string>()
+                };
+                var detached = new TemplateEditorWindow(mail, files, signs, localSettings, sampleTemplate);
+                detached.Show();
+                detached.UpdateLayout();
+                Check(detached.IsVisible && detached.MinWidth >= 600,
+                    "template opens a separate resizable window");
+                Check(FindDescendant<RichTextBox>(detached, _ => true) is not null,
+                    "template editor reuses the rich mail formatting control");
+                Check(FindDescendant<ComboBox>(detached,
+                          x => x.DisplayMemberPath == nameof(SavedSignature.Name)) is not null,
+                    "template editor exposes file-backed signature choices");
+                Check(FindDescendant<TextBox>(detached,
+                          x => x.Name == "ComposeToTextBox") is null,
+                    "template editor never includes a recipient address field");
+                detached.Close();
+                var position = localSettings.LoadWindowGeometry("template-editor");
+                Check(position is not null && position.Width > 0 && position.Height > 0,
+                    "template editor remembers its independent window geometry");
+            }
+            finally
+            {
+                if (Directory.Exists(templateTestRoot))
+                    Directory.Delete(templateTestRoot, recursive: true);
+            }
+
 
             settingsAction!.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent, settingsAction));
             mail.UpdateLayout();

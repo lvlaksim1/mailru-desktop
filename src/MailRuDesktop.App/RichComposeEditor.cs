@@ -20,6 +20,10 @@ internal sealed class RichComposeEditor
     private readonly RichTextBox _rich;
     private bool _syncing;
 
+    // Formatting changes must mark a template dirty even when the plain
+    // text does not change (e.g. applying bold or a text color).
+    public event EventHandler? Changed;
+
     private RichComposeEditor(TextBox plain, RichTextBox rich)
     {
         _plain = plain;
@@ -170,6 +174,8 @@ internal sealed class RichComposeEditor
         _rich.CaretPosition = _rich.Document.ContentEnd;
     }
 
+    public string ToMarkdown() => MarkdownRichWriter.Write(_rich.Document);
+
     public string ToHtml()
     {
         var builder = new StringBuilder();
@@ -181,6 +187,16 @@ internal sealed class RichComposeEditor
 
     private void CreateToolbar(Panel toolbar, Window owner)
     {
+        Add(toolbar, "H", "Заголовок", () =>
+        {
+            var paragraph = _rich.Selection.Start.Paragraph;
+            if (paragraph is not null)
+            {
+                paragraph.FontSize = 20;
+                paragraph.FontWeight = FontWeights.Bold;
+            }
+            _rich.Focus();
+        });
         Add(toolbar, "Ж", "Полужирный", () => Toggle(TextElement.FontWeightProperty,
             FontWeights.Bold, FontWeights.Normal));
         Add(toolbar, "К", "Курсив", () => Toggle(TextElement.FontStyleProperty,
@@ -237,7 +253,7 @@ internal sealed class RichComposeEditor
         });
     }
 
-    private static void Add(Panel toolbar, string caption, string tip, Action action)
+    private void Add(Panel toolbar, string caption, string tip, Action action)
     {
         var button = new Button
         {
@@ -245,7 +261,11 @@ internal sealed class RichComposeEditor
             MinWidth = 26, Height = 27, Margin = new Thickness(0, 0, 3, 0),
             FontSize = 12
         };
-        button.Click += (_, _) => action();
+        button.Click += (_, _) =>
+        {
+            action();
+            Changed?.Invoke(this, EventArgs.Empty);
+        };
         toolbar.Children.Add(button);
     }
 
@@ -282,6 +302,7 @@ internal sealed class RichComposeEditor
                 .Text.TrimEnd('\r', '\n');
         }
         finally { _syncing = false; }
+        Changed?.Invoke(this, EventArgs.Empty);
     }
 
     private static void RenderBlocks(BlockCollection blocks, StringBuilder output)

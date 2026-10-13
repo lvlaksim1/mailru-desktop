@@ -12,7 +12,7 @@ namespace MailRuDesktop.App;
 internal static class MarkdownRichLoader
 {
     private static readonly Regex Inline = new(
-        @"\*\*(?<bold>[^*\r\n]+)\*\*|\*(?<italic>[^*\r\n]+)\*|<u>(?<under>.*?)</u>|\[(?<label>[^\]]+)\]\((?<url>https://[^\s)]+)\)",
+        @"\*\*(?<bold>[^*\r\n]+)\*\*|\*(?<italic>[^*\r\n]+)\*|<u>(?<under>.*?)</u>|<s>(?<strike>.*?)</s>|<span style=""color:(?<color>#[0-9a-fA-F]{6})"">(?<colorText>.*?)</span>|\[(?<label>[^\]]+)\]\((?<url>(?:https?://|mailto:)[^\s)]+)\)",
         RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
     public static void Load(FlowDocument document, string markdown)
@@ -37,6 +37,24 @@ internal static class MarkdownRichLoader
         {
             var text = line;
             var paragraph = new Paragraph { Margin = new Thickness(0) };
+            if (text.StartsWith("<div align=\"center\">", StringComparison.Ordinal) &&
+                text.EndsWith("</div>", StringComparison.Ordinal))
+            {
+                paragraph.TextAlignment = TextAlignment.Center;
+                text = text["<div align=\"center\">".Length..^"</div>".Length];
+            }
+            else if (text.StartsWith("<div align=\"right\">", StringComparison.Ordinal) &&
+                     text.EndsWith("</div>", StringComparison.Ordinal))
+            {
+                paragraph.TextAlignment = TextAlignment.Right;
+                text = text["<div align=\"right\">".Length..^"</div>".Length];
+            }
+            else if (text.StartsWith("<div align=\"justify\">", StringComparison.Ordinal) &&
+                     text.EndsWith("</div>", StringComparison.Ordinal))
+            {
+                paragraph.TextAlignment = TextAlignment.Justify;
+                text = text["<div align=\"justify\">".Length..^"</div>".Length];
+            }
             if (text.StartsWith("# ", StringComparison.Ordinal))
             {
                 paragraph.FontSize = 20;
@@ -47,6 +65,12 @@ internal static class MarkdownRichLoader
             {
                 paragraph.Inlines.Add(new Run("• "));
                 text = text[2..];
+            }
+            else if (System.Text.RegularExpressions.Regex.Match(text, @"^\d+\. ") is var numbering
+                     && numbering.Success)
+            {
+                paragraph.Inlines.Add(new Run(numbering.Value));
+                text = text[numbering.Length..];
             }
             var cursor = 0;
             foreach (Match match in Inline.Matches(text))
@@ -59,9 +83,22 @@ internal static class MarkdownRichLoader
                     paragraph.Inlines.Add(new Italic(new Run(match.Groups["italic"].Value)));
                 else if (match.Groups["under"].Success)
                     paragraph.Inlines.Add(new Underline(new Run(match.Groups["under"].Value)));
+                else if (match.Groups["strike"].Success)
+                {
+                    var run = new Run(match.Groups["strike"].Value)
+                        { TextDecorations = TextDecorations.Strikethrough };
+                    paragraph.Inlines.Add(run);
+                }
+                else if (match.Groups["colorText"].Success)
+                {
+                    var run = new Run(match.Groups["colorText"].Value);
+                    run.Foreground = new SolidColorBrush(
+                        (Color)ColorConverter.ConvertFromString(match.Groups["color"].Value));
+                    paragraph.Inlines.Add(run);
+                }
                 else if (match.Groups["label"].Success &&
                          Uri.TryCreate(match.Groups["url"].Value, UriKind.Absolute, out var link) &&
-                         link.Scheme == Uri.UriSchemeHttps)
+                         link.Scheme is ("https" or "http" or "mailto"))
                     paragraph.Inlines.Add(new Hyperlink(new Run(match.Groups["label"].Value))
                         { NavigateUri = link });
                 else paragraph.Inlines.Add(new Run(match.Value));

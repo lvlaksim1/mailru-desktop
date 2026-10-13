@@ -12,7 +12,6 @@ public partial class MainWindow
 {
     private readonly ObservableCollection<SavedSignature> _signatures = [];
     private readonly ObservableCollection<SavedMailTemplate> _mailTemplates = [];
-    private readonly ObservableCollection<string> _templateDraftAttachments = [];
     private MarkdownTemplateStore? _templateFiles;
     private MarkdownTemplateStore TemplateFiles =>
         _templateFiles ??= new MarkdownTemplateStore(_settingsStore.LoadTemplateDirectory());
@@ -39,12 +38,10 @@ public partial class MainWindow
 
         SignaturesListBox.ItemsSource = _signatures;
         MailTemplatesListBox.ItemsSource = _mailTemplates;
-        TemplateAttachmentsListBox.ItemsSource = _templateDraftAttachments;
 
         PreviewSignatureComboBox.ItemsSource = _signatures;
         PreviewTemplateComboBox.ItemsSource = _mailTemplates;
         ComposeSignatureComboBox.ItemsSource = _signatures;
-        TemplateSignatureComboBox.ItemsSource = _signatures;
         ComposeTemplateComboBox.ItemsSource = _mailTemplates;
 
         StartTemplateWatcher();
@@ -77,7 +74,6 @@ public partial class MainWindow
             (SignaturesListBox.SelectedItem as SavedSignature)?.Name;
         var previewName = (PreviewSignatureComboBox.SelectedItem as SavedSignature)?.Name;
         var composeName = (ComposeSignatureComboBox.SelectedItem as SavedSignature)?.Name;
-        var templateName = (TemplateSignatureComboBox.SelectedItem as SavedSignature)?.Name;
         var disk = SignatureFiles.LoadAll();
         if (_signatures.Count == disk.Count &&
             _signatures.Zip(disk).All(p =>
@@ -97,9 +93,6 @@ public partial class MainWindow
             if (composeName is not null)
                 ComposeSignatureComboBox.SelectedItem = _signatures.FirstOrDefault(
                     entry => entry.Name.Equals(composeName, StringComparison.OrdinalIgnoreCase));
-            if (templateName is not null)
-                TemplateSignatureComboBox.SelectedItem = _signatures.FirstOrDefault(
-                    entry => entry.Name.Equals(templateName, StringComparison.OrdinalIgnoreCase));
         }
         finally { _refreshingSignatures = false; }
     }
@@ -299,212 +292,55 @@ public partial class MainWindow
         }
     }
 
-    private void InsertSignatureIntoTemplateButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (TemplateSignatureComboBox.SelectedItem is not SavedSignature signature)
-        {
-            AppDialog.Info(this, "Шаблоны", "Выберите подпись.");
-            return;
-        }
-        var result = SignaturePlacement.Replace(
-            TemplateBodyTextBox.Text, null, signature.Body,
-            _signatures.Select(item => item.Body));
-        TemplateBodyTextBox.Text = result;
-        TemplateBodyTextBox.CaretIndex = result.Length;
-    }
-
-    private void TemplateSignatureComboBox_DropDownOpened(object sender, EventArgs e) =>
-        RefreshSignaturesFromDisk();
-
-    private void TemplateFormatButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is not Button button || button.Tag is not string command)
-            return;
-        var editor = TemplateBodyTextBox;
-        var selected = editor.SelectedText;
-        var start = editor.SelectionStart;
-        string replacement;
-        int innerOffset;
-        switch (command)
-        {
-            case "bold":
-                replacement = "**" + (selected.Length == 0 ? "текст" : selected) + "**";
-                innerOffset = 2;
-                break;
-            case "italic":
-                replacement = "*" + (selected.Length == 0 ? "текст" : selected) + "*";
-                innerOffset = 1;
-                break;
-            case "underline":
-                replacement = "<u>" + (selected.Length == 0 ? "текст" : selected) + "</u>";
-                innerOffset = 3;
-                break;
-            case "heading":
-                replacement = "# " + (selected.Length == 0 ? "Заголовок" : selected);
-                innerOffset = 2;
-                break;
-            case "bullet":
-                replacement = "- " + (selected.Length == 0 ? "Элемент списка" : selected);
-                innerOffset = 2;
-                break;
-            case "link":
-                var prompt = new TextPromptWindow(this, "Ссылка",
-                    "Укажите адрес ссылки (HTTPS):", "https://");
-                if (prompt.ShowDialog() != true) return;
-                if (!Uri.TryCreate(prompt.Value, UriKind.Absolute, out var uri) ||
-                    uri.Scheme != Uri.UriSchemeHttps)
-                {
-                    AppDialog.Info(this, "Ссылка", "Допустима только HTTPS-ссылка.");
-                    return;
-                }
-                replacement = "[" + (selected.Length == 0 ? "текст ссылки" : selected) +
-                    "](" + uri.AbsoluteUri + ")";
-                innerOffset = 1;
-                break;
-            default:
-                return;
-        }
-        editor.SelectedText = replacement;
-        editor.Focus();
-        editor.Select(start + innerOffset,
-            selected.Length == 0 ? replacement.Length - innerOffset -
-            (command switch
-            {
-                "bold" => 2, "italic" => 1, "underline" => 4,
-                "link" => replacement.Length - innerOffset -
-                    (selected.Length == 0 ? "текст ссылки".Length : selected.Length),
-                _ => 0
-            }) : selected.Length);
-    }
-
-
-
     private void MailTemplatesListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (MailTemplatesListBox.SelectedItem is not SavedMailTemplate template)
-            return;
-
-        TemplateNameTextBox.Text = template.Name;
-        TemplateSubjectTextBox.Text = template.Subject;
-        TemplateBodyTextBox.Text = template.Body;
-
-        _templateDraftAttachments.Clear();
-        foreach (var path in template.Attachments)
-            _templateDraftAttachments.Add(path);
+        var selected = MailTemplatesListBox.SelectedItem is SavedMailTemplate;
+        EditSelectedTemplateButton.IsEnabled = selected;
+        DeleteSelectedTemplateButton.IsEnabled = selected;
     }
 
-    private void NewMailTemplateButton_Click(object sender, RoutedEventArgs e)
+    private void NewMailTemplateButton_Click(object sender, RoutedEventArgs e) =>
+        OpenTemplateEditor(null);
+
+    private void EditMailTemplateButton_Click(object sender, RoutedEventArgs e)
     {
-        MailTemplatesListBox.SelectedItem = null;
-        TemplateNameTextBox.Clear();
-        TemplateSubjectTextBox.Clear();
-        TemplateBodyTextBox.Clear();
-        _templateDraftAttachments.Clear();
-        TemplateNameTextBox.Focus();
+        if (MailTemplatesListBox.SelectedItem is SavedMailTemplate template)
+            OpenTemplateEditor(template);
     }
 
-    private void SaveMailTemplateButton_Click(object sender, RoutedEventArgs e)
+    private void MailTemplatesListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        var name = TemplateNameTextBox.Text.Trim();
-        if (name.Length == 0)
-        {
-            AppDialog.Info(this, "Шаблон", "Укажите название шаблона.");
-            return;
-        }
+        if (MailTemplatesListBox.SelectedItem is SavedMailTemplate template)
+            OpenTemplateEditor(template);
+    }
 
-        // The name in the editor determines the target file. A changed name
-        // creates a new independent template, never renames/deletes the old one.
-        // Even overwriting the currently selected file requires confirmation.
-        bool existing;
-        try
-        {
-            existing = TemplateFiles.Exists(name);
-        }
-        catch (ArgumentException ex)
-        {
-            AppDialog.Info(this, "Некорректное название шаблона", ex.Message);
-            return;
-        }
-
-        if (existing && !AppDialog.Confirm(
-                this, "Перезапись шаблона",
-                $"Шаблон с названием «{name}» уже существует и будет перезаписан. Продолжить?",
-                "Перезаписать", "Отмена"))
-            return;
-
-        var replacement = new SavedMailTemplate
-        {
-            Name = name,
-            Subject = TemplateSubjectTextBox.Text,
-            Body = TemplateBodyTextBox.Text,
-            Attachments = _templateDraftAttachments.ToList()
-        };
-
-        try
-        {
-            var saved = TemplateFiles.Save(replacement,
-                previousName: existing ? name : null);
-            RefreshTemplatesFromDisk(saved.Name);
-            MailTemplatesListBox.SelectedItem = _mailTemplates.FirstOrDefault(
-                item => string.Equals(item.Name, saved.Name, StringComparison.OrdinalIgnoreCase));
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
-        {
-            AppDialog.Info(this, "Не удалось сохранить шаблон", ex.Message);
-        }
+    private void OpenTemplateEditor(SavedMailTemplate? template)
+    {
+        RefreshSignaturesFromDisk();
+        var editor = new TemplateEditorWindow(this, TemplateFiles, SignatureFiles,
+            _settingsStore, template);
+        if (editor.ShowDialog() == true && editor.SavedName is { } savedName)
+            RefreshTemplatesFromDisk(savedName);
     }
 
     private void DeleteMailTemplateButton_Click(object sender, RoutedEventArgs e)
     {
         if (MailTemplatesListBox.SelectedItem is not SavedMailTemplate template)
             return;
-
         if (!AppDialog.Confirm(this, "Удаление шаблона",
                 $"Удалить шаблон «{template.Name}»?", "Удалить", "Отмена"))
             return;
-
         try
         {
             TemplateFiles.Delete(template.Name);
             RefreshTemplatesFromDisk();
-            TemplateNameTextBox.Clear();
-            TemplateSubjectTextBox.Clear();
-            TemplateBodyTextBox.Clear();
-            _templateDraftAttachments.Clear();
+            EditSelectedTemplateButton.IsEnabled = false;
+            DeleteSelectedTemplateButton.IsEnabled = false;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             AppDialog.Info(this, "Не удалось удалить шаблон", ex.Message);
         }
-    }
-
-    private void AddTemplateAttachmentsButton_Click(object sender, RoutedEventArgs e)
-    {
-        var dialog = new OpenFileDialog
-        {
-            Multiselect = true,
-            CheckFileExists = true,
-            Title = "Добавить вложения в шаблон"
-        };
-
-        if (dialog.ShowDialog(this) != true)
-            return;
-
-        foreach (var path in dialog.FileNames)
-        {
-            if (!_templateDraftAttachments.Contains(
-                    path,
-                    StringComparer.OrdinalIgnoreCase))
-            {
-                _templateDraftAttachments.Add(path);
-            }
-        }
-    }
-
-    private void RemoveTemplateAttachmentButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (TemplateAttachmentsListBox.SelectedItem is string path)
-            _templateDraftAttachments.Remove(path);
     }
 
     private void ImportMailTemplateButton_Click(object sender, RoutedEventArgs e)
@@ -518,30 +354,26 @@ public partial class MainWindow
         };
         if (picker.ShowDialog(this) != true)
             return;
-
         try
         {
             var path = Path.GetFullPath(picker.FileName);
             var source = new MarkdownTemplateStore(Path.GetDirectoryName(path));
-            var name = Path.GetFileNameWithoutExtension(path);
             var template = source.ReadExternalFile(path);
-
             var managed = string.Equals(
-                Path.GetDirectoryName(path),
-                TemplateFiles.DirectoryPath,
+                Path.GetDirectoryName(path), TemplateFiles.DirectoryPath,
                 StringComparison.OrdinalIgnoreCase);
-            var selected = managed
-                ? _mailTemplates.FirstOrDefault(item =>
-                    string.Equals(item.Name, name, StringComparison.OrdinalIgnoreCase))
-                : null;
-            MailTemplatesListBox.SelectedItem = selected;
-            TemplateNameTextBox.Text = managed ? template.Name : template.Name + " — копия";
-            TemplateSubjectTextBox.Text = template.Subject;
-            TemplateBodyTextBox.Text = template.Body;
-            _templateDraftAttachments.Clear();
-            foreach (var attachment in template.Attachments)
-                _templateDraftAttachments.Add(attachment);
-            TemplateNameTextBox.Focus();
+            if (!managed)
+            {
+                // Imported files are copies. The original remains untouched.
+                template = new SavedMailTemplate
+                {
+                    Name = template.Name + " — копия",
+                    Subject = template.Subject,
+                    Body = template.Body,
+                    Attachments = template.Attachments.ToList()
+                };
+            }
+            OpenTemplateEditor(template);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException
                                          or ArgumentException)
