@@ -834,7 +834,7 @@ public partial class MainWindow
                                FontWeight="SemiBold"
                                Text="{Binding SenderInitials}"/>
                     <Image Width="{DynamicResource AppAvatarSize}" Height="{DynamicResource AppAvatarSize}" Stretch="UniformToFill"
-                           local:AvatarImageBehavior.SourceUrl="{Binding AvatarUrl}"/>
+                           Source="{Binding AvatarUrl}"/>
                 </Grid>
                 </Border>
                 <TextBlock Grid.Column="1"

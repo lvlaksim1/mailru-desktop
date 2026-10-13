@@ -36,7 +36,7 @@
                                    FontWeight="SemiBold"
                                    Text="{Binding IconText}"/>
                         <Image Width="{DynamicResource AppAvatarSize}" Height="{DynamicResource AppAvatarSize}" Stretch="UniformToFill"
-                               local:AvatarImageBehavior.SourceUrl="{Binding AvatarUrl}"/>
+                               Source="{Binding AvatarUrl}"/>
                     </Grid>
                 </Border>
                 <TextBlock Grid.Column="1"
@@ -328,14 +328,14 @@
         <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" Background="Transparent"/>
 
         <Grid Grid.Column="2" Margin="14">
-            <Grid x:Name="MailWorkspace" ClipToBounds="True" Loaded="PreviewEnhancements_Loaded">
+            <Grid x:Name="MailWorkspace" Loaded="PreviewEnhancements_Loaded">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition x:Name="MailListPaneColumn" Width="455"/>
                     <ColumnDefinition Width="6"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Grid Grid.Column="0" ClipToBounds="True">
+                <Grid Grid.Column="0" ClipToBounds="True" MinWidth="0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -419,7 +419,6 @@
                              Grid.Row="2" SelectionMode="Multiple"
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                              ScrollViewer.CanContentScroll="True"
-                             ClipToBounds="True"
                              PreviewKeyDown="MessagesGrid_PreviewKeyDown"
                              BorderThickness="0"
                              Background="Transparent"
@@ -437,7 +436,9 @@
                     </StackPanel>
                 </Grid>
 
-                <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch" Background="Transparent"/>
+                <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch"
+                              ResizeDirection="Columns" ResizeBehavior="PreviousAndNext"
+                              ShowsPreview="False" Background="Transparent"/>
 
                 <Border Grid.Column="2"
                         Background="{DynamicResource AppPanelBrush}"

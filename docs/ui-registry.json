@@ -7669,8 +7669,8 @@
       "color_roles_and_values": {
         "Background": "Brushes.Transparent"
       },
-      "id": "MainWindow/runtime/src/MailRuDesktop.App/MainWindow.V033.cs:154:TextBox",
-      "line": 154,
+      "id": "MainWindow/runtime/src/MailRuDesktop.App/MainWindow.V033.cs:158:TextBox",
+      "line": 158,
       "location": {
         "Margin": "SelectedSubjectText.Margin",
         "Padding": "new Thickness(0)"
@@ -7688,8 +7688,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/runtime/src/MailRuDesktop.App/MainWindow.V033.cs:191:WrapPanel",
-      "line": 191,
+      "id": "MainWindow/runtime/src/MailRuDesktop.App/MainWindow.V033.cs:195:WrapPanel",
+      "line": 195,
       "location": {
         "Margin": "new Thickness(0",
         "Orientation": "Orientation.Horizontal",
@@ -7706,8 +7706,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/runtime/src/MailRuDesktop.App/MainWindow.V033.cs:224:TextBlock",
-      "line": 224,
+      "id": "MainWindow/runtime/src/MailRuDesktop.App/MainWindow.V033.cs:228:TextBlock",
+      "line": 228,
       "location": {
         "Padding": "new Thickness(6",
         "VerticalAlignment": "VerticalAlignment.Center",
@@ -13557,7 +13557,8 @@
       "color_roles_and_values": {},
       "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/MailWorkspace/Grid[1]",
       "location": {
-        "Grid.Column": "0"
+        "Grid.Column": "0",
+        "MinWidth": "0"
       },
       "name": null,
       "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Grid[3]/MailWorkspace",
@@ -19716,8 +19717,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:104:Thumb",
-      "line": 104,
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:108:Thumb",
+      "line": 108,
       "location": {
         "Height": "8",
         "HorizontalAlignment": "HorizontalAlignment.Stretch",
@@ -19734,8 +19735,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:165:Paragraph",
-      "line": 165,
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:169:Paragraph",
+      "line": 169,
       "location": {
         "Margin": "new Thickness(0)"
       },
@@ -19750,8 +19751,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:175:Paragraph",
-      "line": 175,
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:179:Paragraph",
+      "line": 179,
       "location": {
         "Margin": "new Thickness(0)"
       },
@@ -19766,8 +19767,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:178:Paragraph",
-      "line": 178,
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:182:Paragraph",
+      "line": 182,
       "location": {
         "Margin": "new Thickness(0)"
       },
@@ -19782,8 +19783,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:178:Run",
-      "line": 178,
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:182:Run",
+      "line": 182,
       "location": {
         "Margin": "new Thickness(0)"
       },
@@ -19798,8 +19799,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:202:FlowDocument",
-      "line": 202,
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:206:FlowDocument",
+      "line": 206,
       "location": {},
       "name": null,
       "parent": "RichComposeEditor/runtime",
@@ -19812,8 +19813,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:231:Paragraph",
-      "line": 231,
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:235:Paragraph",
+      "line": 235,
       "location": {
         "Margin": "new Thickness(0)"
       },
@@ -19828,8 +19829,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:277:FlowDocument",
-      "line": 277,
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:281:FlowDocument",
+      "line": 281,
       "location": {
         "Margin": "new Thickness(0)"
       },
@@ -19844,8 +19845,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:279:Paragraph",
-      "line": 279,
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:283:Paragraph",
+      "line": 283,
       "location": {
         "Margin": "new Thickness(0)"
       },
@@ -19860,8 +19861,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:320:Paragraph",
-      "line": 320,
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:324:Paragraph",
+      "line": 324,
       "location": {
         "Margin": "new Thickness(0)"
       },
@@ -19876,8 +19877,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:391:Hyperlink",
-      "line": 391,
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:395:Hyperlink",
+      "line": 395,
       "location": {},
       "name": null,
       "parent": "RichComposeEditor/runtime",
@@ -19890,8 +19891,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:411:Button",
-      "line": 411,
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:438:Button",
+      "line": 438,
       "location": {
         "Height": "27",
         "Margin": "new Thickness(0",
@@ -19911,8 +19912,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:440:Paragraph",
-      "line": 440,
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:467:Paragraph",
+      "line": 467,
       "location": {
         "Margin": "new Thickness(0)"
       },
@@ -19927,8 +19928,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:440:Run",
-      "line": 440,
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:467:Run",
+      "line": 467,
       "location": {
         "Margin": "new Thickness(0)"
       },
@@ -20026,8 +20027,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:84:Border",
-      "line": 84,
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:88:Border",
+      "line": 88,
       "location": {},
       "name": null,
       "parent": "RichComposeEditor/runtime",
