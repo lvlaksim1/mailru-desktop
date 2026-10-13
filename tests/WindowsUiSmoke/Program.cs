@@ -138,6 +138,8 @@ internal static class Program
             previewTestGrid.Children.Add(previewTestPlain);
             var previewTestWindow = new Window { Content = previewTestGrid };
             var previewTestRich = RichComposeEditor.Attach(previewTestPlain, previewTestWindow);
+            previewTestWindow.Show();
+            previewTestWindow.UpdateLayout();
             var checkEditor = FindDescendant<RichTextBox>(previewTestWindow, _ => true);
             Check(checkEditor is not null, "rich editor surface exists for spell checking");
             Check(VisualTreeHelper.GetParent(checkEditor!) is Border
@@ -183,7 +185,7 @@ internal static class Program
             Check(!structuredReply.Contains("**Подпись**", StringComparison.Ordinal) &&
                   structuredReply.Split("Другая подпись", StringSplitOptions.None).Length == 2,
                 "changing an embedded template signature does not duplicate it");
-            previewTestWindow.Content = null;
+            previewTestWindow.Close();
 
             mail = new MainWindow();
             mail.Show();
