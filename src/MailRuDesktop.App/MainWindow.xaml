@@ -1098,83 +1098,36 @@
                             </Grid>
                         </Expander>
 
-                        <Expander x:Name="TemplatesSettingsExpander" Margin="0,16,0,0" Header="Шаблоны" IsExpanded="False">
+                        <Expander x:Name="TemplatesSettingsExpander" Margin="0,16,0,0"
+                                  Header="Шаблоны" IsExpanded="False">
                             <Grid Margin="12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="220"/>
-                                    <ColumnDefinition Width="16"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <ListBox x:Name="MailTemplatesListBox"
-                                         MinHeight="230"
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0" TextWrapping="Wrap" Margin="0,0,0,8"
+                                           Text="Выберите шаблон или создайте новый. Редактирование открывается в отдельном окне."/>
+                                <ListBox x:Name="MailTemplatesListBox" Grid.Row="1"
+                                         MinHeight="130" MaxHeight="280"
                                          DisplayMemberPath="Name"
-                                         SelectionChanged="MailTemplatesListBox_SelectionChanged"/>
-                                <Grid Grid.Column="2">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="175"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="90"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
-                                    <TextBox x:Name="TemplateNameTextBox" Padding="7" ToolTip="Название шаблона"/>
-                                    <TextBox x:Name="TemplateSubjectTextBox" Grid.Row="1" Margin="0,7,0,7" Padding="7" ToolTip="Тема письма"/>
-                                    <Grid Grid.Row="2">
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto"/>
-                                            <RowDefinition Height="*"/>
-                                        </Grid.RowDefinitions>
-                                        <WrapPanel Margin="0,0,0,5">
-                                            <Button Padding="8,4" Margin="0,0,4,0"
-                                                    Click="TemplateFormatButton_Click"
-                                                    Tag="bold" ToolTip="Полужирный" Content="Ж"/>
-                                            <Button Padding="8,4" Margin="0,0,4,0"
-                                                    Click="TemplateFormatButton_Click"
-                                                    Tag="italic" ToolTip="Курсив" Content="К"/>
-                                            <Button Padding="8,4" Margin="0,0,4,0"
-                                                    Click="TemplateFormatButton_Click"
-                                                    Tag="underline" ToolTip="Подчёркивание" Content="Ч"/>
-                                            <Button Padding="8,4" Margin="0,0,4,0"
-                                                    Click="TemplateFormatButton_Click"
-                                                    Tag="heading" ToolTip="Заголовок" Content="H"/>
-                                            <Button Padding="8,4" Margin="0,0,4,0"
-                                                    Click="TemplateFormatButton_Click"
-                                                    Tag="bullet" ToolTip="Список" Content="•"/>
-                                            <Button Padding="8,4"
-                                                    Click="TemplateFormatButton_Click"
-                                                    Tag="link" ToolTip="Ссылка" Content="Ссылка"/>
-                                        </WrapPanel>
-                                        <TextBox x:Name="TemplateBodyTextBox" Grid.Row="1"
-                                                 Padding="7" AcceptsReturn="True"
-                                                 TextWrapping="Wrap"
-                                                 VerticalScrollBarVisibility="Auto"
-                                                 ToolTip="Текст Markdown: форматирование сохраняется в файле .md"/>
-                                    </Grid>
-                                    <WrapPanel Grid.Row="3" Margin="0,7,0,4">
-                                        <TextBlock Text="Подпись:" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                        <ComboBox x:Name="TemplateSignatureComboBox" Width="205"
-                                                  Margin="0,0,6,0" DisplayMemberPath="Name"
-                                                  DropDownOpened="TemplateSignatureComboBox_DropDownOpened"/>
-                                        <Button Padding="10,5" Click="InsertSignatureIntoTemplateButton_Click"
-                                                Content="Вставить подпись"/>
-                                    </WrapPanel>
-                                    <WrapPanel Grid.Row="4" Margin="0,7,0,4">
-                                        <Button Padding="10,5" Margin="0,0,6,0" Click="AddTemplateAttachmentsButton_Click" Content="Добавить вложения"/>
-                                        <Button Padding="10,5" Click="RemoveTemplateAttachmentButton_Click" Content="Убрать выбранное"/>
-                                    </WrapPanel>
-                                    <ListBox x:Name="TemplateAttachmentsListBox"
-                                             Grid.Row="5"
-                                             MinHeight="70"/>
-                                    <WrapPanel Grid.Row="6" Margin="0,7,0,0">
-                                        <Button Padding="10,6" Margin="0,0,6,0" Click="ImportMailTemplateButton_Click" Content="Загрузить .md"/>
-                                        <Button Padding="10,6" Margin="0,0,6,0" Click="NewMailTemplateButton_Click" Content="Новый"/>
-                                        <Button Padding="10,6" Margin="0,0,6,0" Click="SaveMailTemplateButton_Click" Content="Сохранить"/>
-                                        <Button Padding="10,6" Margin="0,0,6,0" Click="DeleteMailTemplateButton_Click" Foreground="{DynamicResource AppDangerBrush}" Content="Удалить"/>
-                                        <Button Padding="10,6" Click="OpenTemplatesFolderButton_Click" Content="Открыть папку шаблонов"/>
-                                    </WrapPanel>
-                                </Grid>
+                                         SelectionChanged="MailTemplatesListBox_SelectionChanged"
+                                         MouseDoubleClick="MailTemplatesListBox_MouseDoubleClick"/>
+                                <WrapPanel Grid.Row="2" Margin="0,9,0,0">
+                                    <Button Padding="10,6" Margin="0,0,6,6"
+                                            Click="NewMailTemplateButton_Click" Content="Создать"/>
+                                    <Button x:Name="EditSelectedTemplateButton" Padding="10,6"
+                                            Margin="0,0,6,6" IsEnabled="False"
+                                            Click="EditMailTemplateButton_Click" Content="Редактировать"/>
+                                    <Button x:Name="DeleteSelectedTemplateButton" Padding="10,6"
+                                            Margin="0,0,6,6" IsEnabled="False"
+                                            Click="DeleteMailTemplateButton_Click"
+                                            Foreground="{DynamicResource AppDangerBrush}" Content="Удалить"/>
+                                    <Button Padding="10,6" Margin="0,0,6,6"
+                                            Click="ImportMailTemplateButton_Click" Content="Загрузить .md"/>
+                                    <Button Padding="10,6" Margin="0,0,6,6"
+                                            Click="OpenTemplatesFolderButton_Click" Content="Открыть папку"/>
+                                </WrapPanel>
                             </Grid>
                         </Expander>
 
