@@ -122,19 +122,14 @@ internal static class ThemePalette
         if (!TryNormalize(primary, out var baseHex))
             throw new ArgumentException("Основной цвет должен иметь вид #RRGGBB.", nameof(primary));
 
-        // Exactly eight shared tones; the end points are tinted rather than
-        // neutral so changing the primary hue affects backgrounds and text.
-        var tones = new[]
-        {
-            Blend(baseHex, "#FFFFFF", .985),
-            Blend(baseHex, "#FFFFFF", .90),
-            Blend(baseHex, "#FFFFFF", .76),
-            Blend(baseHex, "#FFFFFF", .58),
-            Blend(baseHex, "#FFFFFF", .28),
-            Blend(baseHex, "#070A10", .10),
-            Blend(baseHex, "#070A10", .66),
-            Blend(baseHex, "#070A10", .86)
-        };
+        // Eight fixed-lightness tones, tinted with the selected hue/saturation.
+        // Normalized lightness preserves readability even for pure white,
+        // black, saturated yellow, red or blue as the input primary color.
+        var (hue, saturation) = HueAndSaturation(baseHex);
+        var lightness = new[] { .98, .93, .80, .69, .51, .27, .16, .07 };
+        var strength = new[] { .4, .7, 1.0, 1.0, 1.0, 1.0, 1.0, .9 };
+        var tones = lightness.Select((level, i) =>
+            FromHsl(hue, saturation * strength[i], level)).ToArray();
         var index = dark
             ? new Dictionary<string, int>(StringComparer.Ordinal)
             {
@@ -142,13 +137,13 @@ internal static class ThemePalette
                 ["AppDialogBrush"] = 6, ["AppReaderBrush"] = 7,
                 ["AppInputBrush"] = 6, ["AppControlBrush"] = 6,
                 ["AppControlHoverBrush"] = 5, ["AppControlPressedBrush"] = 4,
-                ["AppBorderBrush"] = 5, ["AppFocusBrush"] = 4,
+                ["AppBorderBrush"] = 5, ["AppFocusBrush"] = 3,
                 ["AppTextBrush"] = 0, ["AppMutedTextBrush"] = 2,
                 ["AppDisabledTextBrush"] = 1, ["AppAccentTextBrush"] = 7,
-                ["AppLinkBrush"] = 3, ["AppAccentBrush"] = 4,
+                ["AppLinkBrush"] = 3, ["AppAccentBrush"] = 3,
                 ["AppSelectionBrush"] = 5, ["AppSelectionTextBrush"] = 0,
                 ["AppScrollTrackBrush"] = 7, ["AppScrollThumbBrush"] = 4,
-                ["AppScrollArrowBrush"] = 3, ["AppUnreadTextBrush"] = 4
+                ["AppScrollArrowBrush"] = 3, ["AppUnreadTextBrush"] = 3
             }
             : new Dictionary<string, int>(StringComparer.Ordinal)
             {
@@ -177,18 +172,43 @@ internal static class ThemePalette
         return colors;
     }
 
-    private static string Blend(string first, string second, double otherWeight)
+    private static (double Hue, double Saturation) HueAndSaturation(string color)
     {
-        var channels = new int[3];
-        for (var channel = 0; channel < 3; channel++)
+        double r = Convert.ToInt32(color.Substring(1, 2), 16) / 255.0;
+        double g = Convert.ToInt32(color.Substring(3, 2), 16) / 255.0;
+        double b = Convert.ToInt32(color.Substring(5, 2), 16) / 255.0;
+        var maximum = Math.Max(r, Math.Max(g, b));
+        var minimum = Math.Min(r, Math.Min(g, b));
+        var delta = maximum - minimum;
+        if (delta < .00001) return (0, 0);
+        var lightness = (maximum + minimum) / 2;
+        var saturation = delta / (1 - Math.Abs(2 * lightness - 1));
+        double hue;
+        if (maximum == r) hue = 60 * (((g - b) / delta + 6) % 6);
+        else if (maximum == g) hue = 60 * ((b - r) / delta + 2);
+        else hue = 60 * ((r - g) / delta + 4);
+        return (hue, Math.Min(.60, saturation));
+    }
+
+    private static string FromHsl(double hue, double saturation, double lightness)
+    {
+        var chroma = (1 - Math.Abs(2 * lightness - 1)) * saturation;
+        var segment = hue / 60;
+        var alternate = chroma * (1 - Math.Abs(segment % 2 - 1));
+        var (r, g, b) = segment switch
         {
-            var offset = 1 + channel * 2;
-            var start = Convert.ToInt32(first.Substring(offset, 2), 16);
-            var target = Convert.ToInt32(second.Substring(offset, 2), 16);
-            channels[channel] = (int)Math.Round(
-                start * (1 - otherWeight) + target * otherWeight);
-        }
-        return $"#{channels[0]:X2}{channels[1]:X2}{channels[2]:X2}";
+            < 1 => (chroma, alternate, 0.0),
+            < 2 => (alternate, chroma, 0.0),
+            < 3 => (0.0, chroma, alternate),
+            < 4 => (0.0, alternate, chroma),
+            < 5 => (alternate, 0.0, chroma),
+            _ => (chroma, 0.0, alternate)
+        };
+        var shift = lightness - chroma / 2;
+        var rr = (int)Math.Round((r + shift) * 255);
+        var gg = (int)Math.Round((g + shift) * 255);
+        var bb = (int)Math.Round((b + shift) * 255);
+        return $"#{rr:X2}{gg:X2}{bb:X2}";
     }
 
     public static double Contrast(string first, string second)
