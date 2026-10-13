@@ -39,6 +39,7 @@ internal sealed class TemplateEditorWindow : Window
         _signatureStore = signatureStore;
         _settings = settings;
         _initialName = template?.Name ?? "";
+        _initialTemplate = template;
         Title = template is null ? "Новый шаблон — MailRu Desktop" :
             "Редактор шаблона — MailRu Desktop";
         Icon = owner.Icon;
@@ -151,7 +152,11 @@ internal sealed class TemplateEditorWindow : Window
 
         _name.TextChanged += (_, _) => MarkDirty();
         _subject.TextChanged += (_, _) => MarkDirty();
-        _plainBody.TextChanged += (_, _) => MarkDirty();
+        _plainBody.TextChanged += (_, _) =>
+        {
+            if (!_initializing) _bodyChanged = true;
+            MarkDirty();
+        };
         _attachments.CollectionChanged += (_, _) => MarkDirty();
         _initializing = false;
 
@@ -247,7 +252,8 @@ internal sealed class TemplateEditorWindow : Window
             var output = new SavedMailTemplate
             {
                 Name = name, Subject = _subject.Text,
-                Body = _dirty ? _editor.ToMarkdown() : "",
+                Body = _bodyChanged ? _editor.ToMarkdown() :
+                    _initialTemplate?.Body ?? _editor.ToMarkdown(),
                 Attachments = _attachments.ToList()
             };
             // When a template is opened and saved without text edits, avoid
