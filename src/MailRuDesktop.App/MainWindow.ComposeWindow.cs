@@ -48,6 +48,10 @@ public partial class MainWindow
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             Content = ComposeWorkspace
         };
+        WindowGeometryPersistence.Restore(window, _settingsStore, "compose");
+        window.Closing += (_, _) =>
+            WindowGeometryPersistence.Save(window, _settingsStore,
+                _composeReplyToId is null ? "compose" : "reply");
         ThemeManager.AttachWindowChrome(window);
         window.SetResourceReference(BackgroundProperty, "AppWindowBrush");
         window.SetResourceReference(ForegroundProperty, "AppTextBrush");
@@ -98,7 +102,10 @@ public partial class MainWindow
         ShowComposeWindow();
         _composeReplyToId = source.Id;
         if (_composeWindow is { } replyWindow)
+        {
             replyWindow.Title = "Ответ: " + (full?.Subject ?? source.Subject);
+            WindowGeometryPersistence.Restore(replyWindow, _settingsStore, "reply");
+        }
         _attachmentPaths.Clear();
         RefreshComposeAttachments();
         ResetComposeTemplateSelectors();
