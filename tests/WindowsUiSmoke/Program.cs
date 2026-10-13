@@ -140,8 +140,13 @@ internal static class Program
             var previewTestRich = RichComposeEditor.Attach(previewTestPlain, previewTestWindow);
             var checkEditor = previewTestRich.TextControl;
             Check(checkEditor is not null, "rich editor surface exists for spell checking");
-            Check(checkEditor!.Language.IetfLanguageTag == "ru-RU",
-                "Russian compose content uses ru-RU rather than the en-US fallback");
+            Check(string.Equals(checkEditor!.Language.IetfLanguageTag, "ru-RU",
+                      StringComparison.OrdinalIgnoreCase) &&
+                  string.Equals(checkEditor.Document.Language.IetfLanguageTag, "ru-RU",
+                      StringComparison.OrdinalIgnoreCase),
+                "Russian compose host and document use ru-RU, not en-US; host=" +
+                checkEditor.Language.IetfLanguageTag + ", document=" +
+                checkEditor.Document.Language.IetfLanguageTag);
             Check(AvatarImageBehavior.IsSupportedAvatarUrl(
                       "https://filin.mail.ru/pic?email=recipient%40example.org"),
                 "existing public Filin image route remains supported");
