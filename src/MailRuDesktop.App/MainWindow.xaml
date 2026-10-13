@@ -1055,7 +1055,7 @@
 
                             </StackPanel>
                         </GroupBox>
-                        <Expander Margin="0,16,0,0" Header="Подписи" IsExpanded="False">
+                        <Expander x:Name="SignaturesSettingsExpander" Margin="0,16,0,0" Header="Подписи" IsExpanded="False">
                             <Grid Margin="12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="220"/>
@@ -1098,7 +1098,7 @@
                             </Grid>
                         </Expander>
 
-                        <Expander Margin="0,16,0,0" Header="Шаблоны" IsExpanded="False">
+                        <Expander x:Name="TemplatesSettingsExpander" Margin="0,16,0,0" Header="Шаблоны" IsExpanded="False">
                             <Grid Margin="12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="220"/>
