@@ -1,0 +1,27 @@
+name: Synchronize generated UI registry after compose changes
+on:
+  push:
+    branches: [refactor/stage1-settings-composer-markdown-20261013]
+    paths: [.github/workflows/regen-ui-verified-stage1.yml]
+permissions:
+  contents: write
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refactor/stage1-settings-composer-markdown-20261013
+      - name: Refresh UI register
+        run: |
+          python tools/ui_registry.py --write
+          python tools/ui_registry.py --check
+      - name: Save generated register in feature branch
+        run: |
+          git config user.name mailru-ui-registry
+          git config user.email actions@users.noreply.github.com
+          git add docs/ui-registry.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "ui: sync registry after compose geometry changes"
+          git pull --rebase origin refactor/stage1-settings-composer-markdown-20261013
+          git push origin HEAD:refactor/stage1-settings-composer-markdown-20261013
