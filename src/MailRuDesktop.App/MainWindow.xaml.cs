@@ -37,6 +37,8 @@ public partial class MainWindow : Window
     private MailRuFullMessage? _currentFullMessage;
     private string? _currentPreparedHtml;
     private bool _serverSearchMode;
+    private long _serverSearchGeneration;
+    private CancellationTokenSource? _serverSearchCancellation;
     private readonly List<AccountRailItem> _accountRailItems = [];
     private bool _updatingAccountRail;
     private long _accountSwitchGeneration;
@@ -323,6 +325,7 @@ public partial class MainWindow : Window
             return;
         }
 
+        CancelServerSearch();
         if (RestoreSavedAuthorization(login))
             await LoadFolderAsync(0);
     }
@@ -341,6 +344,9 @@ public partial class MainWindow : Window
             return;
         }
 
+        // Cancel immediately, before the account-switch debounce and gate:
+        // a delayed result from the previous mailbox must never be displayed.
+        CancelServerSearch();
         var requestedLogin = item.Login;
         var generation = Interlocked.Increment(ref _accountSwitchGeneration);
         item.Status = "Переключение...";
@@ -597,6 +603,9 @@ public partial class MainWindow : Window
 
         if (_loadingFolder)
             return;
+
+        CancelServerSearch();
+        _serverSearchMode = false;
 
         if (folderId != _currentFolderId || accountSwitchGeneration is not null)
         {
@@ -1127,6 +1136,15 @@ public partial class MainWindow : Window
             UpdateSelectedMessageHeader(updated);
     }
 
+    private void CancelServerSearch()
+    {
+        Interlocked.Increment(ref _serverSearchGeneration);
+        var previous = _serverSearchCancellation;
+        _serverSearchCancellation = null;
+        previous?.Cancel();
+        ServerSearchButton.IsEnabled = true;
+    }
+
     private async void ServerSearchButton_Click(object sender, RoutedEventArgs e)
     {
         if (string.IsNullOrWhiteSpace(_accessToken) || string.IsNullOrWhiteSpace(_activeLogin))
@@ -1147,36 +1165,88 @@ public partial class MainWindow : Window
             return;
         }
 
+        // Keep the credentials and mailbox identity frozen for this search.
+        // Any folder/account switch invalidates this particular search.
+        CancelServerSearch();
+        var searchGeneration = Volatile.Read(ref _serverSearchGeneration);
+        var accountGeneration = Volatile.Read(ref _accountSwitchGeneration);
+        var login = _activeLogin!;
+        var accessToken = _accessToken!;
+        var folderId = _currentFolderId;
+        var cancellation = new CancellationTokenSource();
+        _serverSearchCancellation = cancellation;
+        bool IsCurrent() =>
+            !cancellation.IsCancellationRequested &&
+            ReferenceEquals(_serverSearchCancellation, cancellation) &&
+            searchGeneration == Volatile.Read(ref _serverSearchGeneration) &&
+            accountGeneration == Volatile.Read(ref _accountSwitchGeneration) &&
+            string.Equals(_activeLogin, login, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(_accessToken, accessToken, StringComparison.Ordinal) &&
+            _currentFolderId == folderId;
+
         ServerSearchButton.IsEnabled = false;
+        _serverSearchMode = true;
+        _currentMessages = [];
+        ApplyFilters();
+        ClearSelectedMessage();
         FilterStatusText.Text = "Поиск на сервере...";
 
+        var pages = new MailServerSearchPages();
         try
         {
-            var result = await _mailRu.SearchMessagesAsync(
-                _accessToken,
-                _activeLogin,
-                query,
-                limit: 200,
-                preferNewSearch: false);
+            while (IsCurrent())
+            {
+                var result = await _mailRu.SearchMessagesAsync(
+                    accessToken,
+                    login,
+                    query,
+                    offset: pages.NextOffset,
+                    limit: MailServerSearchPages.PageSize,
+                    preferNewSearch: false,
+                    cancellationToken: cancellation.Token);
 
-            _currentMessages = result.Messages.ToList();
-            _serverSearchMode = true;
-            ApplyFilters();
-            ResponseTextBox.Text = result.RawResponse;
-            FilterStatusText.Text =
-                $"Серверный поиск: найдено {result.Found}, показано {_currentMessages.Count} · {result.Source}";
+                if (!IsCurrent())
+                    return;
 
-            if (_currentMessages.Count == 0)
+                pages.AddPage(result);
+                _currentMessages = pages.Messages.ToList();
+                ApplyFilters();
+                ResponseTextBox.Text = result.RawResponse;
+                FilterStatusText.Text = pages.GetProgressText();
+
+                if (!pages.HasMore)
+                    break;
+
+                // Deliberate pause between successive server requests. Keeps
+                // the UI responsive and avoids a burst of HTTP requests.
+                await Task.Delay(TimeSpan.FromSeconds(5), cancellation.Token);
+            }
+
+            if (IsCurrent() && _currentMessages.Count == 0)
                 ClearSelectedMessage();
+        }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+        {
+            // Expected when a query, folder or account supersedes this search.
         }
         catch (Exception ex)
         {
-            FilterStatusText.Text = "Ошибка серверного поиска.";
-            DiagnosticLog.Write("server_search", ex.GetType().Name + ": " + ex.Message);
+            if (IsCurrent())
+            {
+                FilterStatusText.Text = pages.PagesFetched == 0
+                    ? "Ошибка серверного поиска."
+                    : pages.GetProgressText() + " · загрузка прервана";
+                DiagnosticLog.Write("server_search", ex.GetType().Name);
+            }
         }
         finally
         {
-            ServerSearchButton.IsEnabled = true;
+            if (ReferenceEquals(_serverSearchCancellation, cancellation))
+            {
+                _serverSearchCancellation = null;
+                ServerSearchButton.IsEnabled = true;
+            }
+            cancellation.Dispose();
         }
     }
 
@@ -1190,6 +1260,8 @@ public partial class MainWindow : Window
 
     private async void ResetFilterButton_Click(object sender, RoutedEventArgs e)
     {
+        var wasServerSearch = _serverSearchMode || _serverSearchCancellation is not null;
+        CancelServerSearch();
         FilterSenderTextBox.Clear();
         FilterSubjectTextBox.Clear();
         FilterQueryTextBox.Clear();
@@ -1197,7 +1269,7 @@ public partial class MainWindow : Window
         FilterFromDatePicker.SelectedDate = null;
         FilterToDatePicker.SelectedDate = null;
 
-        if (_serverSearchMode)
+        if (wasServerSearch)
         {
             await LoadFolderAsync(_currentFolderId);
             return;
@@ -1208,6 +1280,15 @@ public partial class MainWindow : Window
 
     private void ApplyFilters()
     {
+        // A server search also matches message bodies that are not present
+        // in Subject/Snippet. Do not apply the local text filter again.
+        // Clearing or editing the query keeps all fetched server results.
+        if (_serverSearchMode)
+        {
+            DisplayFilteredMessages(_currentMessages);
+            return;
+        }
+
         IEnumerable<MailRuMessageSummary> filtered = _currentMessages;
 
         var sender = FilterSenderTextBox.Text.Trim();
@@ -1255,6 +1336,15 @@ public partial class MainWindow : Window
         }
 
         var list = filtered.ToList();
+        DisplayFilteredMessages(list);
+        FilterStatusText.Text = list.Count == _currentMessages.Count
+            ? string.Empty
+            : $"Показано по фильтру: {list.Count} из {_currentMessages.Count}";
+    }
+
+    private void DisplayFilteredMessages(IEnumerable<MailRuMessageSummary> messages)
+    {
+        var list = messages.ToList();
         var selectedId = _activePreviewMailId;
 
         _suppressMessageSelectionChanged = true;
@@ -1274,10 +1364,6 @@ public partial class MainWindow : Window
         if (!string.IsNullOrWhiteSpace(selectedId) &&
             !_currentMessages.Any(item => item.Id == selectedId))
             ClearSelectedMessage();
-
-        FilterStatusText.Text = list.Count == _currentMessages.Count
-            ? string.Empty
-            : $"Показано по фильтру: {list.Count} из {_currentMessages.Count}";
     }
 
     private async void LoadContactsButton_Click(object sender, RoutedEventArgs e)
