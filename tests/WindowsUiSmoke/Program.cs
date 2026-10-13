@@ -254,6 +254,15 @@ internal static class Program
             // not the obsolete XAML card, must expose a real pin control.
             var modernList = Require<ListBox>(mail, "MessagesGrid");
             var mailWorkspace = Require<Grid>(mail, "MailWorkspace");
+            // ConfigureResizableMailColumns is invoked from OnContentRendered,
+            // which may not have fired yet in this synchronous smoke test.
+            // Invoke the same idempotent initialization explicitly.
+            var initializeCentralColumns = typeof(MainWindow).GetMethod(
+                "ConfigureResizableMailColumns",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            Check(initializeCentralColumns is not null,
+                "central splitter initialization remains callable");
+            initializeCentralColumns!.Invoke(mail, null);
             // Experimental control: restore the exact pre-regression v0.3.60
             // column limits and list scrolling; leave mail/compose fixes intact.
             Check(!mailWorkspace.ClipToBounds &&
