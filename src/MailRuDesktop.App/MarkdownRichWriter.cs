@@ -46,6 +46,8 @@ internal static class MarkdownRichWriter
             foreach (Inline inline in paragraph.Inlines)
                 WriteInline(inline, text, false, false);
             var line = text.ToString();
+            if (line.StartsWith("• ", StringComparison.Ordinal))
+                line = "- " + line[2..];
             if (paragraph.FontSize >= 18 && paragraph.FontWeight == FontWeights.Bold)
                 line = "# " + line;
             if (prefix is not null)
