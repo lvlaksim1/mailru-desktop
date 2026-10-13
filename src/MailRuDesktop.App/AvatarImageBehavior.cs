@@ -56,6 +56,8 @@ public static class AvatarImageBehavior
             var photo = await Cache.GetOrAdd(url!, ReadImageAsync);
             // Item containers are reused on scroll. A late download must
             // never display the previous sender's photo on a new account.
+            if (photo is null)
+                Cache.TryRemove(url!, out _); // allow retry after a transient failure
             if (string.Equals(GetSourceUrl(image), url, StringComparison.Ordinal))
                 image.Source = photo;
         }
@@ -68,11 +70,37 @@ public static class AvatarImageBehavior
 
     private static async Task<ImageSource?> ReadImageAsync(string url)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.UserAgent.ParseAdd(MailRuFixedProfile.UserAgent);
-        request.Headers.Accept.ParseAdd("image/avif,image/webp,image/png,image/jpeg,image/*");
-        using var response = await Images.SendAsync(request,
-            HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+        var current = new Uri(url);
+        HttpResponseMessage? response = null;
+        try
+        {
+            for (var hop = 0; hop < 4; hop++)
+            {
+                if (current.Scheme != Uri.UriSchemeHttps ||
+                    !(current.Host.Equals("filin.mail.ru", StringComparison.OrdinalIgnoreCase) ||
+                      current.Host.EndsWith(".mail.ru", StringComparison.OrdinalIgnoreCase) ||
+                      current.Host.EndsWith(".imgsmail.ru", StringComparison.OrdinalIgnoreCase)))
+                {
+                    DiagnosticLog.Write("avatar_image", "redirect-disallowed-host");
+                    return null;
+                }
+                using var request = new HttpRequestMessage(HttpMethod.Get, current);
+                request.Headers.UserAgent.ParseAdd(MailRuFixedProfile.UserAgent);
+                request.Headers.Accept.ParseAdd("image/png,image/jpeg,image/webp,image/*");
+                response?.Dispose();
+                response = await Images.SendAsync(request,
+                    HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+                if ((int)response.StatusCode is not (301 or 302 or 303 or 307 or 308))
+                    break;
+                var location = response.Headers.Location;
+                if (location is null) return null;
+                current = location.IsAbsoluteUri ? location : new Uri(current, location);
+            }
+            if (response is null || (int)response.StatusCode is 301 or 302 or 303 or 307 or 308)
+            {
+                DiagnosticLog.Write("avatar_image", "redirect-limit");
+                return null;
+            }
         if (!response.IsSuccessStatusCode)
         {
             DiagnosticLog.Write("avatar_image", "http=" + (int)response.StatusCode);
@@ -98,5 +126,7 @@ public static class AvatarImageBehavior
         bitmap.EndInit();
         bitmap.Freeze();
         return bitmap;
+        }
+        finally { response?.Dispose(); }
     }
 }
