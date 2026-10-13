@@ -1383,7 +1383,7 @@ attachments:
     File.WriteAllText(importPath, original);
     var imported = new MarkdownTemplateStore(importRoot).ReadExternalFile(importPath);
     Expect(imported.Name, "External", "single external Markdown file name");
-    Expect(imported.Subject, "Тема", "external Markdown metadata is loaded");
+    Expect(imported.Subject, "", "legacy external subject is ignored");
     Expect(File.ReadAllText(importPath), original,
         "loading a template for editing never rewrites its source file");
 }
