@@ -1014,39 +1014,6 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
-    private async void MessagePinButton_Click(object sender, RoutedEventArgs e)
-    {
-        if ((sender as Button)?.Tag is not MailRuMessageSummary message ||
-            string.IsNullOrWhiteSpace(_accessToken))
-            return;
-
-        try
-        {
-            var result = await _mailRu.SetPinnedAsync(
-                _accessToken,
-                _activeLogin ?? string.Empty,
-                message.Id,
-                message.FolderId ?? _currentFolderId,
-                !message.Pinned);
-
-            ResponseTextBox.Text = result.RawResponse;
-            if (!result.Success)
-            {
-                FolderStatusText.Text = "Mail.ru отклонил изменение закрепления.";
-                return;
-            }
-
-            ReplaceMessage(message, message with { Pinned = !message.Pinned });
-        }
-        catch (Exception ex)
-        {
-            FolderStatusText.Text = "Ошибка изменения закрепления.";
-            DiagnosticLog.Write("message_pin", ex.GetType().Name + ": " + ex.Message);
-        }
-
-        e.Handled = true;
-    }
-
     private async void MessageArchiveButton_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as Button)?.Tag is not MailRuMessageSummary message ||
