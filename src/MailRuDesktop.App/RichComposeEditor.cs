@@ -161,6 +161,8 @@ internal sealed class RichComposeEditor
                 _rich.Document.ContentEnd).Text.TrimEnd('\r', '\n');
             if (preceding.Length > 0)
                 _rich.Document.Blocks.Add(new Paragraph { Margin = new Thickness(0) });
+            else
+                _rich.Document.Blocks.Clear();
             MarkdownRichLoader.Append(_rich.Document, markdown);
         }
         finally { _syncing = false; }
