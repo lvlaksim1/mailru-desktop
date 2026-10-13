@@ -184,8 +184,11 @@ internal static class Program
 
             var palette = FindDescendant<Expander>(mail,
                 e => string.Equals(e.Header?.ToString(),
-                    "Цвета элементов интерфейса", StringComparison.Ordinal));
+                    "Цветовая схема", StringComparison.Ordinal));
             Check(palette is not null, "palette editor is present");
+            Check(FindDescendant<TextBox>(palette!,
+                b => b.Name == "PrimaryColorTextBox") is not null,
+                "a single primary color input is present");
             Check(FindParent<GroupBox>(palette!)?.Header?.ToString() == "Внешний вид",
                 "palette section is inside Appearance rather than beside it");
 
