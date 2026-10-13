@@ -304,6 +304,22 @@ public static class MailRuThreadStatusParser
         if (thread.ValueKind != JsonValueKind.Object)
             return;
 
+        // The smart inbox includes category *metathreads*. Their
+        // message_id_last points to a real letter in a child folder, but the
+        // category aggregate itself is NOT a mailbox message.
+        // Never expose that last ID as an extra inbox row.
+        if (thread.TryGetProperty("representations", out var categoryRepresentations) &&
+            categoryRepresentations.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var candidate in categoryRepresentations.EnumerateArray())
+            {
+                if (candidate.ValueKind == JsonValueKind.Object &&
+                    (ReadFlag(candidate, "metathread") == true ||
+                     candidate.TryGetProperty("metathread_data", out _)))
+                    return;
+            }
+        }
+
         var threadId = TryReadId(thread, out var parsedThreadId)
             ? parsedThreadId
             : string.Empty;
