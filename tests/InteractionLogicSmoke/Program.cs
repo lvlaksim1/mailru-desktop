@@ -1092,12 +1092,12 @@ Expect(ThemePalette.TryNormalize("#12345Z", out _), false,
 Expect(ThemePalette.TryNormalize("#11223344", out _), false,
     "transparency not accepted");
 
-var alternate = ThemePalette.Generate(false, "#8E6042");
-Expect(alternate["AppWindowBrush"] != ThemePalette.Defaults(false)["AppWindowBrush"],
+var alternateThemeColors = ThemePalette.Generate(false, "#8E6042");
+Expect(alternateThemeColors["AppWindowBrush"] != ThemePalette.Defaults(false)["AppWindowBrush"],
     true, "primary hue changes window background");
-Expect(alternate["AppTextBrush"] != ThemePalette.Defaults(false)["AppTextBrush"],
+Expect(alternateThemeColors["AppTextBrush"] != ThemePalette.Defaults(false)["AppTextBrush"],
     true, "primary hue changes text tone");
-Expect(alternate["AppStarBrush"], "#D49E00",
+Expect(alternateThemeColors["AppStarBrush"], "#D49E00",
     "status markers do not change with hue");
 Expect(ThemePalette.Contrast("#FFFFFF", "#000000") > 20, true,
     "contrast supports high-contrast text");
