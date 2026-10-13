@@ -394,6 +394,28 @@ internal sealed class RichComposeEditor
             };
             _rich.Focus();
         });
+        Add(toolbar, "Tx", "Удалить форматирование", () =>
+        {
+            if (_rich.Selection.IsEmpty)
+            {
+                AppDialog.Info(owner, "Форматирование",
+                    "Выделите текст, с которого нужно удалить форматирование.");
+                return;
+            }
+
+            // Clear local character/paragraph styles without replacing content:
+            // paragraph boundaries, repeated empty Enter lines and Shift+Enter
+            // breaks must survive byte-for-byte.  Reapply this editor's own
+            // default typography, not a Windows RichTextBox fallback font.
+            var selection = _rich.Selection;
+            selection.ClearAllProperties();
+            selection.ApplyPropertyValue(TextElement.FontFamilyProperty, _rich.FontFamily);
+            selection.ApplyPropertyValue(TextElement.FontSizeProperty, _rich.FontSize);
+            selection.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Normal);
+            selection.ApplyPropertyValue(TextElement.FontStyleProperty, FontStyles.Normal);
+            selection.ApplyPropertyValue(TextElement.ForegroundProperty, _rich.Foreground);
+            _rich.Focus();
+        });
         Add(toolbar, "A▾", "Цвет текста", () =>
         {
             var chooser = new PaletteColorPickerWindow(owner,
@@ -480,7 +502,12 @@ internal sealed class RichComposeEditor
                     if (paragraph.FontWeight == FontWeights.Bold)
                         output.Append(";font-weight:bold");
                     output.Append(";\">");
-                    RenderInlines(paragraph.Inlines, output);
+                    // Empty WPF paragraphs are real Enter keystrokes.  HTML
+                    // <p></p> has no line box in many mail clients, so each
+                    // visually empty paragraph needs an explicit <br>.
+                    var paragraphHtml = new StringBuilder();
+                    RenderInlines(paragraph.Inlines, paragraphHtml);
+                    output.Append(paragraphHtml.Length == 0 ? "<br>" : paragraphHtml.ToString());
                     output.Append("</p>");
                     break;
                 case System.Windows.Documents.List list:
