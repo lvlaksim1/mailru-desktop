@@ -47,7 +47,6 @@ public static class AvatarImageBehavior
         public string? Url;
         public int Attempts;
         public bool InFlight;
-        public bool LoadedHooked;
     }
 
     private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Image, ImageRequestState>
@@ -65,15 +64,13 @@ public static class AvatarImageBehavior
         if (sender is not Image image) return;
         var url = e.NewValue as string;
         image.Source = null;
-        var state = Requests.GetValue(image, _ => new ImageRequestState());
-        state.Url = url;
-        state.Attempts = 0;
-
-        if (!state.LoadedHooked)
-        {
-            image.Loaded += AvatarImage_Loaded;
-            state.LoadedHooked = true;
-        }
+        // A previous request may still be finishing for a recycled row.
+        // Give the new sender a distinct request state.
+        var state = new ImageRequestState { Url = url };
+        Requests.Remove(image);
+        Requests.Add(image, state);
+        image.Loaded -= AvatarImage_Loaded;
+        image.Loaded += AvatarImage_Loaded;
 
         if (!IsSupportedAvatarUrl(url))
         {
@@ -93,8 +90,9 @@ public static class AvatarImageBehavior
         var url = GetSourceUrl(image);
         if (state.Url != url)
         {
-            state.Url = url;
-            state.Attempts = 0;
+            state = new ImageRequestState { Url = url };
+            Requests.Remove(image);
+            Requests.Add(image, state);
         }
         if (IsSupportedAvatarUrl(url))
             _ = LoadImageAsync(image, url!, state);
