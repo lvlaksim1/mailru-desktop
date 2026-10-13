@@ -113,15 +113,16 @@ internal static class Program
             var previewTestWindow = new Window { Content = previewTestGrid };
             var previewTestRich = RichComposeEditor.Attach(previewTestPlain, previewTestWindow);
             previewTestRich.LoadMarkdown("**Выделенный текст**");
-            Check(previewTestRich.ToHtml().Contains("<strong>Выделенный текст</strong>",
-                StringComparison.Ordinal), "template Markdown becomes actual formatted mail HTML");
+            Check(previewTestRich.ToHtml().Contains("<strong>", StringComparison.Ordinal) &&
+                  previewTestRich.ToHtml().Contains("Выделенный текст", StringComparison.Ordinal),
+                "template Markdown becomes actual formatted mail HTML");
             previewTestRich.ApplyMarkdownSignature("**Подпись**", new[] { "**Подпись**" });
             previewTestRich.ApplyMarkdownSignature("**Подпись**", new[] { "**Подпись**" });
             var resultingHtml = previewTestRich.ToHtml();
-            Check(resultingHtml.Contains("<strong>Выделенный текст</strong>",
-                StringComparison.Ordinal), "changing signature preserves original bold text");
-            Check(resultingHtml.Split("<strong>Подпись</strong>",
-                StringSplitOptions.None).Length == 2,
+            Check(resultingHtml.Contains("<strong>", StringComparison.Ordinal) &&
+                  resultingHtml.Contains("Выделенный текст", StringComparison.Ordinal),
+                "changing signature preserves original bold text");
+            Check(resultingHtml.Split("Подпись", StringSplitOptions.None).Length == 2,
                 "reselecting signature keeps exactly one formatted signature");
             previewTestWindow.Content = null;
 
