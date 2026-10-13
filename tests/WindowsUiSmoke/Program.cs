@@ -77,6 +77,11 @@ internal static class Program
             Expect(SignaturePlacement.Replace("Письмо\n\nПодпись", "Подпись",
                 "Подпись"), "Письмо" + Environment.NewLine +
                 Environment.NewLine + "Подпись", "reselecting signature does not duplicate it");
+            Expect(SignaturePlacement.Replace("Письмо\nПодпись", "Подпись",
+                "Новая"), "Письмо" + Environment.NewLine +
+                Environment.NewLine + "Новая",
+                "existing signature with a single separator line is replaced");
+
             
             var geometryTemp = Path.Combine(Path.GetTempPath(),
                 "MailRuWindowBounds-" + Guid.NewGuid().ToString("N"));
