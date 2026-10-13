@@ -140,6 +140,16 @@ internal static class Program
             var previewTestRich = RichComposeEditor.Attach(previewTestPlain, previewTestWindow);
             var checkEditor = previewTestRich.TextControl;
             Check(checkEditor is not null, "rich editor surface exists for spell checking");
+            Check(checkEditor!.Language.IetfLanguageTag == "ru-RU",
+                "Russian compose content uses ru-RU rather than the en-US fallback");
+            Check(AvatarImageBehavior.IsSupportedAvatarUrl(
+                      "https://filin.mail.ru/pic?email=recipient%40example.org"),
+                "existing public Filin image route remains supported");
+            Check(!AvatarImageBehavior.IsSupportedAvatarUrl(
+                      "https://outside.example.org/pic?email=user") &&
+                  !AvatarImageBehavior.IsSupportedAvatarUrl(
+                      "http://filin.mail.ru/pic?email=user"),
+                "avatar retry never relaxes host or HTTPS safety");
             Check(VisualTreeHelper.GetParent(checkEditor!) is Border
                   { BorderThickness.Left: 1, CornerRadius.TopLeft: 5 },
                 "rich mail editing area has a rounded visible border");
@@ -202,6 +212,13 @@ internal static class Program
             // Stage 0 regression: the ACTIVE modern mail-row template,
             // not the obsolete XAML card, must expose a real pin control.
             var modernList = Require<ListBox>(mail, "MessagesGrid");
+            var mailWorkspace = Require<Grid>(mail, "MailWorkspace");
+            Check(mailWorkspace.ClipToBounds,
+                "the two-pane mail workspace clips overflowing layout at splitter boundaries");
+            Check(modernList.ClipToBounds &&
+                  ScrollViewer.GetHorizontalScrollBarVisibility(modernList) ==
+                      ScrollBarVisibility.Disabled,
+                "mail rows cannot extend horizontally outside the resizable list pane");
             var pinRow = modernList.ItemTemplate?.LoadContent() as Grid;
             Check(pinRow is not null, "active mail template can be instantiated");
             var pinAction = FindDescendant<Button>(pinRow!,
