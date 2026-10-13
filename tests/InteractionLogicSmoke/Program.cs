@@ -1084,6 +1084,22 @@ foreach (var dark in new[] { false, true })
         colors["AppPanelBrush"]) >= 4.5, true,
         "unread mail text is distinguishable on both themes");
 }
+foreach (var extreme in new[] { "#FFFFFF", "#000000", "#FFFF00",
+    "#FF0000", "#0000FF", "#00FF00", "#00FFFF", "#FF00FF" })
+{
+    foreach (var dark in new[] { true, false })
+    {
+        var extremeColors = ThemePalette.Generate(dark, extreme);
+        var tones = extremeColors.Where(x =>
+            x.Key is not ("AppSuccessBrush" or "AppWarningBrush" or
+                          "AppDangerBrush" or "AppStarBrush" or "AppPinBrush"))
+            .Select(x => x.Value).Distinct(StringComparer.Ordinal).Count();
+        Expect(tones, 8, "extreme primary input still produces eight tones: " + extreme);
+        Expect(ThemePalette.Contrast(extremeColors["AppUnreadTextBrush"],
+            extremeColors["AppPanelBrush"]) >= 4.5, true,
+            "unread letters stay legible for selected primary: " + extreme);
+    }
+}
 Expect(ThemePalette.TryNormalize("#ffcc00", out var normalizedYellow), true,
     "hex input accepted");
 Expect(normalizedYellow, "#FFCC00", "hex color normalized");
