@@ -17,6 +17,15 @@ internal sealed class GridLengthSetting
     public string UnitType { get; set; } = "Pixel";
 }
 
+internal sealed class SavedWindowGeometry
+{
+    public double Left { get; set; }
+    public double Top { get; set; }
+    public double Width { get; set; }
+    public double Height { get; set; }
+    public bool Maximized { get; set; }
+}
+
 internal sealed class UserInterfaceState
 {
     public double? WindowLeft { get; set; }
@@ -29,6 +38,9 @@ internal sealed class UserInterfaceState
     public double AccountPaneWidth { get; set; } = 220;
     public double MailListPaneWidth { get; set; } = 455;
     public double ContactsListPaneWidth { get; set; } = 390;
+    public double SettingsPaneWidth { get; set; } = 620;
+    public bool DiagnosticsExpanded { get; set; }
+    public int DiagnosticsTabIndex { get; set; }
 
     public bool FolderManageExpanded { get; set; }
 
@@ -210,6 +222,20 @@ internal sealed class AppSettingsStore
         if (key is not null && key != "AppAccentBrush")
             throw new ArgumentException("Доступен только основной цвет.", nameof(key));
         ResetPrimaryColor();
+    }
+
+    public SavedWindowGeometry? LoadComposeWindowGeometry() =>
+        LoadState().ComposeWindowGeometry;
+
+    public void SaveComposeWindowGeometry(SavedWindowGeometry value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        lock (_sync)
+        {
+            var state = LoadStateCore();
+            state.ComposeWindowGeometry = value;
+            SaveStateCore(state);
+        }
     }
 
     public UserInterfaceState LoadUserInterfaceState() =>
@@ -401,6 +427,7 @@ internal sealed class AppSettingsStore
         public Dictionary<string, string>? DarkPalette { get; set; }
         public Dictionary<string, string>? LightPalette { get; set; }
         public UserInterfaceState? UserInterface { get; set; }
+        public SavedWindowGeometry? ComposeWindowGeometry { get; set; }
         public List<AccountRailLayoutEntryState>? AccountRailLayout { get; set; }
         public List<SavedSignature>? Signatures { get; set; }
         public List<SavedMailTemplate>? MailTemplates { get; set; }
