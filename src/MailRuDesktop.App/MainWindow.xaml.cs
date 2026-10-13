@@ -90,6 +90,7 @@ public partial class MainWindow : Window
         Loaded += MainWindow_Loaded;
         Closed += (_, _) =>
         {
+            CancelServerSearch();
             ThemeManager.ThemeChanged -= ThemeManager_ThemeChanged;
             CancelReaderPresentation();
             _messageLoadCancellation?.Cancel();
