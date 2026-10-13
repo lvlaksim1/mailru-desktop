@@ -465,7 +465,6 @@ public partial class MainWindow
 
     private void ApplyComposeTemplate(SavedMailTemplate template)
     {
-        ComposeSubjectTextBox.Text = template.Subject;
         ComposeBodyTextBox.Text = template.Body;
         _composeRichEditor?.LoadMarkdown(template.Body);
         _composeInsertedSignature = null;
@@ -568,7 +567,6 @@ public partial class MainWindow
 
     private void ApplyTemplate(SavedMailTemplate template)
     {
-        PreviewComposeSubjectTextBox.Text = template.Subject;
         PreviewComposeBodyTextBox.Text = template.Body;
         _previewRichEditor?.LoadMarkdown(template.Body);
         _previewInsertedSignature = null;
