@@ -254,13 +254,31 @@ internal static class Program
             // not the obsolete XAML card, must expose a real pin control.
             var modernList = Require<ListBox>(mail, "MessagesGrid");
             var mailWorkspace = Require<Grid>(mail, "MailWorkspace");
+            // Experimental control: restore the exact pre-regression v0.3.60
+            // column limits and list scrolling; leave mail/compose fixes intact.
             Check(!mailWorkspace.ClipToBounds &&
-                  mailWorkspace.ColumnDefinitions[0].MinWidth <= 200 &&
-                  mailWorkspace.ColumnDefinitions[2].MinWidth <= 220,
-                "splitter remains smooth without a full WebView2 workspace clipping layer or oversized minima");
-            Check(ScrollViewer.GetHorizontalScrollBarVisibility(modernList) ==
-                      ScrollBarVisibility.Disabled,
-                "mail list retains a bounded horizontal viewport");
+                  mailWorkspace.ColumnDefinitions[0].MinWidth == 320 &&
+                  mailWorkspace.ColumnDefinitions[2].MinWidth == 360,
+                "central mail columns use the v0.3.60 splitter minimums 320/360");
+            var listPane = mailWorkspace.Children.OfType<Grid>()
+                .Single(grid => Grid.GetColumn(grid) == 0);
+            Check(!listPane.ClipToBounds &&
+                  listPane.ReadLocalValue(FrameworkElement.MinWidthProperty) ==
+                      DependencyProperty.UnsetValue,
+                "list pane has the original v0.3.60 clipping and width behavior");
+            Check(modernList.ReadLocalValue(
+                      ScrollViewer.HorizontalScrollBarVisibilityProperty) ==
+                      DependencyProperty.UnsetValue &&
+                  modernList.ReadLocalValue(
+                      ScrollViewer.CanContentScrollProperty) ==
+                      DependencyProperty.UnsetValue,
+                "list scrolling uses the original v0.3.60 defaults");
+            var centralSplitter = mailWorkspace.Children.OfType<GridSplitter>()
+                .Single(splitter => Grid.GetColumn(splitter) == 1);
+            Check(centralSplitter.Width == 6 &&
+                  centralSplitter.ResizeDirection == GridResizeDirection.Columns &&
+                  centralSplitter.ResizeBehavior == GridResizeBehavior.PreviousAndNext,
+                "central splitter uses the v0.3.60 geometry and resize behavior");
             var pinRow = modernList.ItemTemplate?.LoadContent() as Grid;
             Check(pinRow is not null, "active mail template can be instantiated");
             var pinAction = FindDescendant<Button>(pinRow!,
