@@ -46,6 +46,10 @@ public partial class MessageWindow : Window
             : null;
 
         InitializeComponent();
+        var geometryStore = new AppSettingsStore();
+        WindowGeometryPersistence.Restore(this, geometryStore, "message-reader");
+        Closing += (_, _) =>
+            WindowGeometryPersistence.Save(this, geometryStore, "message-reader");
         _messageRichEditor = RichComposeEditor.Attach(ComposeBodyTextBox, this, resizable: true);
 
         Title = $"{summary.Subject} — MailRu Desktop";
@@ -242,9 +246,12 @@ public partial class MessageWindow : Window
               "body [bgcolor]{background-color:transparent!important;}body [style*='background']{background-color:transparent!important;}"
             : string.Empty;
 
+        // The message reader uses the same HTTPS image policy as the main
+        // preview: the former data:-only CSP hid all remote pictures in the
+        // independent reader window. Scripts and frames remain denied.
         var document =
             "<!doctype html><html><head><meta charset='utf-8'>" +
-            "<meta http-equiv='Content-Security-Policy' content=\"default-src 'none'; img-src data:; style-src 'unsafe-inline';\">" +
+            "<meta http-equiv='Content-Security-Policy' content=\"default-src 'none'; img-src data: https:; style-src 'unsafe-inline';\">" +
             "<style>" +
             $"html,body{{background:{background}!important;color:{foreground}!important;}}" +
             "body{font-family:'Segoe UI',Arial,sans-serif;font-size:14px;margin:16px;overflow-wrap:anywhere;}" +

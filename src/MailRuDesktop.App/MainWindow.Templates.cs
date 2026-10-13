@@ -19,15 +19,19 @@ public partial class MainWindow
     private SavedSignature? _signatureAtDropdownOpen;
     private SavedMailTemplate? _templateAtDropdownOpen;
     private FileSystemWatcher? _templateWatcher;
+    private FileSystemWatcher? _signatureWatcher;
+    private MarkdownSignatureStore? _signatureFiles;
+    private MarkdownSignatureStore SignatureFiles =>
+        _signatureFiles ??= new MarkdownSignatureStore();
+    private bool _refreshingSignatures;
     private bool _refreshingTemplateList;
     private string? _previewInsertedSignature;
     private string? _composeInsertedSignature;
 
     private void InitializeUserContentSettings()
     {
-        _signatures.Clear();
-        foreach (var signature in _settingsStore.LoadSignatures())
-            _signatures.Add(signature);
+        SignatureFiles.ImportLegacyOnce(_settingsStore.LoadSignatures());
+        RefreshSignaturesFromDisk();
 
         TemplateDirectoryText.Text = TemplateFiles.DirectoryPath;
         TemplateFiles.ImportLegacyOnce(_settingsStore.LoadMailTemplates());
@@ -40,10 +44,73 @@ public partial class MainWindow
         PreviewSignatureComboBox.ItemsSource = _signatures;
         PreviewTemplateComboBox.ItemsSource = _mailTemplates;
         ComposeSignatureComboBox.ItemsSource = _signatures;
+        TemplateSignatureComboBox.ItemsSource = _signatures;
         ComposeTemplateComboBox.ItemsSource = _mailTemplates;
 
         StartTemplateWatcher();
-        Closed += (_, _) => _templateWatcher?.Dispose();
+        StartSignatureWatcher();
+        Closed += (_, _) =>
+        {
+            _templateWatcher?.Dispose();
+            _signatureWatcher?.Dispose();
+        };
+    }
+
+    private void StartSignatureWatcher()
+    {
+        _signatureWatcher?.Dispose();
+        _signatureWatcher = new FileSystemWatcher(SignatureFiles.DirectoryPath, "*.md");
+        _signatureWatcher.Changed += (_, _) =>
+            Dispatcher.BeginInvoke(new Action(() => RefreshSignaturesFromDisk()));
+        _signatureWatcher.Created += (_, _) =>
+            Dispatcher.BeginInvoke(new Action(() => RefreshSignaturesFromDisk()));
+        _signatureWatcher.Deleted += (_, _) =>
+            Dispatcher.BeginInvoke(new Action(() => RefreshSignaturesFromDisk()));
+        _signatureWatcher.Renamed += (_, _) =>
+            Dispatcher.BeginInvoke(new Action(() => RefreshSignaturesFromDisk()));
+        _signatureWatcher.EnableRaisingEvents = true;
+    }
+
+    private void RefreshSignaturesFromDisk(string? selection = null)
+    {
+        var selectedName = selection ??
+            (SignaturesListBox.SelectedItem as SavedSignature)?.Name;
+        var previewName = (PreviewSignatureComboBox.SelectedItem as SavedSignature)?.Name;
+        var composeName = (ComposeSignatureComboBox.SelectedItem as SavedSignature)?.Name;
+        var templateName = (TemplateSignatureComboBox.SelectedItem as SavedSignature)?.Name;
+        var disk = SignatureFiles.LoadAll();
+        if (_signatures.Count == disk.Count &&
+            _signatures.Zip(disk).All(p =>
+                p.First.Name == p.Second.Name && p.First.Body == p.Second.Body))
+            return;
+        _refreshingSignatures = true;
+        try
+        {
+            _signatures.Clear();
+            foreach (var entry in disk) _signatures.Add(entry);
+            if (selectedName is not null)
+                SignaturesListBox.SelectedItem = _signatures.FirstOrDefault(
+                    entry => entry.Name.Equals(selectedName, StringComparison.OrdinalIgnoreCase));
+            if (previewName is not null)
+                PreviewSignatureComboBox.SelectedItem = _signatures.FirstOrDefault(
+                    entry => entry.Name.Equals(previewName, StringComparison.OrdinalIgnoreCase));
+            if (composeName is not null)
+                ComposeSignatureComboBox.SelectedItem = _signatures.FirstOrDefault(
+                    entry => entry.Name.Equals(composeName, StringComparison.OrdinalIgnoreCase));
+            if (templateName is not null)
+                TemplateSignatureComboBox.SelectedItem = _signatures.FirstOrDefault(
+                    entry => entry.Name.Equals(templateName, StringComparison.OrdinalIgnoreCase));
+        }
+        finally { _refreshingSignatures = false; }
+    }
+
+    private void OpenSignaturesFolderButton_Click(object sender, RoutedEventArgs e)
+    {
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = SignatureFiles.DirectoryPath,
+            UseShellExecute = true
+        });
     }
 
     private void StartTemplateWatcher()
@@ -184,58 +251,133 @@ public partial class MainWindow
             return;
         }
 
-        var replacement = new SavedSignature
+        var selected = SignaturesListBox.SelectedItem as SavedSignature;
+        var sameFile = selected is not null &&
+            string.Equals(selected.Name, name, StringComparison.OrdinalIgnoreCase);
+        try
         {
-            Id = (SignaturesListBox.SelectedItem as SavedSignature)?.Id
-                 ?? Guid.NewGuid().ToString("N"),
-            Name = name,
-            Body = SignatureBodyTextBox.Text
-        };
+            if (SignatureFiles.Exists(name) && !sameFile &&
+                !AppDialog.Confirm(this, "Перезапись подписи",
+                    $"Подпись «{name}» уже существует. Заменить файл?",
+                    "Перезаписать", "Отмена"))
+                return;
 
-        if (SignaturesListBox.SelectedItem is SavedSignature selected)
-        {
-            var index = _signatures.IndexOf(selected);
-            if (index >= 0)
-                _signatures[index] = replacement;
+            SignatureFiles.Save(new SavedSignature { Name = name,
+                Body = SignatureBodyTextBox.Text });
+            // If an existing entry is renamed, remove its previous file only
+            // after the replacement was written successfully.
+            if (selected is not null && !sameFile)
+                SignatureFiles.Delete(selected.Name);
+            RefreshSignaturesFromDisk(name);
+            SignaturesListBox.SelectedItem = _signatures.FirstOrDefault(
+                entry => entry.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
         }
-        else
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException
+                                        or ArgumentException)
         {
-            _signatures.Add(replacement);
+            AppDialog.Info(this, "Сохранение подписи", ex.Message);
         }
-
-        _settingsStore.SaveSignatures(_signatures);
-        SignaturesListBox.SelectedItem = replacement;
-        PreviewSignatureComboBox.ItemsSource = null;
-        PreviewSignatureComboBox.ItemsSource = _signatures;
-        ComposeSignatureComboBox.ItemsSource = null;
-        ComposeSignatureComboBox.ItemsSource = _signatures;
     }
 
     private void DeleteSignatureButton_Click(object sender, RoutedEventArgs e)
     {
         if (SignaturesListBox.SelectedItem is not SavedSignature signature)
             return;
-
-        if (!AppDialog.Confirm(
-                this,
-                "Удаление подписи",
-                $"Удалить подпись «{signature.Name}»?",
-                "Удалить",
-                "Отмена"))
+        if (!AppDialog.Confirm(this, "Удаление подписи",
+                $"Удалить подпись «{signature.Name}»?", "Удалить", "Отмена"))
+            return;
+        try
         {
+            SignatureFiles.Delete(signature.Name);
+            RefreshSignaturesFromDisk();
+            SignatureNameTextBox.Clear();
+            SignatureBodyTextBox.Clear();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            AppDialog.Info(this, "Удаление подписи", ex.Message);
+        }
+    }
+
+    private void InsertSignatureIntoTemplateButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (TemplateSignatureComboBox.SelectedItem is not SavedSignature signature)
+        {
+            AppDialog.Info(this, "Шаблоны", "Выберите подпись.");
             return;
         }
-
-        _signatures.Remove(signature);
-        _settingsStore.SaveSignatures(_signatures);
-        SignatureNameTextBox.Clear();
-        SignatureBodyTextBox.Clear();
-
-        PreviewSignatureComboBox.ItemsSource = null;
-        PreviewSignatureComboBox.ItemsSource = _signatures;
-        ComposeSignatureComboBox.ItemsSource = null;
-        ComposeSignatureComboBox.ItemsSource = _signatures;
+        var result = SignaturePlacement.Replace(
+            TemplateBodyTextBox.Text, null, signature.Body,
+            _signatures.Select(item => item.Body));
+        TemplateBodyTextBox.Text = result;
+        TemplateBodyTextBox.CaretIndex = result.Length;
     }
+
+    private void TemplateSignatureComboBox_DropDownOpened(object sender, EventArgs e) =>
+        RefreshSignaturesFromDisk();
+
+    private void TemplateFormatButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button button || button.Tag is not string command)
+            return;
+        var editor = TemplateBodyTextBox;
+        var selected = editor.SelectedText;
+        var start = editor.SelectionStart;
+        string replacement;
+        int innerOffset;
+        switch (command)
+        {
+            case "bold":
+                replacement = "**" + (selected.Length == 0 ? "текст" : selected) + "**";
+                innerOffset = 2;
+                break;
+            case "italic":
+                replacement = "*" + (selected.Length == 0 ? "текст" : selected) + "*";
+                innerOffset = 1;
+                break;
+            case "underline":
+                replacement = "<u>" + (selected.Length == 0 ? "текст" : selected) + "</u>";
+                innerOffset = 3;
+                break;
+            case "heading":
+                replacement = "# " + (selected.Length == 0 ? "Заголовок" : selected);
+                innerOffset = 2;
+                break;
+            case "bullet":
+                replacement = "- " + (selected.Length == 0 ? "Элемент списка" : selected);
+                innerOffset = 2;
+                break;
+            case "link":
+                var prompt = new TextPromptWindow(this, "Ссылка",
+                    "Укажите адрес ссылки (HTTPS):", "https://");
+                if (prompt.ShowDialog() != true) return;
+                if (!Uri.TryCreate(prompt.Value, UriKind.Absolute, out var uri) ||
+                    uri.Scheme != Uri.UriSchemeHttps)
+                {
+                    AppDialog.Info(this, "Ссылка", "Допустима только HTTPS-ссылка.");
+                    return;
+                }
+                replacement = "[" + (selected.Length == 0 ? "текст ссылки" : selected) +
+                    "](" + uri.AbsoluteUri + ")";
+                innerOffset = 1;
+                break;
+            default:
+                return;
+        }
+        editor.SelectedText = replacement;
+        editor.Focus();
+        editor.Select(start + innerOffset,
+            selected.Length == 0 ? replacement.Length - innerOffset -
+            (command switch
+            {
+                "bold" => 2, "italic" => 1, "underline" => 4,
+                "link" => replacement.Length - innerOffset -
+                    (selected.Length == 0 ? "текст ссылки".Length : selected.Length),
+                _ => 0
+            }) : selected.Length);
+    }
+
+
 
     private void MailTemplatesListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
@@ -411,8 +553,11 @@ public partial class MainWindow
     private SavedSignature? _composeSignatureAtOpen;
     private SavedMailTemplate? _composeTemplateAtOpen;
 
-    private void ComposeSignatureComboBox_DropDownOpened(object sender, EventArgs e) =>
+    private void ComposeSignatureComboBox_DropDownOpened(object sender, EventArgs e)
+    {
+        RefreshSignaturesFromDisk();
         _composeSignatureAtOpen = ComposeSignatureComboBox.SelectedItem as SavedSignature;
+    }
 
     private void ComposeTemplateComboBox_DropDownOpened(object sender, EventArgs e)
     {
@@ -454,7 +599,8 @@ public partial class MainWindow
 
     private void ComposeSignatureComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (ComposeSignatureComboBox.SelectedItem is not SavedSignature signature ||
+        if (_refreshingSignatures ||
+            ComposeSignatureComboBox.SelectedItem is not SavedSignature signature ||
             string.IsNullOrWhiteSpace(signature.Body))
             return;
         ApplyComposeSignature(signature, false);
@@ -462,15 +608,19 @@ public partial class MainWindow
 
     private void ApplyComposeSignature(SavedSignature signature, bool repeat)
     {
-        var body = ComposeBodyTextBox.Text;
-        if (!repeat && !string.IsNullOrWhiteSpace(_composeInsertedSignature) &&
-            body.EndsWith(_composeInsertedSignature, StringComparison.Ordinal))
-            body = body[..^_composeInsertedSignature.Length].TrimEnd();
-        ComposeBodyTextBox.Text = body.TrimEnd() +
-            (body.TrimEnd().Length == 0 ? "" : Environment.NewLine + Environment.NewLine) +
-            signature.Body;
+        if (_composeRichEditor is not null)
+        {
+            _composeRichEditor.ApplyMarkdownSignature(signature.Body,
+                _signatures.Select(item => item.Body));
+            _composeInsertedSignature = signature.Body;
+            return;
+        }
+        var updated = SignaturePlacement.Replace(
+            ComposeBodyTextBox.Text, _composeInsertedSignature, signature.Body,
+            _signatures.Select(item => item.Body));
+        ComposeBodyTextBox.Text = updated;
         _composeInsertedSignature = signature.Body;
-        ComposeBodyTextBox.CaretIndex = ComposeBodyTextBox.Text.Length;
+        ComposeBodyTextBox.CaretIndex = updated.Length;
     }
 
     private void ComposeTemplateComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -485,6 +635,7 @@ public partial class MainWindow
     {
         ComposeSubjectTextBox.Text = template.Subject;
         ComposeBodyTextBox.Text = template.Body;
+        _composeRichEditor?.LoadMarkdown(template.Body);
         _composeInsertedSignature = null;
         _attachmentPaths.Clear();
         var missing = 0;
@@ -508,8 +659,11 @@ public partial class MainWindow
         ComposeTemplateComboBox.SelectedItem = null;
     }
 
-    private void PreviewSignatureComboBox_DropDownOpened(object sender, EventArgs e) =>
+    private void PreviewSignatureComboBox_DropDownOpened(object sender, EventArgs e)
+    {
+        RefreshSignaturesFromDisk();
         _signatureAtDropdownOpen = PreviewSignatureComboBox.SelectedItem as SavedSignature;
+    }
 
     private void PreviewTemplateComboBox_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
@@ -550,29 +704,27 @@ public partial class MainWindow
 
     private void PreviewSignatureComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (PreviewSignatureComboBox.SelectedItem is SavedSignature signature)
+        if (!_refreshingSignatures &&
+            PreviewSignatureComboBox.SelectedItem is SavedSignature signature)
             ApplySignature(signature);
     }
 
     private void ApplySignature(SavedSignature signature, bool repeat = false)
     {
-        if (string.IsNullOrWhiteSpace(signature.Body))
-            return;
-
-        var body = PreviewComposeBodyTextBox.Text;
-        if (!repeat &&
-            !string.IsNullOrWhiteSpace(_previewInsertedSignature) &&
-            body.EndsWith(_previewInsertedSignature, StringComparison.Ordinal))
+        if (string.IsNullOrWhiteSpace(signature.Body)) return;
+        if (_previewRichEditor is not null)
         {
-            body = body[..^_previewInsertedSignature.Length].TrimEnd();
+            _previewRichEditor.ApplyMarkdownSignature(signature.Body,
+                _signatures.Select(item => item.Body));
+            _previewInsertedSignature = signature.Body;
+            return;
         }
-
-        PreviewComposeBodyTextBox.Text =
-            body.TrimEnd() +
-            (body.TrimEnd().Length == 0 ? string.Empty : Environment.NewLine + Environment.NewLine) +
-            signature.Body;
+        var updated = SignaturePlacement.Replace(
+            PreviewComposeBodyTextBox.Text, _previewInsertedSignature, signature.Body,
+            _signatures.Select(item => item.Body));
+        PreviewComposeBodyTextBox.Text = updated;
         _previewInsertedSignature = signature.Body;
-        PreviewComposeBodyTextBox.CaretIndex = PreviewComposeBodyTextBox.Text.Length;
+        PreviewComposeBodyTextBox.CaretIndex = updated.Length;
     }
 
     private void PreviewTemplateComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -586,6 +738,7 @@ public partial class MainWindow
     {
         PreviewComposeSubjectTextBox.Text = template.Subject;
         PreviewComposeBodyTextBox.Text = template.Body;
+        _previewRichEditor?.LoadMarkdown(template.Body);
         _previewInsertedSignature = null;
         _previewAttachmentPaths.Clear();
 

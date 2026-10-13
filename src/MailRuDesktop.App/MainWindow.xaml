@@ -36,7 +36,7 @@
                                    FontWeight="SemiBold"
                                    Text="{Binding IconText}"/>
                         <Image Width="{DynamicResource AppAvatarSize}" Height="{DynamicResource AppAvatarSize}" Stretch="UniformToFill"
-                               Source="{Binding AvatarUrl}"/>
+                               local:AvatarImageBehavior.SourceUrl="{Binding AvatarUrl}"/>
                     </Grid>
                 </Border>
                 <TextBlock Grid.Column="1"
@@ -955,8 +955,9 @@
 
             <Grid x:Name="SettingsWorkspace" Visibility="Collapsed">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="620" MinWidth="450"/>
-                    <ColumnDefinition Width="*" MinWidth="600"/>
+                    <ColumnDefinition x:Name="SettingsOptionsColumn" Width="620" MinWidth="390"/>
+                    <ColumnDefinition Width="6"/>
+                    <ColumnDefinition Width="*" MinWidth="300"/>
                 </Grid.ColumnDefinitions>
                 <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
                     <StackPanel MaxWidth="800" HorizontalAlignment="Left">
@@ -1054,7 +1055,7 @@
 
                             </StackPanel>
                         </GroupBox>
-                        <Expander Margin="0,16,0,0" Header="Подписи" IsExpanded="False">
+                        <Expander x:Name="SignaturesSettingsExpander" Margin="0,16,0,0" Header="Подписи" IsExpanded="False">
                             <Grid Margin="12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="220"/>
@@ -1089,12 +1090,15 @@
                                         <Button Padding="10,6" Margin="0,0,6,0" Click="NewSignatureButton_Click" Content="Новая"/>
                                         <Button Padding="10,6" Margin="0,0,6,0" Click="SaveSignatureButton_Click" Content="Сохранить"/>
                                         <Button Padding="10,6" Click="DeleteSignatureButton_Click" Foreground="{DynamicResource AppDangerBrush}" Content="Удалить"/>
+                                        <Button Padding="10,6" Margin="6,0,0,0"
+                                                Click="OpenSignaturesFolderButton_Click"
+                                                Content="Открыть папку подписей"/>
                                     </WrapPanel>
                                 </Grid>
                             </Grid>
                         </Expander>
 
-                        <Expander Margin="0,16,0,0" Header="Шаблоны" IsExpanded="False">
+                        <Expander x:Name="TemplatesSettingsExpander" Margin="0,16,0,0" Header="Шаблоны" IsExpanded="False">
                             <Grid Margin="12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="220"/>
@@ -1109,28 +1113,61 @@
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="120"/>
+                                        <RowDefinition Height="175"/>
+                                        <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="90"/>
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
                                     <TextBox x:Name="TemplateNameTextBox" Padding="7" ToolTip="Название шаблона"/>
                                     <TextBox x:Name="TemplateSubjectTextBox" Grid.Row="1" Margin="0,7,0,7" Padding="7" ToolTip="Тема письма"/>
-                                    <TextBox x:Name="TemplateBodyTextBox"
-                                             Grid.Row="2"
-                                             Padding="7"
-                                             AcceptsReturn="True"
-                                             TextWrapping="Wrap"
-                                             VerticalScrollBarVisibility="Auto"
-                                             ToolTip="Текст письма"/>
+                                    <Grid Grid.Row="2">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+                                        <WrapPanel Margin="0,0,0,5">
+                                            <Button Padding="8,4" Margin="0,0,4,0"
+                                                    Click="TemplateFormatButton_Click"
+                                                    Tag="bold" ToolTip="Полужирный" Content="Ж"/>
+                                            <Button Padding="8,4" Margin="0,0,4,0"
+                                                    Click="TemplateFormatButton_Click"
+                                                    Tag="italic" ToolTip="Курсив" Content="К"/>
+                                            <Button Padding="8,4" Margin="0,0,4,0"
+                                                    Click="TemplateFormatButton_Click"
+                                                    Tag="underline" ToolTip="Подчёркивание" Content="Ч"/>
+                                            <Button Padding="8,4" Margin="0,0,4,0"
+                                                    Click="TemplateFormatButton_Click"
+                                                    Tag="heading" ToolTip="Заголовок" Content="H"/>
+                                            <Button Padding="8,4" Margin="0,0,4,0"
+                                                    Click="TemplateFormatButton_Click"
+                                                    Tag="bullet" ToolTip="Список" Content="•"/>
+                                            <Button Padding="8,4"
+                                                    Click="TemplateFormatButton_Click"
+                                                    Tag="link" ToolTip="Ссылка" Content="Ссылка"/>
+                                        </WrapPanel>
+                                        <TextBox x:Name="TemplateBodyTextBox" Grid.Row="1"
+                                                 Padding="7" AcceptsReturn="True"
+                                                 TextWrapping="Wrap"
+                                                 VerticalScrollBarVisibility="Auto"
+                                                 ToolTip="Текст Markdown: форматирование сохраняется в файле .md"/>
+                                    </Grid>
                                     <WrapPanel Grid.Row="3" Margin="0,7,0,4">
+                                        <TextBlock Text="Подпись:" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                        <ComboBox x:Name="TemplateSignatureComboBox" Width="205"
+                                                  Margin="0,0,6,0" DisplayMemberPath="Name"
+                                                  DropDownOpened="TemplateSignatureComboBox_DropDownOpened"/>
+                                        <Button Padding="10,5" Click="InsertSignatureIntoTemplateButton_Click"
+                                                Content="Вставить подпись"/>
+                                    </WrapPanel>
+                                    <WrapPanel Grid.Row="4" Margin="0,7,0,4">
                                         <Button Padding="10,5" Margin="0,0,6,0" Click="AddTemplateAttachmentsButton_Click" Content="Добавить вложения"/>
                                         <Button Padding="10,5" Click="RemoveTemplateAttachmentButton_Click" Content="Убрать выбранное"/>
                                     </WrapPanel>
                                     <ListBox x:Name="TemplateAttachmentsListBox"
-                                             Grid.Row="4"
+                                             Grid.Row="5"
                                              MinHeight="70"/>
-                                    <WrapPanel Grid.Row="5" Margin="0,7,0,0">
+                                    <WrapPanel Grid.Row="6" Margin="0,7,0,0">
                                         <Button Padding="10,6" Margin="0,0,6,0" Click="ImportMailTemplateButton_Click" Content="Загрузить .md"/>
                                         <Button Padding="10,6" Margin="0,0,6,0" Click="NewMailTemplateButton_Click" Content="Новый"/>
                                         <Button Padding="10,6" Margin="0,0,6,0" Click="SaveMailTemplateButton_Click" Content="Сохранить"/>
@@ -1198,9 +1235,15 @@
                     </StackPanel>
                 </ScrollViewer>
 
+                <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch"
+                              VerticalAlignment="Stretch" ResizeDirection="Columns"
+                              ResizeBehavior="PreviousAndNext"
+                              Background="{DynamicResource AppBorderBrush}"
+                              ToolTip="Изменить ширину настроек и диагностики"/>
+
                 <!-- All diagnostics share one collapsed instrument in the right-hand
                      settings column. The ordinary notifications area stays clean. -->
-                <ScrollViewer Grid.Column="1" Margin="14,0,0,0"
+                <ScrollViewer Grid.Column="2" Margin="14,0,0,0"
                               VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled">
                     <Expander x:Name="UnifiedDiagnosticsExpander"

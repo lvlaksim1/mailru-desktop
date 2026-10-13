@@ -109,6 +109,67 @@ internal sealed class RichComposeEditor
 
     public void Focus() => _rich.Focus();
 
+    public void LoadMarkdown(string markdown)
+    {
+        _syncing = true;
+        try
+        {
+            MarkdownRichLoader.Load(_rich.Document, markdown);
+            _plain.Text = new TextRange(_rich.Document.ContentStart,
+                _rich.Document.ContentEnd).Text.TrimEnd('\r', '\n');
+        }
+        finally { _syncing = false; }
+    }
+
+    /// <summary>
+    /// Keep existing character formatting intact when changing the trailing
+    /// signature; append or replace document paragraphs instead of rewriting
+    /// the hidden plain-text companion and losing WPF formatting.
+    /// </summary>
+    public void ApplyMarkdownSignature(string markdown, IEnumerable<string> knownMarkdown)
+    {
+        var candidates = knownMarkdown
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Select(MarkdownRichLoader.ToPlain)
+            .Distinct(StringComparer.Ordinal)
+            .OrderByDescending(value => value.Length);
+
+        _syncing = true;
+        try
+        {
+            foreach (var candidate in candidates)
+            {
+                var lines = candidate.Replace("\r\n", "\n", StringComparison.Ordinal)
+                    .Split('\n');
+                var blocks = _rich.Document.Blocks.OfType<Paragraph>().ToList();
+                if (blocks.Count < lines.Length) continue;
+                var tail = blocks.Skip(blocks.Count - lines.Length).ToArray();
+                var matching = tail.Select(p =>
+                    new TextRange(p.ContentStart, p.ContentEnd)
+                    .Text.TrimEnd('\r', '\n'))
+                    .SequenceEqual(lines, StringComparer.Ordinal);
+                if (!matching) continue;
+                foreach (var block in tail) _rich.Document.Blocks.Remove(block);
+                if (_rich.Document.Blocks.LastBlock is Paragraph separator &&
+                    string.IsNullOrWhiteSpace(new TextRange(
+                        separator.ContentStart, separator.ContentEnd).Text))
+                    _rich.Document.Blocks.Remove(separator);
+                break;
+            }
+
+            var preceding = new TextRange(_rich.Document.ContentStart,
+                _rich.Document.ContentEnd).Text.TrimEnd('\r', '\n');
+            if (preceding.Length > 0)
+                _rich.Document.Blocks.Add(new Paragraph { Margin = new Thickness(0) });
+            else
+                _rich.Document.Blocks.Clear();
+            MarkdownRichLoader.Append(_rich.Document, markdown);
+        }
+        finally { _syncing = false; }
+        SyncFromRich();
+        _rich.CaretPosition = _rich.Document.ContentEnd;
+    }
+
     public string ToHtml()
     {
         var builder = new StringBuilder();
@@ -238,7 +299,13 @@ internal sealed class RichComposeEditor
                         _ => "left"
                     };
                     output.Append("<p style=\"margin:0;line-height:normal;text-align:")
-                        .Append(align).Append(";\">");
+                        .Append(align);
+                    if (paragraph.ReadLocalValue(TextElement.FontSizeProperty) is double fontSize)
+                        output.Append(";font-size:").Append(fontSize.ToString(
+                            System.Globalization.CultureInfo.InvariantCulture)).Append("px");
+                    if (paragraph.FontWeight == FontWeights.Bold)
+                        output.Append(";font-weight:bold");
+                    output.Append(";\">");
                     RenderInlines(paragraph.Inlines, output);
                     output.Append("</p>");
                     break;

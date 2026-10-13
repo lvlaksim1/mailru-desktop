@@ -1,3 +1,4 @@
+using System.IO;
 using System.Diagnostics;
 using System.Reflection;
 using System.Windows.Threading;
@@ -21,10 +22,115 @@ internal static class Program
         {
             var app = new App();
             app.InitializeComponent();
+            // Markdown signatures are discovered from files, not an independent JSON list.
+            // Old values migrate without deleting the settings.json backup.
+            var signaturesTemp = Path.Combine(Path.GetTempPath(),
+                "MailRuSignatures-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                var store = new MarkdownSignatureStore(signaturesTemp);
+                store.ImportLegacyOnce(new[]
+                {
+                    new SavedSignature { Name = "Рабочая", Body = "**С уважением**" }
+                });
+                Expect(store.LoadAll().Count, 1, "legacy signature migrates to one .md file");
+                Expect(store.LoadAll()[0].Body, "**С уважением**",
+                    "Markdown signature body is preserved byte-for-byte");
+                File.WriteAllText(Path.Combine(signaturesTemp, "Личная.md"), "С уважением,\nПользователь");
+                Expect(store.LoadAll().Count, 2,
+                    "manually added .md signature is visible without application UI");
+                store.ImportLegacyOnce(new[]
+                {
+                    new SavedSignature { Name = "Рабочая", Body = "OLD AGAIN" }
+                });
+                Expect(store.LoadAll().Single(x => x.Name == "Рабочая").Body,
+                    "**С уважением**", "migration does not overwrite managed signature files");
+                store.Save(new SavedSignature { Name = "Личная", Body = "Новый вариант" });
+                Expect(File.ReadAllText(Path.Combine(signaturesTemp, "Личная.md")),
+                    "Новый вариант", "saving a signature updates its standalone file");
+                store.Delete("Личная");
+                Expect(store.LoadAll().Count, 1, "deleting a signature removes its .md file");
+                try
+                {
+                    store.Save(new SavedSignature { Name = "../bad", Body = "x" });
+                    throw new Exception("Traversal should have failed");
+                }
+                catch (ArgumentException) { }
+            }
+            finally
+            {
+                if (Directory.Exists(signaturesTemp))
+                    Directory.Delete(signaturesTemp, recursive: true);
+            }
+            
+            Expect(SignaturePlacement.Replace("Текст\n\nС уважением", "С уважением",
+                "Новая подпись"), "Текст" + Environment.NewLine + Environment.NewLine +
+                "Новая подпись", "replacement avoids duplicate signature at end");
+            Expect(SignaturePlacement.Replace("Текст\n\nС уважением", null,
+                "Новая подпись", new[] { "С уважением" }),
+                "Текст" + Environment.NewLine + Environment.NewLine + "Новая подпись",
+                "existing known signature from a template is replaced");
+            Expect(SignaturePlacement.Replace("Цитата: С уважением\nДалее текст", null,
+                "Подпись", new[] { "С уважением" }),
+                "Цитата: С уважением\nДалее текст" + Environment.NewLine +
+                Environment.NewLine + "Подпись", "quoted signatures inside body are preserved");
+            Expect(SignaturePlacement.Replace("Письмо\n\nПодпись", "Подпись",
+                "Подпись"), "Письмо" + Environment.NewLine +
+                Environment.NewLine + "Подпись", "reselecting signature does not duplicate it");
+            Expect(SignaturePlacement.Replace("Письмо\nПодпись", "Подпись",
+                "Новая"), "Письмо" + Environment.NewLine +
+                Environment.NewLine + "Новая",
+                "existing signature with a single separator line is replaced");
+
+            
+            var geometryTemp = Path.Combine(Path.GetTempPath(),
+                "MailRuWindowBounds-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                var state = new AppSettingsStore(geometryTemp);
+                state.SaveWindowGeometry("compose", new SavedWindowGeometry
+                { Left = 100, Top = 110, Width = 880, Height = 720 });
+                state.SaveWindowGeometry("reply", new SavedWindowGeometry
+                { Left = 220, Top = 230, Width = 940, Height = 760 });
+                var reopened = new AppSettingsStore(geometryTemp);
+                Expect(reopened.LoadWindowGeometry("compose")!.Left, 100.0,
+                    "new-mail location survives restart");
+                Expect(reopened.LoadWindowGeometry("reply")!.Width, 940.0,
+                    "reply window size is independent from new-mail size");
+            }
+            finally
+            {
+                if (Directory.Exists(geometryTemp))
+                    Directory.Delete(geometryTemp, recursive: true);
+            }
+            
+            
             // The test owns the STA thread without Application.Run().
             // Preserve WPF's dispatcher synchronization context across await.
             SynchronizationContext.SetSynchronizationContext(
                 new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher));
+            // Formatting survives signature changes; a selection must replace
+            // rather than append the same signature twice.
+            var previewTestGrid = new Grid();
+            previewTestGrid.RowDefinitions.Add(new RowDefinition());
+            var previewTestPlain = new TextBox();
+            previewTestGrid.Children.Add(previewTestPlain);
+            var previewTestWindow = new Window { Content = previewTestGrid };
+            var previewTestRich = RichComposeEditor.Attach(previewTestPlain, previewTestWindow);
+            previewTestRich.LoadMarkdown("**Выделенный текст**");
+            Check(previewTestRich.ToHtml().Contains("<strong>", StringComparison.Ordinal) &&
+                  previewTestRich.ToHtml().Contains("Выделенный текст", StringComparison.Ordinal),
+                "template Markdown becomes actual formatted mail HTML");
+            previewTestRich.ApplyMarkdownSignature("**Подпись**", new[] { "**Подпись**" });
+            previewTestRich.ApplyMarkdownSignature("**Подпись**", new[] { "**Подпись**" });
+            var resultingHtml = previewTestRich.ToHtml();
+            Check(resultingHtml.Contains("<strong>", StringComparison.Ordinal) &&
+                  resultingHtml.Contains("Выделенный текст", StringComparison.Ordinal),
+                "changing signature preserves original bold text");
+            Check(resultingHtml.Split("Подпись", StringSplitOptions.None).Length == 2,
+                "reselecting signature keeps exactly one formatted signature");
+            previewTestWindow.Content = null;
+
             mail = new MainWindow();
             mail.Show();
             mail.UpdateLayout();
@@ -81,6 +187,13 @@ internal static class Program
             mail.UpdateLayout();
             Check(Require<Grid>(mail, "SettingsWorkspace").Visibility == Visibility.Visible,
                 "Settings can actually be opened by its button");
+            var settingsGrid = Require<Grid>(mail, "SettingsWorkspace");
+            Check(settingsGrid.ColumnDefinitions.Count == 3,
+                "settings and diagnostics have an independent splitter column");
+            Check(FindDescendant<GridSplitter>(settingsGrid, x => Grid.GetColumn(x) == 1) is not null,
+                "settings diagnostic divider can be dragged");
+            Check(settingsGrid.ColumnDefinitions[0].Width.Value >= 390,
+                "settings diagnostic splitter width is restored");
 
             var backgroundSwitch = Require<CheckBox>(mail, "BackgroundPushEnabledCheckBox");
             Check(!backgroundSwitch.IsVisible,
@@ -103,7 +216,7 @@ internal static class Program
             Check(Require<TextBlock>(mail, "BackgroundPushStatusText").IsVisible,
                 "brief connection status remains visible");
             var diagnosticExpander = Require<Expander>(mail, "UnifiedDiagnosticsExpander");
-            Check(!diagnosticExpander.IsExpanded && Grid.GetColumn(diagnosticExpander.Parent as UIElement ?? diagnosticExpander) == 1,
+            Check(!diagnosticExpander.IsExpanded && Grid.GetColumn(diagnosticExpander.Parent as UIElement ?? diagnosticExpander) == 2,
                 "all diagnostics are collapsed and placed on the right");
             diagnosticExpander.IsExpanded = true;
             mail.UpdateLayout();
@@ -503,6 +616,11 @@ internal static class Program
             parent = VisualTreeHelper.GetParent(parent);
         }
         return null;
+    }
+
+    private static void Expect<T>(T actual, T expected, string label)
+    {
+        Check(EqualityComparer<T>.Default.Equals(actual, expected), label);
     }
 
     private static void Check(bool condition, string description)
