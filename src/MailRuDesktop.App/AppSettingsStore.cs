@@ -224,16 +224,24 @@ internal sealed class AppSettingsStore
         ResetPrimaryColor();
     }
 
-    public SavedWindowGeometry? LoadComposeWindowGeometry() =>
-        LoadState().ComposeWindowGeometry;
-
-    public void SaveComposeWindowGeometry(SavedWindowGeometry value)
+    public SavedWindowGeometry? LoadWindowGeometry(string kind)
     {
+        var state = LoadState();
+        return state.WindowGeometries is not null &&
+               state.WindowGeometries.TryGetValue(kind, out var geometry)
+            ? geometry : kind == "compose" ? state.ComposeWindowGeometry : null;
+    }
+
+    public void SaveWindowGeometry(string kind, SavedWindowGeometry value)
+    {
+        if (string.IsNullOrWhiteSpace(kind))
+            throw new ArgumentException("Укажите тип окна.", nameof(kind));
         ArgumentNullException.ThrowIfNull(value);
         lock (_sync)
         {
             var state = LoadStateCore();
-            state.ComposeWindowGeometry = value;
+            state.WindowGeometries ??= new Dictionary<string, SavedWindowGeometry>();
+            state.WindowGeometries[kind] = value;
             SaveStateCore(state);
         }
     }
@@ -428,6 +436,7 @@ internal sealed class AppSettingsStore
         public Dictionary<string, string>? LightPalette { get; set; }
         public UserInterfaceState? UserInterface { get; set; }
         public SavedWindowGeometry? ComposeWindowGeometry { get; set; }
+        public Dictionary<string, SavedWindowGeometry>? WindowGeometries { get; set; }
         public List<AccountRailLayoutEntryState>? AccountRailLayout { get; set; }
         public List<SavedSignature>? Signatures { get; set; }
         public List<SavedMailTemplate>? MailTemplates { get; set; }
