@@ -46,6 +46,10 @@ public partial class MessageWindow : Window
             : null;
 
         InitializeComponent();
+        var geometryStore = new AppSettingsStore();
+        WindowGeometryPersistence.Restore(this, geometryStore, "message-reader");
+        Closing += (_, _) =>
+            WindowGeometryPersistence.Save(this, geometryStore, "message-reader");
         _messageRichEditor = RichComposeEditor.Attach(ComposeBodyTextBox, this, resizable: true);
 
         Title = $"{summary.Subject} — MailRu Desktop";
