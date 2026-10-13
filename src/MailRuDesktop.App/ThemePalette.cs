@@ -76,89 +76,119 @@ internal static class ThemePalette
         new("AppStarBrush", "Отметки", "Избранное",
             "Активные звёздочки писем", "#FFD54A", "#D49E00"),
         new("AppPinBrush", "Отметки", "Закрепление",
-            "Активные булавки закреплённых писем", "#E5484D", "#C62832")
+            "Активные булавки закреплённых писем", "#C62832", "#C62832"),
+        new("AppUnreadTextBrush", "Текст", "Непрочитанные письма",
+            "Отправители и темы непрочитанных писем", "#8FB5E2", "#355D8D")
     ];
 
-    // The visual resource names remain stable for older XAML and saved theme
-    // files. These keys now share one editable setting for similar elements.
-    // Previously saved colors are carried forward without deleting user data.
-    public static IReadOnlyDictionary<string, string> UnifiedRoleKeys { get; } =
-        new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            ["AppPanelBrush"] = "AppWindowBrush",
-            ["AppDialogBrush"] = "AppWindowBrush",
-            ["AppInputBrush"] = "AppControlBrush",
-            ["AppDisabledTextBrush"] = "AppMutedTextBrush",
-            ["AppScrollArrowBrush"] = "AppScrollThumbBrush",
-            ["AppSelectionTextBrush"] = "AppTextBrush"
-        };
+    // All UI colors are derived from eight tones of a SINGLE user-supplied
+    // primary color. Semantic brushes remain stable for the existing XAML.
+    // Success/warning/danger and pinned/flagged status use fixed colors.
+    public const string DefaultPrimaryColor = "#426B9C";
 
     public static IReadOnlyList<ThemeColorRole> EditableRoles { get; } =
-        Roles.Where(role => !UnifiedRoleKeys.ContainsKey(role.Key)).ToArray();
-
-    private static readonly Dictionary<string, ThemeColorRole> ByKey =
-        Roles.ToDictionary(role => role.Key, StringComparer.Ordinal);
+        Roles.Where(role => role.Key == "AppAccentBrush").ToArray();
 
     public static IReadOnlyDictionary<string, string> Defaults(bool dark) =>
-        Roles.ToDictionary(r => r.Key, r => dark ? r.DarkDefault : r.LightDefault,
-            StringComparer.Ordinal);
+        Generate(dark, DefaultPrimaryColor);
 
     public static bool TryNormalize(string? value, out string normalized)
     {
         normalized = "";
-        if (value is null)
-            return false;
-
+        if (value is null) return false;
         var text = value.Trim().TrimStart('#');
         if (text.Length != 6 ||
-            !int.TryParse(text, NumberStyles.HexNumber, CultureInfo.InvariantCulture,
-                out _))
+            !int.TryParse(text, NumberStyles.HexNumber,
+                CultureInfo.InvariantCulture, out _))
             return false;
-
         normalized = "#" + text.ToUpperInvariant();
         return true;
     }
 
+    // Accept the former entry point, but ignore every legacy per-role setting.
+    // Older stored dictionaries remain untouched on disk for safe migration.
     public static Dictionary<string, string> Merge(
         bool dark, IReadOnlyDictionary<string, string>? overrides)
     {
-        var colors = Defaults(dark).ToDictionary(p => p.Key, p => p.Value, StringComparer.Ordinal);
-        if (overrides is null)
-        {
-            foreach (var (alias, canonical) in UnifiedRoleKeys)
-                colors[alias] = colors[canonical];
-            return colors;
-        }
+        var primary = overrides is not null &&
+                      overrides.TryGetValue("AppAccentBrush", out var selected) &&
+                      TryNormalize(selected, out var normalized)
+            ? normalized : DefaultPrimaryColor;
+        return Generate(dark, primary);
+    }
 
-        foreach (var (key, value) in overrides)
-        {
-            if (ByKey.ContainsKey(key) && TryNormalize(value, out var hex))
-                colors[key] = hex;
-        }
+    public static Dictionary<string, string> Generate(bool dark, string primary)
+    {
+        if (!TryNormalize(primary, out var baseHex))
+            throw new ArgumentException("Основной цвет должен иметь вид #RRGGBB.", nameof(primary));
 
-        // Historical settings can contain several different values that are
-        // now represented by one common color. Keep the first valid legacy
-        // choice in catalog order, rather than allowing the last alias to
-        // overwrite an earlier custom choice accidentally. An explicitly
-        // edited canonical role always takes priority.
-        var selectedFromLegacy = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var (alias, canonical) in UnifiedRoleKeys)
+        // Exactly eight shared tones; the end points are tinted rather than
+        // neutral so changing the primary hue affects backgrounds and text.
+        var tones = new[]
         {
-            var hasCanonicalOverride = overrides.TryGetValue(canonical,
-                out var selectedCanonical) &&
-                TryNormalize(selectedCanonical, out _);
-            if (!hasCanonicalOverride &&
-                selectedFromLegacy.Add(canonical) &&
-                overrides.TryGetValue(alias, out var previous) &&
-                TryNormalize(previous, out var normalized))
+            Blend(baseHex, "#FFFFFF", .985),
+            Blend(baseHex, "#FFFFFF", .90),
+            Blend(baseHex, "#FFFFFF", .76),
+            Blend(baseHex, "#FFFFFF", .58),
+            Blend(baseHex, "#FFFFFF", .28),
+            Blend(baseHex, "#070A10", .10),
+            Blend(baseHex, "#070A10", .66),
+            Blend(baseHex, "#070A10", .86)
+        };
+        var index = dark
+            ? new Dictionary<string, int>(StringComparer.Ordinal)
             {
-                colors[canonical] = normalized;
+                ["AppWindowBrush"] = 7, ["AppPanelBrush"] = 6,
+                ["AppDialogBrush"] = 6, ["AppReaderBrush"] = 7,
+                ["AppInputBrush"] = 6, ["AppControlBrush"] = 6,
+                ["AppControlHoverBrush"] = 5, ["AppControlPressedBrush"] = 4,
+                ["AppBorderBrush"] = 5, ["AppFocusBrush"] = 4,
+                ["AppTextBrush"] = 0, ["AppMutedTextBrush"] = 3,
+                ["AppDisabledTextBrush"] = 3, ["AppAccentTextBrush"] = 7,
+                ["AppLinkBrush"] = 3, ["AppAccentBrush"] = 4,
+                ["AppSelectionBrush"] = 5, ["AppSelectionTextBrush"] = 0,
+                ["AppScrollTrackBrush"] = 7, ["AppScrollThumbBrush"] = 4,
+                ["AppScrollArrowBrush"] = 3, ["AppUnreadTextBrush"] = 4
             }
-        }
-        foreach (var (alias, canonical) in UnifiedRoleKeys)
-            colors[alias] = colors[canonical];
+            : new Dictionary<string, int>(StringComparer.Ordinal)
+            {
+                ["AppWindowBrush"] = 0, ["AppPanelBrush"] = 1,
+                ["AppDialogBrush"] = 1, ["AppReaderBrush"] = 0,
+                ["AppInputBrush"] = 0, ["AppControlBrush"] = 2,
+                ["AppControlHoverBrush"] = 3, ["AppControlPressedBrush"] = 4,
+                ["AppBorderBrush"] = 3, ["AppFocusBrush"] = 5,
+                ["AppTextBrush"] = 7, ["AppMutedTextBrush"] = 5,
+                ["AppDisabledTextBrush"] = 5, ["AppAccentTextBrush"] = 0,
+                ["AppLinkBrush"] = 5, ["AppAccentBrush"] = 5,
+                ["AppSelectionBrush"] = 2, ["AppSelectionTextBrush"] = 7,
+                ["AppScrollTrackBrush"] = 1, ["AppScrollThumbBrush"] = 4,
+                ["AppScrollArrowBrush"] = 5, ["AppUnreadTextBrush"] = 5
+            };
 
+        var colors = index.ToDictionary(
+            pair => pair.Key, pair => tones[pair.Value], StringComparer.Ordinal);
+        colors["AppSuccessBrush"] = "#208A61";
+        colors["AppWarningBrush"] = "#D99A18";
+        colors["AppDangerBrush"] = "#C62832";
+        colors["AppPinBrush"] = "#C62832";
+        colors["AppStarBrush"] = "#D49E00";
+        if (colors.Count != Roles.Count)
+            throw new InvalidOperationException("Не все цветовые роли назначены.");
         return colors;
+    }
+
+    private static string Blend(string first, string second, double otherWeight)
+    {
+        var channels = new int[3];
+        for (var channel = 0; channel < 3; channel++)
+        {
+            var offset = 1 + channel * 2;
+            var start = Convert.ToInt32(first.Substring(offset, 2), 16);
+            var target = Convert.ToInt32(second.Substring(offset, 2), 16);
+            channels[channel] = (int)Math.Round(
+                start * (1 - otherWeight) + target * otherWeight);
+        }
+        return $"#{channels[0]:X2}{channels[1]:X2}{channels[2]:X2}";
     }
 
     public static double Contrast(string first, string second)
