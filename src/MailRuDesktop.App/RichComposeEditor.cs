@@ -128,6 +128,10 @@ internal sealed class RichComposeEditor
         return editor;
     }
 
+    // Exposed internally for UI regression checks; the shared editor remains
+    // the only owner of this control in production.
+    internal RichTextBox TextControl => _rich;
+
     public void Focus() => _rich.Focus();
 
     public void LoadMarkdown(string markdown)
