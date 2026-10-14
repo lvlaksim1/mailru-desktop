@@ -262,6 +262,17 @@ public partial class MainWindow : Window
             {
                 // An expired token is different from a transient network error.
                 // Preserve the unread counter but mark ONLY this account invalid.
+                // A manual re-authorization may have replaced this account's
+                // access token while the old counter request was in progress.
+                if (_authStore.TryRestore(item.Login, out var currentAuthorization) &&
+                    currentAuthorization is not null &&
+                    !string.Equals(currentAuthorization.AccessToken, authorization.AccessToken,
+                        StringComparison.Ordinal))
+                {
+                    item.Status = "Авторизация обновлена";
+                    TraceAuthToken(item.Login, "background_counter", "result", "superseded");
+                    continue;
+                }
                 item.Status = "Требуется повторный вход";
                 TraceAuthToken(item.Login, "background_counter", "result", "unverified");
                 // Do not send dozens of successive refresh attempts after a
@@ -275,9 +286,8 @@ public partial class MainWindow : Window
                 item.Status = item.Unread is null
                     ? "Ошибка загрузки"
                     : $"Непрочитанных: {item.Unread} · обновление не удалось";
-                DiagnosticLog.Write(
-                    "account_unread_" + item.Login,
-                    ex.GetType().Name + ": " + ex.Message);
+                TraceAuthToken(item.Login, "background_counter", "operation",
+                    "exception", kind: ex.GetType().Name);
             }
         }
     }
@@ -697,7 +707,7 @@ public partial class MainWindow : Window
 
             if (!string.IsNullOrWhiteSpace(_activeLogin))
                 AuthStatusText.Text = tokenDenied
-                    ? "Mail.ru отклонил токен этого аккаунта · требуется повторный вход"
+                    ? "Не удалось подтвердить авторизацию · см. диагностику"
                     : "Не удалось проверить сохранённую авторизацию";
         }
         finally
