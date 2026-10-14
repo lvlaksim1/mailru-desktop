@@ -568,7 +568,8 @@ internal sealed class RichComposeEditor
         }
     }
 
-    private static void RenderInlines(InlineCollection inlines, StringBuilder output)
+    private static void RenderInlines(InlineCollection inlines, StringBuilder output,
+        bool inheritedUnderline = false)
     {
         foreach (Inline inline in inlines)
         {
@@ -580,7 +581,10 @@ internal sealed class RichComposeEditor
                 var styles = new List<string>();
                 if (run.FontWeight == FontWeights.Bold) styles.Add("font-weight:bold");
                 if (run.FontStyle == FontStyles.Italic) styles.Add("font-style:italic");
-                if (run.TextDecorations?.Contains(TextDecorations.Underline[0]) == true)
+                var explicitDecorations = run.ReadLocalValue(Inline.TextDecorationsProperty)
+                    != DependencyProperty.UnsetValue;
+                if (run.TextDecorations?.Contains(TextDecorations.Underline[0]) == true ||
+                    (inheritedUnderline && !explicitDecorations))
                     styles.Add("text-decoration:underline");
                 if (run.TextDecorations?.Contains(TextDecorations.Strikethrough[0]) == true)
                     styles.Add("text-decoration:line-through");
@@ -604,7 +608,8 @@ internal sealed class RichComposeEditor
             {
                 // Structural Bold/Italic/Underline can outlive a formatting
                 // reset; effective child properties are the source of truth.
-                RenderInlines(span.Inlines, output);
+                RenderInlines(span.Inlines, output,
+                    inheritedUnderline || span is Underline);
             }
         }
     }
