@@ -521,6 +521,7 @@ public partial class MainWindow
 
     private void ApplyComposeTemplate(SavedMailTemplate template)
     {
+        var previouslySelectedSignature = ComposeSignatureComboBox.SelectedItem as SavedSignature;
         if (_composeRichEditor is { IsReplyMode: true } replyEditor)
             replyEditor.ApplyTemplateMarkdown(template.Body, _signatures.Select(item => item.Body));
         else if (_composeRichEditor is not null)
@@ -531,7 +532,12 @@ public partial class MainWindow
         // A template replaces only the body; the user's default/selected
         // signature remains a separate, nonduplicating trailing region.
         if (_composeRichEditor is { IsReplyMode: false })
-            ApplyDefaultComposeSignature();
+        {
+            if (previouslySelectedSignature is not null)
+                ApplyComposeSignature(previouslySelectedSignature, false);
+            else
+                ApplyDefaultComposeSignature();
+        }
         _attachmentPaths.Clear();
         var missing = 0;
         foreach (var path in template.Attachments)
