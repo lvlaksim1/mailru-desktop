@@ -251,6 +251,61 @@ internal static class Program
                 "no WPF overlay can create WebView2 airspace flashes");
 
             var modernList = Require<ListBox>(mail, "MessagesGrid");
+
+            // Stage 2: diagnostic output must never become the source of
+            // folder thread counts. Re-rendering after an unrelated command
+            // cannot replace counts; publishing a new folder snapshot can.
+            var diagnosticsBox = Require<TextBox>(mail, "ResponseTextBox");
+            var conversationField = typeof(MainWindow).GetField("_conversationIndex",
+                BindingFlags.Instance | BindingFlags.NonPublic)!;
+            var modelBuilder = typeof(MainWindow).GetMethod("BuildFolderThreadState",
+                BindingFlags.Static | BindingFlags.NonPublic)!;
+            var modelPublisher = typeof(MainWindow).GetMethod("PublishFolderThreadState",
+                BindingFlags.Instance | BindingFlags.NonPublic)!;
+            var rerender = typeof(MainWindow).GetMethod("RefreshModernMailListView",
+                BindingFlags.Instance | BindingFlags.NonPublic)!;
+            var registryType = typeof(MainWindow).Assembly.GetType(
+                "MailRuDesktop.App.MailThreadCountRegistry", throwOnError: true)!;
+            var registryGet = registryType.GetMethod("Get",
+                BindingFlags.Static | BindingFlags.Public)!;
+            var registryReplace = registryType.GetMethod("Replace",
+                BindingFlags.Static | BindingFlags.Public)!;
+            var registryCountsField = registryType.GetField("_counts",
+                BindingFlags.Static | BindingFlags.NonPublic)!;
+            var originalThreadCounts = registryCountsField.GetValue(null);
+            var originalConversations = conversationField.GetValue(mail);
+            var originalDiagnosticText = diagnosticsBox.Text;
+            try
+            {
+                object Snapshot(string json) => modelBuilder.Invoke(null, new object[] { json })!;
+                int Count(string id) => (int)registryGet.Invoke(null, new object[] { id })!;
+
+                modelPublisher.Invoke(mail, new[] {
+                    Snapshot("""{"threads":[{"id":"stage2-old-message","length":5}]}""") });
+                diagnosticsBox.Text =
+                    """{"threads":[{"id":"stage2-old-message","length":99}]}""";
+                rerender.Invoke(mail, null);
+                Check(Count("stage2-old-message") == 5,
+                    "unrelated diagnostic JSON cannot modify folder conversation counts");
+
+                modelPublisher.Invoke(mail, new[] {
+                    Snapshot("""{"threads":[{"id":"stage2-new-message","length":2}]}""") });
+                Check(Count("stage2-old-message") == 1 &&
+                      Count("stage2-new-message") == 2,
+                    "publishing next folder/account snapshot replaces the old index atomically");
+
+                diagnosticsBox.Text = "another operation completed";
+                rerender.Invoke(mail, null);
+                Check(Count("stage2-new-message") == 2,
+                    "non-JSON diagnostic text does not erase published thread counts");
+            }
+            finally
+            {
+                conversationField.SetValue(mail, originalConversations);
+                registryReplace.Invoke(null, new[] { originalThreadCounts });
+                diagnosticsBox.Text = originalDiagnosticText;
+            }
+
             // Regression: the server finds matches inside FULL message bodies.
             // Filtering its result again by only Subject/Snippet must not hide them.
             var searchBox = Require<TextBox>(mail, "FilterQueryTextBox");
