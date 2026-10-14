@@ -6,9 +6,9 @@ namespace MailRuDesktop.App;
 
 public partial class MainWindow
 {
-    // Protect against a second manual click after a server operation with an
-    // uncertain outcome. The source ID is scoped to the originating account.
-    private readonly HashSet<string> _sendNowAttemptedDeletes =
+    // A lost server reply can conceal a completed send. Never dispatch that
+    // same clone twice from a single application session.
+    private readonly HashSet<string> _sendNowAttemptedSends =
         new(StringComparer.OrdinalIgnoreCase);
 
     private async void PreviewSendNowButton_Click(object sender, RoutedEventArgs e)
@@ -37,16 +37,8 @@ public partial class MainWindow
             folder == _currentFolderId &&
             CurrentFolderIsOutbox;
 
-        var confirmed = AppDialog.Confirm(
-            this,
-            "Отправить сейчас",
-            selected.Count == 1
-                ? "Подготовить копию, удалить отложенное письмо и отправить копию сейчас? ВНИМАНИЕ: исчезновение старого письма из папки ещё не доказывает отмену серверного расписания. Проверьте результат на тестовом адресе."
-                : $"Для {selected.Count} писем: подготовить копию, удалить оригинал и отправить копию. Серверная отмена расписания не подтверждена отдельным испытанием; возможна повторная доставка. Продолжить?",
-            "Отправить", "Отмена");
-        if (!confirmed || !IsCurrent())
-            return;
-
+        // No confirmation dialogs: the button performs the requested action.
+        // Errors and progress appear only in the existing status and diagnostics.
         _bulkOperationInProgress = true;
         UpdateBulkToolbar();
         var sentCount = 0;
@@ -56,27 +48,23 @@ public partial class MainWindow
             {
                 if (!IsCurrent())
                 {
-                    FolderStatusText.Text = "Операция остановлена: изменён аккаунт или папка.";
+                    FolderStatusText.Text = "Отправка остановлена: изменён аккаунт или папка.";
                     break;
                 }
 
-                // Once the message is removed, a failed or unconfirmed send
-                // must never automatically retry. Even a failed HTTP reply may
-                // conceal a completed delivery.
                 var token = _accessToken!;
                 var originalId = message.Id;
                 var operationId = account.ToUpperInvariant() + ":" + originalId;
-                if (_sendNowAttemptedDeletes.Contains(operationId))
+                if (_sendNowAttemptedSends.Contains(operationId))
                 {
                     FolderStatusText.Text =
-                        "Для этого письма уже была попытка отмены расписания. Повторная отправка заблокирована до ручной проверки.";
-                    AppDialog.Info(this, "Повторная отправка заблокирована",
-                        FolderStatusText.Text);
+                        "Письмо уже обрабатывалось. Повторная отправка заблокирована.";
+                    DiagnosticLog.Write("scheduled_send_now", "repeated_send_prevented");
                     break;
                 }
-                var originalDeleted = false;
+
                 FolderStatusText.Text =
-                    $"Подготовка копии письма {sentCount + 1} из {selected.Count}...";
+                    $"Подготовка письма {sentCount + 1} из {selected.Count}...";
 
                 var outcome = await ScheduledSendNowExecution.RunAsync(
                     async () =>
@@ -87,22 +75,21 @@ public partial class MainWindow
                             full.To.Count == 0 ||
                             (string.IsNullOrWhiteSpace(full.Html) &&
                              string.IsNullOrWhiteSpace(full.Text)))
-                            throw new InvalidOperationException("Невозможно подготовить полную копию письма.");
+                            throw new InvalidOperationException("Incomplete message for cloning.");
 
-                        // Inline CID images require a separate content-ID map.
-                        // Never delete the original if we cannot clone them intact.
+                        // Inline CID images cannot be cloned safely without
+                        // remapping their content IDs to the new attachment IDs.
                         if (full.Html.Contains("cid:", StringComparison.OrdinalIgnoreCase))
-                            throw new InvalidOperationException("Встроенные изображения CID нельзя клонировать без потери связи.");
+                            throw new InvalidOperationException("Unsupported inline CID image.");
 
-                        // All attachments are downloaded and uploaded BEFORE
-                        // deleting the scheduled original. No local temp files.
+                        // Prepare every attachment for the clone before send.
                         var attachmentIds = new List<string>();
                         foreach (var attachment in full.Attachments)
                         {
                             var bytes = await _mailRu.DownloadIncomingAttachmentAsync(
                                 token, originalId, attachment.Id);
                             if (bytes.Length == 0)
-                                throw new InvalidOperationException("Не удалось прочитать вложение.");
+                                throw new InvalidOperationException("Missing attachment data.");
                             using var stream = new MemoryStream(bytes, writable: false);
                             attachmentIds.Add(await _mailRu.UploadAttachmentAsync(
                                 token, stream, attachment.DisplayName));
@@ -119,72 +106,56 @@ public partial class MainWindow
                             Cc: string.Join(", ", full.Cc),
                             Bcc: string.Join(", ", full.Bcc));
                     },
-                    async () =>
-                    {
-                        if (!IsCurrent())
-                            return false;
-                        FolderStatusText.Text = "Удаление первоначальной отложенной отправки...";
-                        _sendNowAttemptedDeletes.Add(operationId);
-                        originalDeleted = (await _mailRu.RemoveMessagesAsync(
-                            token, account, [originalId])).Success;
-                        if (!originalDeleted)
-                            _sendNowAttemptedDeletes.Remove(operationId);
-                        return originalDeleted;
-                    },
-                    async () =>
-                    {
-                        // Fail closed if we cannot independently observe that
-                        // the former schedule is absent in the same folder.
-                        var raw = await _mailRu.GetFolderThreadsAsync(
-                            token, folder, limit: 1000, lastModified: 1);
-                        var snapshot = MailRuThreadStatusParser.Parse(raw, folder);
-                        return snapshot.SelectedFolderId == folder &&
-                            snapshot.MessagesTotal is >= 0 and <= 1000 &&
-                            snapshot.Messages.All(x =>
-                                !string.Equals(x.Id, originalId, StringComparison.Ordinal));
-                    },
                     async outgoing =>
                     {
-                        if (!IsCurrent())
-                            return false;
-                        FolderStatusText.Text = "Отправка подготовленной копии...";
+                        FolderStatusText.Text = "Отправка копии...";
                         return (await _mailRu.SendMessageAsync(token, outgoing)).Success;
                     },
-                    IsCurrent);
+                    async () =>
+                    {
+                        // The send already succeeded: move the original using
+                        // the captured credentials, even if the UI switched
+                        // accounts while the send request was in flight.
+                        FolderStatusText.Text = "Перемещение оригинала в Корзину...";
+                        return (await _mailRu.MoveMessagesAsync(
+                            token, [originalId], 500002)).Success;
+                    },
+                    IsCurrent,
+                    () => _sendNowAttemptedSends.Add(operationId));
 
-                if (outcome != ScheduledSendNowOutcome.Sent)
+                if (outcome != ScheduledSendNowOutcome.SentAndTrashed)
                 {
                     FolderStatusText.Text = outcome switch
                     {
                         ScheduledSendNowOutcome.PreparationFailed =>
-                            "Копия не подготовлена. Исходное письмо не удалялось.",
-                        ScheduledSendNowOutcome.OriginalNotDeleted =>
-                            "Сервер не подтвердил удаление исходного расписания. Отправка отменена.",
-                        ScheduledSendNowOutcome.RemovalUncertain =>
-                            "Статус удаления неизвестен. Копия НЕ отправлялась. Проверьте папку вручную.",
-                        ScheduledSendNowOutcome.ContextChanged => originalDeleted
-                            ? "Исходное письмо уже удалено, но аккаунт или папка изменились. Копия не отправлялась; проверьте папки вручную."
-                            : "Изменён аккаунт или папка. Операция остановлена до удаления исходного письма.",
-                        _ =>
-                            "Исходное расписание удалено, но результат отправки не подтверждён. НЕ повторяйте действие до проверки папки «Отправленные»."
+                            "Не удалось подготовить копию. Отложенное письмо не изменено.",
+                        ScheduledSendNowOutcome.ContextChanged =>
+                            "Аккаунт или папка изменены. Отправка не начата.",
+                        ScheduledSendNowOutcome.SendUnconfirmed =>
+                            "Результат отправки копии неизвестен. Оригинал оставлен в Исходящих.",
+                        ScheduledSendNowOutcome.SentTrashRejected =>
+                            "Копия отправлена, но оригинал остался в Исходящих.",
+                        ScheduledSendNowOutcome.SentTrashUnconfirmed =>
+                            "Копия отправлена. Перемещение оригинала в Корзину не подтверждено.",
+                        _ => "Операция остановлена."
                     };
-                    // In bulk mode never advance past the first uncertain stage.
-                    AppDialog.Info(this, "Операция остановлена",
-                        FolderStatusText.Text +
-                        "\n\nНе запускайте отправку повторно, пока не проверите фактическое состояние.");
+                    DiagnosticLog.Write("scheduled_send_now", outcome.ToString());
+                    // Never automatically retry the clone; in bulk mode stop
+                    // at the first failed or uncertain stage.
                     break;
                 }
 
                 sentCount++;
                 if (IsCurrent())
                     RemoveConfirmedMailRows([originalId]);
-                FolderStatusText.Text = $"Отправлено немедленно: {sentCount} из {selected.Count}.";
+                FolderStatusText.Text =
+                    $"Копий отправлено: {sentCount} из {selected.Count}. Оригиналы в Корзине.";
+                DiagnosticLog.Write("scheduled_send_now", "sent_and_moved_to_trash");
             }
         }
         catch (Exception ex)
         {
-            FolderStatusText.Text =
-                "Операция прервана. Проверьте «Исходящие» и «Отправленные», не нажимая повторно.";
+            FolderStatusText.Text = "Операция остановлена. Проверьте Исходящие и Отправленные.";
             DiagnosticLog.Write("scheduled_send_now", ex.GetType().Name);
         }
         finally
