@@ -587,7 +587,7 @@ public partial class MainWindow : Window
     // Shared with synthetic WPF tests; this never sends a network request.
     private bool IsCurrentFolderLoad(FolderLoadIdentity identity) =>
         identity.IsCurrent(
-            Volatile.Read(ref _accountSwitchGeneration), _activeLogin, _accessToken);
+            Volatile.Read(ref _accountSwitchGeneration), _activeLogin);
 
     // SelectionChanged is not raised when clicking the already-selected
     // folder. That must still leave Settings and return to the mailbox.
@@ -639,7 +639,7 @@ public partial class MainWindow : Window
         var folderLoadGeneration = Volatile.Read(ref _accountSwitchGeneration);
         var folderLoadLogin = _activeLogin;
         var folderLoadIdentity = new FolderLoadIdentity(
-            folderLoadGeneration, folderLoadLogin, _accessToken);
+            folderLoadGeneration, folderLoadLogin);
         bool IsInvalidFolderLoad() =>
             IsStaleAccountSwitch() || !IsCurrentFolderLoad(folderLoadIdentity);
         bool HasNewerFolderSelection() =>
