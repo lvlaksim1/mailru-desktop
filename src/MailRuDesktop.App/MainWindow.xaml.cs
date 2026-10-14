@@ -28,6 +28,7 @@ public partial class MainWindow : Window
 
     private int _currentFolderId;
     private bool _loadingFolder;
+    private readonly PendingFolderSelection _pendingFolderSelection = new();
     private bool _updatingFolderSelection;
     private bool _updatingAccountSelection;
     private bool _readerReady;
@@ -561,15 +562,26 @@ public partial class MainWindow : Window
     private async void FolderListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_updatingFolderSelection ||
-            _loadingFolder ||
             FolderListBox.SelectedItem is not MailRuFolderSummary folder)
             return;
 
         if (SettingsWorkspace.Visibility == Visibility.Visible)
             ShowWorkspace(MailWorkspace);
 
-        if (folder.Id != _currentFolderId)
-            await LoadFolderAsync(folder.Id);
+        await RequestFolderSelectionAsync(folder.Id);
+    }
+
+    private Task RequestFolderSelectionAsync(int folderId)
+    {
+        if (_loadingFolder)
+        {
+            _pendingFolderSelection.Request(
+                folderId, Volatile.Read(ref _accountSwitchGeneration), _activeLogin);
+            return Task.CompletedTask;
+        }
+        return folderId == _currentFolderId
+            ? Task.CompletedTask
+            : LoadFolderAsync(folderId);
     }
 
     // SelectionChanged is not raised when clicking the already-selected
@@ -587,8 +599,7 @@ public partial class MainWindow : Window
             return;
 
         ShowWorkspace(MailWorkspace);
-        if (folder.Id != _currentFolderId && !_loadingFolder)
-            _ = LoadFolderAsync(folder.Id);
+        _ = RequestFolderSelectionAsync(folder.Id);
     }
 
     private void FolderListBox_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -598,8 +609,7 @@ public partial class MainWindow : Window
             FolderListBox.SelectedItem is not MailRuFolderSummary folder)
             return;
         ShowWorkspace(MailWorkspace);
-        if (folder.Id != _currentFolderId && !_loadingFolder)
-            _ = LoadFolderAsync(folder.Id);
+        _ = RequestFolderSelectionAsync(folder.Id);
         e.Handled = true;
     }
 
@@ -620,6 +630,11 @@ public partial class MainWindow : Window
 
         if (_loadingFolder)
             return;
+
+        var folderLoadGeneration = Volatile.Read(ref _accountSwitchGeneration);
+        var folderLoadLogin = _activeLogin;
+        bool HasNewerFolderSelection() =>
+            _pendingFolderSelection.Supersedes(folderId, folderLoadGeneration, folderLoadLogin);
 
         CancelServerSearch();
         _serverSearchMode = false;
@@ -649,8 +664,8 @@ public partial class MainWindow : Window
         {
             var raw = await LoadFolderWithRefreshAsync(folderId);
 
-            // A newer account selection supersedes this result.
-            if (IsStaleAccountSwitch())
+            // Do not publish an older folder after the user chose another one.
+            if (IsStaleAccountSwitch() || HasNewerFolderSelection())
                 return;
 
             // Build a coherent snapshot before asynchronous enrichment. If the
@@ -660,7 +675,7 @@ public partial class MainWindow : Window
             var completeRows = CollapseVerifiedConversations(
                 snapshot.Messages, folderThreads.Conversations);
             await PrefetchFirstMissingSendersAsync(completeRows, _accessToken);
-            if (IsStaleAccountSwitch())
+            if (IsStaleAccountSwitch() || HasNewerFolderSelection())
                 return;
 
             PublishFolderThreadState(folderThreads);
@@ -695,7 +710,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            if (IsStaleAccountSwitch())
+            if (IsStaleAccountSwitch() || HasNewerFolderSelection())
                 return;
 
             FolderStatusText.Text = "Ошибка загрузки: " + ex.Message;
@@ -717,6 +732,15 @@ public partial class MainWindow : Window
         {
             RefreshFolderButton.IsEnabled = true;
             _loadingFolder = false;
+
+            // Run the last explicit choice after releasing this load.
+            // A prior account load may not begin work for a later account.
+            var pending = _pendingFolderSelection.Take(folderLoadGeneration, folderLoadLogin);
+            if (pending is int nextFolderId &&
+                nextFolderId != _currentFolderId &&
+                folderLoadGeneration == Volatile.Read(ref _accountSwitchGeneration) &&
+                string.Equals(folderLoadLogin, _activeLogin, StringComparison.OrdinalIgnoreCase))
+                _ = LoadFolderAsync(nextFolderId);
         }
     }
 

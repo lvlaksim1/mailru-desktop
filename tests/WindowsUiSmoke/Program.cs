@@ -306,6 +306,58 @@ internal static class Program
                       extractedHeader, _ => true) is null,
                 "single permanent WebView2 remains outside extracted header");
 
+            // Stage 4.2: real WPF folder selections while a load is in progress.
+            // Simulated mailbox state; no network requests or secrets.
+            var folderList = Require<ListBox>(mail, "FolderListBox");
+            var folders = (System.Collections.ObjectModel.ObservableCollection<
+                MailRuDesktop.Protocol.MailRuFolderSummary>)folderList.ItemsSource;
+            var loading = typeof(MainWindow).GetField("_loadingFolder",
+                BindingFlags.Instance | BindingFlags.NonPublic)!;
+            var suppressFolderEvents = typeof(MainWindow).GetField("_updatingFolderSelection",
+                BindingFlags.Instance | BindingFlags.NonPublic)!;
+            var deferredState = typeof(MainWindow).GetField("_pendingFolderSelection",
+                BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(mail)!;
+            var takePending = deferredState.GetType().GetMethod("Take",
+                BindingFlags.Instance | BindingFlags.NonPublic)!;
+            var generation = (long)typeof(MainWindow).GetField("_accountSwitchGeneration",
+                BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(mail)!;
+            var activeLogin = (string?)typeof(MainWindow).GetField("_activeLogin",
+                BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(mail);
+            var originalFolder = (int)typeof(MainWindow).GetField("_currentFolderId",
+                BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(mail)!;
+            var originallyLoading = (bool)loading.GetValue(mail)!;
+            loading.SetValue(mail, true);
+            try
+            {
+                var first = new MailRuDesktop.Protocol.MailRuFolderSummary(
+                    701, "custom", "Первая", 0, 0, false);
+                var second = first with { Id = 702, Name = "Вторая" };
+                var thirdSyntheticFolder = first with { Id = 703, Name = "Третья" };
+                folders.Add(first);
+                folders.Add(second);
+                folders.Add(thirdSyntheticFolder);
+                folderList.SelectedItem = first;
+                folderList.SelectedItem = second;
+                folderList.SelectedItem = thirdSyntheticFolder;
+                var requested = takePending.Invoke(deferredState, new object?[]
+                {
+                    generation, activeLogin
+                });
+                Check(requested is int selected && selected == 703,
+                    "WPF selection change retains the final folder while loading");
+                Check((int)typeof(MainWindow).GetField("_currentFolderId",
+                          BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(mail)! ==
+                      originalFolder,
+                    "pending selection does not mutate the server-confirmed folder");
+            }
+            finally
+            {
+                suppressFolderEvents.SetValue(mail, true);
+                folders.Clear();
+                suppressFolderEvents.SetValue(mail, false);
+                loading.SetValue(mail, originallyLoading);
+            }
+
             var action = Require<Button>(mail, "MainComposeButton");
             Check(action.IsVisible, "New Mail action is visible above the message list");
             Check(Require<Grid>(mail, "SettingsWorkspace") is { }, "settings workspace loads");
