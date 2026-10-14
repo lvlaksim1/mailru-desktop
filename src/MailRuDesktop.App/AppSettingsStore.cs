@@ -296,6 +296,19 @@ internal sealed class AppSettingsStore
         }
     }
 
+    public string? LoadDefaultSignatureName() =>
+        LoadState().DefaultSignatureName;
+
+    public void SaveDefaultSignatureName(string? name)
+    {
+        lock (_sync)
+        {
+            var state = LoadStateCore();
+            state.DefaultSignatureName = string.IsNullOrWhiteSpace(name) ? null : name.Trim();
+            SaveStateCore(state);
+        }
+    }
+
     public List<SavedSignature> LoadSignatures() =>
         LoadState().Signatures
             ?.Select(CloneSignature)
@@ -455,6 +468,7 @@ internal sealed class AppSettingsStore
         public Dictionary<string, SavedWindowGeometry>? WindowGeometries { get; set; }
         public List<AccountRailLayoutEntryState>? AccountRailLayout { get; set; }
         public List<SavedSignature>? Signatures { get; set; }
+        public string? DefaultSignatureName { get; set; }
         public List<SavedMailTemplate>? MailTemplates { get; set; }
         public string? TemplateDirectory { get; set; }
         public string? AttachmentDownloadDirectory { get; set; }
