@@ -138,6 +138,12 @@ internal sealed class RichComposeEditor
 
     public void Focus() => _rich.Focus();
 
+    public void PlaceCaretAtStart()
+    {
+        _rich.CaretPosition = _rich.Document.Blocks.FirstBlock?.ContentStart
+            ?? _rich.Document.ContentStart;
+    }
+
     public void LoadMarkdown(string markdown)
     {
         _replyBody = null;
