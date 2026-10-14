@@ -9,6 +9,39 @@ static void Expect<T>(T actual, T expected, string label)
     Console.WriteLine("PASS " + label);
 }
 
+// Stage 4.2: rapid folder choices must preserve the final user intent.
+var pendingFolder = new PendingFolderSelection();
+pendingFolder.Request(11, 1, "first@example.invalid");
+pendingFolder.Request(12, 1, "first@example.invalid");
+pendingFolder.Request(13, 1, "first@example.invalid");
+Expect(pendingFolder.Supersedes(11, 1, "first@example.invalid"), true,
+    "new folder choice supersedes the current folder load");
+Expect(pendingFolder.Take(1, "first@example.invalid"), (int?)13,
+    "three rapid selections retain the final folder");
+Expect(pendingFolder.Take(1, "first@example.invalid"), (int?)null,
+    "the final folder choice is consumed only once");
+
+pendingFolder.Request(13, 2, "first@example.invalid");
+Expect(pendingFolder.Supersedes(13, 2, "first@example.invalid"), false,
+    "reselecting the loading folder permits its result");
+Expect(pendingFolder.Take(2, "first@example.invalid"), (int?)13,
+    "reselecting the loading folder remains a valid final choice");
+
+pendingFolder.Request(24, 4, "second@example.invalid");
+Expect(pendingFolder.Take(3, "first@example.invalid"), (int?)null,
+    "previous account load cannot consume a newer account choice");
+Expect(pendingFolder.Take(4, "second@example.invalid"), (int?)24,
+    "new account load receives its own deferred folder");
+
+pendingFolder.Request(31, 5, "first@example.invalid");
+Expect(pendingFolder.Take(6, "second@example.invalid"), (int?)null,
+    "previous account folder choice is discarded after account switch");
+pendingFolder.Request(40, 7, "third@example.invalid");
+Expect(pendingFolder.Supersedes(33, 7, "other@example.invalid"), false,
+    "queued folder choice cannot supersede another account");
+Expect(pendingFolder.Take(7, "third@example.invalid"), (int?)40,
+    "a matching account may consume its own folder choice");
+
 // Synthetic MCS event=4: only structured data is extracted. Other events
 // and remote commands remain ignored; no external requests in these tests.
 static byte[] PushKv(string key, string value) =>
