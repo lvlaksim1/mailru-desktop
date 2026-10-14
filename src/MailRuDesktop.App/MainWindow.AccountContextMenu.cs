@@ -131,7 +131,7 @@ public partial class MainWindow
             catch (MailRuDesktop.Protocol.MailRuAuthorizationException rejected)
             {
                 TraceAuthToken(login, "manual_reauth", "verify_new_access",
-                    "rejected", rejected.StatusCode, rejected.Source);
+                    "rejected", rejected.StatusCode, rejected.DenialSource);
                 throw;
             }
 
