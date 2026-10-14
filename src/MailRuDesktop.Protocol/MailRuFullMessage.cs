@@ -44,6 +44,8 @@ public sealed record MailRuFullMessage(
     IReadOnlyList<MailRuIncomingAttachment> Attachments,
     string RawJson)
 {
+    public IReadOnlyList<string> Bcc { get; init; } = Array.Empty<string>();
+
     public string SenderDisplay =>
         string.IsNullOrWhiteSpace(FromName)
             ? FromEmail
@@ -109,7 +111,10 @@ public static class MailRuFullMessageParser
                 html,
                 text,
                 attachments,
-                payload);
+                payload)
+            {
+                Bcc = ReadCorrespondentEmails(message, "bcc")
+            };
         }
         catch (JsonException ex)
         {
