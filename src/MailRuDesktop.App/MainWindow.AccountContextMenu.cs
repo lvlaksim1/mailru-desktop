@@ -151,16 +151,19 @@ public partial class MainWindow
 
             if (string.Equals(_activeLogin, login, StringComparison.OrdinalIgnoreCase))
             {
-                _accessToken = result.AccessToken;
-                if (_authStore.TryRestore(login, out var saved) && saved is not null)
-                    _refreshToken = saved.RefreshToken;
-
-                // Do not apply a new token to an older in-flight folder load.
+                // An existing folder request must finish with its original
+                // token; a later account switch must also take precedence.
                 while (_loadingFolder)
                     await Task.Delay(50);
 
-                SyncBackgroundPush();
-                await LoadFolderAsync(0);
+                if (string.Equals(_activeLogin, login, StringComparison.OrdinalIgnoreCase))
+                {
+                    _accessToken = result.AccessToken;
+                    if (_authStore.TryRestore(login, out var saved) && saved is not null)
+                        _refreshToken = saved.RefreshToken;
+                    SyncBackgroundPush();
+                    await LoadFolderAsync(0);
+                }
             }
         }
         catch (Exception ex)
