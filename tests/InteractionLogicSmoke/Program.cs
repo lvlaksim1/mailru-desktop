@@ -9,81 +9,104 @@ static void Expect<T>(T actual, T expected, string label)
     Console.WriteLine("PASS " + label);
 }
 
-// Issue #77: all scheduled send-now state transitions use synthetic callbacks.
-// No test performs a network call, deletes mail or sends a real message.
+// Issue #77: all send-then-trash states use synthetic callbacks only.
+// No actual emails are sent and no real mailbox is modified.
 {
     var prepared = new MailRuOutgoingMessage(
         To: "tester@example.invalid", Subject: "Scheduled", Text: "Synthetic",
         Cc: "copy@example.invalid", Bcc: "blind@example.invalid");
     var events = new List<string>();
-    var sent = await ScheduledSendNowExecution.RunAsync(
+    var result = await ScheduledSendNowExecution.RunAsync(
         () => { events.Add("prepare"); return Task.FromResult(prepared); },
-        () => { events.Add("delete"); return Task.FromResult(true); },
-        () => { events.Add("verify"); return Task.FromResult(true); },
         m => { events.Add("send"); return Task.FromResult(
             m.Cc == "copy@example.invalid" && m.Bcc == "blind@example.invalid"); },
-        () => true);
-    Expect(sent, ScheduledSendNowOutcome.Sent,
-        "confirmed deletion of schedule precedes one immediate copy");
-    Expect(string.Join(",", events), "prepare,delete,verify,send",
-        "schedule dispatch cannot execute before preparation and deletion");
+        () => { events.Add("trash"); return Task.FromResult(true); },
+        () => true,
+        () => events.Add("before-send"));
+    Expect(result, ScheduledSendNowOutcome.SentAndTrashed,
+        "confirmed copy is sent before original moves to Trash");
+    Expect(string.Join(",", events), "prepare,before-send,send,trash",
+        "prepare -> send -> trash is the only successful order");
 
     events.Clear();
     var prepError = await ScheduledSendNowExecution.RunAsync(
         () => throw new InvalidOperationException("Missing attachment"),
-        () => { events.Add("delete"); return Task.FromResult(true); },
-        () => { events.Add("verify"); return Task.FromResult(true); },
         _ => { events.Add("send"); return Task.FromResult(true); },
+        () => { events.Add("trash"); return Task.FromResult(true); },
         () => true);
     Expect(prepError, ScheduledSendNowOutcome.PreparationFailed,
-        "failure preparing a clone retains the original schedule");
-    Expect(events.Count, 0, "failed preparation performs no destructive actions");
+        "failed clone preparation leaves the original intact");
+    Expect(events.Count, 0, "failed preparation neither sends nor moves");
 
     events.Clear();
-    var refused = await ScheduledSendNowExecution.RunAsync(
+    var rejectedSend = await ScheduledSendNowExecution.RunAsync(
         () => Task.FromResult(prepared),
-        () => { events.Add("delete"); return Task.FromResult(false); },
-        () => { events.Add("verify"); return Task.FromResult(true); },
-        _ => { events.Add("send"); return Task.FromResult(true); },
+        _ => { events.Add("send"); return Task.FromResult(false); },
+        () => { events.Add("trash"); return Task.FromResult(true); },
         () => true);
-    Expect(refused, ScheduledSendNowOutcome.OriginalNotDeleted,
-        "server rejection blocks immediate delivery");
-    Expect(string.Join(",", events), "delete", "no send after failed deletion");
+    Expect(rejectedSend, ScheduledSendNowOutcome.SendUnconfirmed,
+        "unconfirmed send does not move the original");
+    Expect(string.Join(",", events), "send", "no trash after unconfirmed send");
 
     events.Clear();
-    var ambiguous = await ScheduledSendNowExecution.RunAsync(
+    var sentButMoveRefused = await ScheduledSendNowExecution.RunAsync(
         () => Task.FromResult(prepared),
-        () => { events.Add("delete"); return Task.FromResult(true); },
-        () => { events.Add("verify"); return Task.FromResult(false); },
         _ => { events.Add("send"); return Task.FromResult(true); },
+        () => { events.Add("trash"); return Task.FromResult(false); },
         () => true);
-    Expect(ambiguous, ScheduledSendNowOutcome.RemovalUncertain,
-        "unconfirmed cancellation prevents a duplicate send");
-    Expect(string.Join(",", events), "delete,verify",
-        "no send when old schedule remains observable");
+    Expect(sentButMoveRefused, ScheduledSendNowOutcome.SentTrashRejected,
+        "send succeeds even if moving original to Trash fails");
+    Expect(string.Join(",", events), "send,trash",
+        "failed move does not trigger duplicate send");
 
-    var sending = 0;
+    events.Clear();
+    var sentButMoveUnknown = await ScheduledSendNowExecution.RunAsync(
+        () => Task.FromResult(prepared),
+        _ => { events.Add("send"); return Task.FromResult(true); },
+        () => { events.Add("trash"); throw new TimeoutException("Synthetic move reply lost"); },
+        () => true);
+    Expect(sentButMoveUnknown, ScheduledSendNowOutcome.SentTrashUnconfirmed,
+        "a lost move response does not resend the clone");
+    Expect(string.Join(",", events), "send,trash",
+        "uncertain Trash move attempts each action only once");
+
+    var countSends = 0;
+    var countMoves = 0;
+    var sentStarted = 0;
     var lostResponse = await ScheduledSendNowExecution.RunAsync(
         () => Task.FromResult(prepared),
-        () => Task.FromResult(true),
-        () => Task.FromResult(true),
-        _ => { sending++; throw new TimeoutException("Synthetic reply lost"); },
-        () => true);
+        _ => { countSends++; throw new TimeoutException("Synthetic send reply lost"); },
+        () => { countMoves++; return Task.FromResult(true); },
+        () => true,
+        () => sentStarted++);
     Expect(lostResponse, ScheduledSendNowOutcome.SendUnconfirmed,
-        "a lost response leaves delivery status unknown");
-    Expect(sending, 1, "no automatic retry after unknown send result");
+        "lost reply leaves send status unknown");
+    Expect(countSends, 1, "unknown send response has no automatic retry");
+    Expect(countMoves, 0, "unknown send response keeps original outbox entry");
+    Expect(sentStarted, 1, "attempt tracking begins immediately before dispatch");
 
     var current = true;
+    events.Clear();
     var switched = await ScheduledSendNowExecution.RunAsync(
         () => { current = false; return Task.FromResult(prepared); },
-        () => { events.Add("invalid-delete"); return Task.FromResult(true); },
-        () => Task.FromResult(true),
         _ => { events.Add("invalid-send"); return Task.FromResult(true); },
+        () => { events.Add("invalid-trash"); return Task.FromResult(true); },
         () => current);
     Expect(switched, ScheduledSendNowOutcome.ContextChanged,
-        "changing account before deletion aborts pending dispatch");
-    Expect(events.Contains("invalid-delete"), false,
-        "account changed during preparation cannot remove another account's mail");
+        "account change before send aborts dispatch");
+    Expect(events.Count, 0, "no send or move after account changed");
+
+    current = true;
+    events.Clear();
+    var switchedAfterSend = await ScheduledSendNowExecution.RunAsync(
+        () => Task.FromResult(prepared),
+        _ => { events.Add("send"); current = false; return Task.FromResult(true); },
+        () => { events.Add("trash"); return Task.FromResult(true); },
+        () => current);
+    Expect(switchedAfterSend, ScheduledSendNowOutcome.SentAndTrashed,
+        "after confirmed send, move original via captured account even if UI switches");
+    Expect(string.Join(",", events), "send,trash",
+        "account switch after send does not strand old scheduled original");
 
     var parsedCopy = MailRuFullMessageParser.Parse(
         """{"id":"test-id","subject":"copy","text":"test","priority":2,"correspondents":{"to":[{"email":"test@example.invalid"}],"cc":[{"email":"copy@example.invalid"}],"bcc":[{"email":"blind@example.invalid"}]}}""",

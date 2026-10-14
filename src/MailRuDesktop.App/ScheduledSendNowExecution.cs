@@ -4,30 +4,29 @@ namespace MailRuDesktop.App;
 
 internal enum ScheduledSendNowOutcome
 {
-    Sent,
+    SentAndTrashed,
     PreparationFailed,
-    OriginalNotDeleted,
-    RemovalUncertain,
     ContextChanged,
-    SendUnconfirmed
+    SendUnconfirmed,
+    SentTrashRejected,
+    SentTrashUnconfirmed
 }
 
-// One-way operation: prepare -> delete -> verify -> send. Never retry a send
-// after an unknown response, and never send while the schedule may still exist.
+// The owner-approved order is prepare -> send one copy -> move its original
+// into Trash. Never try another send if the response could already represent
+// a delivered message. Moving the original is a separate best-effort stage.
 internal static class ScheduledSendNowExecution
 {
     internal static async Task<ScheduledSendNowOutcome> RunAsync(
         Func<Task<MailRuOutgoingMessage>> prepare,
-        Func<Task<bool>> deleteOriginal,
-        Func<Task<bool>> verifyDeletion,
         Func<MailRuOutgoingMessage, Task<bool>> sendPrepared,
+        Func<Task<bool>> moveOriginalToTrash,
         Func<bool> isCurrent,
-        Action<ScheduledSendNowOutcome>? stage = null)
+        Action? beforeSend = null)
     {
         ArgumentNullException.ThrowIfNull(prepare);
-        ArgumentNullException.ThrowIfNull(deleteOriginal);
-        ArgumentNullException.ThrowIfNull(verifyDeletion);
         ArgumentNullException.ThrowIfNull(sendPrepared);
+        ArgumentNullException.ThrowIfNull(moveOriginalToTrash);
         ArgumentNullException.ThrowIfNull(isCurrent);
 
         if (!isCurrent())
@@ -46,46 +45,31 @@ internal static class ScheduledSendNowExecution
         if (!isCurrent())
             return ScheduledSendNowOutcome.ContextChanged;
 
-        bool deleted;
+        // Mark as attempted just before dispatch. Even a timeout can mean
+        // the server received and sent this exact clone. No automatic retry.
         try
         {
-            deleted = await deleteOriginal();
-        }
-        catch
-        {
-            // Server may have deleted the schedule despite a lost response.
-            return ScheduledSendNowOutcome.RemovalUncertain;
-        }
-
-        if (!deleted)
-            return ScheduledSendNowOutcome.OriginalNotDeleted;
-
-        bool absent;
-        try
-        {
-            absent = await verifyDeletion();
-        }
-        catch
-        {
-            return ScheduledSendNowOutcome.RemovalUncertain;
-        }
-        if (!absent)
-            return ScheduledSendNowOutcome.RemovalUncertain;
-        if (!isCurrent())
-            return ScheduledSendNowOutcome.ContextChanged;
-
-        // No automatic retry after reaching this point. An HTTP failure may
-        // conceal an already delivered message.
-        stage?.Invoke(ScheduledSendNowOutcome.SendUnconfirmed);
-        try
-        {
-            return await sendPrepared(copy)
-                ? ScheduledSendNowOutcome.Sent
-                : ScheduledSendNowOutcome.SendUnconfirmed;
+            beforeSend?.Invoke();
+            if (!await sendPrepared(copy))
+                return ScheduledSendNowOutcome.SendUnconfirmed;
         }
         catch
         {
             return ScheduledSendNowOutcome.SendUnconfirmed;
+        }
+
+        // Once the clone was confirmed sent, try moving the *original* using
+        // the captured account token even if the visible account switched.
+        // A failure here must not cause the clone to be sent a second time.
+        try
+        {
+            return await moveOriginalToTrash()
+                ? ScheduledSendNowOutcome.SentAndTrashed
+                : ScheduledSendNowOutcome.SentTrashRejected;
+        }
+        catch
+        {
+            return ScheduledSendNowOutcome.SentTrashUnconfirmed;
         }
     }
 }
