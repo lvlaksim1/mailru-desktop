@@ -420,41 +420,8 @@ public partial class MainWindow
         e.Handled = true;
     }
 
-    private async Task SetPinnedFromContextAsync(MailRuMessageSummary message)
-    {
-        if (string.IsNullOrWhiteSpace(_accessToken))
-            return;
-
-        try
-        {
-            var makePinned = !message.Pinned;
-            var result = await _mailRu.SetPinnedAsync(
-                _accessToken,
-                _activeLogin ?? string.Empty,
-                message.Id,
-                message.FolderId ?? _currentFolderId,
-                makePinned);
-
-            ResponseTextBox.Text = result.RawResponse;
-            if (!result.Success)
-            {
-                FolderStatusText.Text = "Mail.ru отклонил изменение закрепления.";
-                return;
-            }
-
-            ReplaceMessage(message, message with { Pinned = makePinned });
-            FolderStatusText.Text = makePinned
-                ? "Письмо закреплено."
-                : "Письмо откреплено.";
-        }
-        catch (Exception ex)
-        {
-            FolderStatusText.Text = "Ошибка изменения закрепления.";
-            DiagnosticLog.Write(
-                "message_pin_context",
-                ex.GetType().Name + ": " + ex.Message);
-        }
-    }
+    private Task SetPinnedFromContextAsync(MailRuMessageSummary message) =>
+        ChangeMessageMarkAsync(message, MailMarkKind.Pinned, !message.Pinned);
 
     private async Task MoveMessageFromContextAsync(
         MailRuMessageSummary clicked,
@@ -482,17 +449,18 @@ public partial class MainWindow
         switch (button.Name)
         {
             case "ModernUnreadActionButton":
-                await SetUnreadPreservingSelectionAsync(message, !message.Unread);
                 e.Handled = true;
+                await ChangeMessageMarkAsync(message, MailMarkKind.Unread, !message.Unread);
                 break;
 
             case "FlagActionButton":
-                MessageFlagButton_Click(button, e);
+                e.Handled = true;
+                await ChangeMessageMarkAsync(message, MailMarkKind.Flagged, !message.Flagged,
+                    showSuccess: false);
                 break;
 
             case "ModernPinActionButton":
-                // Reuse exactly the same server operation and state update as
-                // the context menu. A single click always targets its own row.
+                // A row button changes its own row; the checkbox selection is untouched.
                 e.Handled = true;
                 await SetPinnedFromContextAsync(message);
                 break;
@@ -503,49 +471,6 @@ public partial class MainWindow
     {
     }
 
-    private async Task SetUnreadPreservingSelectionAsync(
-        MailRuMessageSummary message,
-        bool makeUnread)
-    {
-        if (string.IsNullOrWhiteSpace(_accessToken) || message.Unread == makeUnread)
-            return;
-
-        var previousUnread = message.Unread;
-
-        try
-        {
-            var result = await _mailRu.SetUnreadAsync(
-                _accessToken,
-                _activeLogin ?? string.Empty,
-                message.Id,
-                makeUnread);
-
-            ResponseTextBox.Text = result.RawResponse;
-            if (!result.Success)
-            {
-                FolderStatusText.Text = "Mail.ru отклонил изменение статуса.";
-                return;
-            }
-
-            if (makeUnread)
-                _previewAutoReadMessageId = null;
-
-            ReplaceMessage(message, message with { Unread = makeUnread });
-
-            if (_currentFolderId == 0 && previousUnread != makeUnread)
-                AdjustActiveInboxUnread(makeUnread ? 1 : -1);
-
-            FolderStatusText.Text = makeUnread
-                ? "Письмо помечено непрочитанным."
-                : "Письмо помечено прочитанным.";
-
-        }
-        catch (Exception ex)
-        {
-            FolderStatusText.Text = "Ошибка изменения статуса.";
-            DiagnosticLog.Write("message_marks", ex.GetType().Name + ": " + ex.Message);
-        }
-    }
 
     private const string ModernMailListTemplateXaml = """
 <ResourceDictionary
