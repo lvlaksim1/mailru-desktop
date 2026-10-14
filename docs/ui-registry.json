@@ -7640,7 +7640,7 @@
     {
       "color_roles_and_values": {},
       "id": "MainWindow/runtime/src/MailRuDesktop.App/MainWindow.AccountContextMenu.cs:13:ContextMenu",
-      "line": 11,
+      "line": 13,
       "location": {},
       "name": null,
       "parent": "MainWindow/runtime",
@@ -7654,7 +7654,7 @@
     {
       "color_roles_and_values": {},
       "id": "MainWindow/runtime/src/MailRuDesktop.App/MainWindow.AccountContextMenu.cs:21:MenuItem",
-      "line": 19,
+      "line": 21,
       "location": {},
       "name": null,
       "parent": "MainWindow/runtime",
