@@ -637,15 +637,18 @@ public partial class MainWindow : Window
             if (IsStaleAccountSwitch())
                 return;
 
-            ResponseTextBox.Text = raw;
-            RefreshThreadCountIndex();
+            // Build a coherent snapshot before asynchronous enrichment. If the
+            // account changes meanwhile, none of its indices enter the UI.
             var snapshot = MailRuThreadStatusParser.Parse(raw, folderId);
-
-            var completeRows = CollapseVerifiedConversations(snapshot.Messages);
+            var folderThreads = BuildFolderThreadState(raw);
+            var completeRows = CollapseVerifiedConversations(
+                snapshot.Messages, folderThreads.Conversations);
             await PrefetchFirstMissingSendersAsync(completeRows, _accessToken);
             if (IsStaleAccountSwitch())
                 return;
 
+            PublishFolderThreadState(folderThreads);
+            ResponseTextBox.Text = raw;
             _currentFolderId = snapshot.SelectedFolderId ?? folderId;
             _currentMessages = completeRows;
             _serverSearchMode = false;
