@@ -60,6 +60,7 @@ public partial class MainWindow
                 // conceal a completed delivery.
                 var token = _accessToken!;
                 var originalId = message.Id;
+                var originalDeleted = false;
                 FolderStatusText.Text =
                     $"Подготовка копии письма {sentCount + 1} из {selected.Count}...";
 
@@ -73,6 +74,11 @@ public partial class MainWindow
                             (string.IsNullOrWhiteSpace(full.Html) &&
                              string.IsNullOrWhiteSpace(full.Text)))
                             throw new InvalidOperationException("Невозможно подготовить полную копию письма.");
+
+                        // Inline CID images require a separate content-ID map.
+                        // Never delete the original if we cannot clone them intact.
+                        if (full.Html.Contains("cid:", StringComparison.OrdinalIgnoreCase))
+                            throw new InvalidOperationException("Встроенные изображения CID нельзя клонировать без потери связи.");
 
                         // All attachments are downloaded and uploaded BEFORE
                         // deleting the scheduled original. No local temp files.
@@ -103,8 +109,9 @@ public partial class MainWindow
                         if (!IsCurrent())
                             return false;
                         FolderStatusText.Text = "Удаление первоначальной отложенной отправки...";
-                        return (await _mailRu.RemoveMessagesAsync(
+                        originalDeleted = (await _mailRu.RemoveMessagesAsync(
                             token, account, [originalId])).Success;
+                        return originalDeleted;
                     },
                     async () =>
                     {
@@ -137,12 +144,16 @@ public partial class MainWindow
                             "Сервер не подтвердил удаление исходного расписания. Отправка отменена.",
                         ScheduledSendNowOutcome.RemovalUncertain =>
                             "Статус удаления неизвестен. Копия НЕ отправлялась. Проверьте папку вручную.",
-                        ScheduledSendNowOutcome.ContextChanged =>
-                            "Изменён аккаунт или папка. Операция остановлена без повторной отправки.",
+                        ScheduledSendNowOutcome.ContextChanged => originalDeleted
+                            ? "Исходное письмо уже удалено, но аккаунт или папка изменились. Копия не отправлялась; проверьте папки вручную."
+                            : "Изменён аккаунт или папка. Операция остановлена до удаления исходного письма.",
                         _ =>
                             "Исходное расписание удалено, но результат отправки не подтверждён. НЕ повторяйте действие до проверки папки «Отправленные»."
                     };
                     // In bulk mode never advance past the first uncertain stage.
+                    AppDialog.Info(this, "Операция остановлена",
+                        FolderStatusText.Text +
+                        "\n\nНе запускайте отправку повторно, пока не проверите фактическое состояние.");
                     break;
                 }
 
