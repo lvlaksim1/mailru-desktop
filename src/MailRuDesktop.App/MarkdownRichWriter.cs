@@ -82,7 +82,7 @@ internal static class MarkdownRichWriter
                 // container objects with children explicitly reset to Normal.
                 // Serialize the *effective* run style, not the old wrapper type.
                 foreach (Inline child in span.Inlines)
-                    WriteInline(child, output, false, false);
+                    WriteInline(child, output, parentBold || span is Underline, false);
                 break;
             case LineBreak:
                 output.Append("\n");
@@ -90,8 +90,14 @@ internal static class MarkdownRichWriter
             case Run run:
                 var bold = run.FontWeight == FontWeights.Bold;
                 var italic = run.FontStyle == FontStyles.Italic;
+                // Underline is structural in WPF Markdown imports. If a
+                // formatting reset provided an explicit empty collection it
+                // overrides that old wrapper; otherwise inherit underline.
+                var hasExplicitDecoration = run.ReadLocalValue(
+                    Inline.TextDecorationsProperty) != DependencyProperty.UnsetValue;
                 var underline = run.TextDecorations?.Contains(
-                    TextDecorations.Underline[0]) == true;
+                    TextDecorations.Underline[0]) == true ||
+                    (!hasExplicitDecoration && parentBold);
                 var strike = run.TextDecorations?.Contains(
                     TextDecorations.Strikethrough[0]) == true;
                 var color = run.ReadLocalValue(TextElement.ForegroundProperty) is SolidColorBrush brush
