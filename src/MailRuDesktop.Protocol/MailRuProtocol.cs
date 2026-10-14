@@ -128,8 +128,15 @@ public class MailRuProtocolException : Exception
 /// <summary>Authentication was denied; no credentials or response content are logged.</summary>
 public sealed class MailRuAuthorizationException : MailRuProtocolException
 {
-    public MailRuAuthorizationException(int status) :
-        base($"Mail.ru отверг авторизацию (код {status}).") { }
+    public int StatusCode { get; }
+    public string Source { get; }
+
+    public MailRuAuthorizationException(int status, string source = "unspecified") :
+        base($"Mail.ru отверг авторизацию (код {status}).")
+    {
+        StatusCode = status;
+        Source = source;
+    }
 }
 
 public sealed partial class MailRuClient : IDisposable
@@ -1056,7 +1063,7 @@ public sealed partial class MailRuClient : IDisposable
     {
         var httpStatus = (int)response.StatusCode;
         if (httpStatus is 401 or 403)
-            throw new MailRuAuthorizationException(httpStatus);
+            throw new MailRuAuthorizationException(httpStatus, "http_response");
 
         // The AJ endpoint may return HTTP 200 while reporting a failed token
         // inside JSON, e.g. {"status":403,"email":"","body":"token"}.
@@ -1076,7 +1083,7 @@ public sealed partial class MailRuClient : IDisposable
             if (status.ValueKind is JsonValueKind.String or JsonValueKind.Number &&
                 int.TryParse(status.ToString(), out var code) &&
                 code is 401 or 403)
-                throw new MailRuAuthorizationException(code);
+                throw new MailRuAuthorizationException(code, "json_status");
         }
         catch (JsonException)
         {
