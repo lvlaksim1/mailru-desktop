@@ -211,11 +211,21 @@ public partial class MainWindow
         if (!_authStore.Remove(login))
             return;
 
+        // Invalidate in-flight folder/search results immediately after the
+        // confirmed local removal, before the asynchronous profile deletion.
+        var removalGeneration = wasActive
+            ? Interlocked.Increment(ref _accountSwitchGeneration)
+            : Volatile.Read(ref _accountSwitchGeneration);
+        if (wasActive)
+            CancelServerSearch();
+
         RemoveAccountFromRailLayout(login);
         await MailRuAuthProfileStore.DeleteProfileAsync(login);
 
-        if (!wasActive)
+        if (!wasActive ||
+            !string.Equals(_activeLogin, login, StringComparison.OrdinalIgnoreCase))
         {
+            // Another account may have become active while the profile was removed.
             RefreshSavedLogins();
             RefreshAccountRail(_activeLogin);
             return;
@@ -232,6 +242,19 @@ public partial class MainWindow
         FolderStatusText.Text = "Нет активного аккаунта";
 
         RefreshSavedLogins();
+
+        // The old folder request must release its loading flag before the new
+        // account starts. This is the same ordering as ordinary account switches.
+        while (_loadingFolder)
+            await Task.Delay(25);
+
+        // Respect a newer explicit account choice made during that wait.
+        if (removalGeneration != Volatile.Read(ref _accountSwitchGeneration) ||
+            !string.IsNullOrWhiteSpace(_activeLogin))
+        {
+            RefreshAccountRail(_activeLogin);
+            return;
+        }
 
         var nextLogin = _authStore.Logins.FirstOrDefault();
         if (!string.IsNullOrWhiteSpace(nextLogin) &&
