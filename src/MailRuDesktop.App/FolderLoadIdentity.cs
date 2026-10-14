@@ -1,17 +1,14 @@
 namespace MailRuDesktop.App;
 
-// A response belongs to the session that started the folder load.
-// Comparing only the optional account-switch argument is insufficient for
-// ordinary folder loads, which pass no explicit generation.
+// A folder result may be published only by the account/generation that
+// started its request. Do not compare access tokens: a successful folder
+// read may refresh its own token before returning the result.
 internal readonly record struct FolderLoadIdentity(
     long AccountGeneration,
-    string? Login,
-    string? AccessToken)
+    string? Login)
 {
-    internal bool IsCurrent(long generation, string? login, string? accessToken) =>
+    internal bool IsCurrent(long generation, string? login) =>
         generation == AccountGeneration &&
         !string.IsNullOrWhiteSpace(Login) &&
-        !string.IsNullOrWhiteSpace(AccessToken) &&
-        string.Equals(login, Login, StringComparison.OrdinalIgnoreCase) &&
-        string.Equals(accessToken, AccessToken, StringComparison.Ordinal);
+        string.Equals(login, Login, StringComparison.OrdinalIgnoreCase);
 }
