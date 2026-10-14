@@ -43,12 +43,14 @@ internal static class MarkdownRichWriter
         else if (block is Paragraph paragraph)
         {
             var text = new StringBuilder();
+            var isHeading = paragraph.FontSize >= 18 &&
+                paragraph.FontWeight == FontWeights.Bold;
             foreach (Inline inline in paragraph.Inlines)
-                WriteInline(inline, text, false, false);
+                WriteInline(inline, text, isHeading, false);
             var line = text.ToString();
             if (line.StartsWith("• ", StringComparison.Ordinal))
                 line = "- " + line[2..];
-            if (paragraph.FontSize >= 18 && paragraph.FontWeight == FontWeights.Bold)
+            if (isHeading)
                 line = "# " + line;
             if (prefix is not null)
                 line = prefix + line;
@@ -74,7 +76,7 @@ internal static class MarkdownRichWriter
             case Hyperlink link when link.NavigateUri is not null:
                 output.Append('[');
                 foreach (Inline child in link.Inlines)
-                    WriteInline(child, output, false, false);
+                    WriteInline(child, output, parentBold, parentItalic);
                 output.Append("](").Append(link.NavigateUri.AbsoluteUri).Append(')');
                 break;
             case Span span:
@@ -82,13 +84,13 @@ internal static class MarkdownRichWriter
                 // container objects with children explicitly reset to Normal.
                 // Serialize the *effective* run style, not the old wrapper type.
                 foreach (Inline child in span.Inlines)
-                    WriteInline(child, output, parentBold || span is Underline, false);
+                    WriteInline(child, output, parentBold, parentItalic || span is Underline);
                 break;
             case LineBreak:
                 output.Append("\n");
                 break;
             case Run run:
-                var bold = run.FontWeight == FontWeights.Bold;
+                var bold = run.FontWeight == FontWeights.Bold && !parentBold;
                 var italic = run.FontStyle == FontStyles.Italic;
                 // Underline is structural in WPF Markdown imports. If a
                 // formatting reset provided an explicit empty collection it
@@ -97,7 +99,7 @@ internal static class MarkdownRichWriter
                     Inline.TextDecorationsProperty) != DependencyProperty.UnsetValue;
                 var underline = run.TextDecorations?.Contains(
                     TextDecorations.Underline[0]) == true ||
-                    (!hasExplicitDecoration && parentBold);
+                    (!hasExplicitDecoration && parentItalic);
                 var strike = run.TextDecorations?.Contains(
                     TextDecorations.Strikethrough[0]) == true;
                 var color = run.ReadLocalValue(TextElement.ForegroundProperty) is SolidColorBrush brush
