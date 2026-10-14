@@ -21,7 +21,7 @@ concurrency:
 jobs:
   trial-update:
     if: github.repository == 'lvlaksim1/mailru-desktop'
-    runs-on: windows-2022
+    runs-on: windows-latest
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
