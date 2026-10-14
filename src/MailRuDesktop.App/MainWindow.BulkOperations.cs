@@ -166,29 +166,36 @@ public partial class MainWindow
             string.IsNullOrWhiteSpace(_activeLogin))
             return;
 
-        var runAccount = _activeLogin;
-        var runFolder = _currentFolderId;
+        var operationFolder = _currentFolderId;
         _bulkOperationInProgress = true;
         UpdateBulkToolbar();
         try
         {
-            var result = await _mailRu.MarkMessagesReadBatchAsync(
-                _accessToken, _activeLogin, selected, _currentFolderId);
-            ResponseTextBox.Text = result.RawResponse;
-            if (!result.Success)
+            var changedCount = 0;
+            var outcome = await ExecuteMailCommandAsync(
+                (token, account) => _mailRu.MarkMessagesReadBatchAsync(
+                    token, account, selected, operationFolder),
+                () =>
+                {
+                    // Read the latest model so late responses never restore an old row.
+                    var ids = new HashSet<string>(
+                        selected.Select(x => x.Id), StringComparer.Ordinal);
+                    var changed = _currentMessages
+                        .Where(item => ids.Contains(item.Id) && item.Unread)
+                        .ToArray();
+                    changedCount = changed.Length;
+                    foreach (var item in changed)
+                        ReplaceMessage(item, item with { Unread = false });
+                    if (_currentFolderId == 0 && changedCount > 0)
+                        AdjustActiveInboxUnread(-changedCount);
+                });
+            if (outcome == MailCommandOutcome.Rejected)
             {
                 FolderStatusText.Text = "Сервер отклонил групповую отметку.";
                 return;
             }
-            if (!string.Equals(_activeLogin, runAccount, StringComparison.OrdinalIgnoreCase)
-                || _currentFolderId != runFolder)
-                return;
-            var changed = selected.Where(item => item.Unread).ToArray();
-            foreach (var item in changed)
-                ReplaceMessage(item, item with { Unread = false });
-            if (_currentFolderId == 0 && changed.Length > 0)
-                AdjustActiveInboxUnread(-changed.Length);
-            FolderStatusText.Text = $"Отмечено прочитанными: {changed.Length}.";
+            if (outcome == MailCommandOutcome.Confirmed)
+                FolderStatusText.Text = $"Отмечено прочитанными: {changedCount}.";
         }
         catch (Exception ex)
         {
