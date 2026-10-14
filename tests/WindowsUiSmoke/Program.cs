@@ -332,13 +332,13 @@ internal static class Program
                 var first = new MailRuDesktop.Protocol.MailRuFolderSummary(
                     701, "custom", "Первая", 0, 0, false);
                 var second = first with { Id = 702, Name = "Вторая" };
-                var third = first with { Id = 703, Name = "Третья" };
+                var thirdSyntheticFolder = first with { Id = 703, Name = "Третья" };
                 folders.Add(first);
                 folders.Add(second);
-                folders.Add(third);
+                folders.Add(thirdSyntheticFolder);
                 folderList.SelectedItem = first;
                 folderList.SelectedItem = second;
-                folderList.SelectedItem = third;
+                folderList.SelectedItem = thirdSyntheticFolder;
                 var requested = takePending.Invoke(deferredState, new object?[]
                 {
                     generation, activeLogin
