@@ -197,10 +197,18 @@ internal static class Program
             cleanButton.RaiseEvent(new RoutedEventArgs(
                 ButtonBase.ClickEvent, cleanButton));
             var plainAfterClear = previewTestRich.ToHtml();
-            Check(!plainAfterClear.Contains("<strong>", StringComparison.Ordinal) &&
+            Check(!plainAfterClear.Contains("font-weight:bold", StringComparison.Ordinal) &&
                   plainAfterClear.Contains("Жирный текст", StringComparison.Ordinal) &&
                   plainAfterClear.Split("<br></p>", StringSplitOptions.None).Length == 3,
                 "clear formatting removes bold without erasing extra empty lines");
+            var cleanMarkdown = previewTestRich.ToMarkdown();
+            Check(!cleanMarkdown.Contains("**Жирный текст**", StringComparison.Ordinal) &&
+                  !cleanMarkdown.Contains("# Жирный текст", StringComparison.Ordinal),
+                "saved template Markdown no longer reintroduces cleared formatting");
+            previewTestRich.LoadMarkdown(cleanMarkdown);
+            Check(!previewTestRich.ToHtml().Contains("font-weight:bold", StringComparison.Ordinal),
+                "reopening saved Markdown and sending it keeps formatting removed");
+
             Check(Equals(richEditor.Selection.GetPropertyValue(
                       TextElement.FontFamilyProperty), richEditor.FontFamily) &&
                   Equals(richEditor.Selection.GetPropertyValue(
@@ -208,13 +216,13 @@ internal static class Program
                 "clear formatting restores application font family and body font size");
 
             previewTestRich.LoadMarkdown("**Выделенный текст**");
-            Check(previewTestRich.ToHtml().Contains("<strong>", StringComparison.Ordinal) &&
+            Check(previewTestRich.ToHtml().Contains("font-weight:bold", StringComparison.Ordinal) &&
                   previewTestRich.ToHtml().Contains("Выделенный текст", StringComparison.Ordinal),
                 "template Markdown becomes actual formatted mail HTML");
             previewTestRich.ApplyMarkdownSignature("**Подпись**", new[] { "**Подпись**" });
             previewTestRich.ApplyMarkdownSignature("**Подпись**", new[] { "**Подпись**" });
             var resultingHtml = previewTestRich.ToHtml();
-            Check(resultingHtml.Contains("<strong>", StringComparison.Ordinal) &&
+            Check(resultingHtml.Contains("font-weight:bold", StringComparison.Ordinal) &&
                   resultingHtml.Contains("Выделенный текст", StringComparison.Ordinal),
                 "changing signature preserves original bold text");
             Check(resultingHtml.Split("Подпись", StringSplitOptions.None).Length == 2,
@@ -237,6 +245,20 @@ internal static class Program
             previewTestWindow.Content = null;
 
             mail = new MainWindow();
+            var previewTemplateSelector = Require<ComboBox>(mail, "PreviewTemplateComboBox");
+            var previewSignatureSelector = Require<ComboBox>(mail, "PreviewSignatureComboBox");
+            var previewSelectorRow = (WrapPanel)previewTemplateSelector.Parent;
+            Check(previewSelectorRow.Children.IndexOf(previewTemplateSelector) <
+                  previewSelectorRow.Children.IndexOf(previewSignatureSelector),
+                "reply form places template before signature");
+            var composeTemplateSelector = Require<ComboBox>(mail, "ComposeTemplateComboBox");
+            var composeSignatureSelector = Require<ComboBox>(mail, "ComposeSignatureComboBox");
+            var composeSelectorRow = (WrapPanel)composeTemplateSelector.Parent;
+            Check(composeSelectorRow.Children.IndexOf(composeTemplateSelector) <
+                  composeSelectorRow.Children.IndexOf(composeSignatureSelector),
+                "new mail form places template before signature");
+            Check(Require<Button>(mail, "DefaultSignatureButton") is not null,
+                "signature settings have a primary-signature command");
             mail.Show();
             mail.UpdateLayout();
 
