@@ -2044,7 +2044,7 @@ public partial class MainWindow : Window
             var oldAccess = _accessToken!;
             var savedRefresh = _refreshToken!;
             TraceAuthToken(account, "active_folder", "initial_access",
-                "rejected", denied.StatusCode, denied.Source);
+                "rejected", denied.StatusCode, denied.DenialSource);
             AuthStatusText.Text = "Сервер отклонил токен · обновляем авторизацию...";
 
             MailRuTokenRefreshResult refreshed;
@@ -2073,7 +2073,7 @@ public partial class MainWindow : Window
             catch (MailRuAuthorizationException ex)
             {
                 TraceAuthToken(account, "active_folder", "verify_new_access",
-                    "rejected", ex.StatusCode, ex.Source);
+                    "rejected", ex.StatusCode, ex.DenialSource);
                 throw;
             }
             catch (Exception ex)
@@ -2107,7 +2107,7 @@ public partial class MainWindow : Window
             !string.IsNullOrWhiteSpace(_activeLogin))
         {
             TraceAuthToken(_activeLogin!, "active_folder", "refresh_token",
-                "missing", denied.StatusCode, denied.Source);
+                "missing", denied.StatusCode, denied.DenialSource);
             throw;
         }
     }
@@ -2125,7 +2125,7 @@ public partial class MainWindow : Window
             !string.IsNullOrWhiteSpace(account.RefreshToken))
         {
             TraceAuthToken(account.Login, "background_counter", "initial_access",
-                "rejected", denied.StatusCode, denied.Source);
+                "rejected", denied.StatusCode, denied.DenialSource);
             MailRuTokenRefreshResult refreshed;
             try
             {
@@ -2153,7 +2153,7 @@ public partial class MainWindow : Window
             catch (MailRuAuthorizationException ex)
             {
                 TraceAuthToken(account.Login, "background_counter", "verify_new_access",
-                    "rejected", ex.StatusCode, ex.Source);
+                    "rejected", ex.StatusCode, ex.DenialSource);
                 throw;
             }
             catch (Exception ex)
@@ -2190,7 +2190,7 @@ public partial class MainWindow : Window
             string.IsNullOrWhiteSpace(account.RefreshToken))
         {
             TraceAuthToken(account.Login, "background_counter", "refresh_token",
-                "missing", denied.StatusCode, denied.Source);
+                "missing", denied.StatusCode, denied.DenialSource);
             throw;
         }
     }
