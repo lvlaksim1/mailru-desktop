@@ -292,9 +292,12 @@ internal static class Program
                 sessionLogin.SetValue(mail, "synthetic@example.invalid");
                 sessionToken.SetValue(mail, "SYNTHETIC_TOKEN_NOT_SAVED");
                 var inFlight = Activator.CreateInstance(sessionType,
-                    61L, "synthetic@example.invalid", "SYNTHETIC_TOKEN_NOT_SAVED")!;
+                    61L, "synthetic@example.invalid")!;
                 Check(sessionGuard.Invoke(mail, new[] { inFlight }) is true,
                     "WPF window accepts a matching in-flight folder session");
+                sessionToken.SetValue(mail, "SYNTHETIC_REFRESHED_TOKEN");
+                Check(sessionGuard.Invoke(mail, new[] { inFlight }) is true,
+                    "WPF window retains the folder session after normal token refresh");
                 sessionGeneration.SetValue(mail, 62L); // Confirmed removal.
                 Check(sessionGuard.Invoke(mail, new[] { inFlight }) is false,
                     "WPF window rejects the old response immediately upon deletion");
