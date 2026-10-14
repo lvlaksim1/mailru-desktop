@@ -287,6 +287,25 @@ internal static class Program
             mail.Show();
             mail.UpdateLayout();
 
+            // Stage 4.1: metadata is one reusable WPF view, WebView2 is not moved.
+            var extractedHeader = Require<MailReaderHeader>(mail, "ReaderHeader");
+            Check(extractedHeader.Parent is Grid && Grid.GetRow(extractedHeader) == 2,
+                "reader header occupies the original grid row");
+            Check(extractedHeader.SubjectText.Text == "Выберите письмо" &&
+                  extractedHeader.SenderAddressText.IsReadOnly &&
+                  extractedHeader.RecipientAddressText.IsReadOnly,
+                "reader header retains initial subject and read-only addresses");
+            Check(FindDescendant<TextBox>(extractedHeader,
+                      t => t.Name == "SelectedSenderText") is not null &&
+                  FindDescendant<TextBox>(extractedHeader,
+                      t => t.Name == "SelectedToText") is not null,
+                "reader header preserves address controls and their positions");
+            Check(FindDescendant<Microsoft.Web.WebView2.Wpf.WebView2>(mail, _ => true)
+                      is not null &&
+                  FindDescendant<Microsoft.Web.WebView2.Wpf.WebView2>(
+                      extractedHeader, _ => true) is null,
+                "single permanent WebView2 remains outside extracted header");
+
             var action = Require<Button>(mail, "MainComposeButton");
             Check(action.IsVisible, "New Mail action is visible above the message list");
             Check(Require<Grid>(mail, "SettingsWorkspace") is { }, "settings workspace loads");

@@ -48,6 +48,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        ReaderHeader.AddressDoubleClick += PreviewAddress_MouseDoubleClick;
         InitializeSpellCheckSettings();
         InitializeRichComposeEditors();
 

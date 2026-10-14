@@ -468,53 +468,7 @@
                                       ToolTip="Папка назначения"/>
                         </WrapPanel>
 
-                        <StackPanel Grid.Row="2" Margin="2,0,2,6">
-                            <TextBlock x:Name="SelectedSubjectText"
-                                       FontSize="{DynamicResource AppFontTitleSize}"
-                                       FontWeight="SemiBold"
-                                       TextWrapping="Wrap"
-                                       Text="Выберите письмо"/>
-                            <TextBlock x:Name="SelectedSenderNameText"
-                                       Margin="0,7,0,0"
-                                       FontWeight="SemiBold"
-                                       TextWrapping="Wrap"/>
-                            <Grid Margin="0,3,0,0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock VerticalAlignment="Center" Margin="0,0,6,0" Text="От:"/>
-                                <TextBox x:Name="SelectedSenderText"
-                                         Grid.Column="1"
-                                         Padding="0"
-                                         BorderThickness="0"
-                                         Background="Transparent"
-                                         Foreground="{DynamicResource AppTextBrush}"
-                                         IsReadOnly="True"
-                                         IsReadOnlyCaretVisible="True"
-                                         TextWrapping="Wrap"
-                                         PreviewMouseDoubleClick="PreviewAddress_MouseDoubleClick"/>
-                            </Grid>
-                            <Grid Margin="0,3,0,0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock VerticalAlignment="Center" Margin="0,0,6,0" Text="Кому:"/>
-                                <TextBox x:Name="SelectedToText"
-                                         Grid.Column="1"
-                                         Padding="0"
-                                         BorderThickness="0"
-                                         Background="Transparent"
-                                         Foreground="{DynamicResource AppTextBrush}"
-                                         IsReadOnly="True"
-                                         IsReadOnlyCaretVisible="True"
-                                         TextWrapping="Wrap"
-                                         PreviewMouseDoubleClick="PreviewAddress_MouseDoubleClick"/>
-                            </Grid>
-                            <TextBlock x:Name="SelectedDateText" Margin="0,3,0,0" Foreground="{DynamicResource AppMutedTextBrush}"/>
-                            <TextBlock x:Name="SelectedMetaText" Margin="0,2,0,0" Foreground="{DynamicResource AppMutedTextBrush}" TextWrapping="Wrap"/>
-                        </StackPanel>
+                        <local:MailReaderHeader x:Name="ReaderHeader" Grid.Row="2"/>
 
                         <WrapPanel Grid.Row="3" Margin="0,0,0,8">
                             <Button x:Name="PreviewReplyButton" Padding="10,6" Margin="0,0,6,4" Click="PreviewReplyButton_Click" Content="Ответить"/>

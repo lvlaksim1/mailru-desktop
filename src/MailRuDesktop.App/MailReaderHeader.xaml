@@ -1,0 +1,52 @@
+<UserControl x:Class="MailRuDesktop.App.MailReaderHeader"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Focusable="False">
+                        <StackPanel Margin="2,0,2,6">
+                            <TextBlock x:Name="SelectedSubjectText"
+                                       FontSize="{DynamicResource AppFontTitleSize}"
+                                       FontWeight="SemiBold"
+                                       TextWrapping="Wrap"
+                                       Text="Выберите письмо"/>
+                            <TextBlock x:Name="SelectedSenderNameText"
+                                       Margin="0,7,0,0"
+                                       FontWeight="SemiBold"
+                                       TextWrapping="Wrap"/>
+                            <Grid Margin="0,3,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock VerticalAlignment="Center" Margin="0,0,6,0" Text="От:"/>
+                                <TextBox x:Name="SelectedSenderText"
+                                         Grid.Column="1"
+                                         Padding="0"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         Foreground="{DynamicResource AppTextBrush}"
+                                         IsReadOnly="True"
+                                         IsReadOnlyCaretVisible="True"
+                                         TextWrapping="Wrap"
+                                         PreviewMouseDoubleClick="AddressTextBox_PreviewMouseDoubleClick"/>
+                            </Grid>
+                            <Grid Margin="0,3,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock VerticalAlignment="Center" Margin="0,0,6,0" Text="Кому:"/>
+                                <TextBox x:Name="SelectedToText"
+                                         Grid.Column="1"
+                                         Padding="0"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         Foreground="{DynamicResource AppTextBrush}"
+                                         IsReadOnly="True"
+                                         IsReadOnlyCaretVisible="True"
+                                         TextWrapping="Wrap"
+                                         PreviewMouseDoubleClick="AddressTextBox_PreviewMouseDoubleClick"/>
+                            </Grid>
+                            <TextBlock x:Name="SelectedDateText" Margin="0,3,0,0" Foreground="{DynamicResource AppMutedTextBrush}"/>
+                            <TextBlock x:Name="SelectedMetaText" Margin="0,2,0,0" Foreground="{DynamicResource AppMutedTextBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+</UserControl>
