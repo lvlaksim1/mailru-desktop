@@ -584,6 +584,11 @@ public partial class MainWindow : Window
             : LoadFolderAsync(folderId);
     }
 
+    // Shared with synthetic WPF tests; this never sends a network request.
+    private bool IsCurrentFolderLoad(FolderLoadIdentity identity) =>
+        identity.IsCurrent(
+            Volatile.Read(ref _accountSwitchGeneration), _activeLogin);
+
     // SelectionChanged is not raised when clicking the already-selected
     // folder. That must still leave Settings and return to the mailbox.
     private void FolderListBox_PreviewMouseLeftButtonUp(
@@ -633,6 +638,10 @@ public partial class MainWindow : Window
 
         var folderLoadGeneration = Volatile.Read(ref _accountSwitchGeneration);
         var folderLoadLogin = _activeLogin;
+        var folderLoadIdentity = new FolderLoadIdentity(
+            folderLoadGeneration, folderLoadLogin);
+        bool IsInvalidFolderLoad() =>
+            IsStaleAccountSwitch() || !IsCurrentFolderLoad(folderLoadIdentity);
         bool HasNewerFolderSelection() =>
             _pendingFolderSelection.Supersedes(folderId, folderLoadGeneration, folderLoadLogin);
 
@@ -665,7 +674,7 @@ public partial class MainWindow : Window
             var raw = await LoadFolderWithRefreshAsync(folderId);
 
             // Do not publish an older folder after the user chose another one.
-            if (IsStaleAccountSwitch() || HasNewerFolderSelection())
+            if (IsInvalidFolderLoad() || HasNewerFolderSelection())
                 return;
 
             // Build a coherent snapshot before asynchronous enrichment. If the
@@ -675,7 +684,7 @@ public partial class MainWindow : Window
             var completeRows = CollapseVerifiedConversations(
                 snapshot.Messages, folderThreads.Conversations);
             await PrefetchFirstMissingSendersAsync(completeRows, _accessToken);
-            if (IsStaleAccountSwitch() || HasNewerFolderSelection())
+            if (IsInvalidFolderLoad() || HasNewerFolderSelection())
                 return;
 
             PublishFolderThreadState(folderThreads);
@@ -710,7 +719,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            if (IsStaleAccountSwitch() || HasNewerFolderSelection())
+            if (IsInvalidFolderLoad() || HasNewerFolderSelection())
                 return;
 
             FolderStatusText.Text = "Ошибка загрузки: " + ex.Message;

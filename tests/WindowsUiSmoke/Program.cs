@@ -270,6 +270,49 @@ internal static class Program
             previewTestWindow.Content = null;
 
             mail = new MainWindow();
+
+            // Issue #166: exercise MainWindow's actual acceptance predicate with
+            // synthetic credentials; no saved login is modified or used for HTTP.
+            var sessionType = typeof(MainWindow).Assembly.GetType(
+                "MailRuDesktop.App.FolderLoadIdentity")!;
+            var sessionGuard = typeof(MainWindow).GetMethod("IsCurrentFolderLoad",
+                BindingFlags.Instance | BindingFlags.NonPublic)!;
+            var sessionGeneration = typeof(MainWindow).GetField("_accountSwitchGeneration",
+                BindingFlags.Instance | BindingFlags.NonPublic)!;
+            var sessionLogin = typeof(MainWindow).GetField("_activeLogin",
+                BindingFlags.Instance | BindingFlags.NonPublic)!;
+            var sessionToken = typeof(MainWindow).GetField("_accessToken",
+                BindingFlags.Instance | BindingFlags.NonPublic)!;
+            var priorGeneration = sessionGeneration.GetValue(mail);
+            var priorLogin = sessionLogin.GetValue(mail);
+            var priorToken = sessionToken.GetValue(mail);
+            try
+            {
+                sessionGeneration.SetValue(mail, 61L);
+                sessionLogin.SetValue(mail, "synthetic@example.invalid");
+                sessionToken.SetValue(mail, "SYNTHETIC_TOKEN_NOT_SAVED");
+                var inFlight = Activator.CreateInstance(sessionType,
+                    61L, "synthetic@example.invalid")!;
+                Check(sessionGuard.Invoke(mail, new[] { inFlight }) is true,
+                    "WPF window accepts a matching in-flight folder session");
+                sessionToken.SetValue(mail, "SYNTHETIC_REFRESHED_TOKEN");
+                Check(sessionGuard.Invoke(mail, new[] { inFlight }) is true,
+                    "WPF window retains the folder session after normal token refresh");
+                sessionGeneration.SetValue(mail, 62L); // Confirmed removal.
+                Check(sessionGuard.Invoke(mail, new[] { inFlight }) is false,
+                    "WPF window rejects the old response immediately upon deletion");
+                sessionLogin.SetValue(mail, null);
+                sessionToken.SetValue(mail, null);
+                Check(sessionGuard.Invoke(mail, new[] { inFlight }) is false,
+                    "WPF window cannot republish a removed mailbox from an old response");
+            }
+            finally
+            {
+                sessionGeneration.SetValue(mail, priorGeneration);
+                sessionLogin.SetValue(mail, priorLogin);
+                sessionToken.SetValue(mail, priorToken);
+            }
+
             var previewTemplateSelector = Require<ComboBox>(mail, "PreviewTemplateComboBox");
             var previewSignatureSelector = Require<ComboBox>(mail, "PreviewSignatureComboBox");
             var previewSelectorRow = (WrapPanel)previewTemplateSelector.Parent;

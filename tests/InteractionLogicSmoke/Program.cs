@@ -9,6 +9,48 @@ static void Expect<T>(T actual, T expected, string label)
     Console.WriteLine("PASS " + label);
 }
 
+// Issue #166: fake delayed folder responses, no real account removal or HTTP.
+var startedFrom = new FolderLoadIdentity(20, "owner@example.invalid");
+Expect(startedFrom.IsCurrent(20, "owner@example.invalid"), true,
+    "folder result is accepted for its original account and generation");
+Expect(startedFrom.IsCurrent(21, "owner@example.invalid"), false,
+    "confirmed removal immediately revokes the in-flight folder result");
+Expect(startedFrom.IsCurrent(21, null), false,
+    "folder result cannot repopulate mailbox after local account removal");
+Expect(startedFrom.IsCurrent(21, "other@example.invalid"), false,
+    "folder result cannot overwrite the subsequently selected mailbox");
+Expect(startedFrom.IsCurrent(20, "OWNER@example.invalid"), true,
+    "account identity comparison is case-insensitive");
+Expect(new FolderLoadIdentity(23, "second@example.invalid")
+    .IsCurrent(23, "second@example.invalid"), true,
+    "the new mailbox may publish its own folder result");
+
+// The old server result arrives only after the synthetic account removal.
+var oldFolderReply = new TaskCompletionSource<string>(
+    TaskCreationOptions.RunContinuationsAsynchronously);
+var currentFolderGeneration = 30L;
+string? currentFolderAccount = "removed@example.invalid";
+var pendingFolderIdentity = new FolderLoadIdentity(
+    currentFolderGeneration, currentFolderAccount);
+async Task<bool> TryPublishDelayedFolderAsync()
+{
+    await oldFolderReply.Task;
+    return pendingFolderIdentity.IsCurrent(currentFolderGeneration, currentFolderAccount);
+}
+var delayedPublication = TryPublishDelayedFolderAsync();
+currentFolderGeneration++; // Confirmed removal while the request was pending.
+oldFolderReply.SetResult("SYNTHETIC_RESPONSE_NOT_FROM_MAILRU");
+Expect(await delayedPublication, false,
+    "late folder response is not published after removal");
+Expect(pendingFolderIdentity.IsCurrent(currentFolderGeneration, currentFolderAccount), false,
+    "late errors are rejected under the same account-generation rule");
+
+// Access-token refresh happens within a legitimate read and must not
+// invalidate its result. Owner checks intentionally ignore tokens.
+Expect(new FolderLoadIdentity(44, "refresh@example.invalid")
+    .IsCurrent(44, "refresh@example.invalid"), true,
+    "successful automatic token refresh does not invalidate the same session");
+
 // Stage 4.2: rapid folder choices must preserve the final user intent.
 var pendingFolder = new PendingFolderSelection();
 pendingFolder.Request(11, 1, "first@example.invalid");
