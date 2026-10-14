@@ -98,6 +98,7 @@ public partial class MainWindow
         if (item is not null)
             item.Status = "Повторная авторизация...";
         TraceAuthToken(login, "manual_reauth", "begin", "requested");
+        var credentialsUpdated = false;
 
         try
         {
@@ -143,6 +144,7 @@ public partial class MainWindow
                 return;
             }
 
+            credentialsUpdated = true;
             TraceAuthToken(login, "manual_reauth", "store", "updated");
             if (item is not null)
                 item.Status = "Авторизация восстановлена";
@@ -166,10 +168,15 @@ public partial class MainWindow
             TraceAuthToken(login, "manual_reauth", "operation", "exception",
                 kind: ex.GetType().Name);
             if (item is not null)
-                item.Status = "Повторная авторизация не выполнена";
+                item.Status = credentialsUpdated
+                    ? "Авторизация обновлена · требуется проверить загрузку"
+                    : "Повторная авторизация не выполнена";
             AppDialog.Info(this, "Повторная авторизация",
-                "Не удалось подтвердить новую авторизацию. Прежние сохранённые данные не изменены. " +
-                "Сведения об этапе ошибки записаны в диагностику.");
+                credentialsUpdated
+                    ? "Новые данные авторизации сохранены, но последующая операция завершилась ошибкой. " +
+                      "Проверьте почту и диагностику."
+                    : "Не удалось подтвердить новую авторизацию. Прежние сохранённые данные не изменены. " +
+                      "Сведения об этапе ошибки записаны в диагностику.");
         }
         finally
         {
