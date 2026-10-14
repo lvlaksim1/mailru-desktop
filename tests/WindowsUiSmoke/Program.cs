@@ -220,6 +220,26 @@ internal static class Program
                       TextElement.FontSizeProperty), richEditor.FontSize),
                 "clear formatting restores application font family and body font size");
 
+            previewTestRich.LoadMarkdown(
+                "**Полужирный**\n*Курсив*\n<u>Подчёркнутый</u>\n<s>Зачёркнутый</s>\n" +
+                "<span style=\"color:#FF0000\">Красный</span>");
+            richEditor.SelectAll();
+            cleanButton.RaiseEvent(new RoutedEventArgs(
+                ButtonBase.ClickEvent, cleanButton));
+            var cleanSaved = previewTestRich.ToMarkdown();
+            var cleanSent = previewTestRich.ToHtml();
+            Check(!cleanSaved.Contains("**Полужирный**", StringComparison.Ordinal) &&
+                  !cleanSaved.Contains("*Курсив*", StringComparison.Ordinal) &&
+                  !cleanSaved.Contains("<u>", StringComparison.Ordinal) &&
+                  !cleanSaved.Contains("<s>", StringComparison.Ordinal) &&
+                  !cleanSaved.Contains("color:#FF0000", StringComparison.OrdinalIgnoreCase),
+                "cleared bold/italic/underline/strike/color are absent from saved template");
+            Check(!cleanSent.Contains("font-weight:bold", StringComparison.OrdinalIgnoreCase) &&
+                  !cleanSent.Contains("font-style:italic", StringComparison.OrdinalIgnoreCase) &&
+                  !cleanSent.Contains("text-decoration:", StringComparison.OrdinalIgnoreCase) &&
+                  !cleanSent.Contains("color:#FF0000", StringComparison.OrdinalIgnoreCase),
+                "cleared bold/italic/underline/strike/color are absent from sent HTML");
+
             previewTestRich.LoadMarkdown("**Выделенный текст**");
             Check(previewTestRich.ToHtml().Contains("font-weight:bold", StringComparison.Ordinal) &&
                   previewTestRich.ToHtml().Contains("Выделенный текст", StringComparison.Ordinal),
