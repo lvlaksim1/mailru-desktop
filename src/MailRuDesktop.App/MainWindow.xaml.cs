@@ -263,7 +263,10 @@ public partial class MainWindow : Window
                 // An expired token is different from a transient network error.
                 // Preserve the unread counter but mark ONLY this account invalid.
                 item.Status = "Требуется повторный вход";
-                DiagnosticLog.Write("account_auth_rejected", item.Login);
+                TraceAuthToken(item.Login, "background_counter", "result", "unverified");
+                // Do not send dozens of successive refresh attempts after a
+                // mass denial. This is asynchronous and does not hold the UI.
+                await Task.Delay(TimeSpan.FromSeconds(5));
             }
             catch (Exception ex)
             {
@@ -2004,40 +2007,98 @@ public partial class MainWindow : Window
         }
     }
 
+    private void TraceAuthToken(
+        string login,
+        string flow,
+        string stage,
+        string outcome,
+        int? httpStatus = null,
+        string? kind = null)
+    {
+        var label = AuthTokenDiagnostics.AccountLabel(login, _authStore.Logins);
+        DiagnosticLog.Write("auth_token_flow", AuthTokenDiagnostics.Format(
+            label, flow, stage, outcome, httpStatus, kind));
+    }
+
     private async Task<string> LoadFolderWithRefreshAsync(int folderId)
     {
         try
         {
             return await LoadFolderRawAsync(folderId);
         }
-        catch (MailRuAuthorizationException) when (
+        catch (MailRuAuthorizationException denied) when (
             !string.IsNullOrWhiteSpace(_refreshToken) &&
             !string.IsNullOrWhiteSpace(_activeLogin))
         {
             var account = _activeLogin!;
             var oldAccess = _accessToken!;
             var savedRefresh = _refreshToken!;
+            TraceAuthToken(account, "active_folder", "initial_access",
+                "rejected", denied.StatusCode, denied.Source);
             AuthStatusText.Text = "Сервер отклонил токен · обновляем авторизацию...";
 
-            var refreshed = await _mailRu.RefreshAccessTokenAsync(savedRefresh);
-            if (!refreshed.Success || string.IsNullOrWhiteSpace(refreshed.AccessToken))
-                throw new MailRuAuthorizationException(403);
+            MailRuTokenRefreshResult refreshed;
+            try
+            {
+                refreshed = await _mailRu.RefreshAccessTokenAsync(savedRefresh);
+            }
+            catch (Exception ex)
+            {
+                TraceAuthToken(account, "active_folder", "refresh_request",
+                    "exception", kind: ex.GetType().Name);
+                throw;
+            }
 
-            // First prove the new token really opens this mailbox. Invalid
-            // replacement credentials must NEVER overwrite saved authorization.
-            var raw = await _mailRu.GetFolderThreadsAsync(refreshed.AccessToken, folderId);
+            TraceAuthToken(account, "active_folder", "refresh_response",
+                refreshed.Success ? "new_access_received" : "not_refreshed",
+                refreshed.HttpStatusCode);
+            if (!refreshed.Success || string.IsNullOrWhiteSpace(refreshed.AccessToken))
+                throw new MailRuAuthorizationException(403, "local_refresh_result");
+
+            string raw;
+            try
+            {
+                raw = await _mailRu.GetFolderThreadsAsync(refreshed.AccessToken, folderId);
+            }
+            catch (MailRuAuthorizationException ex)
+            {
+                TraceAuthToken(account, "active_folder", "verify_new_access",
+                    "rejected", ex.StatusCode, ex.Source);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                TraceAuthToken(account, "active_folder", "verify_new_access",
+                    "exception", kind: ex.GetType().Name);
+                throw;
+            }
+            TraceAuthToken(account, "active_folder", "verify_new_access", "accepted");
 
             if (string.Equals(_activeLogin, account, StringComparison.OrdinalIgnoreCase) &&
                 string.Equals(_accessToken, oldAccess, StringComparison.Ordinal))
             {
                 _accessToken = refreshed.AccessToken;
                 _refreshToken = refreshed.RefreshToken ?? savedRefresh;
-                _authStore.UpdateTokens(account, _accessToken, _refreshToken);
-            SyncBackgroundPush();
+                if (!_authStore.UpdateTokens(account, _accessToken, _refreshToken))
+                    throw new InvalidOperationException("Authorized account disappeared from the credential store.");
+                SyncBackgroundPush();
                 AuthStatusText.Text = "Авторизация проверена и обновлена";
-                DiagnosticLog.Write("auth_refresh", account + ": refreshed and verified");
+                TraceAuthToken(account, "active_folder", "store", "updated");
             }
+            else
+            {
+                TraceAuthToken(account, "active_folder", "store", "superseded");
+            }
+
             return raw;
+        }
+        catch (MailRuAuthorizationException denied) when (
+            string.IsNullOrWhiteSpace(_refreshToken) &&
+            !string.IsNullOrWhiteSpace(_activeLogin))
+        {
+            TraceAuthToken(_activeLogin!, "active_folder", "refresh_token",
+                "missing", denied.StatusCode, denied.Source);
+            throw;
         }
     }
 
@@ -2045,33 +2106,82 @@ public partial class MainWindow : Window
     {
         try
         {
-            return await _mailRu.GetFolderThreadsAsync(
+            var raw = await _mailRu.GetFolderThreadsAsync(
                 account.AccessToken!, 0, offset: 0, limit: 1);
+            TraceAuthToken(account.Login, "background_counter", "initial_access", "accepted");
+            return raw;
         }
-        catch (MailRuAuthorizationException) when (
+        catch (MailRuAuthorizationException denied) when (
             !string.IsNullOrWhiteSpace(account.RefreshToken))
         {
-            var refreshed = await _mailRu.RefreshAccessTokenAsync(account.RefreshToken);
-            if (!refreshed.Success || string.IsNullOrWhiteSpace(refreshed.AccessToken))
-                throw new MailRuAuthorizationException(403);
-
-            var raw = await _mailRu.GetFolderThreadsAsync(
-                refreshed.AccessToken, 0, offset: 0, limit: 1);
-
-            // No changes to LastLogin or other accounts. Refresh the active
-            // runtime only when it still uses this exact stale token.
-            _authStore.UpdateTokens(account.Login, refreshed.AccessToken,
-                refreshed.RefreshToken ?? account.RefreshToken);
-            SyncBackgroundPush();
-            if (string.Equals(_activeLogin, account.Login, StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(_accessToken, account.AccessToken, StringComparison.Ordinal))
+            TraceAuthToken(account.Login, "background_counter", "initial_access",
+                "rejected", denied.StatusCode, denied.Source);
+            MailRuTokenRefreshResult refreshed;
+            try
             {
-                _accessToken = refreshed.AccessToken;
-                _refreshToken = refreshed.RefreshToken ?? account.RefreshToken;
+                refreshed = await _mailRu.RefreshAccessTokenAsync(account.RefreshToken);
+            }
+            catch (Exception ex)
+            {
+                TraceAuthToken(account.Login, "background_counter", "refresh_request",
+                    "exception", kind: ex.GetType().Name);
+                throw;
             }
 
-            DiagnosticLog.Write("auth_refresh", account.Login + ": counter token updated");
+            TraceAuthToken(account.Login, "background_counter", "refresh_response",
+                refreshed.Success ? "new_access_received" : "not_refreshed",
+                refreshed.HttpStatusCode);
+            if (!refreshed.Success || string.IsNullOrWhiteSpace(refreshed.AccessToken))
+                throw new MailRuAuthorizationException(403, "local_refresh_result");
+
+            string raw;
+            try
+            {
+                raw = await _mailRu.GetFolderThreadsAsync(
+                    refreshed.AccessToken, 0, offset: 0, limit: 1);
+            }
+            catch (MailRuAuthorizationException ex)
+            {
+                TraceAuthToken(account.Login, "background_counter", "verify_new_access",
+                    "rejected", ex.StatusCode, ex.Source);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                TraceAuthToken(account.Login, "background_counter", "verify_new_access",
+                    "exception", kind: ex.GetType().Name);
+                throw;
+            }
+
+            TraceAuthToken(account.Login, "background_counter", "verify_new_access", "accepted");
+            // Only the account whose access token actually failed is updated.
+            // Never let a late background response overwrite newer credentials
+            // saved by a manual re-authorization of the same mailbox.
+            if (_authStore.UpdateTokensIfCurrent(
+                account.Login, account.AccessToken!,
+                refreshed.AccessToken, refreshed.RefreshToken ?? account.RefreshToken))
+            {
+                if (string.Equals(_activeLogin, account.Login, StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(_accessToken, account.AccessToken, StringComparison.Ordinal))
+                {
+                    _accessToken = refreshed.AccessToken;
+                    _refreshToken = refreshed.RefreshToken ?? account.RefreshToken;
+                }
+                SyncBackgroundPush();
+                TraceAuthToken(account.Login, "background_counter", "store", "updated");
+            }
+            else
+            {
+                TraceAuthToken(account.Login, "background_counter", "store", "superseded");
+            }
             return raw;
+        }
+        catch (MailRuAuthorizationException denied) when (
+            string.IsNullOrWhiteSpace(account.RefreshToken))
+        {
+            TraceAuthToken(account.Login, "background_counter", "refresh_token",
+                "missing", denied.StatusCode, denied.Source);
+            throw;
         }
     }
 
