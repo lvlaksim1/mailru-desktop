@@ -77,49 +77,37 @@ internal static class MarkdownRichWriter
                     WriteInline(child, output, false, false);
                 output.Append("](").Append(link.NavigateUri.AbsoluteUri).Append(')');
                 break;
-            case Bold bold:
-                output.Append("**");
-                foreach (Inline child in bold.Inlines)
-                    WriteInline(child, output, true, parentItalic);
-                output.Append("**");
-                break;
-            case Italic italic:
-                output.Append('*');
-                foreach (Inline child in italic.Inlines)
-                    WriteInline(child, output, parentBold, true);
-                output.Append('*');
-                break;
-            case Underline underline:
-                output.Append("<u>");
-                foreach (Inline child in underline.Inlines)
-                    WriteInline(child, output, parentBold, parentItalic);
-                output.Append("</u>");
-                break;
             case Span span:
+                // A ClearAllProperties operation may leave Bold/Italic/Underline
+                // container objects with children explicitly reset to Normal.
+                // Serialize the *effective* run style, not the old wrapper type.
                 foreach (Inline child in span.Inlines)
-                    WriteInline(child, output, parentBold, parentItalic);
+                    WriteInline(child, output, false, false);
                 break;
             case LineBreak:
                 output.Append("\n");
                 break;
             case Run run:
-                var value = run.Text;
-                var boldRun = !parentBold && run.ReadLocalValue(TextElement.FontWeightProperty)
-                    is FontWeight weight && weight == FontWeights.Bold;
-                var italicRun = !parentItalic && run.ReadLocalValue(TextElement.FontStyleProperty)
-                    is FontStyle style && style == FontStyles.Italic;
-                var strike = run.TextDecorations?.Contains(TextDecorations.Strikethrough[0]) == true;
+                var bold = run.FontWeight == FontWeights.Bold;
+                var italic = run.FontStyle == FontStyles.Italic;
+                var underline = run.TextDecorations?.Contains(
+                    TextDecorations.Underline[0]) == true;
+                var strike = run.TextDecorations?.Contains(
+                    TextDecorations.Strikethrough[0]) == true;
                 var color = run.ReadLocalValue(TextElement.ForegroundProperty) is SolidColorBrush brush
                     ? $"#{brush.Color.R:X2}{brush.Color.G:X2}{brush.Color.B:X2}" : null;
-                if (boldRun) output.Append("**");
-                if (italicRun) output.Append('*');
+                if (bold) output.Append("**");
+                if (italic) output.Append('*');
+                if (underline) output.Append("<u>");
                 if (strike) output.Append("<s>");
-                if (color is not null) output.Append("<span style=\"color:").Append(color).Append("\">");
-                output.Append(value);
+                if (color is not null)
+                    output.Append("<span style=\"color:").Append(color).Append("\">");
+                output.Append(run.Text);
                 if (color is not null) output.Append("</span>");
                 if (strike) output.Append("</s>");
-                if (italicRun) output.Append('*');
-                if (boldRun) output.Append("**");
+                if (underline) output.Append("</u>");
+                if (italic) output.Append('*');
+                if (bold) output.Append("**");
                 break;
         }
     }
