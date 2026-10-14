@@ -116,7 +116,9 @@ public sealed record MailRuOutgoingMessage(
     IReadOnlyList<string>? AttachmentIds = null,
     int Priority = 3,
     string? MessageId = null,
-    bool RequestReadReceipt = false);
+    bool RequestReadReceipt = false,
+    string Cc = "",
+    string Bcc = "");
 
 public sealed record MailRuCommandResult(bool Success, string RawResponse);
 
@@ -810,7 +812,12 @@ public sealed partial class MailRuClient : IDisposable
 
         var html = message.Html ?? BuildSimpleHtml(message.Text);
         var body = JsonSerializer.Serialize(new { html, text = message.Text });
-        var correspondents = JsonSerializer.Serialize(new { bcc = "", cc = "", to = message.To });
+        var correspondents = JsonSerializer.Serialize(new
+        {
+            bcc = message.Bcc,
+            cc = message.Cc,
+            to = message.To
+        });
         var source = JsonSerializer.Serialize(new { reply = message.ReplyToId ?? "" });
 
         var subject = message.Subject ?? string.Empty;

@@ -15,6 +15,7 @@
     <Compile Include="../../src/MailRuDesktop.App/MailTargetResolver.cs" Link="MailTargetResolver.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/PendingFolderSelection.cs" Link="PendingFolderSelection.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/FolderLoadIdentity.cs" Link="FolderLoadIdentity.cs"/>
+    <Compile Include="../../src/MailRuDesktop.App/ScheduledSendNowExecution.cs" Link="ScheduledSendNowExecution.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/GitHubUpdateService.cs" Link="GitHubUpdateService.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/MailRuInlineImageSource.cs" Link="MailRuInlineImageSource.cs"/>
     <Compile Include="../../src/MailRuDesktop.App/ReaderPresentationPolicy.cs" Link="ReaderPresentationPolicy.cs"/>

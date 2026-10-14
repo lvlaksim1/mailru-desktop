@@ -99,10 +99,12 @@ public partial class MainWindow
         BulkDeletePermanentlyButton.Visibility = trash ? Visibility.Visible : Visibility.Collapsed;
         BulkSendNowButton.Visibility = CurrentFolderIsOutbox
             ? Visibility.Visible : Visibility.Collapsed;
-        BulkSendNowButton.IsEnabled = false; // No proven safe send-now protocol yet.
+        BulkSendNowButton.IsEnabled = !_bulkOperationInProgress &&
+            !_loadingFolder && count > 0;
         PreviewSendNowButton.Visibility = CurrentFolderIsOutbox
             ? Visibility.Visible : Visibility.Collapsed;
-        PreviewSendNowButton.IsEnabled = false;
+        PreviewSendNowButton.IsEnabled = !_bulkOperationInProgress &&
+            !_loadingFolder && ActivePreviewMessage is not null;
 
         BulkTrashButton.IsEnabled = !_bulkOperationInProgress;
         BulkArchiveButton.IsEnabled = !_bulkOperationInProgress;

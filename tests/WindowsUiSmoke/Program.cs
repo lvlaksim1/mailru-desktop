@@ -401,6 +401,21 @@ internal static class Program
                 loading.SetValue(mail, originallyLoading);
             }
 
+            // Issue #77: all three entrypoints use one controller.
+            // No click is fired here: outgoing mail requires explicit consent.
+            Check(Require<Button>(mail, "PreviewSendNowButton") is not null,
+                "message preview contains immediate scheduling action");
+            Check(Require<Button>(mail, "BulkSendNowButton") is not null,
+                "bulk toolbar contains immediate scheduling action");
+            Check(typeof(MainWindow).GetMethod("SendScheduledCopiesAsync",
+                  BindingFlags.Instance | BindingFlags.NonPublic) is not null,
+                "single shared scheduled message executor exists");
+            Check(typeof(MainWindow).GetMethod("PreviewSendNowButton_Click",
+                  BindingFlags.Instance | BindingFlags.NonPublic) is not null &&
+                  typeof(MainWindow).GetMethod("BulkSendNowButton_Click",
+                  BindingFlags.Instance | BindingFlags.NonPublic) is not null,
+                "immediate dispatch handlers are available for both buttons");
+
             var action = Require<Button>(mail, "MainComposeButton");
             Check(action.IsVisible, "New Mail action is visible above the message list");
             Check(Require<Grid>(mail, "SettingsWorkspace") is { }, "settings workspace loads");

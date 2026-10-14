@@ -741,6 +741,7 @@ public partial class MainWindow : Window
         {
             RefreshFolderButton.IsEnabled = true;
             _loadingFolder = false;
+            UpdateBulkToolbar();
 
             // Run the last explicit choice after releasing this load.
             // A prior account load may not begin work for a later account.
