@@ -417,8 +417,21 @@ internal sealed class RichComposeEditor
             selection.ApplyPropertyValue(TextElement.FontSizeProperty, _rich.FontSize);
             selection.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Normal);
             selection.ApplyPropertyValue(TextElement.FontStyleProperty, FontStyles.Normal);
-            // Foreground is inherited from the themed editor; do not freeze a
-            // one-time brush that becomes stale after changing the theme.
+            selection.ApplyPropertyValue(Inline.TextDecorationsProperty,
+                new TextDecorationCollection());
+            // Normalise selected paragraph-level heading/alignment properties
+            // as well as inline formatting; preserve each paragraph and Enter.
+            foreach (var paragraph in EnumerateParagraphs(_rich.Document.Blocks))
+            {
+                if (selection.Start.CompareTo(paragraph.ContentEnd) > 0 ||
+                    selection.End.CompareTo(paragraph.ContentStart) < 0)
+                    continue;
+                paragraph.ClearValue(TextElement.FontSizeProperty);
+                paragraph.ClearValue(TextElement.FontWeightProperty);
+                paragraph.ClearValue(Block.TextAlignmentProperty);
+                paragraph.TextAlignment = TextAlignment.Left;
+            }
+            // Foreground remains inherited from the themed editor.
             _rich.Focus();
         });
         Add(toolbar, "A▾", "Цвет текста", () =>
@@ -485,6 +498,26 @@ internal sealed class RichComposeEditor
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
+    private static IEnumerable<Paragraph> EnumerateParagraphs(BlockCollection blocks)
+    {
+        foreach (Block block in blocks)
+        {
+            if (block is Paragraph paragraph)
+                yield return paragraph;
+            else if (block is Section section)
+            {
+                foreach (var inner in EnumerateParagraphs(section.Blocks))
+                    yield return inner;
+            }
+            else if (block is System.Windows.Documents.List list)
+            {
+                foreach (var item in list.ListItems)
+                    foreach (var inner in EnumerateParagraphs(item.Blocks))
+                        yield return inner;
+            }
+        }
+    }
+
     private static void RenderBlocks(BlockCollection blocks, StringBuilder output)
     {
         foreach (Block block in blocks)
@@ -539,44 +572,39 @@ internal sealed class RichComposeEditor
     {
         foreach (Inline inline in inlines)
         {
-            string? tag = inline switch
-            {
-                Bold => "strong",
-                Italic => "em",
-                Underline => "u",
-                Hyperlink => "a",
-                Span => "span",
-                _ => null
-            };
             if (inline is Run run)
             {
-                var text = WebUtility.HtmlEncode(run.Text)
+                var value = WebUtility.HtmlEncode(run.Text)
                     .Replace("\r\n", "<br>", StringComparison.Ordinal)
                     .Replace("\n", "<br>", StringComparison.Ordinal);
                 var styles = new List<string>();
                 if (run.FontWeight == FontWeights.Bold) styles.Add("font-weight:bold");
                 if (run.FontStyle == FontStyles.Italic) styles.Add("font-style:italic");
+                if (run.TextDecorations?.Contains(TextDecorations.Underline[0]) == true)
+                    styles.Add("text-decoration:underline");
                 if (run.TextDecorations?.Contains(TextDecorations.Strikethrough[0]) == true)
                     styles.Add("text-decoration:line-through");
                 if (run.ReadLocalValue(TextElement.ForegroundProperty) is SolidColorBrush brush)
                     styles.Add($"color:#{brush.Color.R:X2}{brush.Color.G:X2}{brush.Color.B:X2}");
                 if (styles.Count > 0)
                     output.Append("<span style=\"").Append(string.Join(";", styles)).Append("\">");
-                output.Append(text);
+                output.Append(value);
                 if (styles.Count > 0) output.Append("</span>");
             }
             else if (inline is LineBreak)
                 output.Append("<br>");
+            else if (inline is Hyperlink link && link.NavigateUri is not null)
+            {
+                var url = link.NavigateUri.ToString();
+                output.Append("<a href=\"").Append(WebUtility.HtmlEncode(url)).Append("\">");
+                RenderInlines(link.Inlines, output);
+                output.Append("</a>");
+            }
             else if (inline is Span span)
             {
-                var url = inline is Hyperlink link && link.NavigateUri is not null
-                    ? link.NavigateUri.ToString() : null;
-                if (tag == "a" && url is not null)
-                    output.Append("<a href=\"").Append(WebUtility.HtmlEncode(url)).Append("\">");
-                else
-                    output.Append('<').Append(tag ?? "span").Append('>');
+                // Structural Bold/Italic/Underline can outlive a formatting
+                // reset; effective child properties are the source of truth.
                 RenderInlines(span.Inlines, output);
-                output.Append("</").Append(tag ?? "span").Append('>');
             }
         }
     }
