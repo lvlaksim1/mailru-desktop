@@ -7,10 +7,21 @@ public partial class AddAccountWindow : Window
     public string Login => LoginTextBox.Text.Trim();
     public string Password => PasswordBox.Password;
 
-    public AddAccountWindow()
+    public AddAccountWindow(string? existingLogin = null)
     {
         InitializeComponent();
-        Loaded += (_, _) => LoginTextBox.Focus();
+        if (!string.IsNullOrWhiteSpace(existingLogin))
+        {
+            Title = "Повторная авторизация Mail.ru";
+            LoginTextBox.Text = existingLogin;
+            LoginTextBox.IsReadOnly = true;
+            ConfirmButton.Content = "Авторизовать";
+            Loaded += (_, _) => PasswordBox.Focus();
+        }
+        else
+        {
+            Loaded += (_, _) => LoginTextBox.Focus();
+        }
     }
 
     private void AddButton_Click(object sender, RoutedEventArgs e)
