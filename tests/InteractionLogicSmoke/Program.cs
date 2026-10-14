@@ -701,6 +701,16 @@ var pushSettingsDirectory = System.IO.Path.Combine(
     System.IO.Path.GetTempPath(), "MailRuPushSettings_" + Guid.NewGuid().ToString("N"));
 try
 {
+    var signatureSettings = new AppSettingsStore(pushSettingsDirectory);
+    Expect(signatureSettings.LoadDefaultSignatureName(), (string?)null,
+        "primary signature is opt-in on existing settings");
+    signatureSettings.SaveDefaultSignatureName("Рабочая");
+    Expect(new AppSettingsStore(pushSettingsDirectory).LoadDefaultSignatureName(),
+        "Рабочая", "primary signature persists across application restarts");
+    signatureSettings.SaveDefaultSignatureName(null);
+    Expect(new AppSettingsStore(pushSettingsDirectory).LoadDefaultSignatureName(),
+        (string?)null, "primary signature can be explicitly disabled");
+
     var storedSettings = new AppSettingsStore(pushSettingsDirectory);
     Expect(storedSettings.LoadBackgroundPushEnabled(), true,
         "first start enables background push after feature approval");
