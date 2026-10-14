@@ -34,6 +34,9 @@ jobs:
       - name: Interactive WPF layout smoke
         run: dotnet run --project tests/WindowsUiSmoke/WindowsUiSmoke.csproj -c Release
 
+      - name: Scheduled-send evidence redaction tests (offline)
+        run: python -m unittest discover -s tools/tests -p "test_inspect_scheduled_send_zip.py" -v
+
       - name: Verify window and element registry
         run: python tools/ui_registry.py --check
 
