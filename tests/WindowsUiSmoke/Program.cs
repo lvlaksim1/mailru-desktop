@@ -167,11 +167,16 @@ internal static class Program
                 "global spelling switch turns on a live editor");
             previewTestRich.LoadMarkdown("# Заголовок\n- Пункт\n<u>Подчёркнуто</u>\n[Ссылка](https://example.org)");
             var roundTrip = previewTestRich.ToMarkdown();
-            Check(roundTrip.Contains("# Заголовок", StringComparison.Ordinal) &&
-                  roundTrip.Contains("- Пункт", StringComparison.Ordinal) &&
-                  roundTrip.Contains("<u>Подчёркнуто</u>", StringComparison.Ordinal) &&
-                  roundTrip.Contains("[Ссылка](https://example.org/)", StringComparison.Ordinal),
-                "rich editor preserves heading, bullets, underline and links as Markdown");
+            Console.WriteLine("SAFE_MARKDOWN_ROUNDTRIP: " +
+                roundTrip.Replace("\n", "\\n", StringComparison.Ordinal));
+            Check(roundTrip.Contains("# Заголовок", StringComparison.Ordinal),
+                "rich editor preserves heading as Markdown");
+            Check(roundTrip.Contains("- Пункт", StringComparison.Ordinal),
+                "rich editor preserves bullets as Markdown");
+            Check(roundTrip.Contains("<u>Подчёркнуто</u>", StringComparison.Ordinal),
+                "rich editor preserves underline as Markdown");
+            Check(roundTrip.Contains("[Ссылка](https://example.org/)", StringComparison.Ordinal),
+                "rich editor preserves hyperlinks as Markdown");
             // Two additional Enter keystrokes create TWO empty paragraphs,
             // both of which must take space in sent HTML (not <p></p>).
             previewTestRich.LoadMarkdown(
