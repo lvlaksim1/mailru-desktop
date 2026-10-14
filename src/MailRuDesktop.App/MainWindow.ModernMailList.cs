@@ -409,8 +409,12 @@ public partial class MainWindow
         if (CurrentFolderIsOutbox)
         {
             var immediate = CreateCompactMenuItem("Отправить сейчас");
-            immediate.IsEnabled = false;
-            immediate.ToolTip = "Серверная команда без повторной отправки ещё не подтверждена.";
+            immediate.IsEnabled = !_bulkOperationInProgress && !_loadingFolder;
+            immediate.Click += async (_, _) =>
+            {
+                var targets = ResolveActionMessages();
+                await SendScheduledCopiesAsync(targets);
+            };
             menu.Items.Add(immediate);
         }
 
