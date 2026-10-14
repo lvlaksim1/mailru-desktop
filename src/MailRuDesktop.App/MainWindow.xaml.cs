@@ -245,6 +245,8 @@ public partial class MainWindow : Window
                 string.IsNullOrWhiteSpace(authorization.AccessToken))
             {
                 item.Status = "Требуется повторный вход";
+                TraceAuthToken(item.Login, "background_counter",
+                    "stored_credentials", "not_restorable");
                 // Keep the last known counter instead of flashing it away.
                 continue;
             }
