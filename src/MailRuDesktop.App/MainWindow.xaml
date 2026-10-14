@@ -598,6 +598,14 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <WrapPanel Grid.Column="0">
+                                    <TextBlock Margin="0,0,6,0" VerticalAlignment="Center" Text="Из шаблона:"/>
+                                    <ComboBox x:Name="PreviewTemplateComboBox"
+                                              Width="210"
+                                              DisplayMemberPath="Name"
+                                              DropDownOpened="PreviewTemplateComboBox_DropDownOpened"
+                                              PreviewMouseLeftButtonUp="PreviewTemplateComboBox_PreviewMouseLeftButtonUp"
+                                              PreviewKeyDown="PreviewTemplateComboBox_PreviewKeyDown"
+                                              SelectionChanged="PreviewTemplateComboBox_SelectionChanged"/>
                                     <TextBlock Margin="0,0,6,0" VerticalAlignment="Center" Text="Подпись:"/>
                                     <ComboBox x:Name="PreviewSignatureComboBox"
                                               Width="180"
@@ -607,14 +615,6 @@
                                               PreviewMouseLeftButtonUp="PreviewSignatureComboBox_PreviewMouseLeftButtonUp"
                                               PreviewKeyDown="PreviewSignatureComboBox_PreviewKeyDown"
                                               SelectionChanged="PreviewSignatureComboBox_SelectionChanged"/>
-                                    <TextBlock Margin="0,0,6,0" VerticalAlignment="Center" Text="Из шаблона:"/>
-                                    <ComboBox x:Name="PreviewTemplateComboBox"
-                                              Width="210"
-                                              DisplayMemberPath="Name"
-                                              DropDownOpened="PreviewTemplateComboBox_DropDownOpened"
-                                              PreviewMouseLeftButtonUp="PreviewTemplateComboBox_PreviewMouseLeftButtonUp"
-                                              PreviewKeyDown="PreviewTemplateComboBox_PreviewKeyDown"
-                                              SelectionChanged="PreviewTemplateComboBox_SelectionChanged"/>
                                     </WrapPanel>
                                     <Button Grid.Column="1" Width="26" Height="26" Padding="0"
                                             HorizontalAlignment="Right" VerticalAlignment="Top"
@@ -746,14 +746,6 @@
                         </Grid>
                         <StackPanel Grid.Row="4" Margin="70,0,0,8">
                             <WrapPanel Margin="0,0,0,8">
-                                <TextBlock Text="Подпись:" VerticalAlignment="Center"
-                                           Margin="0,0,6,0"/>
-                                <ComboBox x:Name="ComposeSignatureComboBox" Width="205" Margin="0,0,8,0"
-                                          DisplayMemberPath="Name" SelectionChanged="ComposeSignatureComboBox_SelectionChanged"
-                                          DropDownOpened="ComposeSignatureComboBox_DropDownOpened"
-                                          PreviewMouseLeftButtonUp="ComposeSignatureComboBox_PreviewMouseLeftButtonUp"
-                                          PreviewKeyDown="ComposeSignatureComboBox_PreviewKeyDown"
-                                          ToolTip="Добавить подпись" />
                                 <TextBlock Text="Шаблон:" VerticalAlignment="Center"
                                            Margin="2,0,6,0"/>
                                 <ComboBox x:Name="ComposeTemplateComboBox" Width="235"
@@ -762,6 +754,14 @@
                                           PreviewMouseLeftButtonUp="ComposeTemplateComboBox_PreviewMouseLeftButtonUp"
                                           PreviewKeyDown="ComposeTemplateComboBox_PreviewKeyDown"
                                           ToolTip="Заполнить из шаблона"/>
+                                <TextBlock Text="Подпись:" VerticalAlignment="Center"
+                                           Margin="0,0,6,0"/>
+                                <ComboBox x:Name="ComposeSignatureComboBox" Width="205" Margin="0,0,8,0"
+                                          DisplayMemberPath="Name" SelectionChanged="ComposeSignatureComboBox_SelectionChanged"
+                                          DropDownOpened="ComposeSignatureComboBox_DropDownOpened"
+                                          PreviewMouseLeftButtonUp="ComposeSignatureComboBox_PreviewMouseLeftButtonUp"
+                                          PreviewKeyDown="ComposeSignatureComboBox_PreviewKeyDown"
+                                          ToolTip="Добавить подпись" />
                             </WrapPanel>
                             <StackPanel Orientation="Horizontal">
                                 <Button x:Name="AttachButton" Padding="12,6" Click="AttachButton_Click" Content="Вложить файл"/>
@@ -952,6 +952,11 @@
                                         <Button Padding="10,6" Margin="0,0,6,0" Click="NewSignatureButton_Click" Content="Новая"/>
                                         <Button Padding="10,6" Margin="0,0,6,0" Click="SaveSignatureButton_Click" Content="Сохранить"/>
                                         <Button Padding="10,6" Click="DeleteSignatureButton_Click" Foreground="{DynamicResource AppDangerBrush}" Content="Удалить"/>
+                                        <Button x:Name="DefaultSignatureButton"
+                                                Margin="6,0,0,0" Padding="10,6"
+                                                Click="DefaultSignatureButton_Click"
+                                                Content="Сделать основной"
+                                                ToolTip="Автоматически добавлять подпись в новые письма и ответы"/>
                                         <Button Padding="10,6" Margin="6,0,0,0"
                                                 Click="OpenSignaturesFolderButton_Click"
                                                 Content="Открыть папку подписей"/>

@@ -167,11 +167,16 @@ internal static class Program
                 "global spelling switch turns on a live editor");
             previewTestRich.LoadMarkdown("# Заголовок\n- Пункт\n<u>Подчёркнуто</u>\n[Ссылка](https://example.org)");
             var roundTrip = previewTestRich.ToMarkdown();
-            Check(roundTrip.Contains("# Заголовок", StringComparison.Ordinal) &&
-                  roundTrip.Contains("- Пункт", StringComparison.Ordinal) &&
-                  roundTrip.Contains("<u>Подчёркнуто</u>", StringComparison.Ordinal) &&
-                  roundTrip.Contains("[Ссылка](https://example.org/)", StringComparison.Ordinal),
-                "rich editor preserves heading, bullets, underline and links as Markdown");
+            Console.WriteLine("SAFE_MARKDOWN_ROUNDTRIP: " +
+                roundTrip.Replace("\n", "\\n", StringComparison.Ordinal));
+            Check(roundTrip.Contains("# Заголовок", StringComparison.Ordinal),
+                "rich editor preserves heading as Markdown");
+            Check(roundTrip.Contains("- Пункт", StringComparison.Ordinal),
+                "rich editor preserves bullets as Markdown");
+            Check(roundTrip.Contains("<u>Подчёркнуто</u>", StringComparison.Ordinal),
+                "rich editor preserves underline as Markdown");
+            Check(roundTrip.Contains("[Ссылка](https://example.org/)", StringComparison.Ordinal),
+                "rich editor preserves hyperlinks as Markdown");
             // Two additional Enter keystrokes create TWO empty paragraphs,
             // both of which must take space in sent HTML (not <p></p>).
             previewTestRich.LoadMarkdown(
@@ -197,24 +202,52 @@ internal static class Program
             cleanButton.RaiseEvent(new RoutedEventArgs(
                 ButtonBase.ClickEvent, cleanButton));
             var plainAfterClear = previewTestRich.ToHtml();
-            Check(!plainAfterClear.Contains("<strong>", StringComparison.Ordinal) &&
+            Check(!plainAfterClear.Contains("font-weight:bold", StringComparison.Ordinal) &&
                   plainAfterClear.Contains("Жирный текст", StringComparison.Ordinal) &&
                   plainAfterClear.Split("<br></p>", StringSplitOptions.None).Length == 3,
                 "clear formatting removes bold without erasing extra empty lines");
+            var cleanMarkdown = previewTestRich.ToMarkdown();
+            Check(!cleanMarkdown.Contains("**Жирный текст**", StringComparison.Ordinal) &&
+                  !cleanMarkdown.Contains("# Жирный текст", StringComparison.Ordinal),
+                "saved template Markdown no longer reintroduces cleared formatting");
+            previewTestRich.LoadMarkdown(cleanMarkdown);
+            Check(!previewTestRich.ToHtml().Contains("font-weight:bold", StringComparison.Ordinal),
+                "reopening saved Markdown and sending it keeps formatting removed");
+
             Check(Equals(richEditor.Selection.GetPropertyValue(
                       TextElement.FontFamilyProperty), richEditor.FontFamily) &&
                   Equals(richEditor.Selection.GetPropertyValue(
                       TextElement.FontSizeProperty), richEditor.FontSize),
                 "clear formatting restores application font family and body font size");
 
+            previewTestRich.LoadMarkdown(
+                "**Полужирный**\n*Курсив*\n<u>Подчёркнутый</u>\n<s>Зачёркнутый</s>\n" +
+                "<span style=\"color:#FF0000\">Красный</span>");
+            richEditor.SelectAll();
+            cleanButton.RaiseEvent(new RoutedEventArgs(
+                ButtonBase.ClickEvent, cleanButton));
+            var cleanSaved = previewTestRich.ToMarkdown();
+            var cleanSent = previewTestRich.ToHtml();
+            Check(!cleanSaved.Contains("**Полужирный**", StringComparison.Ordinal) &&
+                  !cleanSaved.Contains("*Курсив*", StringComparison.Ordinal) &&
+                  !cleanSaved.Contains("<u>", StringComparison.Ordinal) &&
+                  !cleanSaved.Contains("<s>", StringComparison.Ordinal) &&
+                  !cleanSaved.Contains("color:#FF0000", StringComparison.OrdinalIgnoreCase),
+                "cleared bold/italic/underline/strike/color are absent from saved template");
+            Check(!cleanSent.Contains("font-weight:bold", StringComparison.OrdinalIgnoreCase) &&
+                  !cleanSent.Contains("font-style:italic", StringComparison.OrdinalIgnoreCase) &&
+                  !cleanSent.Contains("text-decoration:", StringComparison.OrdinalIgnoreCase) &&
+                  !cleanSent.Contains("color:#FF0000", StringComparison.OrdinalIgnoreCase),
+                "cleared bold/italic/underline/strike/color are absent from sent HTML");
+
             previewTestRich.LoadMarkdown("**Выделенный текст**");
-            Check(previewTestRich.ToHtml().Contains("<strong>", StringComparison.Ordinal) &&
+            Check(previewTestRich.ToHtml().Contains("font-weight:bold", StringComparison.Ordinal) &&
                   previewTestRich.ToHtml().Contains("Выделенный текст", StringComparison.Ordinal),
                 "template Markdown becomes actual formatted mail HTML");
             previewTestRich.ApplyMarkdownSignature("**Подпись**", new[] { "**Подпись**" });
             previewTestRich.ApplyMarkdownSignature("**Подпись**", new[] { "**Подпись**" });
             var resultingHtml = previewTestRich.ToHtml();
-            Check(resultingHtml.Contains("<strong>", StringComparison.Ordinal) &&
+            Check(resultingHtml.Contains("font-weight:bold", StringComparison.Ordinal) &&
                   resultingHtml.Contains("Выделенный текст", StringComparison.Ordinal),
                 "changing signature preserves original bold text");
             Check(resultingHtml.Split("Подпись", StringSplitOptions.None).Length == 2,
@@ -237,6 +270,20 @@ internal static class Program
             previewTestWindow.Content = null;
 
             mail = new MainWindow();
+            var previewTemplateSelector = Require<ComboBox>(mail, "PreviewTemplateComboBox");
+            var previewSignatureSelector = Require<ComboBox>(mail, "PreviewSignatureComboBox");
+            var previewSelectorRow = (WrapPanel)previewTemplateSelector.Parent;
+            Check(previewSelectorRow.Children.IndexOf(previewTemplateSelector) <
+                  previewSelectorRow.Children.IndexOf(previewSignatureSelector),
+                "reply form places template before signature");
+            var composeTemplateSelector = Require<ComboBox>(mail, "ComposeTemplateComboBox");
+            var composeSignatureSelector = Require<ComboBox>(mail, "ComposeSignatureComboBox");
+            var composeSelectorRow = (WrapPanel)composeTemplateSelector.Parent;
+            Check(composeSelectorRow.Children.IndexOf(composeTemplateSelector) <
+                  composeSelectorRow.Children.IndexOf(composeSignatureSelector),
+                "new mail form places template before signature");
+            Check(Require<Button>(mail, "DefaultSignatureButton") is not null,
+                "signature settings have a primary-signature command");
             mail.Show();
             mail.UpdateLayout();
 

@@ -46,6 +46,7 @@ public partial class MainWindow
 
         StartTemplateWatcher();
         StartSignatureWatcher();
+        UpdateDefaultSignatureButton();
         Closed += (_, _) =>
         {
             _templateWatcher?.Dispose();
@@ -95,6 +96,7 @@ public partial class MainWindow
                     entry => entry.Name.Equals(composeName, StringComparison.OrdinalIgnoreCase));
         }
         finally { _refreshingSignatures = false; }
+        UpdateDefaultSignatureButton();
     }
 
     private void OpenSignaturesFolderButton_Click(object sender, RoutedEventArgs e)
@@ -225,6 +227,52 @@ public partial class MainWindow
 
         SignatureNameTextBox.Text = signature.Name;
         SignatureBodyTextBox.Text = signature.Body;
+        UpdateDefaultSignatureButton();
+    }
+
+    private SavedSignature? GetDefaultSignature() =>
+        _signatures.FirstOrDefault(entry => string.Equals(entry.Name,
+            _settingsStore.LoadDefaultSignatureName(), StringComparison.OrdinalIgnoreCase));
+
+    private void UpdateDefaultSignatureButton()
+    {
+        if (DefaultSignatureButton is null) return;
+        var selected = SignaturesListBox.SelectedItem as SavedSignature;
+        DefaultSignatureButton.IsEnabled = selected is not null;
+        DefaultSignatureButton.Content = selected is not null &&
+            string.Equals(selected.Name, _settingsStore.LoadDefaultSignatureName(),
+                StringComparison.OrdinalIgnoreCase)
+            ? "Убрать основную"
+            : "Сделать основной";
+    }
+
+    private void DefaultSignatureButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (SignaturesListBox.SelectedItem is not SavedSignature selected) return;
+        var current = _settingsStore.LoadDefaultSignatureName();
+        _settingsStore.SaveDefaultSignatureName(
+            string.Equals(current, selected.Name, StringComparison.OrdinalIgnoreCase)
+                ? null : selected.Name);
+        UpdateDefaultSignatureButton();
+    }
+
+    private void ApplyDefaultComposeSignature()
+    {
+        if (GetDefaultSignature() is not { } signature) return;
+        if (string.Equals(_composeInsertedSignature, signature.Body, StringComparison.Ordinal))
+            return;
+        ComposeSignatureComboBox.SelectedItem = signature;
+        // Setting SelectedItem invokes the existing selection handler.
+        if (!string.Equals(_composeInsertedSignature, signature.Body, StringComparison.Ordinal))
+            ApplyComposeSignature(signature, false);
+    }
+
+    private void ApplyDefaultPreviewSignature()
+    {
+        if (GetDefaultSignature() is not { } signature) return;
+        PreviewSignatureComboBox.SelectedItem = signature;
+        if (!string.Equals(_previewInsertedSignature, signature.Body, StringComparison.Ordinal))
+            ApplySignature(signature);
     }
 
     private void NewSignatureButton_Click(object sender, RoutedEventArgs e)
@@ -232,6 +280,7 @@ public partial class MainWindow
         SignaturesListBox.SelectedItem = null;
         SignatureNameTextBox.Clear();
         SignatureBodyTextBox.Clear();
+        UpdateDefaultSignatureButton();
         SignatureNameTextBox.Focus();
     }
 
@@ -257,6 +306,10 @@ public partial class MainWindow
 
             SignatureFiles.Save(new SavedSignature { Name = name,
                 Body = SignatureBodyTextBox.Text });
+            if (selected is not null && !sameFile &&
+                string.Equals(selected.Name, _settingsStore.LoadDefaultSignatureName(),
+                    StringComparison.OrdinalIgnoreCase))
+                _settingsStore.SaveDefaultSignatureName(name);
             // If an existing entry is renamed, remove its previous file only
             // after the replacement was written successfully.
             if (selected is not null && !sameFile)
@@ -282,6 +335,9 @@ public partial class MainWindow
         try
         {
             SignatureFiles.Delete(signature.Name);
+            if (string.Equals(signature.Name, _settingsStore.LoadDefaultSignatureName(),
+                    StringComparison.OrdinalIgnoreCase))
+                _settingsStore.SaveDefaultSignatureName(null);
             RefreshSignaturesFromDisk();
             SignatureNameTextBox.Clear();
             SignatureBodyTextBox.Clear();
@@ -465,6 +521,7 @@ public partial class MainWindow
 
     private void ApplyComposeTemplate(SavedMailTemplate template)
     {
+        var previouslySelectedSignature = ComposeSignatureComboBox.SelectedItem as SavedSignature;
         if (_composeRichEditor is { IsReplyMode: true } replyEditor)
             replyEditor.ApplyTemplateMarkdown(template.Body, _signatures.Select(item => item.Body));
         else if (_composeRichEditor is not null)
@@ -472,6 +529,15 @@ public partial class MainWindow
         else
             ComposeBodyTextBox.Text = template.Body;
         _composeInsertedSignature = null;
+        // A template replaces only the body; the user's default/selected
+        // signature remains a separate, nonduplicating trailing region.
+        if (_composeRichEditor is { IsReplyMode: false })
+        {
+            if (previouslySelectedSignature is not null)
+                ApplyComposeSignature(previouslySelectedSignature, false);
+            else
+                ApplyDefaultComposeSignature();
+        }
         _attachmentPaths.Clear();
         var missing = 0;
         foreach (var path in template.Attachments)

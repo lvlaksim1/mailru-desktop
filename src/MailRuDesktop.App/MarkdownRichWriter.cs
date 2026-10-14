@@ -43,12 +43,14 @@ internal static class MarkdownRichWriter
         else if (block is Paragraph paragraph)
         {
             var text = new StringBuilder();
+            var isHeading = paragraph.FontSize >= 18 &&
+                paragraph.FontWeight == FontWeights.Bold;
             foreach (Inline inline in paragraph.Inlines)
-                WriteInline(inline, text, false, false);
+                WriteInline(inline, text, isHeading, false);
             var line = text.ToString();
             if (line.StartsWith("• ", StringComparison.Ordinal))
                 line = "- " + line[2..];
-            if (paragraph.FontSize >= 18 && paragraph.FontWeight == FontWeights.Bold)
+            if (isHeading)
                 line = "# " + line;
             if (prefix is not null)
                 line = prefix + line;
@@ -74,52 +76,46 @@ internal static class MarkdownRichWriter
             case Hyperlink link when link.NavigateUri is not null:
                 output.Append('[');
                 foreach (Inline child in link.Inlines)
-                    WriteInline(child, output, false, false);
+                    WriteInline(child, output, parentBold, parentItalic);
                 output.Append("](").Append(link.NavigateUri.AbsoluteUri).Append(')');
                 break;
-            case Bold bold:
-                output.Append("**");
-                foreach (Inline child in bold.Inlines)
-                    WriteInline(child, output, true, parentItalic);
-                output.Append("**");
-                break;
-            case Italic italic:
-                output.Append('*');
-                foreach (Inline child in italic.Inlines)
-                    WriteInline(child, output, parentBold, true);
-                output.Append('*');
-                break;
-            case Underline underline:
-                output.Append("<u>");
-                foreach (Inline child in underline.Inlines)
-                    WriteInline(child, output, parentBold, parentItalic);
-                output.Append("</u>");
-                break;
             case Span span:
+                // A ClearAllProperties operation may leave Bold/Italic/Underline
+                // container objects with children explicitly reset to Normal.
+                // Serialize the *effective* run style, not the old wrapper type.
                 foreach (Inline child in span.Inlines)
-                    WriteInline(child, output, parentBold, parentItalic);
+                    WriteInline(child, output, parentBold, parentItalic || span is Underline);
                 break;
             case LineBreak:
                 output.Append("\n");
                 break;
             case Run run:
-                var value = run.Text;
-                var boldRun = !parentBold && run.ReadLocalValue(TextElement.FontWeightProperty)
-                    is FontWeight weight && weight == FontWeights.Bold;
-                var italicRun = !parentItalic && run.ReadLocalValue(TextElement.FontStyleProperty)
-                    is FontStyle style && style == FontStyles.Italic;
-                var strike = run.TextDecorations?.Contains(TextDecorations.Strikethrough[0]) == true;
+                var bold = run.FontWeight == FontWeights.Bold && !parentBold;
+                var italic = run.FontStyle == FontStyles.Italic;
+                // Underline is structural in WPF Markdown imports. If a
+                // formatting reset provided an explicit empty collection it
+                // overrides that old wrapper; otherwise inherit underline.
+                var hasExplicitDecoration = run.ReadLocalValue(
+                    Inline.TextDecorationsProperty) != DependencyProperty.UnsetValue;
+                var underline = run.TextDecorations?.Contains(
+                    TextDecorations.Underline[0]) == true ||
+                    (!hasExplicitDecoration && parentItalic);
+                var strike = run.TextDecorations?.Contains(
+                    TextDecorations.Strikethrough[0]) == true;
                 var color = run.ReadLocalValue(TextElement.ForegroundProperty) is SolidColorBrush brush
                     ? $"#{brush.Color.R:X2}{brush.Color.G:X2}{brush.Color.B:X2}" : null;
-                if (boldRun) output.Append("**");
-                if (italicRun) output.Append('*');
+                if (bold) output.Append("**");
+                if (italic) output.Append('*');
+                if (underline) output.Append("<u>");
                 if (strike) output.Append("<s>");
-                if (color is not null) output.Append("<span style=\"color:").Append(color).Append("\">");
-                output.Append(value);
+                if (color is not null)
+                    output.Append("<span style=\"color:").Append(color).Append("\">");
+                output.Append(run.Text);
                 if (color is not null) output.Append("</span>");
                 if (strike) output.Append("</s>");
-                if (italicRun) output.Append('*');
-                if (boldRun) output.Append("**");
+                if (underline) output.Append("</u>");
+                if (italic) output.Append('*');
+                if (bold) output.Append("**");
                 break;
         }
     }

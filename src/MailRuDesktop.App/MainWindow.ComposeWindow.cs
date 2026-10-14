@@ -81,6 +81,13 @@ public partial class MainWindow
         RefreshComposeAttachments();
         window.Show();
         ThemeManager.RefreshWindowChrome(window);
+        if (!reply)
+        {
+            var wasEmpty = string.IsNullOrWhiteSpace(ComposeBodyTextBox.Text);
+            ApplyDefaultComposeSignature();
+            if (wasEmpty)
+                _composeRichEditor?.PlaceCaretAtStart();
+        }
         ComposeToTextBox.Focus();
     }
 
@@ -123,6 +130,7 @@ public partial class MainWindow
             _composeRichEditor.LoadReplyQuotedText(quoted);
         else
             ComposeBodyTextBox.Text = quoted;
+        ApplyDefaultComposeSignature();
         ComposeStatusText.Text = string.Empty;
         _composeRichEditor?.Focus();
     }
