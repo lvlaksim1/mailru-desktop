@@ -101,6 +101,7 @@ public partial class MainWindow
                             Html: string.IsNullOrWhiteSpace(full.Html) ? null : full.Html,
                             SendDate: null,
                             AttachmentIds: attachmentIds,
+                            Priority: full.Priority,
                             Cc: string.Join(", ", full.Cc),
                             Bcc: string.Join(", ", full.Bcc));
                     },
