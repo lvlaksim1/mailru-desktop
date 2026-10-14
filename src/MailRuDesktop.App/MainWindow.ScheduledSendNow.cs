@@ -6,6 +6,11 @@ namespace MailRuDesktop.App;
 
 public partial class MainWindow
 {
+    // Protect against a second manual click after a server operation with an
+    // uncertain outcome. The source ID is scoped to the originating account.
+    private readonly HashSet<string> _sendNowAttemptedDeletes =
+        new(StringComparer.OrdinalIgnoreCase);
+
     private async void PreviewSendNowButton_Click(object sender, RoutedEventArgs e)
     {
         if (ActivePreviewMessage is { } message)
@@ -60,6 +65,15 @@ public partial class MainWindow
                 // conceal a completed delivery.
                 var token = _accessToken!;
                 var originalId = message.Id;
+                var operationId = account.ToUpperInvariant() + ":" + originalId;
+                if (_sendNowAttemptedDeletes.Contains(operationId))
+                {
+                    FolderStatusText.Text =
+                        "Для этого письма уже была попытка отмены расписания. Повторная отправка заблокирована до ручной проверки.";
+                    AppDialog.Info(this, "Повторная отправка заблокирована",
+                        FolderStatusText.Text);
+                    break;
+                }
                 var originalDeleted = false;
                 FolderStatusText.Text =
                     $"Подготовка копии письма {sentCount + 1} из {selected.Count}...";
@@ -110,8 +124,11 @@ public partial class MainWindow
                         if (!IsCurrent())
                             return false;
                         FolderStatusText.Text = "Удаление первоначальной отложенной отправки...";
+                        _sendNowAttemptedDeletes.Add(operationId);
                         originalDeleted = (await _mailRu.RemoveMessagesAsync(
                             token, account, [originalId])).Success;
+                        if (!originalDeleted)
+                            _sendNowAttemptedDeletes.Remove(operationId);
                         return originalDeleted;
                     },
                     async () =>
