@@ -128,7 +128,7 @@ public partial class MainWindow
                 await _mailRu.GetFolderThreadsAsync(result.AccessToken, 0, limit: 1);
                 TraceAuthToken(login, "manual_reauth", "verify_new_access", "accepted");
             }
-            catch (MailRuAuthorizationException rejected)
+            catch (MailRuDesktop.Protocol.MailRuAuthorizationException rejected)
             {
                 TraceAuthToken(login, "manual_reauth", "verify_new_access",
                     "rejected", rejected.StatusCode, rejected.Source);
