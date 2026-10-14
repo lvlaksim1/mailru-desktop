@@ -250,6 +250,34 @@ internal static class Program
             Check(mail.FindName("ReaderLoadingOverlay") is null,
                 "no WPF overlay can create WebView2 airspace flashes");
 
+            // Account context command applies to the clicked account, not
+            // the currently active mailbox. The login is fixed in its dialog.
+            var accountMenuMethod = typeof(MainWindow).GetMethod(
+                "CreateAccountContextMenu", BindingFlags.Instance | BindingFlags.NonPublic);
+            Check(accountMenuMethod is not null, "account context-menu factory exists");
+            var accountMenu = accountMenuMethod!.Invoke(mail, new object[]
+            {
+                new AccountRailItem("other@example.invalid")
+            }) as ContextMenu;
+            Check(accountMenu is not null && accountMenu.Items.Count == 2 &&
+                  (string)((MenuItem)accountMenu.Items[0]).Header == "Повторная авторизация" &&
+                  (string)((MenuItem)accountMenu.Items[1]).Header == "Удалить",
+                "account context menu offers targeted reauthorization and existing delete");
+
+            var reauthDialog = new AddAccountWindow("other@example.invalid");
+            Check(reauthDialog.Title == "Повторная авторизация Mail.ru" &&
+                  Require<TextBox>(reauthDialog, "LoginTextBox").Text == "other@example.invalid" &&
+                  Require<TextBox>(reauthDialog, "LoginTextBox").IsReadOnly &&
+                  (string)Require<Button>(reauthDialog, "ConfirmButton").Content == "Авторизовать",
+                "reauth dialog fixes existing mailbox and requests only its password");
+            reauthDialog.Close();
+
+            var addDialog = new AddAccountWindow();
+            Check(!Require<TextBox>(addDialog, "LoginTextBox").IsReadOnly &&
+                  (string)Require<Button>(addDialog, "ConfirmButton").Content == "Добавить",
+                "normal add-account flow remains unchanged");
+            addDialog.Close();
+
             var modernList = Require<ListBox>(mail, "MessagesGrid");
 
             // Stage 2: diagnostic output must never become the source of
