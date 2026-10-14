@@ -81,6 +81,8 @@ public partial class MainWindow
         RefreshComposeAttachments();
         window.Show();
         ThemeManager.RefreshWindowChrome(window);
+        if (!reply)
+            ApplyDefaultComposeSignature();
         ComposeToTextBox.Focus();
     }
 
@@ -123,6 +125,7 @@ public partial class MainWindow
             _composeRichEditor.LoadReplyQuotedText(quoted);
         else
             ComposeBodyTextBox.Text = quoted;
+        ApplyDefaultComposeSignature();
         ComposeStatusText.Text = string.Empty;
         _composeRichEditor?.Focus();
     }
