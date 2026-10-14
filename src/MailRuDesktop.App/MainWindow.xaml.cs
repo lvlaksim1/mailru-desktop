@@ -1005,41 +1005,19 @@ public partial class MainWindow : Window
         if ((sender as Button)?.Tag is not MailRuMessageSummary message)
             return;
 
-        await SetUnreadStateFromCardAsync(message, !message.Unread);
         e.Handled = true;
+        await ChangeMessageMarkAsync(message, MailMarkKind.Unread, !message.Unread,
+            showSuccess: false);
     }
 
     private async void MessageFlagButton_Click(object sender, RoutedEventArgs e)
     {
-        if ((sender as Button)?.Tag is not MailRuMessageSummary message ||
-            string.IsNullOrWhiteSpace(_accessToken))
+        if ((sender as Button)?.Tag is not MailRuMessageSummary message)
             return;
 
-        try
-        {
-            var result = await _mailRu.SetFlaggedAsync(
-                _accessToken,
-                _activeLogin ?? string.Empty,
-                message.Id,
-                message.FolderId ?? _currentFolderId,
-                !message.Flagged);
-
-            ResponseTextBox.Text = result.RawResponse;
-            if (!result.Success)
-            {
-                FolderStatusText.Text = "Mail.ru отклонил изменение флажка.";
-                return;
-            }
-
-            ReplaceMessage(message, message with { Flagged = !message.Flagged });
-        }
-        catch (Exception ex)
-        {
-            FolderStatusText.Text = "Ошибка изменения флажка.";
-            DiagnosticLog.Write("message_flag", ex.GetType().Name + ": " + ex.Message);
-        }
-
         e.Handled = true;
+        await ChangeMessageMarkAsync(message, MailMarkKind.Flagged, !message.Flagged,
+            showSuccess: false);
     }
 
     private async void MessageArchiveButton_Click(object sender, RoutedEventArgs e)
@@ -1048,6 +1026,7 @@ public partial class MainWindow : Window
             string.IsNullOrWhiteSpace(_accessToken))
             return;
 
+        e.Handled = true;
         var folders = (FolderListBox.ItemsSource as IEnumerable<MailRuFolderSummary>)?.ToArray()
             ?? Array.Empty<MailRuFolderSummary>();
         var archive = folders.FirstOrDefault(folder =>
@@ -1055,62 +1034,14 @@ public partial class MainWindow : Window
             folder.Name.Equals("Архив", StringComparison.CurrentCultureIgnoreCase) ||
             folder.Id == 500010);
 
-        try
-        {
-            var result = await _mailRu.MoveMessagesAsync(
-                _accessToken,
-                new[] { message.Id },
-                archive?.Id ?? 500010);
-
-            ResponseTextBox.Text = result.RawResponse;
-            if (!result.Success)
-            {
-                FolderStatusText.Text = "Mail.ru отклонил перенос в архив.";
-                return;
-            }
-
-            _currentMessages.RemoveAll(item => item.Id == message.Id);
-            ApplyFilters();
-            ClearSelectedMessage();
-            FolderStatusText.Text = "Письмо перемещено в архив.";
-        }
-        catch (Exception ex)
-        {
-            FolderStatusText.Text = "Ошибка перемещения в архив.";
-            DiagnosticLog.Write("message_archive", ex.GetType().Name + ": " + ex.Message);
-        }
-
-        e.Handled = true;
+        await MoveMessagesAsync([message.Id], archive?.Id ?? 500010,
+            "Перемещение в архив",
+            successText: "Письмо перемещено в архив.",
+            rejectionText: "Mail.ru отклонил перенос в архив.",
+            failureText: "Ошибка перемещения в архив.",
+            diagnosticCategory: "message_archive");
     }
 
-    private async Task SetUnreadStateFromCardAsync(MailRuMessageSummary message, bool makeUnread)
-    {
-        if (string.IsNullOrWhiteSpace(_accessToken))
-            return;
-
-        try
-        {
-            var result = await _mailRu.SetUnreadAsync(
-                _accessToken,
-                _activeLogin ?? string.Empty,
-                message.Id,
-                makeUnread);
-
-            ResponseTextBox.Text = result.RawResponse;
-            if (!result.Success)
-            {
-                FolderStatusText.Text = "Mail.ru отклонил изменение статуса.";
-                return;
-            }
-
-            ReplaceMessage(message, message with { Unread = makeUnread });
-        }
-        catch (Exception ex)
-        {
-            FolderStatusText.Text = "Ошибка изменения статуса.";
-            DiagnosticLog.Write("message_marks", ex.GetType().Name + ": " + ex.Message);
-        }
-    }
 
     private void ReplaceMessage(MailRuMessageSummary original, MailRuMessageSummary updated)
     {
@@ -1497,7 +1428,11 @@ public partial class MainWindow : Window
     private async Task MoveMessagesAsync(
         IReadOnlyCollection<string> ids,
         int destinationFolderId,
-        string operationName)
+        string operationName,
+        string? successText = null,
+        string? rejectionText = null,
+        string? failureText = null,
+        string diagnosticCategory = "message_move")
     {
         if (string.IsNullOrWhiteSpace(_accessToken))
         {
@@ -1505,42 +1440,35 @@ public partial class MainWindow : Window
             return;
         }
 
-        var operationAccount = _activeLogin;
-        var operationFolder = _currentFolderId;
         MoveMessageButton.IsEnabled = false;
         TrashMessageButton.IsEnabled = false;
         FolderStatusText.Text = operationName + "...";
 
         try
         {
-            var result = await _mailRu.MoveMessagesAsync(
-                _accessToken,
-                ids,
-                destinationFolderId);
-
-            ResponseTextBox.Text = result.RawResponse;
-            if (!result.Success)
+            var outcome = await ExecuteMailCommandAsync(
+                (token, _) => _mailRu.MoveMessagesAsync(token, ids, destinationFolderId),
+                () =>
+                {
+                    var unread = _currentMessages.Count(x => ids.Contains(x.Id) && x.Unread);
+                    if (unread > 0)
+                        ChangeFolderUnreadCount(destinationFolderId, unread);
+                    RemoveConfirmedMailRows(ids);
+                    if (_currentFolderId == 0 && unread > 0)
+                        AdjustActiveInboxUnread(-unread);
+                });
+            if (outcome == MailCommandOutcome.Rejected)
             {
-                FolderStatusText.Text = "Mail.ru отклонил перемещение.";
+                FolderStatusText.Text = rejectionText ?? "Mail.ru отклонил перемещение.";
                 return;
             }
-
-            if (string.Equals(_activeLogin, operationAccount, StringComparison.OrdinalIgnoreCase)
-                && _currentFolderId == operationFolder)
-            {
-                var unread = _currentMessages.Count(x => ids.Contains(x.Id) && x.Unread);
-                if (unread > 0)
-                    ChangeFolderUnreadCount(destinationFolderId, unread);
-                RemoveConfirmedMailRows(ids);
-                if (_currentFolderId == 0 && unread > 0)
-                    AdjustActiveInboxUnread(-unread);
-            }
-            FolderStatusText.Text = "Перемещено писем: " + ids.Count;
+            if (outcome == MailCommandOutcome.Confirmed)
+                FolderStatusText.Text = successText ?? "Перемещено писем: " + ids.Count;
         }
         catch (Exception ex)
         {
-            FolderStatusText.Text = "Ошибка перемещения.";
-            DiagnosticLog.Write("message_move", ex.GetType().Name + ": " + ex.Message);
+            FolderStatusText.Text = failureText ?? "Ошибка перемещения.";
+            DiagnosticLog.Write(diagnosticCategory, ex.GetType().Name + ": " + ex.Message);
         }
         finally
         {
