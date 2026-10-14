@@ -87,8 +87,7 @@ public partial class MainWindow
 
     private void RefreshModernMailListView()
     {
-        RefreshThreadCountIndex();
-
+        // Rendering is not a data source: counts were committed with the folder snapshot.
         if (MessagesGrid.ItemsSource is null)
             return;
 
@@ -125,14 +124,15 @@ public partial class MainWindow
         new Dictionary<string, MailRuConversation>(StringComparer.Ordinal);
 
     private List<MailRuMessageSummary> CollapseVerifiedConversations(
-        IReadOnlyList<MailRuMessageSummary> incoming)
+        IReadOnlyList<MailRuMessageSummary> incoming,
+        IReadOnlyDictionary<string, MailRuConversation> conversations)
     {
         var visible = new List<MailRuMessageSummary>(incoming.Count);
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var row in incoming.OrderByDescending(x => x.DateUnix))
         {
             // An empty or unverified conversation key never causes merging.
-            if (!_conversationIndex.TryGetValue(row.Id, out var conversation) ||
+            if (!conversations.TryGetValue(row.Id, out var conversation) ||
                 conversation.Members.Count < 2 ||
                 string.IsNullOrWhiteSpace(conversation.ThreadId))
             {
@@ -145,37 +145,47 @@ public partial class MainWindow
         return visible;
     }
 
-    private void RefreshThreadCountIndex()
+    // Folder-derived state is computed from its actual response, never from the
+    // diagnostics TextBox (which also shows search, preview and command responses).
+    private sealed record FolderThreadState(
+        IReadOnlyDictionary<string, MailRuConversation> Conversations,
+        Dictionary<string, int> Counts,
+        int ConfirmedConversations);
+
+    private static FolderThreadState BuildFolderThreadState(string raw)
     {
-        var raw = ResponseTextBox.Text;
+        var empty = new FolderThreadState(
+            new Dictionary<string, MailRuConversation>(StringComparer.Ordinal),
+            new Dictionary<string, int>(StringComparer.Ordinal), 0);
         if (string.IsNullOrWhiteSpace(raw))
-        {
-            _conversationIndex = new Dictionary<string, MailRuConversation>(StringComparer.Ordinal);
-            MailThreadCountRegistry.Replace(new Dictionary<string, int>(StringComparer.Ordinal));
-            return;
-        }
+            return empty;
 
         try
         {
-            _conversationIndex = MailRuConversationParser.Parse(raw);
-            var confirmed = _conversationIndex.Values
+            var conversations = MailRuConversationParser.Parse(raw);
+            var confirmed = conversations.Values
                 .Where(x => x.Members.Count > 1)
                 .Select(x => x.ThreadId).Distinct(StringComparer.Ordinal).Count();
-            PushDiagnostics.Record("MAIL", "CONVERSATIONS_CONFIRMED", confirmed);
             var counts = BuildThreadCountIndex(raw);
-            foreach (var (id, conversation) in _conversationIndex)
+            foreach (var (id, conversation) in conversations)
             {
                 if (conversation.VerifiedCount is int serverCount && serverCount > 1)
                     counts[id] = Math.Max(counts.GetValueOrDefault(id), serverCount);
             }
-            MailThreadCountRegistry.Replace(counts);
+            return new FolderThreadState(conversations, counts, confirmed);
         }
         catch (JsonException ex)
         {
-            _conversationIndex = new Dictionary<string, MailRuConversation>(StringComparer.Ordinal);
-            MailThreadCountRegistry.Replace(new Dictionary<string, int>(StringComparer.Ordinal));
             DiagnosticLog.Write("thread_count_index", ex.Message);
+            return empty;
         }
+    }
+
+    private void PublishFolderThreadState(FolderThreadState state)
+    {
+        _conversationIndex = state.Conversations;
+        MailThreadCountRegistry.Replace(state.Counts);
+        PushDiagnostics.Record("MAIL", "CONVERSATIONS_CONFIRMED", state.ConfirmedConversations);
     }
 
     private static Dictionary<string, int> BuildThreadCountIndex(string payload)
