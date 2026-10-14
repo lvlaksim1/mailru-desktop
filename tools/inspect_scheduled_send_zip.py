@@ -40,10 +40,13 @@ def _safe_path(path: str) -> str:
         ["", "api", "v1", "messages"], ["", "api", "v1", "m"]
     ):
         return "/{unrecognized}"
-    return "/" + "/".join(
+    # /api/v1 is a static protocol prefix, not a message identifier.
+    fixed = ["", "api", "v1", parts[3]]
+    tail = [
         part if SAFE_SEGMENT.fullmatch(part) else "{value}"
-        for part in parts[1:7]
-    )
+        for part in parts[4:7]
+    ]
+    return "/".join(fixed + tail)
 
 
 def _body_bytes(archive: zipfile.ZipFile, row: dict, side: str) -> bytes:
