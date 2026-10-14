@@ -86,10 +86,11 @@ static void Expect<T>(T actual, T expected, string label)
         "account changed during preparation cannot remove another account's mail");
 
     var parsedCopy = MailRuFullMessageParser.Parse(
-        """{"id":"test-id","subject":"copy","text":"test","correspondents":{"to":[{"email":"test@example.invalid"}],"cc":[{"email":"copy@example.invalid"}],"bcc":[{"email":"blind@example.invalid"}]}}""",
+        """{"id":"test-id","subject":"copy","text":"test","priority":2,"correspondents":{"to":[{"email":"test@example.invalid"}],"cc":[{"email":"copy@example.invalid"}],"bcc":[{"email":"blind@example.invalid"}]}}""",
         "test-id");
     Expect(parsedCopy.Cc.Count, 1, "scheduled copy preserves CC recipients");
     Expect(parsedCopy.Bcc.Count, 1, "scheduled copy preserves BCC recipients");
+    Expect(parsedCopy.Priority, 2, "scheduled copy preserves message priority");
 }
 
 // Issue #166: fake delayed folder responses, no real account removal or HTTP.
