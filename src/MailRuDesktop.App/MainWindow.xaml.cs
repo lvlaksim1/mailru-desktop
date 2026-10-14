@@ -633,6 +633,12 @@ public partial class MainWindow : Window
 
         var folderLoadGeneration = Volatile.Read(ref _accountSwitchGeneration);
         var folderLoadLogin = _activeLogin;
+        var folderLoadIdentity = new FolderLoadIdentity(
+            folderLoadGeneration, folderLoadLogin, _accessToken);
+        bool IsInvalidFolderLoad() =>
+            IsStaleAccountSwitch() ||
+            !folderLoadIdentity.IsCurrent(
+                Volatile.Read(ref _accountSwitchGeneration), _activeLogin, _accessToken);
         bool HasNewerFolderSelection() =>
             _pendingFolderSelection.Supersedes(folderId, folderLoadGeneration, folderLoadLogin);
 
@@ -665,7 +671,7 @@ public partial class MainWindow : Window
             var raw = await LoadFolderWithRefreshAsync(folderId);
 
             // Do not publish an older folder after the user chose another one.
-            if (IsStaleAccountSwitch() || HasNewerFolderSelection())
+            if (IsInvalidFolderLoad() || HasNewerFolderSelection())
                 return;
 
             // Build a coherent snapshot before asynchronous enrichment. If the
@@ -675,7 +681,7 @@ public partial class MainWindow : Window
             var completeRows = CollapseVerifiedConversations(
                 snapshot.Messages, folderThreads.Conversations);
             await PrefetchFirstMissingSendersAsync(completeRows, _accessToken);
-            if (IsStaleAccountSwitch() || HasNewerFolderSelection())
+            if (IsInvalidFolderLoad() || HasNewerFolderSelection())
                 return;
 
             PublishFolderThreadState(folderThreads);
@@ -710,7 +716,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            if (IsStaleAccountSwitch() || HasNewerFolderSelection())
+            if (IsInvalidFolderLoad() || HasNewerFolderSelection())
                 return;
 
             FolderStatusText.Text = "Ошибка загрузки: " + ex.Message;
