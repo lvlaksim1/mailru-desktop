@@ -129,13 +129,13 @@ public class MailRuProtocolException : Exception
 public sealed class MailRuAuthorizationException : MailRuProtocolException
 {
     public int StatusCode { get; }
-    public string Source { get; }
+    public string DenialSource { get; }
 
     public MailRuAuthorizationException(int status, string source = "unspecified") :
         base($"Mail.ru отверг авторизацию (код {status}).")
     {
         StatusCode = status;
-        Source = source;
+        DenialSource = source;
     }
 }
 
