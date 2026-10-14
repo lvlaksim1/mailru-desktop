@@ -270,6 +270,23 @@ internal static class Program
             previewTestWindow.Content = null;
 
             mail = new MainWindow();
+            var previewTemplateSelector = Require<ComboBox>(mail, "PreviewTemplateComboBox");
+            var previewSignatureSelector = Require<ComboBox>(mail, "PreviewSignatureComboBox");
+            var previewSelectorRow = (WrapPanel)previewTemplateSelector.Parent;
+            Check(previewSelectorRow.Children.IndexOf(previewTemplateSelector) <
+                  previewSelectorRow.Children.IndexOf(previewSignatureSelector),
+                "reply form places template before signature");
+            var composeTemplateSelector = Require<ComboBox>(mail, "ComposeTemplateComboBox");
+            var composeSignatureSelector = Require<ComboBox>(mail, "ComposeSignatureComboBox");
+            var composeSelectorRow = (WrapPanel)composeTemplateSelector.Parent;
+            Check(composeSelectorRow.Children.IndexOf(composeTemplateSelector) <
+                  composeSelectorRow.Children.IndexOf(composeSignatureSelector),
+                "new mail form places template before signature");
+            Check(Require<Button>(mail, "DefaultSignatureButton") is not null,
+                "signature settings have a primary-signature command");
+            mail.Show();
+            mail.UpdateLayout();
+
             // Stage 4.1: metadata is one reusable WPF view, WebView2 is not moved.
             var extractedHeader = Require<MailReaderHeader>(mail, "ReaderHeader");
             Check(extractedHeader.Parent is Grid && Grid.GetRow(extractedHeader) == 2,
@@ -288,23 +305,6 @@ internal static class Program
                   FindDescendant<Microsoft.Web.WebView2.Wpf.WebView2>(
                       extractedHeader, _ => true) is null,
                 "single permanent WebView2 remains outside extracted header");
-
-            var previewTemplateSelector = Require<ComboBox>(mail, "PreviewTemplateComboBox");
-            var previewSignatureSelector = Require<ComboBox>(mail, "PreviewSignatureComboBox");
-            var previewSelectorRow = (WrapPanel)previewTemplateSelector.Parent;
-            Check(previewSelectorRow.Children.IndexOf(previewTemplateSelector) <
-                  previewSelectorRow.Children.IndexOf(previewSignatureSelector),
-                "reply form places template before signature");
-            var composeTemplateSelector = Require<ComboBox>(mail, "ComposeTemplateComboBox");
-            var composeSignatureSelector = Require<ComboBox>(mail, "ComposeSignatureComboBox");
-            var composeSelectorRow = (WrapPanel)composeTemplateSelector.Parent;
-            Check(composeSelectorRow.Children.IndexOf(composeTemplateSelector) <
-                  composeSelectorRow.Children.IndexOf(composeSignatureSelector),
-                "new mail form places template before signature");
-            Check(Require<Button>(mail, "DefaultSignatureButton") is not null,
-                "signature settings have a primary-signature command");
-            mail.Show();
-            mail.UpdateLayout();
 
             var action = Require<Button>(mail, "MainComposeButton");
             Check(action.IsVisible, "New Mail action is visible above the message list");
