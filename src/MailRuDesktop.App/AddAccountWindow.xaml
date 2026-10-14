@@ -47,6 +47,7 @@
                 <Button Width="120"
                         Padding="10,7"
                         IsDefault="True"
+                        x:Name="ConfirmButton"
                         Click="AddButton_Click"
                         Content="Добавить"/>
             </StackPanel>

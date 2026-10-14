@@ -1196,6 +1196,29 @@ using (var client = new MailRuClient(httpClient: http))
         "successful folder response remains unchanged");
 }
 
+// Refresh diagnostics retain only an HTTP status; neither the token nor
+// any raw response appears in the structured diagnostic event.
+using (var handler = new TokenEnvelopeHandler(HttpStatusCode.TooManyRequests,
+    "{\"error\":\"rate_limited\"}"))
+using (var http = new HttpClient(handler))
+using (var client = new MailRuClient(httpClient: http))
+{
+    var result = await client.RefreshAccessTokenAsync("private-refresh-secret");
+    Expect(result.Success, false, "refresh rejection does not claim new credentials");
+    Expect(result.HttpStatusCode, 429, "refresh exposes the actual HTTP status for diagnosis");
+}
+
+var diagnosticLabel = AuthTokenDiagnostics.AccountLabel("first@example.com",
+    new[] { "first@example.com", "second@example.com" });
+Expect(diagnosticLabel, "ACCOUNT_001", "diagnostic uses stable ordinal instead of email");
+var safeEvent = AuthTokenDiagnostics.Format(diagnosticLabel, "background_counter",
+    "refresh_response", "not_refreshed", 429);
+Expect(safeEvent.Contains("http=429", StringComparison.Ordinal), true,
+    "refresh diagnostic records available HTTP status");
+Expect(safeEvent.Contains("example.com", StringComparison.Ordinal) ||
+       safeEvent.Contains("private-refresh-secret", StringComparison.Ordinal), false,
+    "refresh event does not include mailbox identity or token");
+
 var isolatedAuthFolder = Path.Combine(Path.GetTempPath(),
     "MailRuAuth-" + Guid.NewGuid().ToString("N"));
 try
@@ -1215,6 +1238,21 @@ try
         "first account credentials survived refresh");
     Expect(first!.AccessToken, "new-first-token", "first account new access token");
     Expect(first.RefreshToken, "new-first-refresh", "first account rotated refresh token");
+    // A delayed background refresh must not overwrite credentials from a
+    // newer manual re-authorization of the same saved account.
+    Expect(auth.UpdateTokensIfCurrent("first@example.com",
+        "old-first-token", "stale-overwrite", null), false,
+        "stale background credential write is ignored");
+    Expect(auth.UpdateTokensIfCurrent("first@example.com",
+        "new-first-token", "verified-next-token", "next-refresh"), true,
+        "matching background refresh may save only its own account");
+    Expect(auth.TryRestore("first@example.com", out var newest), true,
+        "verified refresh remains restorable");
+    Expect(newest!.AccessToken, "verified-next-token",
+        "atomic refresh preserves the latest verified access token");
+    Expect(auth.LastLogin, "second@example.com",
+        "background token write leaves selected account unchanged");
+
     Expect(reloaded.TryRestore("second@example.com", out var second), true,
         "second account credentials still present");
     Expect(second!.AccessToken, "second-token", "other mailbox token stays unchanged");

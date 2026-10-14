@@ -6,6 +6,8 @@ namespace MailRuDesktop.App;
 
 public partial class MainWindow
 {
+    private bool _accountReauthInProgress;
+
     private ContextMenu CreateCompactContextMenu()
     {
         var menu = new ContextMenu();
@@ -35,16 +37,14 @@ public partial class MainWindow
             return;
         }
 
-        var menu = CreateCompactContextMenu();
-
+        ContextMenu menu;
         if (item.DataContext is AccountRailItem account)
         {
-            var deleteItem = CreateCompactMenuItem("Удалить");
-            deleteItem.Click += async (_, _) => await RemoveSavedAccountAsync(account.Login);
-            menu.Items.Add(deleteItem);
+            menu = CreateAccountContextMenu(account);
         }
         else if (item.DataContext is AccountSectionItem section)
         {
+            menu = CreateCompactContextMenu();
             var renameItem = CreateCompactMenuItem("Переименовать раздел");
             renameItem.Click += (_, _) => RenameAccountSection(section);
             menu.Items.Add(renameItem);
@@ -62,6 +62,131 @@ public partial class MainWindow
         menu.PlacementTarget = item;
         menu.IsOpen = true;
         e.Handled = true;
+    }
+
+    private ContextMenu CreateAccountContextMenu(AccountRailItem account)
+    {
+        var menu = CreateCompactContextMenu();
+        var reauthItem = CreateCompactMenuItem("Повторная авторизация");
+        reauthItem.IsEnabled = !_accountReauthInProgress;
+        reauthItem.Click += async (_, _) => await ReauthenticateSavedAccountAsync(account.Login);
+        menu.Items.Add(reauthItem);
+
+        var deleteItem = CreateCompactMenuItem("Удалить");
+        deleteItem.Click += async (_, _) => await RemoveSavedAccountAsync(account.Login);
+        menu.Items.Add(deleteItem);
+        return menu;
+    }
+
+    // A failed attempt must not clear active credentials or replace a saved
+    // account. In particular, unlike the "add account" flow, this routine
+    // never calls ClearRuntimeAuthorization before contacting Mail.ru.
+    private async Task ReauthenticateSavedAccountAsync(string login)
+    {
+        if (_accountReauthInProgress ||
+            !_authStore.Logins.Contains(login, StringComparer.OrdinalIgnoreCase))
+            return;
+
+        var dialog = new AddAccountWindow(login) { Owner = this };
+        if (dialog.ShowDialog() != true)
+            return;
+
+        _accountReauthInProgress = true;
+        var previousGlobalStatus = AuthStatusText.Text;
+        var item = _accountRailItems.FirstOrDefault(
+            x => string.Equals(x.Login, login, StringComparison.OrdinalIgnoreCase));
+        if (item is not null)
+            item.Status = "Повторная авторизация...";
+        TraceAuthToken(login, "manual_reauth", "begin", "requested");
+        var credentialsUpdated = false;
+
+        try
+        {
+            var result = await _mailRu.AuthenticateAsync(login, dialog.Password);
+            if (!result.Success && IsInteractiveAuthState(result))
+            {
+                var retry = await TryHandleInteractiveAuthAsync(login, dialog.Password, result);
+                if (retry is not null)
+                    result = retry;
+            }
+
+            if (!result.Success || string.IsNullOrWhiteSpace(result.AccessToken))
+            {
+                WriteAuthDiagnostics(result);
+                TraceAuthToken(login, "manual_reauth", "new_credentials", "not_received",
+                    kind: result.State.ToString());
+                if (item is not null)
+                    item.Status = "Повторная авторизация не выполнена";
+                AppDialog.Info(this, "Повторная авторизация",
+                    "Mail.ru не подтвердил новый вход. Прежняя авторизация аккаунта сохранена.");
+                return;
+            }
+
+            // A successful login response is not sufficient. Verify the
+            // account with a real read-only folder request BEFORE saving it.
+            try
+            {
+                await _mailRu.GetFolderThreadsAsync(result.AccessToken, 0, limit: 1);
+                TraceAuthToken(login, "manual_reauth", "verify_new_access", "accepted");
+            }
+            catch (MailRuDesktop.Protocol.MailRuAuthorizationException rejected)
+            {
+                TraceAuthToken(login, "manual_reauth", "verify_new_access",
+                    "rejected", rejected.StatusCode, rejected.DenialSource);
+                throw;
+            }
+
+            if (!_authStore.UpdateTokens(login, result.AccessToken, result.RefreshToken))
+            {
+                TraceAuthToken(login, "manual_reauth", "store", "account_missing");
+                if (item is not null)
+                    item.Status = "Аккаунт не найден";
+                return;
+            }
+
+            credentialsUpdated = true;
+            TraceAuthToken(login, "manual_reauth", "store", "updated");
+            if (item is not null)
+                item.Status = "Авторизация восстановлена";
+
+            if (string.Equals(_activeLogin, login, StringComparison.OrdinalIgnoreCase))
+            {
+                // An existing folder request must finish with its original
+                // token; a later account switch must also take precedence.
+                while (_loadingFolder)
+                    await Task.Delay(50);
+
+                if (string.Equals(_activeLogin, login, StringComparison.OrdinalIgnoreCase))
+                {
+                    _accessToken = result.AccessToken;
+                    if (_authStore.TryRestore(login, out var saved) && saved is not null)
+                        _refreshToken = saved.RefreshToken;
+                    SyncBackgroundPush();
+                    await LoadFolderAsync(0);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            TraceAuthToken(login, "manual_reauth", "operation", "exception",
+                kind: ex.GetType().Name);
+            if (item is not null)
+                item.Status = credentialsUpdated
+                    ? "Авторизация обновлена · требуется проверить загрузку"
+                    : "Повторная авторизация не выполнена";
+            AppDialog.Info(this, "Повторная авторизация",
+                credentialsUpdated
+                    ? "Новые данные авторизации сохранены, но последующая операция завершилась ошибкой. " +
+                      "Проверьте почту и диагностику."
+                    : "Не удалось подтвердить новую авторизацию. Прежние сохранённые данные не изменены. " +
+                      "Сведения об этапе ошибки записаны в диагностику.");
+        }
+        finally
+        {
+            _accountReauthInProgress = false;
+            if (!string.Equals(_activeLogin, login, StringComparison.OrdinalIgnoreCase))
+                AuthStatusText.Text = previousGlobalStatus;
+        }
     }
 
     private async Task RemoveSavedAccountAsync(string login)

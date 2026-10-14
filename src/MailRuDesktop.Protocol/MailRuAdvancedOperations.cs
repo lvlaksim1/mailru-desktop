@@ -27,7 +27,11 @@ public sealed record MailRuTokenRefreshResult(
     string? AccessToken,
     string? RefreshToken,
     long? ExpiresIn,
-    string RawResponse);
+    string RawResponse)
+{
+    // Diagnostic metadata only. The response body and credentials are never logged.
+    public int HttpStatusCode { get; init; }
+}
 
 public sealed partial class MailRuClient
 {
@@ -86,7 +90,10 @@ public sealed partial class MailRuClient
             access,
             string.IsNullOrWhiteSpace(replacementRefresh) ? refreshToken : replacementRefresh,
             expires,
-            payload);
+            payload)
+        {
+            HttpStatusCode = (int)response.StatusCode
+        };
     }
 
     public Task<MailRuCommandResult> SetFlaggedAsync(

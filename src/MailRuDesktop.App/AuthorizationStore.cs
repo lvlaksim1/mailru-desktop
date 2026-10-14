@@ -141,6 +141,46 @@ internal sealed class AuthorizationStore
         return true;
     }
 
+    /// <summary>
+    /// Prevent a delayed background refresh from undoing a newer user login.
+    /// Only update if the saved access token still matches the attempted one.
+    /// </summary>
+    public bool UpdateTokensIfCurrent(
+        string login,
+        string expectedAccessToken,
+        string accessToken,
+        string? refreshToken)
+    {
+        if (string.IsNullOrWhiteSpace(login) ||
+            string.IsNullOrWhiteSpace(expectedAccessToken) ||
+            string.IsNullOrWhiteSpace(accessToken))
+            return false;
+
+        var record = _state.Accounts.FirstOrDefault(account =>
+            string.Equals(account.Login, login, StringComparison.OrdinalIgnoreCase));
+        if (record is null)
+            return false;
+
+        try
+        {
+            if (!string.Equals(
+                    UnprotectOptional(record.AccessToken), expectedAccessToken,
+                    StringComparison.Ordinal))
+                return false;
+        }
+        catch
+        {
+            return false;
+        }
+
+        record.AccessToken = ProtectOptional(accessToken);
+        if (!string.IsNullOrWhiteSpace(refreshToken))
+            record.RefreshToken = ProtectOptional(refreshToken);
+        record.SavedAtUtc = DateTimeOffset.UtcNow;
+        Persist();
+        return true;
+    }
+
     public void MarkLastUsed(string login)
     {
         if (_state.Accounts.Any(account =>
