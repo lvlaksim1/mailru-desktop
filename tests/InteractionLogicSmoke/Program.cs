@@ -1266,6 +1266,69 @@ finally
         Directory.Delete(isolatedAuthFolder, recursive: true);
 }
 
+// Stage 3: one verified application boundary for pin/flag/unread/move.
+// These synthetic commands perform no network requests.
+{
+    var events = new List<string>();
+    var sends = 0;
+    var applied = 0;
+    var confirmed = await MailCommandExecution.RunAsync(
+        () =>
+        {
+            sends++;
+            events.Add("send");
+            return Task.FromResult(new MailRuCommandResult(true, "accepted"));
+        },
+        () => true,
+        text => events.Add("response:" + text),
+        () => { applied++; events.Add("apply"); });
+    Expect(confirmed, MailCommandOutcome.Confirmed, "confirmed command is applied");
+    Expect(sends, 1, "exactly one server command per user operation");
+    Expect(applied, 1, "confirmed command changes local state exactly once");
+    Expect(string.Join(",", events), "send,response:accepted,apply",
+        "response is displayed before confirmed local mutation");
+
+    var rejected = await MailCommandExecution.RunAsync(
+        () => Task.FromResult(new MailRuCommandResult(false, "server-rejected")),
+        () => true,
+        text => events.Add("response:" + text),
+        () => applied++);
+    Expect(rejected, MailCommandOutcome.Rejected, "server denial is distinct from success");
+    Expect(applied, 1, "denied command never mutates mailbox");
+    Expect(events[^1], "response:server-rejected", "denial response remains visible");
+
+    // The account/folder changes while a request is awaiting a response.
+    var pending = new TaskCompletionSource<MailRuCommandResult>(
+        TaskCreationOptions.RunContinuationsAsynchronously);
+    var currentAccount = true;
+    var visibleResponse = false;
+    var late = MailCommandExecution.RunAsync(
+        () => pending.Task,
+        () => currentAccount,
+        _ => visibleResponse = true,
+        () => applied++);
+    currentAccount = false;
+    pending.SetResult(new MailRuCommandResult(true, "old-account-success"));
+    Expect(await late, MailCommandOutcome.Superseded, "late result is discarded");
+    Expect(visibleResponse, false, "late response cannot replace new account diagnostics");
+    Expect(applied, 1, "late response cannot mutate new account mailbox");
+
+    var failedAsException = false;
+    try
+    {
+        await MailCommandExecution.RunAsync(
+            () => Task.FromException<MailRuCommandResult>(
+                new InvalidOperationException("synthetic network failure")),
+            () => true, _ => visibleResponse = true, () => applied++);
+    }
+    catch (InvalidOperationException)
+    {
+        failedAsException = true;
+    }
+    Expect(failedAsException, true, "transport failures reach the caller for diagnostics");
+    Expect(applied, 1, "transport failure leaves local mailbox unchanged");
+}
+
 Expect(string.Join(",", MailTargetResolver.Resolve(["A", "B"], "C")),
     "A,B", "checked letters have priority over active preview");
 Expect(string.Join(",", MailTargetResolver.Resolve(Array.Empty<string>(), "C")),
