@@ -248,12 +248,12 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "AddAccountWindow/src/MailRuDesktop.App/AddAccountWindow.xaml/Window[0]/Grid[0]/Grid[4]/StackPanel[2]/Button[1]",
+      "id": "AddAccountWindow/src/MailRuDesktop.App/AddAccountWindow.xaml/Window[0]/Grid[0]/Grid[4]/StackPanel[2]/ConfirmButton",
       "location": {
         "Padding": "10,7",
         "Width": "120"
       },
-      "name": null,
+      "name": "ConfirmButton",
       "parent": "AddAccountWindow/src/MailRuDesktop.App/AddAccountWindow.xaml/Window[0]/Grid[0]/Grid[4]/StackPanel[2]",
       "source": "src/MailRuDesktop.App/AddAccountWindow.xaml",
       "states": null,
@@ -7639,7 +7639,7 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/runtime/src/MailRuDesktop.App/MainWindow.AccountContextMenu.cs:11:ContextMenu",
+      "id": "MainWindow/runtime/src/MailRuDesktop.App/MainWindow.AccountContextMenu.cs:13:ContextMenu",
       "line": 11,
       "location": {},
       "name": null,
@@ -7653,7 +7653,7 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/runtime/src/MailRuDesktop.App/MainWindow.AccountContextMenu.cs:19:MenuItem",
+      "id": "MainWindow/runtime/src/MailRuDesktop.App/MainWindow.AccountContextMenu.cs:21:MenuItem",
       "line": 19,
       "location": {},
       "name": null,
