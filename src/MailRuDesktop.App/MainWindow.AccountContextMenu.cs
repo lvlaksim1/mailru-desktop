@@ -37,21 +37,14 @@ public partial class MainWindow
             return;
         }
 
-        var menu = CreateCompactContextMenu();
-
+        ContextMenu menu;
         if (item.DataContext is AccountRailItem account)
         {
-            var reauthItem = CreateCompactMenuItem("Повторная авторизация");
-            reauthItem.IsEnabled = !_accountReauthInProgress;
-            reauthItem.Click += async (_, _) => await ReauthenticateSavedAccountAsync(account.Login);
-            menu.Items.Add(reauthItem);
-
-            var deleteItem = CreateCompactMenuItem("Удалить");
-            deleteItem.Click += async (_, _) => await RemoveSavedAccountAsync(account.Login);
-            menu.Items.Add(deleteItem);
+            menu = CreateAccountContextMenu(account);
         }
         else if (item.DataContext is AccountSectionItem section)
         {
+            menu = CreateCompactContextMenu();
             var renameItem = CreateCompactMenuItem("Переименовать раздел");
             renameItem.Click += (_, _) => RenameAccountSection(section);
             menu.Items.Add(renameItem);
@@ -69,6 +62,20 @@ public partial class MainWindow
         menu.PlacementTarget = item;
         menu.IsOpen = true;
         e.Handled = true;
+    }
+
+    private ContextMenu CreateAccountContextMenu(AccountRailItem account)
+    {
+        var menu = CreateCompactContextMenu();
+        var reauthItem = CreateCompactMenuItem("Повторная авторизация");
+        reauthItem.IsEnabled = !_accountReauthInProgress;
+        reauthItem.Click += async (_, _) => await ReauthenticateSavedAccountAsync(account.Login);
+        menu.Items.Add(reauthItem);
+
+        var deleteItem = CreateCompactMenuItem("Удалить");
+        deleteItem.Click += async (_, _) => await RemoveSavedAccountAsync(account.Login);
+        menu.Items.Add(deleteItem);
+        return menu;
     }
 
     // A failed attempt must not clear active credentials or replace a saved
