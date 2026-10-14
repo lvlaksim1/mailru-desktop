@@ -45,6 +45,7 @@ public sealed record MailRuFullMessage(
     string RawJson)
 {
     public IReadOnlyList<string> Bcc { get; init; } = Array.Empty<string>();
+    public int Priority { get; init; } = 3;
 
     public string SenderDisplay =>
         string.IsNullOrWhiteSpace(FromName)
@@ -113,7 +114,10 @@ public static class MailRuFullMessageParser
                 attachments,
                 payload)
             {
-                Bcc = ReadCorrespondentEmails(message, "bcc")
+                Bcc = ReadCorrespondentEmails(message, "bcc"),
+                Priority = ReadInteger(message, "priority") is long priority &&
+                           priority is >= 1 and <= 5
+                    ? (int)priority : 3
             };
         }
         catch (JsonException ex)
