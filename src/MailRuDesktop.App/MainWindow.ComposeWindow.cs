@@ -82,7 +82,12 @@ public partial class MainWindow
         window.Show();
         ThemeManager.RefreshWindowChrome(window);
         if (!reply)
+        {
+            var wasEmpty = string.IsNullOrWhiteSpace(ComposeBodyTextBox.Text);
             ApplyDefaultComposeSignature();
+            if (wasEmpty)
+                _composeRichEditor?.PlaceCaretAtStart();
+        }
         ComposeToTextBox.Focus();
     }
 
