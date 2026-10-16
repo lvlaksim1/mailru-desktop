@@ -22,6 +22,8 @@ public partial class MessageWindow : Window
     private MailRuFullMessage? _fullMessage;
     private ComposeMode _composeMode;
     private readonly List<string> _composeAttachmentPaths = [];
+    private readonly Dictionary<string, MailRuIncomingAttachment> _forwardSourceAttachments =
+        new(StringComparer.Ordinal);
     private RichComposeEditor? _messageRichEditor;
 
     public bool MailboxChanged { get; private set; }
@@ -275,27 +277,37 @@ public partial class MessageWindow : Window
 
     private void ForwardButton_Click(object sender, RoutedEventArgs e)
     {
+        // Never silently forward an incomplete letter: attachment metadata is
+        // only reliable after the source message has finished loading.
+        var full = _fullMessage ?? _initialFullMessage;
+        if (full is null)
+        {
+            StatusText.Text = "Дождитесь загрузки письма перед пересылкой.";
+            return;
+        }
+
         _composeMode = ComposeMode.Forward;
         ComposePanel.Visibility = Visibility.Visible;
         ComposeToTextBox.Clear();
-        ComposeSubjectTextBox.Text = PrefixSubject("Fwd:", _fullMessage?.Subject ?? _summary.Subject);
-
-        var full = _fullMessage;
-        ComposeBodyTextBox.Text = full is null
-            ? string.Empty
-            : "\n\n---------- Пересланное сообщение ----------\n" +
-              $"От: {full.SenderDisplay}\n" +
-              $"Кому: {string.Join(", ", full.To)}\n" +
-              $"Дата: {full.DateDisplay}\n" +
-              $"Тема: {full.Subject}\n\n" +
-              full.Text;
+        ComposeSubjectTextBox.Text = PrefixSubject("Fwd:", full.Subject);
+        ComposeBodyTextBox.Text =
+            "\n\n---------- Пересланное сообщение ----------\n" +
+            $"От: {full.SenderDisplay}\n" +
+            $"Кому: {string.Join(", ", full.To)}\n" +
+            $"Дата: {full.DateDisplay}\n" +
+            $"Тема: {full.Subject}\n\n" + full.Text;
 
         _composeAttachmentPaths.Clear();
+        _forwardSourceAttachments.Clear();
+        for (var i = 0; i < full.Attachments.Count; i++)
+            _forwardSourceAttachments["source:" + i] = full.Attachments[i];
+
+        ComposeStatusText.Text = string.Empty;
         RefreshComposeAttachments();
         ComposeToTextBox.Focus();
     }
 
-    private sealed record ComposeAttachmentItem(string Path, string Name);
+    private sealed record ComposeAttachmentItem(string Key, string Name);
 
     private void ComposeAttachButton_Click(object sender, RoutedEventArgs e)
     {
@@ -320,18 +332,24 @@ public partial class MessageWindow : Window
 
     private void RemoveComposeAttachmentButton_Click(object sender, RoutedEventArgs e)
     {
-        if ((sender as Button)?.Tag is not string path)
+        if ((sender as Button)?.Tag is not string key)
             return;
 
-        _composeAttachmentPaths.RemoveAll(item =>
-            string.Equals(item, path, StringComparison.OrdinalIgnoreCase));
+        if (key.StartsWith("source:", StringComparison.Ordinal))
+            _forwardSourceAttachments.Remove(key);
+        else if (key.StartsWith("file:", StringComparison.Ordinal))
+            _composeAttachmentPaths.RemoveAll(path =>
+                string.Equals(path, key["file:".Length..],
+                    StringComparison.OrdinalIgnoreCase));
         RefreshComposeAttachments();
     }
 
     private void RefreshComposeAttachments()
     {
-        ComposeAttachmentsItemsControl.ItemsSource = _composeAttachmentPaths
-            .Select(path => new ComposeAttachmentItem(path, Path.GetFileName(path)))
+        ComposeAttachmentsItemsControl.ItemsSource = _forwardSourceAttachments
+            .Select(item => new ComposeAttachmentItem(item.Key, item.Value.DisplayName))
+            .Concat(_composeAttachmentPaths.Select(path =>
+                new ComposeAttachmentItem("file:" + path, Path.GetFileName(path))))
             .ToArray();
     }
 
@@ -371,6 +389,21 @@ public partial class MessageWindow : Window
                     messageId));
             }
 
+            // Source attachments are downloaded and uploaded as NEW outgoing
+            // attachments. Their incoming attachment IDs cannot be reused.
+            foreach (var source in _forwardSourceAttachments.Values)
+            {
+                if (string.IsNullOrWhiteSpace(source.Id))
+                    throw new InvalidOperationException(
+                        "У исходного вложения отсутствует идентификатор. Пересылка остановлена.");
+                ComposeStatusText.Text = "Подготовка вложения: " + source.DisplayName;
+                var bytes = await _mailRu.DownloadIncomingAttachmentAsync(
+                    _accessToken, _summary.Id, source.Id);
+                await using var stream = new MemoryStream(bytes);
+                attachmentIds.Add(await _mailRu.UploadAttachmentAsync(
+                    _accessToken, stream, source.DisplayName, messageId));
+            }
+
             ComposeStatusText.Text = "Отправка...";
             var result = await _mailRu.SendMessageAsync(
                 _accessToken,
@@ -393,6 +426,7 @@ public partial class MessageWindow : Window
             ComposeStatusText.Text = "Отправлено.";
             ComposeBodyTextBox.Clear();
             _composeAttachmentPaths.Clear();
+            _forwardSourceAttachments.Clear();
             RefreshComposeAttachments();
         }
         catch (Exception ex)

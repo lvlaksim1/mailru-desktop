@@ -10,12 +10,12 @@ public partial class MailReaderHeader : UserControl
 {
     public MailReaderHeader() => InitializeComponent();
 
-    public TextBlock SubjectText => SelectedSubjectText;
-    public TextBlock SenderNameText => SelectedSenderNameText;
+    public TextBox SubjectText => SelectedSubjectText;
+    public TextBox SenderNameText => SelectedSenderNameText;
     public TextBox SenderAddressText => SelectedSenderText;
     public TextBox RecipientAddressText => SelectedToText;
-    public TextBlock DateText => SelectedDateText;
-    public TextBlock MetaText => SelectedMetaText;
+    public TextBox DateText => SelectedDateText;
+    public TextBox MetaText => SelectedMetaText;
 
     public event MouseButtonEventHandler? AddressDoubleClick;
 

@@ -70,6 +70,10 @@ public partial class MainWindow
             _composeSenderLogin = null;
             _composeSenderToken = null;
             _composeReplyToId = null;
+            // An outstanding asynchronous recipient lookup must not leave the
+            // shared compose workspace read-only on its next opening.
+            ComposeToTextBox.IsReadOnly = false;
+            SendButton.IsEnabled = true;
         };
 
         _composeWindow = window;
@@ -93,7 +97,7 @@ public partial class MainWindow
 
     // Reply uses the same independent composition window as a new letter.
     // Existing drafts are never silently overwritten by another reply.
-    private void OpenReplyComposeWindow(
+    private async void OpenReplyComposeWindow(
         MailRuMessageSummary source, MailRuFullMessage? full)
     {
         if (_composeWindow is not null)
@@ -104,9 +108,17 @@ public partial class MainWindow
             return;
         }
 
+        var conversation = _conversationIndex.TryGetValue(source.Id, out var indexed) &&
+                           (indexed.VerifiedCount ?? 0) > 1
+            ? indexed : null;
+        if (_displayedConversation is { } displayed &&
+            (displayed.VerifiedCount ?? 0) > 1 &&
+            displayed.Members.Any(member => member.Id == source.Id))
+            conversation = displayed;
+
         var sender = !string.IsNullOrWhiteSpace(full?.FromEmail)
             ? full.FromEmail : source.SenderEmail;
-        if (string.IsNullOrWhiteSpace(sender))
+        if (conversation is null && string.IsNullOrWhiteSpace(sender))
         {
             AppDialog.Info(this, "Ответить", "У исходного письма не найден адрес отправителя.");
             return;
@@ -114,16 +126,18 @@ public partial class MainWindow
 
         ShowComposeWindow(reply: true);
         _composeReplyToId = source.Id;
-        if (_composeWindow is { } replyWindow)
-        {
+        var replyWindow = _composeWindow;
+        var senderLogin = _composeSenderLogin;
+        var token = _composeSenderToken;
+        if (replyWindow is not null)
             replyWindow.Title = "Ответ: " + (full?.Subject ?? source.Subject);
-        }
+
         _attachmentPaths.Clear();
         RefreshComposeAttachments();
         ResetComposeTemplateSelectors();
         ScheduleSendCheckBox.IsChecked = false;
         RequestReadReceiptCheckBox.IsChecked = false;
-        ComposeToTextBox.Text = sender;
+        ComposeToTextBox.Text = conversation is null ? sender : "";
         ComposeSubjectTextBox.Text = ReplySubject(full?.Subject ?? source.Subject);
         var quoted = BuildQuotedReply(full, source);
         if (_composeRichEditor is not null)
@@ -132,7 +146,120 @@ public partial class MainWindow
             ComposeBodyTextBox.Text = quoted;
         ApplyDefaultComposeSignature();
         ComposeStatusText.Text = string.Empty;
+
+        if (conversation is not null)
+        {
+            // Group reply explicitly uses only To/Cc of REAL member messages.
+            // No sender or Bcc is implicitly invited to the conversation.
+            ComposeStatusText.Text = "Сбор получателей переписки...";
+            ComposeToTextBox.IsReadOnly = true;
+            SendButton.IsEnabled = false;
+            try
+            {
+                var result = await CollectConversationReplyRecipientsAsync(
+                    conversation, source, full, token, senderLogin);
+                if (!ReferenceEquals(_composeWindow, replyWindow) ||
+                    !string.Equals(_composeReplyToId, source.Id, StringComparison.Ordinal) ||
+                    !string.Equals(_composeSenderLogin, senderLogin,
+                        StringComparison.OrdinalIgnoreCase))
+                    return;
+
+                ComposeToTextBox.Text = string.Join(", ", result.Addresses);
+                ComposeStatusText.Text = result.Incomplete
+                    ? "Не все письма переписки доступны. Проверьте список получателей."
+                    : result.Addresses.Length == 0
+                        ? "В полях «Кому» и «Копия» переписки нет доступных адресов."
+                        : string.Empty;
+            }
+            catch (Exception ex)
+            {
+                DiagnosticLog.Write("reply_recipients", ex.GetType().Name);
+                if (ReferenceEquals(_composeWindow, replyWindow))
+                    ComposeStatusText.Text =
+                        "Не удалось собрать получателей переписки. Укажите их вручную.";
+            }
+            finally
+            {
+                if (ReferenceEquals(_composeWindow, replyWindow))
+                {
+                    ComposeToTextBox.IsReadOnly = false;
+                    SendButton.IsEnabled = true;
+                }
+            }
+        }
         _composeRichEditor?.Focus();
+    }
+
+    private sealed record ConversationRecipientsResult(string[] Addresses, bool Incomplete);
+
+    private async Task<ConversationRecipientsResult> CollectConversationReplyRecipientsAsync(
+        MailRuConversation thread, MailRuMessageSummary source,
+        MailRuFullMessage? selectedBody, string? token, string? login)
+    {
+        var incomplete = false;
+        if (!string.IsNullOrWhiteSpace(thread.ThreadId) &&
+            (thread.VerifiedCount ?? 0) > thread.Members.Count &&
+            !string.IsNullOrWhiteSpace(token))
+        {
+            try
+            {
+                var raw = await _mailRu.GetThreadMessagesAsync(token, thread.ThreadId,
+                    limit: Math.Clamp(thread.VerifiedCount ?? 1, 1, 200));
+                thread = MailRuConversationParser.ExpandFromThreadDetail(thread, raw);
+            }
+            catch (Exception ex)
+            {
+                DiagnosticLog.Write("reply_thread_detail", ex.GetType().Name);
+                incomplete = true;
+            }
+        }
+
+        if (thread.Members.Count < (thread.VerifiedCount ?? 0))
+            incomplete = true;
+
+        var messageBodies = new List<MailRuFullMessage>();
+        var bodies = string.Equals(_displayedConversation?.ThreadId, thread.ThreadId,
+                         StringComparison.Ordinal)
+            ? _displayedConversationBodies : null;
+
+        foreach (var member in thread.Members
+                     .Append(new MailRuConversationMember(source.Id, "", "", "", "",
+                         null, null))
+                     .DistinctBy(member => member.Id, StringComparer.Ordinal))
+        {
+            MailRuFullMessage? body = null;
+            if (member.Id == source.Id && selectedBody?.Id == source.Id)
+                body = selectedBody;
+            else if (bodies is not null)
+                bodies.TryGetValue(member.Id, out body);
+
+            if (body is null && !string.IsNullOrWhiteSpace(token))
+            {
+                try
+                {
+                    body = await _mailRu.GetFullMessageAsync(
+                        token, member.Id, markRead: false);
+                    if (!string.Equals(body.Id, member.Id, StringComparison.Ordinal))
+                    {
+                        body = null;
+                        DiagnosticLog.Write("reply_recipients", "ID_MISMATCH");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    DiagnosticLog.Write("reply_recipients", ex.GetType().Name);
+                }
+            }
+            if (body is null)
+            {
+                incomplete = true;
+                continue;
+            }
+
+            messageBodies.Add(body);
+        }
+        return new ConversationRecipientsResult(
+            ConversationReplyAddresses.Collect(messageBodies, login), incomplete);
     }
 
     private static string ReplySubject(string subject) =>

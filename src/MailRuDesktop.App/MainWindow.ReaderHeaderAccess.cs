@@ -6,10 +6,10 @@ namespace MailRuDesktop.App;
 // their visual ownership. The persistent WebView2 remains in MainWindow.xaml.
 public partial class MainWindow
 {
-    private TextBlock SelectedSubjectText => ReaderHeader.SubjectText;
-    private TextBlock SelectedSenderNameText => ReaderHeader.SenderNameText;
+    private TextBox SelectedSubjectText => ReaderHeader.SubjectText;
+    private TextBox SelectedSenderNameText => ReaderHeader.SenderNameText;
     private TextBox SelectedSenderText => ReaderHeader.SenderAddressText;
     private TextBox SelectedToText => ReaderHeader.RecipientAddressText;
-    private TextBlock SelectedDateText => ReaderHeader.DateText;
-    private TextBlock SelectedMetaText => ReaderHeader.MetaText;
+    private TextBox SelectedDateText => ReaderHeader.DateText;
+    private TextBox SelectedMetaText => ReaderHeader.MetaText;
 }
