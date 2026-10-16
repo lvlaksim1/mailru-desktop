@@ -217,9 +217,7 @@ public partial class MainWindow
         if (thread.Members.Count < (thread.VerifiedCount ?? 0))
             incomplete = true;
 
-        var addresses = new List<string>();
-        var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var currentMailbox = NormalizeReplyAddress(login);
+        var messageBodies = new List<MailRuFullMessage>();
         var bodies = string.Equals(_displayedConversation?.ThreadId, thread.ThreadId,
                          StringComparison.Ordinal)
             ? _displayedConversationBodies : null;
@@ -258,24 +256,10 @@ public partial class MainWindow
                 continue;
             }
 
-            foreach (var raw in body.To.Concat(body.Cc))
-            {
-                var address = NormalizeReplyAddress(raw);
-                if (address is not null &&
-                    !string.Equals(address, currentMailbox,
-                        StringComparison.OrdinalIgnoreCase) &&
-                    used.Add(address))
-                    addresses.Add(address);
-            }
+            messageBodies.Add(body);
         }
-        return new ConversationRecipientsResult(addresses.ToArray(), incomplete);
-    }
-
-    private static string? NormalizeReplyAddress(string? raw)
-    {
-        return !string.IsNullOrWhiteSpace(raw) &&
-               System.Net.Mail.MailAddress.TryCreate(raw.Trim(), out var parsed)
-            ? parsed.Address : null;
+        return new ConversationRecipientsResult(
+            ConversationReplyAddresses.Collect(messageBodies, login), incomplete);
     }
 
     private static string ReplySubject(string subject) =>
