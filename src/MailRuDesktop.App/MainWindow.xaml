@@ -960,7 +960,7 @@
                                     <Button DockPanel.Dock="Left" Content="Обзор…" Margin="0,0,9,0"
                                             Padding="12,6" Click="BrowseDownloadDirectoryButton_Click"/>
                                     <local:SelectableText x:Name="AttachmentDownloadDirectoryText"
-                                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                               VerticalAlignment="Center"
                                                ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
                                 </DockPanel>
                                 <local:SelectableText x:Name="AttachmentDirectoryStatusText" Visibility="Collapsed"/>
@@ -974,7 +974,6 @@
                                     <Button DockPanel.Dock="Left" Padding="12,6" Margin="0,0,9,0"
                                             Content="Обзор…" Click="BrowseTemplateDirectoryButton_Click"/>
                                     <local:SelectableText x:Name="TemplateDirectoryText" VerticalAlignment="Center"
-                                               TextTrimming="CharacterEllipsis"
                                                ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
                                 </DockPanel>
                                 <local:SelectableText x:Name="TemplateDirectoryStatusText" Visibility="Collapsed"/>
