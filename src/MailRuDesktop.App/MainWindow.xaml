@@ -267,7 +267,7 @@
                 </Grid.RowDefinitions>
 
                 <StackPanel Grid.Row="0">
-                    <TextBlock Text="MailRu Desktop" Margin="4,2,4,12" FontSize="{DynamicResource AppFontHeadingSize}" FontWeight="SemiBold"/>
+                    <local:SelectableText Text="MailRu Desktop" Margin="4,2,4,12" FontSize="{DynamicResource AppFontHeadingSize}" FontWeight="SemiBold"/>
                 </StackPanel>
 
                 <!-- Mail remains the default workspace; choose contacts in compose. -->
@@ -278,7 +278,7 @@
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0"
+                    <local:SelectableText Grid.Row="0"
                                Margin="4,2,4,8"
                                VerticalAlignment="Center"
                                FontWeight="SemiBold"
@@ -315,7 +315,7 @@
                 </Grid>
 
                 <Button Grid.Row="3" Style="{StaticResource NavButtonStyle}" Click="ShowSettingsButton_Click" Content="⚙  Настройки"/>
-                <TextBlock x:Name="AuthStatusText"
+                <local:SelectableText x:Name="AuthStatusText"
                            Grid.Row="4"
                            Margin="8,8,8,2"
                            TextWrapping="Wrap"
@@ -400,7 +400,7 @@
                                     Visibility="Collapsed" Click="BulkSendNowButton_Click"
                                     ToolTip="Подготовить копию, удалить исходное расписание и отправить немедленно"
                                     Content="Отправить сейчас"/>
-                            <TextBlock x:Name="BulkSelectedCountText" Margin="6,0,0,4"
+                            <local:SelectableText x:Name="BulkSelectedCountText" Margin="6,0,0,4"
                                        VerticalAlignment="Center"
                                        Foreground="{DynamicResource AppMutedTextBrush}"
                                        Text="Выбрано: 0"/>
@@ -429,8 +429,8 @@
                     </ListBox>
 
                     <StackPanel Grid.Row="3" Margin="4,8,4,0">
-                        <TextBlock x:Name="FolderStatusText" Foreground="{DynamicResource AppMutedTextBrush}" Text="Выберите аккаунт"/>
-                        <TextBlock x:Name="FilterStatusText" Margin="0,2,0,0" Foreground="{DynamicResource AppMutedTextBrush}"/>
+                        <local:SelectableText x:Name="FolderStatusText" Foreground="{DynamicResource AppMutedTextBrush}" Text="Выберите аккаунт"/>
+                        <local:SelectableText x:Name="FilterStatusText" Margin="0,2,0,0" Foreground="{DynamicResource AppMutedTextBrush}"/>
                     </StackPanel>
                 </Grid>
 
@@ -493,7 +493,7 @@
                                     Grid.Row="5"
                                     Margin="0,0,0,10"
                                     Visibility="Collapsed">
-                            <TextBlock FontWeight="SemiBold" Text="Вложения"/>
+                            <local:SelectableText FontWeight="SemiBold" Text="Вложения"/>
                             <ListBox x:Name="IncomingAttachmentsListBox"
                                      PreviewMouseLeftButtonDown="IncomingAttachmentsListBox_PreviewMouseLeftButtonDown"
                                      MaxHeight="110"
@@ -553,7 +553,7 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <WrapPanel Grid.Column="0">
-                                    <TextBlock Margin="0,0,6,0" VerticalAlignment="Center" Text="Из шаблона:"/>
+                                    <local:SelectableText Margin="0,0,6,0" VerticalAlignment="Center" Text="Из шаблона:"/>
                                     <ComboBox x:Name="PreviewTemplateComboBox"
                                               Width="210"
                                               DisplayMemberPath="Name"
@@ -561,7 +561,7 @@
                                               PreviewMouseLeftButtonUp="PreviewTemplateComboBox_PreviewMouseLeftButtonUp"
                                               PreviewKeyDown="PreviewTemplateComboBox_PreviewKeyDown"
                                               SelectionChanged="PreviewTemplateComboBox_SelectionChanged"/>
-                                    <TextBlock Margin="0,0,6,0" VerticalAlignment="Center" Text="Подпись:"/>
+                                    <local:SelectableText Margin="0,0,6,0" VerticalAlignment="Center" Text="Подпись:"/>
                                     <ComboBox x:Name="PreviewSignatureComboBox"
                                               Width="180"
                                               Margin="0,0,14,0"
@@ -577,11 +577,11 @@
                                             Click="PreviewCancelComposeButton_Click" Content="×"/>
                                 </Grid>
 
-                                <TextBlock Grid.Row="1" Margin="0,0,8,7" VerticalAlignment="Center" Text="Кому:"/>
+                                <local:SelectableText Grid.Row="1" Margin="0,0,8,7" VerticalAlignment="Center" Text="Кому:"/>
                                 <TextBox x:Name="PreviewComposeToTextBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,7" Padding="7"/>
-                                <TextBlock Grid.Row="2" Margin="0,0,8,7" VerticalAlignment="Center" Text="Тема:"/>
+                                <local:SelectableText Grid.Row="2" Margin="0,0,8,7" VerticalAlignment="Center" Text="Тема:"/>
                                 <TextBox x:Name="PreviewComposeSubjectTextBox" Grid.Row="2" Grid.Column="1" Margin="0,0,0,7" Padding="7"/>
-                                <TextBlock Grid.Row="3" Margin="0,0,8,7" VerticalAlignment="Top" Text="Вложения:"/>
+                                <local:SelectableText Grid.Row="3" Margin="0,0,8,7" VerticalAlignment="Top" Text="Вложения:"/>
                                 <StackPanel Grid.Row="3" Grid.Column="1" Margin="0,0,0,7">
                                     <Button Width="130" HorizontalAlignment="Left" Padding="10,5" Click="PreviewComposeAttachButton_Click" Content="Добавить файл"/>
                                     <ItemsControl x:Name="PreviewComposeAttachmentsItemsControl" Margin="0,5,0,0">
@@ -595,7 +595,7 @@
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
                                 </StackPanel>
-                                <TextBlock Grid.Row="4" Margin="0,0,8,0" VerticalAlignment="Top" Text="Текст:"/>
+                                <local:SelectableText Grid.Row="4" Margin="0,0,8,0" VerticalAlignment="Top" Text="Текст:"/>
                                 <TextBox x:Name="PreviewComposeBodyTextBox"
                                          Grid.Row="4" Grid.Column="1"
                                          Padding="7"
@@ -618,7 +618,7 @@
                                 <WrapPanel Grid.Row="6" Grid.Column="1" Margin="0,9,0,0">
                                     <Button x:Name="PreviewSendComposeButton" Padding="14,7" Margin="0,0,6,0" Click="PreviewSendComposeButton_Click" Content="Отправить"/>
                                     <Button Padding="14,7" Margin="0,0,12,0" Click="PreviewCancelComposeButton_Click" Content="Отмена"/>
-                                    <TextBlock x:Name="PreviewComposeStatusText" VerticalAlignment="Center" Foreground="{DynamicResource AppMutedTextBrush}"/>
+                                    <local:SelectableText x:Name="PreviewComposeStatusText" VerticalAlignment="Center" Foreground="{DynamicResource AppMutedTextBrush}"/>
                                 </WrapPanel>
                             </Grid>
                         </Border>
@@ -640,7 +640,7 @@
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <TextBlock FontSize="{DynamicResource AppFontHeroSize}" FontWeight="SemiBold" Text="Контакты"/>
+                        <local:SelectableText FontSize="{DynamicResource AppFontHeroSize}" FontWeight="SemiBold" Text="Контакты"/>
                         <Grid Grid.Row="1" Margin="0,12,0,10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -652,15 +652,15 @@
                         <ListBox x:Name="ContactsListBox" Grid.Row="2" BorderThickness="0" MouseDoubleClick="ContactsListBox_MouseDoubleClick"/>
                         <StackPanel Grid.Row="3" Margin="0,10,0,0">
                             <Button Padding="12,7" Click="LoadContactsButton_Click" Content="Обновить адресную книгу"/>
-                            <TextBlock x:Name="ContactsStatusText" Margin="0,7,0,0" Foreground="{DynamicResource AppMutedTextBrush}"/>
+                            <local:SelectableText x:Name="ContactsStatusText" Margin="0,7,0,0" Foreground="{DynamicResource AppMutedTextBrush}"/>
                         </StackPanel>
                     </Grid>
                 </Border>
                 <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Stretch"/>
                 <Border Grid.Column="2" Margin="8,0,0,0" Background="{DynamicResource AppPanelBrush}" CornerRadius="10" Padding="22">
                     <StackPanel>
-                        <TextBlock FontSize="{DynamicResource AppFontHeroSize}" FontWeight="SemiBold" Text="Адресная книга"/>
-                        <TextBlock Margin="0,10,0,18" Foreground="{DynamicResource AppMutedTextBrush}" TextWrapping="Wrap" Text="Выберите контакт слева. Двойной щелчок откроет создание письма этому адресату."/>
+                        <local:SelectableText FontSize="{DynamicResource AppFontHeroSize}" FontWeight="SemiBold" Text="Адресная книга"/>
+                        <local:SelectableText Margin="0,10,0,18" Foreground="{DynamicResource AppMutedTextBrush}" TextWrapping="Wrap" Text="Выберите контакт слева. Двойной щелчок откроет создание письма этому адресату."/>
                         <Button Width="170" HorizontalAlignment="Left" Padding="14,8" Click="ComposeToContactButton_Click" Content="Написать письмо"/>
                     </StackPanel>
                 </Border>
@@ -679,29 +679,29 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <TextBlock x:Name="ComposeHeaderText" FontSize="{DynamicResource AppFontHeroSize}" FontWeight="SemiBold" Text="Новое письмо"/>
+                        <local:SelectableText x:Name="ComposeHeaderText" FontSize="{DynamicResource AppFontHeroSize}" FontWeight="SemiBold" Text="Новое письмо"/>
                         <Grid x:Name="ComposeSenderRow" Grid.Row="1" Margin="0,12,0,8">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="70"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                            <TextBlock VerticalAlignment="Center" Text="От"/>
+                            <local:SelectableText VerticalAlignment="Center" Text="От"/>
                             <TextBox x:Name="ComposeFromTextBox" Grid.Column="1" Padding="8"
                                      IsReadOnly="True"
                                      ToolTip="Аккаунт отправителя закрепляется при создании письма"/>
                         </Grid>
                         <Grid Grid.Row="2" Margin="0,16,0,8">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="70"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                            <TextBlock VerticalAlignment="Center" Text="Кому"/>
+                            <local:SelectableText VerticalAlignment="Center" Text="Кому"/>
                             <TextBox x:Name="ComposeToTextBox" Grid.Column="1" Padding="8"/>
                             <Button Grid.Column="2" Margin="8,0,0,0" Padding="12,6"
                                     Click="ChooseComposeContactButton_Click" Content="Из контактов…"/>
                         </Grid>
                         <Grid Grid.Row="3" Margin="0,0,0,8">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="70"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                            <TextBlock VerticalAlignment="Center" Text="Тема"/>
+                            <local:SelectableText VerticalAlignment="Center" Text="Тема"/>
                             <TextBox x:Name="ComposeSubjectTextBox" Grid.Column="1" Padding="8"/>
                         </Grid>
                         <StackPanel Grid.Row="4" Margin="70,0,0,8">
                             <WrapPanel Margin="0,0,0,8">
-                                <TextBlock Text="Шаблон:" VerticalAlignment="Center"
+                                <local:SelectableText Text="Шаблон:" VerticalAlignment="Center"
                                            Margin="2,0,6,0"/>
                                 <ComboBox x:Name="ComposeTemplateComboBox" Width="235"
                                           DisplayMemberPath="Name" SelectionChanged="ComposeTemplateComboBox_SelectionChanged"
@@ -709,7 +709,7 @@
                                           PreviewMouseLeftButtonUp="ComposeTemplateComboBox_PreviewMouseLeftButtonUp"
                                           PreviewKeyDown="ComposeTemplateComboBox_PreviewKeyDown"
                                           ToolTip="Заполнить из шаблона"/>
-                                <TextBlock Text="Подпись:" VerticalAlignment="Center"
+                                <local:SelectableText Text="Подпись:" VerticalAlignment="Center"
                                            Margin="0,0,6,0"/>
                                 <ComboBox x:Name="ComposeSignatureComboBox" Width="205" Margin="0,0,8,0"
                                           DisplayMemberPath="Name" SelectionChanged="ComposeSignatureComboBox_SelectionChanged"
@@ -720,7 +720,7 @@
                             </WrapPanel>
                             <StackPanel Orientation="Horizontal">
                                 <Button x:Name="AttachButton" Padding="12,6" Click="AttachButton_Click" Content="Вложить файл"/>
-                                <TextBlock x:Name="AttachmentSummaryText" Margin="10,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource AppMutedTextBrush}" Text="Вложений нет"/>
+                                <local:SelectableText x:Name="AttachmentSummaryText" Margin="10,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource AppMutedTextBrush}" Text="Вложений нет"/>
                             </StackPanel>
                             <ItemsControl x:Name="ComposeAttachmentsItemsControl" Margin="0,6,0,0">
                                 <ItemsControl.ItemTemplate>
@@ -755,7 +755,7 @@
                             <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                             <Button x:Name="SendButton" Padding="20,9" Margin="0,0,6,0" Click="SendButton_Click" Content="Отправить"/>
                             <Button x:Name="SaveDraftButton" Grid.Column="1" Padding="16,9" Click="SaveDraftButton_Click" Content="Сохранить черновик"/>
-                            <TextBlock x:Name="ComposeStatusText" Grid.Column="2" Margin="12,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource AppMutedTextBrush}"/>
+                            <local:SelectableText x:Name="ComposeStatusText" Grid.Column="2" Margin="12,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource AppMutedTextBrush}"/>
                         </Grid>
                     </Grid>
                 </Border>
@@ -769,7 +769,7 @@
                 </Grid.ColumnDefinitions>
                 <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
                     <StackPanel MaxWidth="800" HorizontalAlignment="Left">
-                        <TextBlock FontSize="{DynamicResource AppFontHeroSize}" FontWeight="SemiBold" Text="Настройки"/>
+                        <local:SelectableText FontSize="{DynamicResource AppFontHeroSize}" FontWeight="SemiBold" Text="Настройки"/>
                         <GroupBox Margin="0,16,0,0" Header="Уведомления о новых письмах">
                             <StackPanel Margin="12">
                                 <!-- Retained only for backward-compatible background-setting code.
@@ -786,11 +786,11 @@
                                           Content="Не показывать повторно ранее полученные уведомления"
                                           Checked="ReplaySuppressionEnabledCheckBox_Changed"
                                           Unchecked="ReplaySuppressionEnabledCheckBox_Changed"/>
-                                <TextBlock Margin="20,3,0,0"
+                                <local:SelectableText Margin="20,3,0,0"
                                            Text="Локальная защита от повторов. Отключение не меняет подтверждения Google."
                                            TextWrapping="Wrap"
                                            Foreground="{DynamicResource AppMutedTextBrush}"/>
-                                <TextBlock x:Name="BackgroundPushStatusText" Margin="0,9,0,0"
+                                <local:SelectableText x:Name="BackgroundPushStatusText" Margin="0,9,0,0"
                                            TextWrapping="Wrap"
                                            Foreground="{DynamicResource AppMutedTextBrush}"
                                            Text="Состояние приёма уведомлений…"/>
@@ -802,15 +802,15 @@
                         </GroupBox>
                         <GroupBox Margin="0,16,0,0" Header="Внешний вид">
                             <StackPanel Margin="12">
-                                <TextBlock Margin="0,0,0,6" Text="Тема"/>
+                                <local:SelectableText Margin="0,0,0,6" Text="Тема"/>
                                 <ComboBox x:Name="ThemeComboBox" Width="220" HorizontalAlignment="Left" SelectionChanged="ThemeComboBox_SelectionChanged">
                                     <ComboBoxItem Content="Тёмная" Tag="Dark"/>
                                     <ComboBoxItem Content="Светлая" Tag="Light"/>
                                     <ComboBoxItem Content="Системная" Tag="System"/>
                                 </ComboBox>
-                                <TextBlock Margin="0,8,0,0" Foreground="{DynamicResource AppMutedTextBrush}" Text="При первом запуске используется тёмная тема."/>
+                                <local:SelectableText Margin="0,8,0,0" Foreground="{DynamicResource AppMutedTextBrush}" Text="При первом запуске используется тёмная тема."/>
                                 <Separator Margin="0,12,0,10"/>
-                                <TextBlock FontWeight="SemiBold" Text="Размер текста интерфейса"/>
+                                <local:SelectableText FontWeight="SemiBold" Text="Размер текста интерфейса"/>
                                 <WrapPanel Margin="0,7,0,0" VerticalAlignment="Center">
                                     <Slider x:Name="InterfaceFontSlider"
                                             Minimum="10" Maximum="18" Value="12"
@@ -818,13 +818,13 @@
                                             Width="230" VerticalAlignment="Center"
                                             ValueChanged="InterfaceFontSlider_ValueChanged"
                                             ToolTip="Основной размер шрифта, в логических пикселях"/>
-                                    <TextBlock x:Name="InterfaceFontValueText"
+                                    <local:SelectableText x:Name="InterfaceFontValueText"
                                                Margin="12,0,0,0" Width="100"
                                                VerticalAlignment="Center" Text="12 пикс."/>
                                     <Button Content="По умолчанию" Padding="9,5"
                                             Click="ResetInterfaceFontButton_Click"/>
                                 </WrapPanel>
-                                <TextBlock Margin="0,7,0,0" Foreground="{DynamicResource AppMutedTextBrush}"
+                                <local:SelectableText Margin="0,7,0,0" Foreground="{DynamicResource AppMutedTextBrush}"
                                            TextWrapping="Wrap"
                                            Text="Размер заголовков, подписей и обычного текста изменяется согласованно. Форматирование полученных писем не меняется."/>
                                 <Separator Margin="0,12,0,10"/>
@@ -832,7 +832,7 @@
                                           Content="Проверять орфографию при написании писем"
                                           Checked="SpellCheckEnabledCheckBox_Changed"
                                           Unchecked="SpellCheckEnabledCheckBox_Changed"/>
-                                <TextBlock Margin="20,4,0,0"
+                                <local:SelectableText Margin="20,4,0,0"
                                            Foreground="{DynamicResource AppMutedTextBrush}"
                                            TextWrapping="Wrap"
                                            Text="Проверка выполняется средствами Windows без передачи текста в интернет. Для русского и английского нужны соответствующие языковые словари Windows."/>
@@ -840,14 +840,14 @@
                                   Foreground="{DynamicResource AppTextBrush}"
                                   Background="{DynamicResource AppPanelBrush}">
                             <StackPanel Margin="12">
-                                <TextBlock TextWrapping="Wrap" Margin="0,0,0,11"
+                                <local:SelectableText TextWrapping="Wrap" Margin="0,0,0,11"
                                            Text="Один основной цвет задаёт восемь согласованных оттенков для всего интерфейса. Светлая, тёмная и системная темы используют один и тот же выбранный цвет."/>
                                 <WrapPanel VerticalAlignment="Center" Margin="0,0,0,8">
                                     <Border x:Name="PrimaryColorSwatch" Width="32" Height="32"
                                             CornerRadius="5" Margin="0,0,12,0"
                                             BorderBrush="{DynamicResource AppBorderBrush}"
                                             BorderThickness="1"/>
-                                    <TextBlock Text="Основной цвет" VerticalAlignment="Center"
+                                    <local:SelectableText Text="Основной цвет" VerticalAlignment="Center"
                                                FontWeight="SemiBold" Margin="0,0,12,0"/>
                                     <TextBox x:Name="PrimaryColorTextBox" Width="95"
                                              VerticalAlignment="Center" MaxLength="7"
@@ -860,10 +860,10 @@
                                     <Button Padding="10,6" Click="ResetPrimaryColorButton_Click"
                                             Content="По умолчанию"/>
                                 </WrapPanel>
-                                <TextBlock x:Name="PrimaryColorStatusText"
+                                <local:SelectableText x:Name="PrimaryColorStatusText"
                                            Foreground="{DynamicResource AppMutedTextBrush}"
                                            TextWrapping="Wrap"/>
-                                <TextBlock Margin="0,8,0,0"
+                                <local:SelectableText Margin="0,8,0,0"
                                            Foreground="{DynamicResource AppMutedTextBrush}"
                                            TextWrapping="Wrap"
                                            Text="Зелёный, красный и жёлтый цвета состояний, а также звезда и булавка, сохраняют своё значение независимо от темы."/>
@@ -928,7 +928,7 @@
                                     <RowDefinition Height="*"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <TextBlock Grid.Row="0" TextWrapping="Wrap" Margin="0,0,0,8"
+                                <local:SelectableText Grid.Row="0" TextWrapping="Wrap" Margin="0,0,0,8"
                                            Text="Выберите шаблон или создайте новый. Редактирование открывается в отдельном окне."/>
                                 <ListBox x:Name="MailTemplatesListBox" Grid.Row="1"
                                          MinHeight="130" MaxHeight="280"
@@ -955,29 +955,29 @@
 
                         <GroupBox Margin="0,16,0,0" Header="Папка скачивания вложений">
                             <StackPanel Margin="12">
-                                <TextBlock Margin="0,0,0,5" Text="Загруженные файлы и архивы вложений"/>
+                                <local:SelectableText Margin="0,0,0,5" Text="Загруженные файлы и архивы вложений"/>
                                 <DockPanel Margin="0,5,0,0" LastChildFill="True">
                                     <Button DockPanel.Dock="Left" Content="Обзор…" Margin="0,0,9,0"
                                             Padding="12,6" Click="BrowseDownloadDirectoryButton_Click"/>
-                                    <TextBlock x:Name="AttachmentDownloadDirectoryText"
+                                    <local:SelectableText x:Name="AttachmentDownloadDirectoryText"
                                                VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
                                                ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
                                 </DockPanel>
-                                <TextBlock x:Name="AttachmentDirectoryStatusText" Visibility="Collapsed"/>
+                                <local:SelectableText x:Name="AttachmentDirectoryStatusText" Visibility="Collapsed"/>
                             </StackPanel>
                         </GroupBox>
 
 <GroupBox Margin="0,16,0,0" Header="Папка шаблонов">
                             <StackPanel Margin="12">
-                                <TextBlock Margin="0,0,0,5" Text="Расположение файлов .md и вложений"/>
+                                <local:SelectableText Margin="0,0,0,5" Text="Расположение файлов .md и вложений"/>
                                 <DockPanel Margin="0,5,0,0" LastChildFill="True">
                                     <Button DockPanel.Dock="Left" Padding="12,6" Margin="0,0,9,0"
                                             Content="Обзор…" Click="BrowseTemplateDirectoryButton_Click"/>
-                                    <TextBlock x:Name="TemplateDirectoryText" VerticalAlignment="Center"
+                                    <local:SelectableText x:Name="TemplateDirectoryText" VerticalAlignment="Center"
                                                TextTrimming="CharacterEllipsis"
                                                ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
                                 </DockPanel>
-                                <TextBlock x:Name="TemplateDirectoryStatusText" Visibility="Collapsed"/>
+                                <local:SelectableText x:Name="TemplateDirectoryStatusText" Visibility="Collapsed"/>
                             </StackPanel>
                         </GroupBox>
 
@@ -999,7 +999,7 @@
                                             Click="OpenReleasesButton_Click"
                                             Content="Открыть страницу выпусков"/>
                                 </WrapPanel>
-                                <TextBlock x:Name="UpdateStatusText"
+                                <local:SelectableText x:Name="UpdateStatusText"
                                            Margin="0,8,0,0"
                                            TextWrapping="Wrap"
                                            Foreground="{DynamicResource AppMutedTextBrush}"
@@ -1027,7 +1027,7 @@
                               IsExpanded="False"
                               Foreground="{DynamicResource AppTextBrush}">
                         <StackPanel Margin="10,8,10,10">
-                            <TextBlock Text="Технические журналы и проверка подключения"
+                            <local:SelectableText Text="Технические журналы и проверка подключения"
                                        TextWrapping="Wrap"
                                        Foreground="{DynamicResource AppMutedTextBrush}"/>
                             <TabControl x:Name="UnifiedDiagnosticsTabs"
@@ -1035,10 +1035,10 @@
                                         SelectionChanged="UnifiedDiagnosticsTabs_SelectionChanged">
                                 <TabItem Header="Google / PushMe">
                                     <StackPanel Margin="7,10,7,6">
-                                        <TextBlock x:Name="GoogleRecipientStatusText"
+                                        <local:SelectableText x:Name="GoogleRecipientStatusText"
                                                    TextWrapping="Wrap"
                                                    Foreground="{DynamicResource AppMutedTextBrush}"/>
-                                        <TextBlock x:Name="GoogleMcsStatusText"
+                                        <local:SelectableText x:Name="GoogleMcsStatusText"
                                                    Margin="0,5,0,0"
                                                    TextWrapping="Wrap"
                                                    Foreground="{DynamicResource AppMutedTextBrush}"/>
@@ -1054,7 +1054,7 @@
                                                  TextWrapping="NoWrap"
                                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
                                                  ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
-                                        <TextBlock Margin="0,9,0,4"
+                                        <local:SelectableText Margin="0,9,0,4"
                                                    Text="Сведения об аккаунтах в отчёте:"/>
                                         <ComboBox x:Name="PushDiagnosticsExportModeComboBox"
                                                   SelectedIndex="0">
@@ -1079,14 +1079,14 @@
                                                     Margin="0,0,6,6"
                                                     Click="ClearPushDiagnosticsButton_Click"/>
                                         </WrapPanel>
-                                        <TextBlock x:Name="PushDiagnosticsActionStatusText"
+                                        <local:SelectableText x:Name="PushDiagnosticsActionStatusText"
                                                    TextWrapping="Wrap"
                                                    Foreground="{DynamicResource AppMutedTextBrush}"/>
                                     </StackPanel>
                                 </TabItem>
                                 <TabItem Header="Протокол">
                                     <StackPanel Margin="7,10,7,6">
-                                        <TextBlock Text="Последний ответ почтового сервера и сведения о запросах."
+                                        <local:SelectableText Text="Последний ответ почтового сервера и сведения о запросах."
                                                    TextWrapping="Wrap"
                                                    Foreground="{DynamicResource AppMutedTextBrush}"/>
                                         <TextBox x:Name="ResponseTextBox" Height="590"
@@ -1103,7 +1103,7 @@
                                 </TabItem>
                                 <TabItem Header="Приложение">
                                     <StackPanel Margin="7,10,7,6">
-                                        <TextBlock Text="Журнал работы приложения. При копировании личные данные скрываются."
+                                        <local:SelectableText Text="Журнал работы приложения. При копировании личные данные скрываются."
                                                    Foreground="{DynamicResource AppMutedTextBrush}"
                                                    TextWrapping="Wrap"/>
                                         <TextBox x:Name="ApplicationDiagnosticsLogTextBox"
@@ -1124,7 +1124,7 @@
                                                     Margin="0,0,6,6"
                                                     Click="SaveApplicationDiagnosticsButton_Click"/>
                                         </WrapPanel>
-                                        <TextBlock x:Name="ApplicationDiagnosticsStatusText"
+                                        <local:SelectableText x:Name="ApplicationDiagnosticsStatusText"
                                                    TextWrapping="Wrap"
                                                    Foreground="{DynamicResource AppMutedTextBrush}"/>
                                     </StackPanel>
@@ -1154,7 +1154,7 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock VerticalAlignment="Center"
+                    <local:SelectableText VerticalAlignment="Center"
                                FontSize="{DynamicResource AppFontSmallSize}"
                                Foreground="{DynamicResource AppMutedTextBrush}"
                                Text="АККАУНТЫ"/>
