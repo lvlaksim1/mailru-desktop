@@ -73,7 +73,7 @@ public partial class MainWindow
             // An outstanding asynchronous recipient lookup must not leave the
             // shared compose workspace read-only on its next opening.
             ComposeToTextBox.IsReadOnly = false;
-            SendComposeButton.IsEnabled = true;
+            SendButton.IsEnabled = true;
         };
 
         _composeWindow = window;
@@ -153,7 +153,7 @@ public partial class MainWindow
             // No sender or Bcc is implicitly invited to the conversation.
             ComposeStatusText.Text = "Сбор получателей переписки...";
             ComposeToTextBox.IsReadOnly = true;
-            SendComposeButton.IsEnabled = false;
+            SendButton.IsEnabled = false;
             try
             {
                 var result = await CollectConversationReplyRecipientsAsync(
@@ -183,7 +183,7 @@ public partial class MainWindow
                 if (ReferenceEquals(_composeWindow, replyWindow))
                 {
                     ComposeToTextBox.IsReadOnly = false;
-                    SendComposeButton.IsEnabled = true;
+                    SendButton.IsEnabled = true;
                 }
             }
         }
