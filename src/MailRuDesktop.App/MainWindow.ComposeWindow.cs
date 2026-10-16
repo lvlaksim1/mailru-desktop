@@ -70,6 +70,10 @@ public partial class MainWindow
             _composeSenderLogin = null;
             _composeSenderToken = null;
             _composeReplyToId = null;
+            // An outstanding asynchronous recipient lookup must not leave the
+            // shared compose workspace read-only on its next opening.
+            ComposeToTextBox.IsReadOnly = false;
+            SendComposeButton.IsEnabled = true;
         };
 
         _composeWindow = window;
