@@ -657,3 +657,7 @@ In the next explicit request, the Owner required forward to retain original atta
 source: direct Owner directives 16.10.2026; verified GitHub PR #174, CI and Release v0.3.74.
 authority: owner-directive + verified-repository + verified-ci (new functionality not verified live)
 supersedes: prior plans to continue investigating search >200 or recreate the old mass authorization failure without new evidence.
+
+
+## B-109 — 16.10.2026: пользователь принял официальную v0.3.74
+После публикации v0.3.74 владелец прямо сообщил: «проверил, всё работает». Это пользовательская приёмка текущей установленной версии и реализованных в ней трёх изменений (пересылка вложений, копирование текста, адресаты группового ответа) без сообщённых замечаний. Не приписывать этому сообщению детальную проверку каждого текстового поля и интерактивной строки либо наблюдение отсутствия повторной доставки по прежнему расписанию. Прежняя граница №77 остаётся отдельно непроверенной. Версию и код не менять; новых дефектов не выявлено.

@@ -458,3 +458,7 @@ v0.3.67: общий MailCommandExecution.RunAsync и ChangeMessageMarkAsync, в�
 
 ## 16.10.2026 — official v0.3.74 released; acceptance and remaining boundaries
 Published code via feature branch and PR #174, CI on Windows (pull request 38888080703, main 38888331070), Release v0.3.74 by Actions 38888586612. No trial build. Next: Owner uses the normal Update button; forwards a real mail with attachments, verifies their names and contents at recipient; tests subject/metadata selection and Ctrl+C, including other forms as appropriate; replies to a grouped conversation with at least two original mails and checks that only distinct To and Cc recipients appear (self omitted, From/Bcc never inferred). If some member messages cannot be retrieved, the compose status warns and requires manual verification. Do not claim live behavior from CI alone. Issue #77 remains only for originally scheduled-time duplicate delivery evidence; search >200 is consciously left unchanged and auth issues are observation-only. Preserve main reader WebView2, GridSplitter, token refresh and PushMe/MCS.
+
+
+## 16.10.2026 — результат приёмки v0.3.74
+Пользователь подтвердил «проверил, всё работает». Регрессионных замечаний не заявлено; дальнейшие исправления v0.3.74 и новый выпуск сейчас не нужны. Не инициировать самопроизвольный рефакторинг. Продолжать только по новым поручениям или при воспроизводимой неисправности. Ранее оставленное вне рамок приёмки испытание повторной доставки отложенного письма по №77 не объявлять выполненным.
