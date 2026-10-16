@@ -24,6 +24,38 @@ internal static class Program
         {
             var app = new App();
             app.InitializeComponent();
+
+            // Reply-to-thread is To/Cc only; sender, blind-copy and the
+            // current mailbox never become automatic recipients.
+            var threadMessages = new[]
+            {
+                new MailRuDesktop.Protocol.MailRuFullMessage(
+                    "id-1", "subject", "Sender", "sender@other.test",
+                    new[] { "First@example.test", "me@example.test" },
+                    new[] { "Second@example.test" }, null, "", "",
+                    Array.Empty<MailRuDesktop.Protocol.MailRuIncomingAttachment>(), "")
+                {
+                    Bcc = new[] { "blind@example.test" }
+                },
+                new MailRuDesktop.Protocol.MailRuFullMessage(
+                    "id-2", "subject", "Another", "another@other.test",
+                    new[] { "first@EXAMPLE.test", "Third@example.test" },
+                    new[] { "SECOND@example.test" }, null, "", "",
+                    Array.Empty<MailRuDesktop.Protocol.MailRuIncomingAttachment>(), "")
+            };
+            var replyAddresses = ConversationReplyAddresses.Collect(
+                threadMessages, "ME@example.test");
+            Expect(string.Join(";", replyAddresses.Select(x => x.ToLowerInvariant())),
+                "first@example.test;second@example.test;third@example.test",
+                "group reply includes deduplicated To/Cc only, excluding sender, Bcc and self");
+            var copyableText = new SelectableText { Text = "Тема письма" };
+            Check(copyableText.IsReadOnly && copyableText.IsReadOnlyCaretVisible,
+                "selectable read-only text supports highlighting and copying");
+            var readerHeader = new MailReaderHeader();
+            Check(readerHeader.SubjectText is SelectableText &&
+                  readerHeader.DateText is SelectableText,
+                "reader header subject and date are selectable");
+
             // Markdown signatures are discovered from files, not an independent JSON list.
             // Old values migrate without deleting the settings.json backup.
             var signaturesTemp = Path.Combine(Path.GetTempPath(),
