@@ -546,7 +546,7 @@ internal static class Program
             // Filtering its result again by only Subject/Snippet must not hide them.
             var searchBox = Require<TextBox>(mail, "FilterQueryTextBox");
             var existingQuery = searchBox.Text;
-            var existingStatus = Require<TextBlock>(mail, "FilterStatusText").Text;
+            var existingStatus = Require<SelectableText>(mail, "FilterStatusText").Text;
             var sourceField = typeof(MainWindow).GetField("_currentMessages",
                 BindingFlags.Instance | BindingFlags.NonPublic)!;
             var searchModeField = typeof(MainWindow).GetField("_serverSearchMode",
@@ -592,7 +592,7 @@ internal static class Program
                 searchModeField.SetValue(mail, originalServerMode);
                 searchBox.Text = existingQuery;
                 applySearchFilters.Invoke(mail, null);
-                Require<TextBlock>(mail, "FilterStatusText").Text = existingStatus;
+                Require<SelectableText>(mail, "FilterStatusText").Text = existingStatus;
             }
 
             // A server count above 200 triggers another offset-based page.
@@ -781,7 +781,7 @@ internal static class Program
             Check(new AppSettingsStore().LoadReplaySuppressionEnabled() ==
                   originalReplaySetting,
                 "replay-filter preference can be restored without app restart");
-            Check(Require<TextBlock>(mail, "BackgroundPushStatusText").IsVisible,
+            Check(Require<SelectableText>(mail, "BackgroundPushStatusText").IsVisible,
                 "brief connection status remains visible");
             var diagnosticExpander = Require<Expander>(mail, "UnifiedDiagnosticsExpander");
             Check(!diagnosticExpander.IsExpanded && Grid.GetColumn(diagnosticExpander.Parent as UIElement ?? diagnosticExpander) == 2,
@@ -842,9 +842,9 @@ internal static class Program
                 "taskbar popup preference remains adjustable during manual-only test");
             pushWindow!.Close();
 
-            Check(Require<TextBlock>(mail, "GoogleRecipientStatusText").IsVisible,
+            Check(Require<SelectableText>(mail, "GoogleRecipientStatusText").IsVisible,
                 "protected Google registration has a separate visible status");
-            Check(Require<TextBlock>(mail, "GoogleMcsStatusText").IsVisible,
+            Check(Require<SelectableText>(mail, "GoogleMcsStatusText").IsVisible,
                 "Google MCS channel has an independent visible connection state");
             var groupButton = Require<Button>(mail, "OpenPushGroupManagerButton");
             Check(groupButton.IsVisible && groupButton.IsEnabled &&
@@ -1016,7 +1016,7 @@ internal static class Program
                 "signature chooser is visible in New Mail");
             Check(Require<ComboBox>(mail, "ComposeTemplateComboBox").IsVisible,
                 "template chooser is visible in New Mail");
-            Check(Require<TextBlock>(mail, "ComposeHeaderText").IsVisible,
+            Check(Require<SelectableText>(mail, "ComposeHeaderText").IsVisible,
                 "New Mail keeps its visible heading");
             var outgoingRich = FindDescendant<RichTextBox>(editor!, _ => true);
             Check(outgoingRich is not null &&
@@ -1043,7 +1043,7 @@ internal static class Program
                 .FirstOrDefault(w => w.Title.StartsWith("Ответ: Договор", StringComparison.Ordinal));
             Check(editor is { IsVisible: true },
                 "Reply launches the independent composer without the New Mail caption");
-            Check(!Require<TextBlock>(mail, "ComposeHeaderText").IsVisible,
+            Check(!Require<SelectableText>(mail, "ComposeHeaderText").IsVisible,
                 "reply form does not display the redundant New Mail heading");
             Check(Require<TextBox>(mail, "ComposeToTextBox").Text ==
                     "sender@example.invalid" &&
