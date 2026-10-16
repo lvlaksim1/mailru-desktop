@@ -7778,8 +7778,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow.ComposeWindow/window@336/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:336:Window",
-      "line": 336,
+      "id": "MainWindow.ComposeWindow/window@320/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:320:Window",
+      "line": 320,
       "location": {
         "Height": "520",
         "MinHeight": "320",
@@ -7788,53 +7788,53 @@
         "WindowStartupLocation": "WindowStartupLocation.CenterOwner"
       },
       "name": null,
-      "parent": "MainWindow.ComposeWindow/window@336/runtime",
+      "parent": "MainWindow.ComposeWindow/window@320/runtime",
       "source": "src/MailRuDesktop.App/MainWindow.ComposeWindow.cs",
       "states": null,
       "style": null,
       "type": "Window",
       "typography": {},
-      "window": "MainWindow.ComposeWindow/window@336"
+      "window": "MainWindow.ComposeWindow/window@320"
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow.ComposeWindow/window@336/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:350:DockPanel",
-      "line": 350,
+      "id": "MainWindow.ComposeWindow/window@320/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:334:DockPanel",
+      "line": 334,
       "location": {
         "Margin": "new Thickness(14)",
         "Padding": "new Thickness(8)"
       },
       "name": null,
-      "parent": "MainWindow.ComposeWindow/window@336/runtime",
+      "parent": "MainWindow.ComposeWindow/window@320/runtime",
       "source": "src/MailRuDesktop.App/MainWindow.ComposeWindow.cs",
       "states": null,
       "style": null,
       "type": "DockPanel",
       "typography": {},
-      "window": "MainWindow.ComposeWindow/window@336"
+      "window": "MainWindow.ComposeWindow/window@320"
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow.ComposeWindow/window@336/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:351:TextBox",
-      "line": 351,
+      "id": "MainWindow.ComposeWindow/window@320/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:335:TextBox",
+      "line": 335,
       "location": {
         "Margin": "new Thickness(0",
         "Orientation": "Orientat",
         "Padding": "new Thickness(8)"
       },
       "name": null,
-      "parent": "MainWindow.ComposeWindow/window@336/runtime",
+      "parent": "MainWindow.ComposeWindow/window@320/runtime",
       "source": "src/MailRuDesktop.App/MainWindow.ComposeWindow.cs",
       "states": null,
       "style": null,
       "type": "TextBox",
       "typography": {},
-      "window": "MainWindow.ComposeWindow/window@336"
+      "window": "MainWindow.ComposeWindow/window@320"
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow.ComposeWindow/window@336/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:360:StackPanel",
-      "line": 360,
+      "id": "MainWindow.ComposeWindow/window@320/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:344:StackPanel",
+      "line": 344,
       "location": {
         "HorizontalAlignment": "HorizontalAlignment.Right",
         "Margin": "new Thickness(0",
@@ -7842,61 +7842,61 @@
         "Padding": "new Thickness(15"
       },
       "name": null,
-      "parent": "MainWindow.ComposeWindow/window@336/runtime",
+      "parent": "MainWindow.ComposeWindow/window@320/runtime",
       "source": "src/MailRuDesktop.App/MainWindow.ComposeWindow.cs",
       "states": null,
       "style": null,
       "type": "StackPanel",
       "typography": {},
-      "window": "MainWindow.ComposeWindow/window@336"
+      "window": "MainWindow.ComposeWindow/window@320"
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow.ComposeWindow/window@336/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:366:Button",
-      "line": 366,
+      "id": "MainWindow.ComposeWindow/window@320/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:350:Button",
+      "line": 350,
       "location": {
         "Margin": "new Thickness(8",
         "Padding": "new Thickness(15"
       },
       "name": null,
-      "parent": "MainWindow.ComposeWindow/window@336/runtime",
+      "parent": "MainWindow.ComposeWindow/window@320/runtime",
       "source": "src/MailRuDesktop.App/MainWindow.ComposeWindow.cs",
       "states": null,
       "style": null,
       "type": "Button",
       "typography": {},
-      "window": "MainWindow.ComposeWindow/window@336"
+      "window": "MainWindow.ComposeWindow/window@320"
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow.ComposeWindow/window@336/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:367:Button",
-      "line": 367,
+      "id": "MainWindow.ComposeWindow/window@320/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:351:Button",
+      "line": 351,
       "location": {
         "Margin": "new Thickness(8",
         "Padding": "new Thickness(15"
       },
       "name": null,
-      "parent": "MainWindow.ComposeWindow/window@336/runtime",
+      "parent": "MainWindow.ComposeWindow/window@320/runtime",
       "source": "src/MailRuDesktop.App/MainWindow.ComposeWindow.cs",
       "states": null,
       "style": null,
       "type": "Button",
       "typography": {},
-      "window": "MainWindow.ComposeWindow/window@336"
+      "window": "MainWindow.ComposeWindow/window@320"
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow.ComposeWindow/window@336/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:378:ListBox",
-      "line": 378,
+      "id": "MainWindow.ComposeWindow/window@320/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:362:ListBox",
+      "line": 362,
       "location": {},
       "name": null,
-      "parent": "MainWindow.ComposeWindow/window@336/runtime",
+      "parent": "MainWindow.ComposeWindow/window@320/runtime",
       "source": "src/MailRuDesktop.App/MainWindow.ComposeWindow.cs",
       "states": null,
       "style": null,
       "type": "ListBox",
       "typography": {},
-      "window": "MainWindow.ComposeWindow/window@336"
+      "window": "MainWindow.ComposeWindow/window@320"
     },
     {
       "color_roles_and_values": {},
@@ -20538,7 +20538,7 @@
         "FontFamily": "Segoe UI Variable Text, Segoe UI"
       }
     },
-    "MainWindow.ComposeWindow/window@336": {
+    "MainWindow.ComposeWindow/window@320": {
       "colors": {},
       "declared_as": "C# runtime Window",
       "element_count": 7,
@@ -20549,7 +20549,7 @@
         "Width": "570",
         "WindowStartupLocation": "WindowStartupLocation.CenterOwner"
       },
-      "id": "MainWindow.ComposeWindow/window@336",
+      "id": "MainWindow.ComposeWindow/window@320",
       "source": "src/MailRuDesktop.App/MainWindow.ComposeWindow.cs",
       "typography": {}
     },
