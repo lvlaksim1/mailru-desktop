@@ -72,6 +72,8 @@ public partial class MainWindow
             _composeSenderLogin = null;
             _composeSenderToken = null;
             _composeReplyToId = null;
+            _resendOriginalId = null;
+            _resendSourceAttachments.Clear();
             ArchiveAfterReplyCheckBox.Visibility = Visibility.Collapsed;
             ArchiveAfterReplyCheckBox.IsChecked = true;
             // An outstanding asynchronous recipient lookup must not leave the
