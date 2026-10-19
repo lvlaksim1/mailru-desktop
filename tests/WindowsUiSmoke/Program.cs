@@ -401,6 +401,46 @@ internal static class Program
             mail.Show();
             mail.UpdateLayout();
 
+            var settingsPane = Require<Grid>(mail, "SettingsWorkspace");
+            Check(settingsPane.Margin.Left == 16,
+                "standalone settings retain a 16 px left inset");
+
+            var greetingHost = new Grid();
+            var greetingPlain = new TextBox { MinHeight = 120 };
+            greetingHost.Children.Add(greetingPlain);
+            var greetingEditor = RichComposeEditor.Attach(greetingPlain, mail);
+            greetingEditor.LoadMarkdown("Обычное письмо");
+            greetingEditor.EnsureOpeningGreeting();
+            var greetingPlainText = greetingPlain.Text.Replace("\r\n", "\n");
+            Check(greetingPlainText.StartsWith("Добрый день\n\nОбычное письмо",
+                    StringComparison.Ordinal),
+                "new letter has greeting followed by exactly two line breaks");
+            greetingEditor.EnsureOpeningGreeting();
+            Check(greetingPlain.Text.Split("Добрый день").Length == 2,
+                "greeting is never inserted twice");
+            greetingEditor.LoadReplyQuotedText(
+                "\n\n----- Исходное письмо -----\n> Старое письмо");
+            greetingEditor.EnsureOpeningGreeting();
+            Check(greetingPlain.Text.StartsWith("Добрый день", StringComparison.Ordinal) &&
+                  greetingPlain.Text.Contains("----- Исходное письмо"),
+                "reply greeting precedes preserved message history");
+            greetingEditor.ApplyMarkdownSignature("С уважением", new[] { "С уважением" });
+            Check(greetingPlain.Text.IndexOf("Добрый день", StringComparison.Ordinal) <
+                  greetingPlain.Text.IndexOf("С уважением", StringComparison.Ordinal) &&
+                  greetingPlain.Text.IndexOf("С уважением", StringComparison.Ordinal) <
+                  greetingPlain.Text.IndexOf("----- Исходное письмо", StringComparison.Ordinal),
+                "reply greeting, signature and history keep their order");
+            greetingEditor.ApplyTemplateMarkdown("Тело шаблона", Array.Empty<string>());
+            greetingEditor.EnsureOpeningGreeting();
+            Check(greetingPlain.Text.StartsWith("Добрый день", StringComparison.Ordinal) &&
+                  greetingPlain.Text.Contains("Тело шаблона") &&
+                  greetingPlain.Text.Split("Добрый день").Length == 2,
+                "template leaves exactly one greeting in the reply body");
+            greetingEditor.LoadMarkdown("Добрый день\n\nТекст из шаблона");
+            greetingEditor.EnsureOpeningGreeting();
+            Check(greetingPlain.Text.Split("Добрый день").Length == 2,
+                "template beginning with greeting does not duplicate it");
+
             // Stage 4.1: metadata is one reusable WPF view, WebView2 is not moved.
             var extractedHeader = Require<MailReaderHeader>(mail, "ReaderHeader");
             Check(extractedHeader.Parent is Grid && Grid.GetRow(extractedHeader) == 2,
