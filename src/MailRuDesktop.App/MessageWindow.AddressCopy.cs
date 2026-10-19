@@ -20,8 +20,8 @@ public partial class MessageWindow
         if (sender is not TextBox textBox || string.IsNullOrWhiteSpace(textBox.Text))
             return;
 
-        textBox.SelectAll();
-        var value = StripAddressLabel(textBox.Text);
+        var value = EmailAddressText.ForClipboard(textBox.Text);
+        if (value.Length == 0) return;
         try
         {
             Clipboard.SetText(value);
@@ -35,13 +35,4 @@ public partial class MessageWindow
         e.Handled = true;
     }
 
-    private static string StripAddressLabel(string value)
-    {
-        var trimmed = value.Trim();
-        if (trimmed.StartsWith("От:", StringComparison.CurrentCultureIgnoreCase))
-            return trimmed[3..].Trim();
-        if (trimmed.StartsWith("Кому:", StringComparison.CurrentCultureIgnoreCase))
-            return trimmed[5..].Trim();
-        return trimmed;
-    }
 }
