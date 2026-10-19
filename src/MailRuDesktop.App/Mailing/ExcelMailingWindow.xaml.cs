@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using MailRuDesktop.App;
 
@@ -41,6 +42,7 @@ public partial class ExcelMailingWindow : Window
     private bool _dirty;
     private bool _storeReadable = true;
     private CancellationTokenSource? _preparationCancellation;
+    private bool _senderHeightChanged;
 
     internal ExcelMailingWindow(Window owner,
         AuthorizationStore authorizations, AppSettingsStore settings)
@@ -50,6 +52,8 @@ public partial class ExcelMailingWindow : Window
         Icon = owner.Icon;
         _authorizations = authorizations;
         _settings = settings;
+        SenderGrid.Height = NormalizeSenderGridHeight(
+            _settings.LoadUserInterfaceState().ExcelMailingSenderGridHeight);
         ThemeManager.AttachWindowChrome(this);
         ThemeManager.RefreshWindowChrome(this);
 
@@ -77,8 +81,46 @@ public partial class ExcelMailingWindow : Window
         Closing += Window_Closing;
     }
 
+    internal static double NormalizeSenderGridHeight(double desired) =>
+        double.IsFinite(desired) ? Math.Clamp(desired, 110, 520) : 124;
+
+    internal void ResizeSenderGrid(double verticalDelta)
+    {
+        var maxHeight = Math.Max(110, Math.Min(520, ActualHeight - 515));
+        var height = Math.Clamp(SenderGrid.Height + verticalDelta, 110, maxHeight);
+        if (Math.Abs(height - SenderGrid.Height) < 0.5) return;
+        SenderGrid.Height = height;
+        _senderHeightChanged = true;
+    }
+
+    private void SenderGridResizeThumb_DragDelta(object sender, DragDeltaEventArgs e) =>
+        ResizeSenderGrid(e.VerticalChange);
+
+    private void SenderGridResizeThumb_DragCompleted(object sender,
+        DragCompletedEventArgs e) => SaveSenderGridHeight();
+
+    internal void SaveSenderGridHeight()
+    {
+        if (!_senderHeightChanged) return;
+        try
+        {
+            // Refresh the current settings before writing to avoid clobbering
+            // changes made by other settings panels during this session.
+            var state = _settings.LoadUserInterfaceState();
+            state.ExcelMailingSenderGridHeight = SenderGrid.Height;
+            _settings.SaveUserInterfaceState(state);
+            _senderHeightChanged = false;
+        }
+        catch (Exception ex)
+        {
+            DiagnosticLog.Write("mailing_sender_grid_height",
+                ex.GetType().Name + ": " + ex.Message);
+        }
+    }
+
     private void Window_Closing(object? sender, CancelEventArgs e)
     {
+        SaveSenderGridHeight();
         if (!_dirty || _preparationCancellation is not null) return;
         var answer = MessageBox.Show(this,
             "Изменения профиля не сохранены. Закрыть без сохранения?",
@@ -385,48 +427,76 @@ public partial class ExcelMailingWindow : Window
             StopButton.Visibility = Visibility.Visible;
             PreviewGrid.ItemsSource = null;
             MessagePreviewText.Clear();
-            StatusText.Text = "Чтение данных из открытого Excel...";
-            var snapshot = ExcelInteropService.Read(book, sheet,
-                (row, total) => StatusText.Text = $"Чтение Excel: {row}/{total}");
+            StatusText.Text = "Проверка активной строки и заголовков выбранного листа...";
+            var reader = ExcelInteropService.OpenReader(book, sheet);
             var exclusions = _store.ReadExclusions();
-            var eligible = snapshot.Rows.Where(row =>
-                row.Visible && string.IsNullOrWhiteSpace(row.ExistingMark) &&
-                MailingPlanner.IsValidEmail(row.Email) &&
-                MailingPlanner.IsValidInn(row.Inn) &&
-                !string.IsNullOrWhiteSpace(row.Region) &&
-                !exclusions.Contains(row.Email.Trim()))
-                .Select(x => x.Inn).Distinct(StringComparer.Ordinal).ToArray();
-            var names = new Dictionary<string, string>(StringComparer.Ordinal);
+            var session = MailingPlanner.CreateSession(profile, template.Body,
+                exclusions, _authorizations.Logins.ToHashSet(
+                    StringComparer.OrdinalIgnoreCase));
+            var names = new Dictionary<string, string?>(StringComparer.Ordinal);
             var unavailable = 0;
             using var lookup = new OrganizationLookupService();
-            for (var index = 0; index < eligible.Length; index++)
+            var countVisible = 0;
+
+            while (reader.HasMore && !session.IsFull)
             {
                 _preparationCancellation.Token.ThrowIfCancellationRequested();
-                StatusText.Text = $"Сверка организаций: {index + 1}/{eligible.Length} (ИНН {eligible[index]})";
-                try
+                var batch = reader.ReadNext(_preparationCancellation.Token);
+                foreach (var row in batch)
                 {
-                    var name = await lookup.ResolveAsync(eligible[index],
-                        _preparationCancellation.Token);
-                    if (!string.IsNullOrWhiteSpace(name)) names[eligible[index]] = name;
-                    else unavailable++;
+                    _preparationCancellation.Token.ThrowIfCancellationRequested();
+                    if (session.IsFull) break;
+                    countVisible++;
+                    string? name = null;
+                    if (session.NeedsOrganization(row))
+                    {
+                        if (!names.TryGetValue(row.Inn, out name))
+                        {
+                            StatusText.Text =
+                                $"Проверка ИНН {row.Inn}, строка {row.RowNumber}. " +
+                                $"Подготовлено {session.Result.ReadyCount}/{session.Quota}";
+                            try
+                            {
+                                name = await lookup.ResolveAsync(row.Inn,
+                                    _preparationCancellation.Token);
+                                if (string.IsNullOrWhiteSpace(name))
+                                {
+                                    name = null;
+                                    unavailable++;
+                                }
+                            }
+                            catch (OperationCanceledException) { throw; }
+                            catch (Exception ex)
+                            {
+                                unavailable++;
+                                DiagnosticLog.Write("mailing_org_lookup",
+                                    ex.GetType().Name + ": " + ex.Message);
+                            }
+                            names[row.Inn] = name;
+                        }
+                    }
+                    session.Accept(row, name);
                 }
-                catch (OperationCanceledException) { throw; }
-                catch (Exception ex)
-                {
-                    unavailable++;
-                    DiagnosticLog.Write("mailing_org_lookup",
-                        ex.GetType().Name + ": " + ex.Message);
-                }
+                StatusText.Text =
+                    $"Просмотрены строки {reader.StartRow}–{Math.Min(reader.NextRow - 1, reader.LastRow)} " +
+                    $"из {reader.LastRow}; видимых кандидатов: {countVisible}; " +
+                    $"готово: {session.Result.ReadyCount}/{session.Quota}.";
+                // Keep the UI responsive and allow cancellation between batches,
+                // without moving any live Excel COM objects to a background thread.
+                await Task.Yield();
             }
-            var ready = MailingPlanner.Prepare(profile, snapshot.Rows,
-                names, template.Body, exclusions,
-                _authorizations.Logins.ToHashSet(StringComparer.OrdinalIgnoreCase));
+            _preparationCancellation.Token.ThrowIfCancellationRequested();
+            var ready = session.Result;
             PreviewGrid.ItemsSource = ready.Rows;
-            SummaryText.Text = $"Готово: {ready.ReadyCount} · Требует проверки: {ready.ReviewCount} · " +
-                               $"Пропущено: {ready.SkippedCount}";
-            StatusText.Text = $"Предпросмотр из {book.Name} / {sheet}. " +
-                              $"Не удалось подтвердить названия по {unavailable} ИНН. " +
-                              "Отправка отключена: этап 1.";
+            SummaryText.Text =
+                $"Начало: строка {reader.StartRow} · Готово: {ready.ReadyCount} · " +
+                $"Требует проверки: {ready.ReviewCount} · Пропущено: {ready.SkippedCount}";
+            StatusText.Text =
+                $"Предпросмотр {book.Name} / {sheet}, начиная со строки {reader.StartRow}. " +
+                (session.IsFull ? "Квота заполнена; дальнейшие строки не читались. "
+                    : "Достигнут конец данных листа. ") +
+                $"Не удалось подтвердить названия по {unavailable} ИНН. " +
+                "Отправка и запись в Excel отключены.";
         }
         catch (OperationCanceledException)
         {
