@@ -116,6 +116,14 @@
             <TextBlock x:Name="StatusText" TextWrapping="Wrap"
                        Text="Выберите профиль, книгу и лист. Никаких писем без отдельного этапа отправки не будет."/>
             <TextBlock x:Name="SummaryText" Margin="0,3,0,0" FontWeight="SemiBold"/>
+            <WrapPanel Margin="0,6,0,0">
+                <Button x:Name="RetryOrganizationButton" Content="Повторить поиск по ИНН"
+                        Padding="9,5" Margin="0,0,6,0" Click="RetryOrganization_Click"/>
+                <Button x:Name="ManualOrganizationButton" Content="Указать название вручную"
+                        Padding="9,5" Margin="0,0,6,0" Click="ManualOrganization_Click"/>
+                <Button x:Name="IncludeOrganizationButton" Content="Вернуть в рассылку"
+                        Padding="9,5" Click="IncludeOrganization_Click"/>
+            </WrapPanel>
         </StackPanel>
         <DataGrid x:Name="PreviewGrid" Grid.Row="5" AutoGenerateColumns="False"
                   IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single"
