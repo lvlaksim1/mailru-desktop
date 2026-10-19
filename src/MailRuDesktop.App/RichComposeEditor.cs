@@ -180,6 +180,39 @@ internal sealed class RichComposeEditor
     public bool IsReplyMode => _replyBody is not null;
 
     /// <summary>
+    /// Reset only the initial empty typing paragraph after constructing a new
+    /// mail or a reply. WPF can otherwise carry the insertion formatting from
+    /// a nearby bold signature or the previous compose session. Never touch
+    /// nonempty paragraphs, saved templates, or formatting the user applied.
+    /// </summary>
+    public void PrepareInitialTypingFormat()
+    {
+        var position = _rich.CaretPosition;
+        var paragraph = position.Paragraph;
+        if (paragraph is null || !_rich.Selection.IsEmpty ||
+            !string.IsNullOrWhiteSpace(new TextRange(
+                paragraph.ContentStart, paragraph.ContentEnd).Text))
+            return;
+
+        // An empty paragraph is the editable reply/new-mail body; the signed
+        // and quoted regions are separate. Respect the app's live font size.
+        paragraph.FontFamily = _rich.FontFamily;
+        paragraph.SetResourceReference(TextElement.FontSizeProperty, "AppFontBodySize");
+        paragraph.FontWeight = FontWeights.Normal;
+        paragraph.FontStyle = FontStyles.Normal;
+
+        // RichTextBox also retains a collapsed selection's insertion style
+        // independently of paragraph defaults. Reset it once at creation,
+        // without intercepting subsequent user formatting changes.
+        _rich.Selection.ApplyPropertyValue(
+            TextElement.FontWeightProperty, FontWeights.Normal);
+        _rich.Selection.ApplyPropertyValue(
+            TextElement.FontStyleProperty, FontStyles.Normal);
+        _rich.Selection.ApplyPropertyValue(
+            Inline.TextDecorationsProperty, new TextDecorationCollection());
+    }
+
+    /// <summary>
     /// Insert the standard opening exactly once at the start of the editable
     /// body, without touching the signature or quoted history sections.
     /// The two paragraph breaks leave one empty line for the user's message.

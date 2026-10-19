@@ -441,6 +441,58 @@ internal static class Program
             Check(greetingPlain.Text.Split("Добрый день").Length == 2,
                 "template beginning with greeting does not duplicate it");
 
+            // Regression: a previous bold signature/heading must not become
+            // the typing format of a fresh reply or a fresh new message.
+            var formattedPlain = new TextBox { MinHeight = 120 };
+            var formattedHost = new Grid();
+            formattedHost.Children.Add(formattedPlain);
+            var formatted = RichComposeEditor.Attach(formattedPlain, mail);
+            formatted.LoadReplyQuotedText(
+                "\n\n----- Исходное письмо -----\n> Было");
+            formatted.EnsureOpeningGreeting();
+            formatted.ApplyMarkdownSignature("**Жирная подпись**",
+                new[] { "**Жирная подпись**" });
+            formatted.PrepareInitialTypingFormat();
+            Check(formatted.TextControl.CaretPosition.Paragraph is
+                  { FontWeight: var replyWeight, FontStyle: var replyStyle } &&
+                  replyWeight == FontWeights.Normal &&
+                  replyStyle == FontStyles.Normal,
+                "reply caret starts in a normal-weight paragraph");
+            formatted.TextControl.Selection.Text = "обычный ответ";
+            var replyTypedParagraph = formatted.TextControl.CaretPosition.Paragraph!;
+            var replyTypedRange = new TextRange(
+                replyTypedParagraph.ContentStart, replyTypedParagraph.ContentEnd);
+            Check(Equals(replyTypedRange.GetPropertyValue(
+                      TextElement.FontWeightProperty), FontWeights.Normal),
+                "typing after a bold signature creates normal-weight reply text");
+            Check(formatted.ToHtml().Contains("font-weight:bold") &&
+                  formattedPlain.Text.Contains("Жирная подпись") &&
+                  formattedPlain.Text.Contains("----- Исходное письмо"),
+                "reset does not remove bold signature or quoted history");
+            replyTypedRange.ApplyPropertyValue(
+                TextElement.FontWeightProperty, FontWeights.Bold);
+            formatted.PrepareInitialTypingFormat();
+            Check(Equals(replyTypedRange.GetPropertyValue(
+                      TextElement.FontWeightProperty), FontWeights.Bold),
+                "explicit manual bold remains available after typing begins");
+
+            formatted.LoadMarkdown("");
+            formatted.ApplyMarkdownSignature("**Жирная подпись**",
+                new[] { "**Жирная подпись**" });
+            formatted.EnsureOpeningGreeting(reserveEditableLine: true);
+            formatted.PrepareInitialTypingFormat();
+            Check(formatted.TextControl.CaretPosition.Paragraph is
+                  { FontWeight: var newWeight } &&
+                  newWeight == FontWeights.Normal,
+                "new mail starts with normal formatting before default signature");
+            formatted.TextControl.Selection.Text = "обычное письмо";
+            var newTypedParagraph = formatted.TextControl.CaretPosition.Paragraph!;
+            var newTypedRange = new TextRange(
+                newTypedParagraph.ContentStart, newTypedParagraph.ContentEnd);
+            Check(Equals(newTypedRange.GetPropertyValue(
+                      TextElement.FontWeightProperty), FontWeights.Normal),
+                "new mail text is not bold after previous formatted compose session");
+
             // Stage 4.1: metadata is one reusable WPF view, WebView2 is not moved.
             var extractedHeader = Require<MailReaderHeader>(mail, "ReaderHeader");
             Check(extractedHeader.Parent is Grid && Grid.GetRow(extractedHeader) == 2,
