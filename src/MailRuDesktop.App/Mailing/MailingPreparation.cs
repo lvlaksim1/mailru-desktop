@@ -155,70 +155,130 @@ internal static class MailingPlanner
         return result;
     }
 
+    internal static MailingPlanSession CreateSession(
+        MailingProfile profile, string templateBody,
+        IReadOnlySet<string> excluded, IReadOnlySet<string> authorized,
+        DateTimeOffset? now = null) =>
+        new(profile, templateBody, excluded, authorized, now);
+
     internal static MailingPreparationResult Prepare(
         MailingProfile profile, IReadOnlyList<MailingExcelRow> rows,
         IReadOnlyDictionary<string, string> names, string templateBody,
         IReadOnlySet<string> excluded, IReadOnlySet<string> authorized,
         DateTimeOffset? now = null)
     {
-        var result = new MailingPreparationResult();
+        var session = CreateSession(profile, templateBody, excluded, authorized, now);
+        foreach (var row in rows)
+            session.Accept(row, names.GetValueOrDefault(row.Inn));
+        return session.Result;
+    }
+}
+
+/// <summary>
+/// Incremental state for large Excel sheets. Each row is visited once and
+/// sender quotas persist across batches; no rescanning or stale schedules.
+/// </summary>
+internal sealed class MailingPlanSession
+{
+    private readonly MailingProfile _profile;
+    private readonly string _templateBody;
+    private readonly IReadOnlySet<string> _excluded;
+    private readonly DateTimeOffset _now;
+    private readonly DateTimeOffset _start;
+    private readonly (string Login, int Quantity, int Used)[] _quotas;
+    private int _currentSender;
+    internal MailingPreparationResult Result { get; } = new();
+    internal int Quota => _quotas.Sum(q => q.Quantity);
+    internal bool IsFull => Result.ReadyCount >= Quota;
+
+    internal MailingPlanSession(MailingProfile profile, string templateBody,
+        IReadOnlySet<string> excluded, IReadOnlySet<string> authorized,
+        DateTimeOffset? now)
+    {
+        _profile = profile;
+        _templateBody = templateBody;
+        _excluded = excluded;
+        _now = now ?? DateTimeOffset.Now;
         if (profile.IntervalSeconds < 5 || profile.IntervalSeconds > 86400)
-            throw new InvalidOperationException("Интервал между письмами должен составлять 5–86400 секунд.");
+            throw new InvalidOperationException(
+                "Интервал между письмами должен составлять 5–86400 секунд.");
         if (profile.Senders.Count == 0)
-            throw new InvalidOperationException("Выберите хотя бы один аккаунт-отправитель.");
+            throw new InvalidOperationException(
+                "Выберите хотя бы один аккаунт-отправитель.");
         if (profile.Senders.Any(x => x.Quantity <= 0 || !authorized.Contains(x.Login)) ||
-            profile.Senders.Select(x => x.Login).Distinct(StringComparer.OrdinalIgnoreCase)
-                .Count() != profile.Senders.Count)
-            throw new InvalidOperationException("Проверьте аккаунты: авторизация, уникальность и квоты.");
+            profile.Senders.Select(x => x.Login)
+                .Distinct(StringComparer.OrdinalIgnoreCase).Count() != profile.Senders.Count)
+            throw new InvalidOperationException(
+                "Проверьте аккаунты: авторизация, уникальность и квоты.");
         if (string.IsNullOrWhiteSpace(templateBody))
             throw new InvalidOperationException("Выберите один непустой шаблон.");
-        var start = ResolveStart(profile);
-        if (start <= (now ?? DateTimeOffset.Now).AddMinutes(2))
-            throw new InvalidOperationException("Начало рассылки должно быть минимум через 2 минуты.");
-        var quotas = profile.Senders.Select(x => (x.Login, x.Quantity, Used: 0)).ToArray();
-        var next = 0;
-        foreach (var item in rows)
+        _start = MailingPlanner.ResolveStart(profile);
+        if (_start <= _now.AddMinutes(2))
+            throw new InvalidOperationException(
+                "Начало рассылки должно быть минимум через 2 минуты.");
+        _quotas = profile.Senders.Select(x => (x.Login, x.Quantity, Used: 0)).ToArray();
+    }
+
+    internal bool NeedsOrganization(MailingExcelRow row) =>
+        row.Visible && !IsFull &&
+        string.IsNullOrWhiteSpace(row.ExistingMark) &&
+        MailingPlanner.IsValidEmail(row.Email) &&
+        !_excluded.Contains(row.Email.Trim()) &&
+        MailingPlanner.IsValidInn(row.Inn) &&
+        !string.IsNullOrWhiteSpace(row.Region);
+
+    internal void Accept(MailingExcelRow row, string? organization)
+    {
+        var status = "Пропуск";
+        var reason = "";
+        if (!row.Visible) reason = "Строка скрыта";
+        else if (!string.IsNullOrWhiteSpace(row.ExistingMark))
+            reason = "Уже имеется отметка о рассылке";
+        else if (!MailingPlanner.IsValidEmail(row.Email))
+        { status = "Требует проверки"; reason = "Некорректный адрес"; }
+        else if (_excluded.Contains(row.Email.Trim()))
+            reason = "Адрес в списке исключений";
+        else if (!MailingPlanner.IsValidInn(row.Inn))
+        { status = "Требует проверки"; reason = "Некорректный ИНН"; }
+        else if (string.IsNullOrWhiteSpace(row.Region))
+        { status = "Требует проверки"; reason = "Не указан регион"; }
+        else if (string.IsNullOrWhiteSpace(organization))
+        { status = "Требует проверки"; reason = "Нет подтверждённого названия организации"; }
+        else if (IsFull)
+            reason = "Сверх суммарной квоты";
+        else
         {
-            string status = "Пропуск", reason = "";
-            if (!item.Visible) reason = "Строка скрыта";
-            else if (!string.IsNullOrWhiteSpace(item.ExistingMark))
-                reason = "Уже имеется отметка о рассылке";
-            else if (!IsValidEmail(item.Email)) { status = "Требует проверки"; reason = "Некорректный адрес"; }
-            else if (excluded.Contains(item.Email.Trim())) reason = "Адрес в списке исключений";
-            else if (!IsValidInn(item.Inn)) { status = "Требует проверки"; reason = "Некорректный ИНН"; }
-            else if (string.IsNullOrWhiteSpace(item.Region))
-            { status = "Требует проверки"; reason = "Не указан регион"; }
-            else if (!names.TryGetValue(item.Inn, out var organization) ||
-                     string.IsNullOrWhiteSpace(organization))
-            { status = "Требует проверки"; reason = "Нет подтверждённого названия организации"; }
+            while (_currentSender < _quotas.Length &&
+                   _quotas[_currentSender].Used >= _quotas[_currentSender].Quantity)
+                _currentSender++;
+            if (_currentSender >= _quotas.Length)
+                reason = "Сверх суммарной квоты";
             else
             {
-                while (next < quotas.Length && quotas[next].Used >= quotas[next].Quantity) next++;
-                if (next >= quotas.Length) reason = "Сверх суммарной квоты";
-                else
+                try
                 {
-                    try
-                    {
-                        var scheduled = start.AddSeconds((long)quotas[next].Used * profile.IntervalSeconds);
-                        if (scheduled <= (now ?? DateTimeOffset.Now))
-                            throw new InvalidOperationException("Время задания уже прошло");
-                        var subject = Render(profile.SubjectTemplate, organization, item.Inn, item.Region);
-                        var body = Render(templateBody, organization, item.Inn, item.Region);
-                        result.Rows.Add(new MailingPreparedRow(
-                            item.RowNumber, item.Email, item.Inn, item.Region,
-                            organization, quotas[next].Login, scheduled, subject, body,
-                            "Ready", "Только предварительный просмотр — постановка на сервер отключена"));
-                        quotas[next].Used++;
-                        continue;
-                    }
-                    catch (Exception ex) when (ex is InvalidOperationException or ArgumentOutOfRangeException)
-                    { status = "Требует проверки"; reason = ex.Message; }
+                    var selected = _quotas[_currentSender];
+                    var time = _start.AddSeconds(
+                        (long)selected.Used * _profile.IntervalSeconds);
+                    if (time <= _now)
+                        throw new InvalidOperationException("Время задания уже прошло");
+                    var subject = MailingPlanner.Render(_profile.SubjectTemplate,
+                        organization, row.Inn, row.Region);
+                    var body = MailingPlanner.Render(_templateBody,
+                        organization, row.Inn, row.Region);
+                    Result.Rows.Add(new MailingPreparedRow(row.RowNumber, row.Email,
+                        row.Inn, row.Region, organization, selected.Login, time,
+                        subject, body, "Ready",
+                        "Только предварительный просмотр — постановка на сервер отключена"));
+                    _quotas[_currentSender].Used++;
+                    return;
                 }
+                catch (Exception ex) when (ex is InvalidOperationException or ArgumentOutOfRangeException)
+                { status = "Требует проверки"; reason = ex.Message; }
             }
-            result.Rows.Add(new MailingPreparedRow(item.RowNumber, item.Email, item.Inn,
-                item.Region, names.GetValueOrDefault(item.Inn, ""), "", null,
-                "", "", status, reason));
         }
-        return result;
+        Result.Rows.Add(new MailingPreparedRow(row.RowNumber, row.Email,
+            row.Inn, row.Region, organization ?? "", "", null,
+            "", "", status, reason));
     }
 }
