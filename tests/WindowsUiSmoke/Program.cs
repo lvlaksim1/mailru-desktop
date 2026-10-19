@@ -579,6 +579,83 @@ internal static class Program
                     { "first@example.com", "second@example.com" });
                 Check(noName.ReviewCount == 1 && noName.ReadyCount == 0,
                     "unverified organization cannot be silently replaced by Excel label");
+                // Fake Excel COM object: start from its actual active cell,
+                // skip AutoFilter-hidden rows, do not read >100000 rows at once.
+                var fakeExcel = new FakeExcelApplication();
+                var fakeSheet = new FakeExcelSheet { Name = "Компании" };
+                string[] headings =
+                [
+                    "E-mail работодателя", "ИНН работодателя", "Регион",
+                    "рассылка по СОУТ", "исх электронка", "Наименование работодателя"
+                ];
+                for (var col = 1; col <= headings.Length; col++)
+                    fakeSheet.Put(1, col, headings[col - 1]);
+                void AddExcelRow(int row, string email)
+                {
+                    fakeSheet.Put(row, 1, email);
+                    fakeSheet.Put(row, 2, "7707083893");
+                    fakeSheet.Put(row, 3, "Москва");
+                }
+                AddExcelRow(74199, "before@example.com");
+                AddExcelRow(74210, "first-visible@example.com");
+                AddExcelRow(74211, "filtered@example.com");
+                fakeSheet.Hide(74211);
+                AddExcelRow(74212, "second-visible@example.com");
+                AddExcelRow(74213, "third-visible@example.com");
+                AddExcelRow(145000, "after@example.com");
+                var fakeBook = new FakeExcelWorkbook { Application = fakeExcel };
+                fakeBook.Worksheets = new FakeExcelWorksheets { Sheet = fakeSheet };
+                fakeExcel.ActiveWorkbook = fakeBook;
+                fakeExcel.ActiveSheet = fakeSheet;
+                fakeExcel.ActiveCell = fakeSheet.Cells[74210, 4];
+                var discovered = new MailRuDesktop.App.Mailing.OpenExcelBook
+                {
+                    Workbook = fakeBook, ApplicationHwnd = fakeExcel.Hwnd,
+                    Name = fakeBook.Name, FullName = fakeBook.FullName,
+                    Sheets = ["Компании"]
+                };
+                var reader = MailRuDesktop.App.Mailing.ExcelInteropService
+                    .OpenReader(discovered, "Компании");
+                Check(reader.StartRow == 74210 && reader.LastRow == 145000,
+                    "Excel uses active cell row and data boundary even above 100000");
+                var visibleBatch = reader.ReadNext();
+                Check(visibleBatch.Select(x => x.RowNumber)
+                          .SequenceEqual(new[] { 74210, 74212, 74213 }),
+                    "Excel reads in order, ignores filtered row and earlier data");
+                var incremental = MailRuDesktop.App.Mailing.MailingPlanner.CreateSession(
+                    localProfile, "Body {ИНН_организации}",
+                    new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+                    new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                    { "first@example.com", "second@example.com" });
+                foreach (var visibleRow in visibleBatch)
+                {
+                    if (incremental.IsFull) break;
+                    incremental.Accept(visibleRow, "ООО Тест");
+                }
+                Check(incremental.IsFull && incremental.Result.ReadyCount == 2 &&
+                      incremental.Result.Rows[0].RowNumber == 74210 &&
+                      incremental.Result.Rows[1].RowNumber == 74212 &&
+                      reader.HasMore,
+                    "one-pass planning stops on quota without exhausting worksheet");
+                fakeExcel.ActiveSheet = new FakeExcelSheet { Name = "Другой лист" };
+                var mismatchRejected = false;
+                try
+                {
+                    _ = MailRuDesktop.App.Mailing.ExcelInteropService
+                        .OpenReader(discovered, "Компании");
+                }
+                catch (InvalidOperationException) { mismatchRejected = true; }
+                Check(mismatchRejected,
+                    "selected sheet cannot silently use another sheet's active row");
+                fakeExcel.ActiveSheet = fakeSheet;
+                var sizingStore = new AppSettingsStore(Path.Combine(testingDir, "ui"));
+                var layoutState = sizingStore.LoadUserInterfaceState();
+                layoutState.ExcelMailingSenderGridHeight = 286;
+                sizingStore.SaveUserInterfaceState(layoutState);
+                Check(sizingStore.LoadUserInterfaceState()
+                          .ExcelMailingSenderGridHeight == 286,
+                    "sender table height is saved and restored in user settings");
+
             }
             finally
             {
@@ -593,6 +670,15 @@ internal static class Program
             Check(mailingWindow is { IsVisible: true } &&
                   mailingWindow.Owner == mail && mailingWindow.Title.Contains("Рассылки Excel"),
                 "Excel mailing opens a distinct owned preparation window");
+            var sizeHandle = Require<Thumb>(mailingWindow!, "SenderGridResizeThumb");
+            var sizeTable = Require<DataGrid>(mailingWindow!, "SenderGrid");
+            var initialHeight = sizeTable.Height;
+            mailingWindow!.ResizeSenderGrid(55);
+            Check(sizeHandle.Cursor == System.Windows.Input.Cursors.SizeNS &&
+                  sizeTable.Height > initialHeight,
+                "drag handle changes account-table height and shifts remaining layout");
+            mailingWindow.SaveSenderGridHeight();
+
             Check(FindDescendant<Button>(mailingWindow!, b =>
                       (b.Content as string)?.Contains("Проверить и подготовить") == true) is not null &&
                   FindDescendant<Button>(mailingWindow!, b =>
