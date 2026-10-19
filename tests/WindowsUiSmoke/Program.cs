@@ -753,8 +753,13 @@ internal static class Program
             Check(settingsAction is not null, "Settings navigation is visible");
             settingsAction!.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent, settingsAction));
             mail.UpdateLayout();
-            Check(Require<Grid>(mail, "SettingsWorkspace").Visibility == Visibility.Visible,
-                "Settings can actually be opened by its button");
+            var settingsWindow = Application.Current.Windows.OfType<Window>()
+                .FirstOrDefault(w => w.Title == "Настройки — MailRu Desktop");
+            Check(settingsWindow is { IsVisible: true, Owner: not null } &&
+                  ReferenceEquals(settingsWindow.Owner, mail) &&
+                  ReferenceEquals(settingsWindow.Content,
+                      Require<Grid>(mail, "SettingsWorkspace")),
+                "Settings open in one independent owned window");
             var settingsGrid = Require<Grid>(mail, "SettingsWorkspace");
             Check(settingsGrid.ColumnDefinitions.Count == 3,
                 "settings and diagnostics have an independent splitter column");
@@ -898,7 +903,7 @@ internal static class Program
                 "manual group test passes exactly nineteen unique account IDs");
             simulated.Close();
 
-            var palette = FindDescendant<Expander>(mail,
+            var palette = FindDescendant<Expander>(settingsWindow!,
                 e => string.Equals(e.Header?.ToString(),
                     "Цветовая схема", StringComparison.Ordinal));
             Check(palette is not null, "palette editor is present");
@@ -927,9 +932,9 @@ internal static class Program
             Check(ComposeSpellChecking.Enabled == previousSpellSetting,
                 "spelling checkbox restores the runtime setting");
 
-            var signature = FindDescendant<Expander>(mail,
+            var signature = FindDescendant<Expander>(settingsWindow!,
                 e => e.Header?.ToString() == "Подписи");
-            var template = FindDescendant<Expander>(mail,
+            var template = FindDescendant<Expander>(settingsWindow!,
                 e => e.Header?.ToString() == "Шаблоны");
             Check(signature is not null && template is not null,
                 "signature/template expanders are present");
@@ -998,9 +1003,15 @@ internal static class Program
 
 
             settingsAction!.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent, settingsAction));
+            Check(ReferenceEquals(settingsWindow,
+                    Application.Current.Windows.OfType<Window>()
+                        .FirstOrDefault(w => w.Title == "Настройки — MailRu Desktop")),
+                "Repeated settings click reactivates the same window");
+            settingsWindow!.Close();
             mail.UpdateLayout();
-            Check(Require<Grid>(mail, "MailWorkspace").Visibility == Visibility.Visible,
-                "Settings button returns to mail without duplicate navigation");
+            Check(Require<Grid>(mail, "SettingsWorkspace").Visibility == Visibility.Collapsed &&
+                  Require<Grid>(mail, "MailWorkspace").Visibility == Visibility.Visible,
+                "Closing detached settings restores the hidden workspace");
 
             action.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent, action));
             editor = Application.Current.Windows
@@ -1023,6 +1034,17 @@ internal static class Program
                   VisualTreeHelper.GetParent(outgoingRich) is Border
                   { BorderThickness.Left: 1 },
                 "new-mail body has the same themed outline");
+            var mainRichEditor = (RichComposeEditor?)typeof(MainWindow)
+                .GetField("_composeRichEditor", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .GetValue(mail);
+            Check(mainRichEditor is not null, "shared rich editor is initialized");
+            outgoingRich!.Document.Blocks.Clear();
+            outgoingRich.Document.Blocks.Add(new Paragraph(
+                new Run("Пример https://example.com и www.example.org")));
+            var linkedHtml = mainRichEditor!.ToHtml();
+            Check(linkedHtml.Contains("href=\\"https://example.com\\"", StringComparison.Ordinal) &&
+                  linkedHtml.Contains("href=\\"https://www.example.org\\"", StringComparison.Ordinal),
+                "URL text becomes safe HTML links before sending");
             var send = Require<Button>(mail, "SendButton");
             Check(ReferenceEquals(
                     send.ReadLocalValue(Control.BackgroundProperty),
@@ -1043,6 +1065,10 @@ internal static class Program
                 .FirstOrDefault(w => w.Title.StartsWith("Ответ: Договор", StringComparison.Ordinal));
             Check(editor is { IsVisible: true },
                 "Reply launches the independent composer without the New Mail caption");
+            var archiveAfterReply = Require<CheckBox>(mail, "ArchiveAfterReplyCheckBox");
+            Check(archiveAfterReply.Visibility == Visibility.Visible &&
+                  archiveAfterReply.IsChecked == true,
+                "Reply defaults to archiving its source after confirmed sending");
             Check(!Require<SelectableText>(mail, "ComposeHeaderText").IsVisible,
                 "reply form does not display the redundant New Mail heading");
             Check(Require<TextBox>(mail, "ComposeToTextBox").Text ==
