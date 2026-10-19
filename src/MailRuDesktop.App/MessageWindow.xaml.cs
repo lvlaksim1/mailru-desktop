@@ -477,7 +477,8 @@ public partial class MessageWindow : Window
             folder.Name.Equals("Архив", StringComparison.CurrentCultureIgnoreCase) ||
             folder.Id == 500010);
 
-        await MoveAsync(archive?.Id ?? 500010, "Перемещение в архив");
+        if (await MoveAsync(archive?.Id ?? 500010, "Перемещение в архив"))
+            Close();
     }
 
     private async void MoveButton_Click(object sender, RoutedEventArgs e)
@@ -491,12 +492,12 @@ public partial class MessageWindow : Window
         await MoveAsync(folder.Id, $"Перемещение в «{folder.Name}»");
     }
 
-    private async Task MoveAsync(int folderId, string operation)
+    private async Task<bool> MoveAsync(int folderId, string operation)
     {
         if (string.IsNullOrWhiteSpace(_accessToken))
         {
             StatusText.Text = "Нет access_token. Выполните авторизацию заново.";
-            return;
+            return false;
         }
 
         StatusText.Text = operation + "...";
@@ -512,16 +513,18 @@ public partial class MessageWindow : Window
             {
                 StatusText.Text = "Mail.ru отклонил перемещение.";
                 DiagnosticLog.Write("message_window_move", result.RawResponse);
-                return;
+                return false;
             }
 
             MailboxChanged = true;
             StatusText.Text = operation + " выполнено.";
+            return true;
         }
         catch (Exception ex)
         {
             StatusText.Text = "Ошибка перемещения.";
             DiagnosticLog.Write("message_window_move", ex.GetType().Name + ": " + ex.Message);
+            return false;
         }
     }
 
