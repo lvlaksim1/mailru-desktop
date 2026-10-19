@@ -30,6 +30,8 @@ public partial class MessageWindow : Window
     public bool MailboxChanged { get; private set; }
     public bool ReplyRequested { get; private set; }
     public MailRuFullMessage? ReplySource => _fullMessage ?? _initialFullMessage;
+    public bool ResendRequested { get; private set; }
+    public MailRuFullMessage? ResendSource => _fullMessage ?? _initialFullMessage;
 
     public MessageWindow(
         MailRuClient mailRu,
@@ -298,6 +300,18 @@ public partial class MessageWindow : Window
         // The caller opens the normal separate compose window when this modal
         // reader closes, preserving the original mailbox and reply-to thread.
         ReplyRequested = true;
+        Close();
+    }
+
+    private void ResendScheduledButton_Click(object sender, RoutedEventArgs e)
+    {
+        var full = ResendSource;
+        if (full is null || !string.Equals(full.Id, _summary.Id, StringComparison.Ordinal))
+        {
+            StatusText.Text = "Дождитесь загрузки полного письма перед повторной отправкой.";
+            return;
+        }
+        ResendRequested = true;
         Close();
     }
 
