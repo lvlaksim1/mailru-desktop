@@ -813,6 +813,8 @@ public partial class MainWindow : Window
             await LoadFolderAsync(_currentFolderId);
         if (window.ReplyRequested)
             OpenReplyComposeWindow(message, window.ReplySource);
+        if (window.ResendRequested)
+            OpenResendComposeWindow(message, window.ResendSource);
     }
 
     private void MessagesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1764,12 +1766,15 @@ public partial class MainWindow : Window
 
     private void RefreshComposeAttachments()
     {
-        AttachmentSummaryText.Text = _attachmentPaths.Count == 0
+        var count = _attachmentPaths.Count + _resendSourceAttachments.Count;
+        AttachmentSummaryText.Text = count == 0
             ? "Вложений нет"
-            : $"Вложений: {_attachmentPaths.Count}";
+            : $"Вложений: {count}";
 
-        ComposeAttachmentsItemsControl.ItemsSource = _attachmentPaths
-            .Select(path => new ComposeAttachmentItem(path, Path.GetFileName(path)))
+        ComposeAttachmentsItemsControl.ItemsSource = _resendSourceAttachments
+            .Select(item => new ComposeAttachmentItem(item.Key, item.Value.DisplayName))
+            .Concat(_attachmentPaths.Select(path =>
+                new ComposeAttachmentItem(path, Path.GetFileName(path))))
             .ToArray();
     }
 
@@ -1778,8 +1783,9 @@ public partial class MainWindow : Window
         if ((sender as Button)?.Tag is not string path)
             return;
 
-        _attachmentPaths.RemoveAll(item =>
-            string.Equals(item, path, StringComparison.OrdinalIgnoreCase));
+        if (!_resendSourceAttachments.Remove(path))
+            _attachmentPaths.RemoveAll(item =>
+                string.Equals(item, path, StringComparison.OrdinalIgnoreCase));
         RefreshComposeAttachments();
     }
 
@@ -1822,6 +1828,7 @@ public partial class MainWindow : Window
                     messageId));
             }
 
+            await UploadResendSourceAttachmentsAsync(senderToken, messageId, attachmentIds);
             var result = await _mailRu.SaveDraftAsync(
                 senderToken,
                 senderLogin,
@@ -1932,6 +1939,7 @@ public partial class MainWindow : Window
                 attachmentIds.Add(attachId);
             }
 
+            await UploadResendSourceAttachmentsAsync(senderToken, messageId, attachmentIds);
             ComposeStatusText.Text = "Отправка...";
 
             var result = await _mailRu.SendMessageAsync(
@@ -1959,6 +1967,44 @@ public partial class MainWindow : Window
                     scheduledFor is null ? "send_rejected" : "schedule_rejected",
                     result.RawResponse);
                 return;
+            }
+
+            // A confirmed send/schedule is irreversible; never repeat it if
+            // archiving the old scheduled message fails.
+            var resendOriginalId = _resendOriginalId;
+            _resendOriginalId = null;
+            if (resendOriginalId is not null)
+            {
+                try
+                {
+                    var folders = (FolderListBox.ItemsSource as
+                        IEnumerable<MailRuFolderSummary>)?.ToArray() ?? [];
+                    var archiveId = folders.FirstOrDefault(folder =>
+                        folder.Type.Equals("archive", StringComparison.OrdinalIgnoreCase) ||
+                        folder.Name.Equals("Архив", StringComparison.CurrentCultureIgnoreCase))?.Id
+                        ?? 500010;
+                    var moved = await _mailRu.MoveMessagesAsync(senderToken,
+                        [resendOriginalId], archiveId);
+                    if (moved.Success)
+                    {
+                        if (string.Equals(senderLogin, _activeLogin,
+                            StringComparison.OrdinalIgnoreCase) && !_loadingFolder)
+                            RemoveConfirmedMailRows([resendOriginalId]);
+                        DiagnosticLog.Write("outbox_resend", "accepted_and_archived");
+                    }
+                    else
+                    {
+                        FolderStatusText.Text =
+                            "Новое письмо принято, но исходное письмо не архивировано.";
+                        DiagnosticLog.Write("outbox_resend", "archive_rejected");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    FolderStatusText.Text =
+                        "Новое письмо принято, но архивирование исходного не подтверждено.";
+                    DiagnosticLog.Write("outbox_resend", ex.GetType().Name);
+                }
             }
 
             // Sending has already succeeded. An archive failure must never
@@ -2000,6 +2046,7 @@ public partial class MainWindow : Window
             _composeReplyToId = null;
             ResetComposeTemplateSelectors();
             _attachmentPaths.Clear();
+            _resendSourceAttachments.Clear();
             RefreshComposeAttachments();
             RequestReadReceiptCheckBox.IsChecked = false;
             ScheduleSendCheckBox.IsChecked = false;
