@@ -180,6 +180,51 @@ internal sealed class RichComposeEditor
     public bool IsReplyMode => _replyBody is not null;
 
     /// <summary>
+    /// Insert the standard opening exactly once at the start of the editable
+    /// body, without touching the signature or quoted history sections.
+    /// The two paragraph breaks leave one empty line for the user's message.
+    /// </summary>
+    public void EnsureOpeningGreeting()
+    {
+        const string greeting = "Добрый день";
+        var blocks = _replyBody?.Blocks ?? _rich.Document.Blocks;
+        var first = blocks.FirstBlock;
+        if (first is Paragraph paragraph)
+        {
+            var opening = new TextRange(paragraph.ContentStart, paragraph.ContentEnd)
+                .Text.Trim();
+            if (opening.StartsWith(greeting, StringComparison.OrdinalIgnoreCase))
+                return;
+        }
+
+        _syncing = true;
+        try
+        {
+            var heading = new Paragraph(new Run(greeting))
+            {
+                Margin = new Thickness(0)
+            };
+            var emptyLine = new Paragraph { Margin = new Thickness(0) };
+            if (first is null)
+            {
+                blocks.Add(heading);
+                blocks.Add(emptyLine);
+                blocks.Add(new Paragraph { Margin = new Thickness(0) });
+                _rich.CaretPosition = blocks.LastBlock!.ContentStart;
+            }
+            else
+            {
+                blocks.InsertBefore(first, heading);
+                blocks.InsertAfter(heading, emptyLine);
+                _rich.CaretPosition = first.ContentStart;
+            }
+        }
+        finally { _syncing = false; }
+        SyncFromRich();
+    }
+
+
+    /// <summary>
     /// The previous correspondence lives in a separate trailing document
     /// section. A template can only replace _replyBody, while a signature
     /// can only replace _replySignature, regardless of caret position.
