@@ -39,6 +39,31 @@ internal static class ExcelInteropService
     {
         var books = new List<OpenExcelBook>();
         var identities = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        void AddWorkbook(object candidate)
+        {
+            dynamic workbook = candidate;
+            string name = workbook.Name;
+            string path = workbook.FullName;
+            dynamic excel = workbook.Application;
+            int hwnd = Convert.ToInt32(excel.Hwnd, CultureInfo.InvariantCulture);
+            var key = hwnd.ToString(CultureInfo.InvariantCulture) + "|" + path;
+            if (!identities.Add(key)) return;
+            int count = Convert.ToInt32(workbook.Worksheets.Count,
+                CultureInfo.InvariantCulture);
+            var sheets = new List<string>();
+            for (var i = 1; i <= count; i++)
+            {
+                dynamic sheet = workbook.Worksheets.Item[i];
+                sheets.Add((string)sheet.Name);
+            }
+            books.Add(new OpenExcelBook
+            {
+                Workbook = candidate, Name = name, FullName = path,
+                ApplicationHwnd = hwnd, Sheets = sheets
+            });
+        }
+
         Marshal.ThrowExceptionForHR(GetRunningObjectTable(0, out var rot));
         Marshal.ThrowExceptionForHR(CreateBindCtx(0, out var ctx));
         try
@@ -50,32 +75,27 @@ internal static class ExcelInteropService
                 string display;
                 try { item[0].GetDisplayName(ctx, null, out display); }
                 catch (COMException) { continue; }
-                // Excel registers open workbooks in ROT; never touch unrelated apps.
-                if (display.IndexOf(".xls", StringComparison.OrdinalIgnoreCase) < 0)
-                    continue;
+                // Workbook monikers cover saved workbooks. Excel's application
+                // CLSID additionally allows enumeration of unsaved Book1/Книга1
+                // and separate Excel instances through their Workbooks collection.
+                var appMoniker = display.Contains("00024500",
+                    StringComparison.OrdinalIgnoreCase);
+                var bookMoniker = display.Contains(".xls", StringComparison.OrdinalIgnoreCase)
+                    || display.Contains("!Book", StringComparison.OrdinalIgnoreCase)
+                    || display.Contains("!Книга", StringComparison.OrdinalIgnoreCase);
+                if (!appMoniker && !bookMoniker) continue;
                 try
                 {
                     rot.GetObject(item[0], out var comObject);
-                    dynamic workbook = comObject;
-                    string name = workbook.Name;
-                    string path = workbook.FullName;
-                    dynamic excel = workbook.Application;
-                    int hwnd = Convert.ToInt32(excel.Hwnd, CultureInfo.InvariantCulture);
-                    var key = hwnd.ToString(CultureInfo.InvariantCulture) + "|" + path;
-                    if (!identities.Add(key)) continue;
-                    int count = Convert.ToInt32(workbook.Worksheets.Count,
-                        CultureInfo.InvariantCulture);
-                    var sheets = new List<string>();
-                    for (var i = 1; i <= count; i++)
+                    if (appMoniker)
                     {
-                        dynamic sheet = workbook.Worksheets.Item[i];
-                        sheets.Add((string)sheet.Name);
+                        dynamic excel = comObject;
+                        int count = Convert.ToInt32(excel.Workbooks.Count,
+                            CultureInfo.InvariantCulture);
+                        for (var i = 1; i <= count; i++)
+                            AddWorkbook((object)excel.Workbooks.Item[i]);
                     }
-                    books.Add(new OpenExcelBook
-                    {
-                        Workbook = comObject, Name = name, FullName = path,
-                        ApplicationHwnd = hwnd, Sheets = sheets
-                    });
+                    else AddWorkbook(comObject);
                 }
                 catch (Exception ex) when (ex is COMException or
                     Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)
@@ -89,7 +109,8 @@ internal static class ExcelInteropService
             Marshal.ReleaseComObject(ctx);
             Marshal.ReleaseComObject(rot);
         }
-        return books.OrderBy(x => x.DisplayName, StringComparer.CurrentCultureIgnoreCase).ToList();
+        return books.OrderBy(x => x.DisplayName,
+            StringComparer.CurrentCultureIgnoreCase).ToList();
     }
 
     private static readonly string[] Required =
