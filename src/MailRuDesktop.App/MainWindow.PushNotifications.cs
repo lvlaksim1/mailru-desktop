@@ -76,6 +76,53 @@ public partial class MainWindow
                     ? DateTimeOffset.FromUnixTimeSeconds(seconds) : null)
         };
 
+    // Notification actions must not activate the main window or change the
+    // selected mailbox. The token is restored for the exact event account.
+    private readonly SemaphoreSlim _pushNotificationDeleteGate = new(1, 1);
+
+    private async Task DeletePushMailAsync(PushMailEvent mail)
+    {
+        if (string.IsNullOrWhiteSpace(mail.MessageId) ||
+            string.IsNullOrWhiteSpace(mail.Account) || _pushShuttingDown)
+            return;
+
+        await _pushNotificationDeleteGate.WaitAsync();
+        try
+        {
+            if (_pushShuttingDown ||
+                !_authStore.TryRestore(mail.Account, out var authorization) ||
+                string.IsNullOrWhiteSpace(authorization?.AccessToken))
+            {
+                DiagnosticLog.Write("push_notification_delete", "AUTH_REQUIRED");
+                return;
+            }
+
+            var moved = await _mailRu.MoveMessagesAsync(authorization.AccessToken,
+                new[] { mail.MessageId }, 500002);
+            if (!moved.Success)
+            {
+                DiagnosticLog.Write("push_notification_delete", "SERVER_REJECTED");
+                return;
+            }
+
+            // Refresh only the matching visible mailbox. LoadFolderAsync does
+            // not show, activate, or restore the application from its tray.
+            if (string.Equals(mail.Account, _activeLogin,
+                    StringComparison.OrdinalIgnoreCase) &&
+                !_loadingFolder &&
+                _currentMessages.Any(message => message.Id == mail.MessageId))
+                await LoadFolderAsync(_currentFolderId);
+        }
+        catch (Exception ex)
+        {
+            DiagnosticLog.Write("push_notification_delete", ex.GetType().Name);
+        }
+        finally
+        {
+            _pushNotificationDeleteGate.Release();
+        }
+    }
+
     private async Task NavigateToPushMailAsync(PushMailEvent mail)
     {
         await _pushNotificationOpenGate.WaitAsync();
