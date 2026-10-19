@@ -68,6 +68,8 @@
                                 Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"/>
                             <DataGridTextColumn Header="Авторизованный аккаунт" Width="*"
                                 Binding="{Binding Login}" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Доступность" Width="112"
+                                Binding="{Binding Availability}" IsReadOnly="True"/>
                             <DataGridTextColumn Header="Писем" Width="82"
                                 Binding="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}"/>
                         </DataGrid.Columns>
