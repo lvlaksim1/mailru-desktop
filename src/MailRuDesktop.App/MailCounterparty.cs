@@ -17,7 +17,7 @@ internal static class MailCounterparty
             ?? message.SenderEmail.Trim();
         var fromSelf = own.Length > 0 &&
                        sender.Equals(own, StringComparison.OrdinalIgnoreCase);
-        var outgoing = fromSelf || (sentFolder && sender.Length == 0);
+        var outgoing = sentFolder || fromSelf;
 
         var parties = new List<(string Display, string Address)>();
         void Add(string? value)
