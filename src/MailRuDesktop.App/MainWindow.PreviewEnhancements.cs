@@ -13,7 +13,6 @@ public partial class MainWindow
 {
     private readonly List<string> _previewAttachmentPaths = [];
     private PreviewComposeMode _previewComposeMode;
-    private string? _previewAutoReadMessageId;
     private bool _previewEnhancementsInitialized;
 
     private void PreviewEnhancements_Loaded(object sender, RoutedEventArgs e)
@@ -34,7 +33,6 @@ public partial class MainWindow
         SelectedSenderNameText.Text = string.Empty;
         SelectedSenderText.Text = string.Empty;
         SelectedToText.Text = string.Empty;
-        _previewAutoReadMessageId = message.Unread ? message.Id : null;
     }
 
     private void ApplyLoadedPreviewFields()
@@ -49,12 +47,6 @@ public partial class MainWindow
                 : _currentFullMessage.FromEmail;
             SelectedToText.Text = string.Join(", ", _currentFullMessage.To);
 
-            if (string.Equals(_previewAutoReadMessageId, selected.Id, StringComparison.Ordinal) &&
-                !selected.Unread)
-            {
-                AdjustActiveInboxUnread(-1);
-                _previewAutoReadMessageId = null;
-            }
         }
     }
 

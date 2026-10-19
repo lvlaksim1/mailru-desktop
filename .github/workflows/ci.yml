@@ -48,6 +48,15 @@ jobs:
           if ($process.HasExited) {
             throw "Application exited during launch smoke test with code $($process.ExitCode)."
           }
+          $second = Start-Process -FilePath $exe -PassThru
+          Start-Sleep -Seconds 3
+          if (-not $second.HasExited) {
+            Stop-Process -Id $second.Id -Force
+            throw "Second independent MailRu Desktop process remained running."
+          }
+          if ($process.HasExited) {
+            throw "Original process exited when a second launch was requested."
+          }
           Stop-Process -Id $process.Id -Force
 
       - name: Enforce endpoint-registry Mail.ru hosts

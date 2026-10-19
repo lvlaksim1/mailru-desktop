@@ -10,9 +10,11 @@ namespace MailRuDesktop.App;
 /// </summary>
 internal static class PushMailToastService
 {
-    private static readonly Queue<PushMailEvent> Pending = new();
+    private sealed record ToastRequest(PushMailEvent Mail, bool Delete);
+    private static readonly Queue<ToastRequest> Pending = new();
     private static readonly object Gate = new();
     private static Action<PushMailEvent>? _onOpen;
+    private static Action<PushMailEvent>? _onDelete;
     private static bool _initialized;
 
     internal static void Initialize()
@@ -33,13 +35,15 @@ internal static class PushMailToastService
                     ? parsedFolder : null;
                 var mail = new PushMailEvent(account, Get("mailId"), folder,
                     Get("sender"), Get("subject"), Get("snippet"), null, null, null);
+                var delete = string.Equals(Get("action"), "delete",
+                    StringComparison.Ordinal);
                 var dispatcher = Application.Current?.Dispatcher;
                 if (dispatcher is null)
                 {
-                    lock (Gate) Pending.Enqueue(mail);
+                    lock (Gate) Pending.Enqueue(new ToastRequest(mail, delete));
                 }
                 else
-                    _ = dispatcher.BeginInvoke(new Action(() => Deliver(mail)));
+                    _ = dispatcher.BeginInvoke(new Action(() => Deliver(mail, delete)));
             }
             catch (Exception error)
             {
@@ -48,33 +52,43 @@ internal static class PushMailToastService
         };
     }
 
-    internal static void Attach(Action<PushMailEvent> onOpen)
+    internal static void Attach(Action<PushMailEvent> onOpen,
+        Action<PushMailEvent> onDelete)
     {
-        lock (Gate) _onOpen = onOpen;
+        lock (Gate)
+        {
+            _onOpen = onOpen;
+            _onDelete = onDelete;
+        }
         while (true)
         {
-            PushMailEvent? mail;
+            ToastRequest? request;
             lock (Gate)
             {
                 if (Pending.Count == 0) return;
-                mail = Pending.Dequeue();
+                request = Pending.Dequeue();
             }
-            onOpen(mail);
+            if (request.Delete) onDelete(request.Mail);
+            else onOpen(request.Mail);
         }
     }
 
     internal static void Detach()
     {
-        lock (Gate) _onOpen = null;
+        lock (Gate)
+        {
+            _onOpen = null;
+            _onDelete = null;
+        }
     }
 
-    private static void Deliver(PushMailEvent mail)
+    private static void Deliver(PushMailEvent mail, bool delete)
     {
         Action<PushMailEvent>? target;
         lock (Gate)
         {
-            target = _onOpen;
-            if (target is null) Pending.Enqueue(mail);
+            target = delete ? _onDelete : _onOpen;
+            if (target is null) Pending.Enqueue(new ToastRequest(mail, delete));
         }
         target?.Invoke(mail);
     }
@@ -99,6 +113,14 @@ internal static class PushMailToastService
                         : ""))
                 .AddText(PushMailEvent.SenderAndSubject(mail))
                 .AddText(PushMailEvent.PreviewLine(mail));
+            if (!string.IsNullOrWhiteSpace(mail.MessageId))
+            {
+                toast.AddButton(new ToastButton()
+                    .SetContent("Удалить")
+                    .AddArgument("action", "delete")
+                    .AddArgument("account", mail.Account)
+                    .AddArgument("mailId", mail.MessageId));
+            }
             toast.Show();
             return true;
         }

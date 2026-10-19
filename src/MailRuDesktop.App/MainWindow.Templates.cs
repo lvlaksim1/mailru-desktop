@@ -230,9 +230,9 @@ public partial class MainWindow
         UpdateDefaultSignatureButton();
     }
 
-    private SavedSignature? GetDefaultSignature() =>
-        _signatures.FirstOrDefault(entry => string.Equals(entry.Name,
-            _settingsStore.LoadDefaultSignatureName(), StringComparison.OrdinalIgnoreCase));
+    // The first visible signature is the initial selector choice, regardless
+    // of the legacy saved primary-signature preference.
+    private SavedSignature? GetDefaultSignature() => _signatures.FirstOrDefault();
 
     private void UpdateDefaultSignatureButton()
     {

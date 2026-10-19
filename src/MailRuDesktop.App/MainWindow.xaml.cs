@@ -108,7 +108,9 @@ public partial class MainWindow : Window
         await InitializeReaderAsync();
         await EnsureStartupAccountAsync();
         StartBackgroundPush();
-        PushMailToastService.Attach(mail => _ = NavigateToPushMailAsync(mail));
+        PushMailToastService.Attach(
+            mail => _ = NavigateToPushMailAsync(mail),
+            mail => _ = DeletePushMailAsync(mail));
     }
 
     private async Task InitializeReaderAsync()
@@ -565,9 +567,6 @@ public partial class MainWindow : Window
             FolderListBox.SelectedItem is not MailRuFolderSummary folder)
             return;
 
-        if (SettingsWorkspace.Visibility == Visibility.Visible)
-            ShowWorkspace(MailWorkspace);
-
         await RequestFolderSelectionAsync(folder.Id);
     }
 
@@ -594,7 +593,8 @@ public partial class MainWindow : Window
     private void FolderListBox_PreviewMouseLeftButtonUp(
         object sender, MouseButtonEventArgs e)
     {
-        if (SettingsWorkspace.Visibility != Visibility.Visible ||
+        if (_settingsWindow is not null ||
+            SettingsWorkspace.Visibility != Visibility.Visible ||
             e.OriginalSource is not DependencyObject source)
             return;
 
@@ -609,7 +609,7 @@ public partial class MainWindow : Window
 
     private void FolderListBox_PreviewKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key != Key.Enter ||
+        if (e.Key != Key.Enter || _settingsWindow is not null ||
             SettingsWorkspace.Visibility != Visibility.Visible ||
             FolderListBox.SelectedItem is not MailRuFolderSummary folder)
             return;
@@ -775,7 +775,8 @@ public partial class MainWindow : Window
             folders,
             _currentFullMessage?.Id == message.Id ? _currentFullMessage : null,
             _conversationIndex.TryGetValue(message.Id, out var thread)
-                ? thread : null)
+                ? thread : null,
+            _activeLogin)
         {
             Owner = this
         };
@@ -855,7 +856,7 @@ public partial class MainWindow : Window
             var full = await _mailRu.GetFullMessageAsync(
                 _accessToken,
                 message.Id,
-                markRead: message.Unread,
+                markRead: false,
                 cancellationToken: requestCancellation.Token);
 
             if (generation != _messageLoadGeneration ||
@@ -885,7 +886,7 @@ public partial class MainWindow : Window
                     ? full.FromName : message.SenderName,
                 SenderEmail = string.IsNullOrWhiteSpace(message.SenderEmail)
                     ? full.FromEmail : message.SenderEmail,
-                Unread = false
+                Unread = message.Unread
             };
             if (!Equals(message, completeSender))
                 ReplaceMessage(message, completeSender);
@@ -1888,6 +1889,9 @@ public partial class MainWindow : Window
                 .ToString(CultureInfo.InvariantCulture);
         }
 
+        var repliedMessageId = _composeReplyToId;
+        var archiveAfterReply = ArchiveAfterReplyCheckBox.IsChecked == true &&
+            !string.IsNullOrWhiteSpace(repliedMessageId) && scheduledFor is null;
         SendButton.IsEnabled = false;
         AttachButton.IsEnabled = false;
         ComposeStatusText.Text = "Подготовка письма...";
@@ -1939,6 +1943,39 @@ public partial class MainWindow : Window
                     scheduledFor is null ? "send_rejected" : "schedule_rejected",
                     result.RawResponse);
                 return;
+            }
+
+            // Sending has already succeeded. An archive failure must never
+            // trigger a second send, and must not discard the successful reply.
+            if (archiveAfterReply && repliedMessageId is not null)
+            {
+                try
+                {
+                    var folderList = (FolderListBox.ItemsSource as
+                        IEnumerable<MailRuFolderSummary>)?.ToArray() ?? [];
+                    var archiveFolderId = folderList.FirstOrDefault(folder =>
+                        folder.Type.Equals("archive", StringComparison.OrdinalIgnoreCase) ||
+                        folder.Name.Equals("Архив", StringComparison.CurrentCultureIgnoreCase))?.Id
+                        ?? 500010;
+                    var archived = await _mailRu.MoveMessagesAsync(senderToken,
+                        new[] { repliedMessageId }, archiveFolderId);
+                    if (archived.Success)
+                    {
+                        if (string.Equals(senderLogin, _activeLogin,
+                            StringComparison.OrdinalIgnoreCase) && !_loadingFolder)
+                            await LoadFolderAsync(_currentFolderId);
+                    }
+                    else
+                    {
+                        DiagnosticLog.Write("reply_archive", "SERVER_REJECTED");
+                        FolderStatusText.Text = "Ответ отправлен, но исходное письмо не архивировано.";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    DiagnosticLog.Write("reply_archive", ex.GetType().Name);
+                    FolderStatusText.Text = "Ответ отправлен, но архивирование не удалось.";
+                }
             }
 
             ComposeToTextBox.Clear();
@@ -2309,16 +2346,51 @@ public partial class MainWindow : Window
         }
     }
 
+    private Window? _settingsWindow;
+
     private void ShowSettingsButton_Click(object sender, RoutedEventArgs e)
     {
-        // A second click returns to mail now that the redundant Mail nav item is gone.
-        if (SettingsWorkspace.Visibility == Visibility.Visible)
+        if (_settingsWindow is { } existing)
         {
-            ShowWorkspace(MailWorkspace);
+            if (existing.WindowState == WindowState.Minimized)
+                existing.WindowState = WindowState.Normal;
+            existing.Activate();
             return;
         }
+
         RefreshTemplatesFromDisk();
-        ShowWorkspace(SettingsWorkspace);
+        if (SettingsWorkspace.Parent is not Panel originalParent)
+            throw new InvalidOperationException("Settings workspace has no panel parent.");
+        originalParent.Children.Remove(SettingsWorkspace);
+        SettingsWorkspace.Visibility = Visibility.Visible;
+        var window = new Window
+        {
+            Owner = this,
+            Title = "Настройки — MailRu Desktop",
+            Icon = Icon,
+            Width = 1130,
+            Height = 810,
+            MinWidth = 820,
+            MinHeight = 530,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Content = SettingsWorkspace
+        };
+        WindowGeometryPersistence.Restore(window, _settingsStore, "settings");
+        window.Closing += (_, _) =>
+            WindowGeometryPersistence.Save(window, _settingsStore, "settings");
+        ThemeManager.AttachWindowChrome(window);
+        window.SetResourceReference(BackgroundProperty, "AppWindowBrush");
+        window.SetResourceReference(ForegroundProperty, "AppTextBrush");
+        window.Closed += (_, _) =>
+        {
+            window.Content = null;
+            SettingsWorkspace.Visibility = Visibility.Collapsed;
+            originalParent.Children.Add(SettingsWorkspace);
+            _settingsWindow = null;
+        };
+        _settingsWindow = window;
+        window.Show();
+        ThemeManager.RefreshWindowChrome(window);
     }
 
     private void ShowWorkspace(FrameworkElement workspace)
@@ -2337,7 +2409,8 @@ public partial class MainWindow : Window
         ContactsWorkspace.Visibility = Visibility.Collapsed;
         if (_composeWindow is null)
             ComposeWorkspace.Visibility = Visibility.Collapsed;
-        SettingsWorkspace.Visibility = Visibility.Collapsed;
+        if (_settingsWindow is null)
+            SettingsWorkspace.Visibility = Visibility.Collapsed;
         workspace.Visibility = Visibility.Visible;
     }
 
