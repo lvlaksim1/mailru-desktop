@@ -529,7 +529,7 @@ internal static class Program
                         "old@example.com", "7707083893", "Москва",
                         "15.10.2026", "", ""),
                     new MailRuDesktop.App.Mailing.MailingExcelRow(7, true,
-                        "excluded@example.com", "7707083893", "Москва", "", "")
+                        "excluded@example.com", "7707083893", "Москва", "", "", "")
                 };
                 var prepared = MailRuDesktop.App.Mailing.MailingPlanner.Prepare(
                     localProfile, mailingRows,
