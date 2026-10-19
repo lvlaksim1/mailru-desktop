@@ -184,7 +184,7 @@ internal sealed class RichComposeEditor
     /// body, without touching the signature or quoted history sections.
     /// The two paragraph breaks leave one empty line for the user's message.
     /// </summary>
-    public void EnsureOpeningGreeting()
+    public void EnsureOpeningGreeting(bool reserveEditableLine = false)
     {
         const string greeting = "Добрый день";
         var blocks = _replyBody?.Blocks ?? _rich.Document.Blocks;
@@ -216,7 +216,18 @@ internal sealed class RichComposeEditor
             {
                 blocks.InsertBefore(first, heading);
                 blocks.InsertAfter(heading, emptyLine);
-                _rich.CaretPosition = first.ContentStart;
+                if (reserveEditableLine && first is Paragraph existing &&
+                    !string.IsNullOrWhiteSpace(new TextRange(
+                        existing.ContentStart, existing.ContentEnd).Text))
+                {
+                    // The first existing block can be a default signature:
+                    // typing must not overwrite its formatting or content.
+                    var replyText = new Paragraph { Margin = new Thickness(0) };
+                    blocks.InsertAfter(emptyLine, replyText);
+                    _rich.CaretPosition = replyText.ContentStart;
+                }
+                else
+                    _rich.CaretPosition = first.ContentStart;
             }
         }
         finally { _syncing = false; }
