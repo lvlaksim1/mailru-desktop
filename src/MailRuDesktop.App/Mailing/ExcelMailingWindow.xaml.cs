@@ -42,7 +42,7 @@ public partial class ExcelMailingWindow : Window
     private bool _storeReadable = true;
     private CancellationTokenSource? _preparationCancellation;
 
-    public ExcelMailingWindow(Window owner,
+    internal ExcelMailingWindow(Window owner,
         AuthorizationStore authorizations, AppSettingsStore settings)
     {
         InitializeComponent();
