@@ -218,14 +218,15 @@ public partial class ExcelMailingWindow : Window
             var next = SnapshotProfile();
             var index = _profiles.IndexOf(_current!);
             if (index < 0) throw new InvalidOperationException("Профиль не найден.");
+            var saved = _profiles.ToList();
+            saved[index] = next;
+            _store.Save(saved);
+            _loading = true;
             _profiles[index] = next;
             _current = next;
-            _store.Save(_profiles);
+            ProfileCombo.SelectedItem = next;
             _dirty = false;
             DirtyText.Text = "";
-            _loading = true;
-            ProfileCombo.SelectedItem = next;
-            _loading = false;
             StatusText.Text = "Профиль сохранён. Никаких писем не отправлено.";
             return true;
         }
@@ -245,7 +246,7 @@ public partial class ExcelMailingWindow : Window
         if (dialog.ShowDialog() != true) return null;
         if (_profiles.Any(x => x.Name.Equals(dialog.Value,
                 StringComparison.CurrentCultureIgnoreCase) &&
-                !string.Equals(x.Name, initial, StringComparison.CurrentCultureIgnoreCase)))
+                !ReferenceEquals(x, _current)))
             throw new InvalidOperationException("Профиль с таким названием уже есть.");
         return dialog.Value;
     }
@@ -258,8 +259,11 @@ public partial class ExcelMailingWindow : Window
             var name = AskName("Новый профиль", "Новая рассылка");
             if (name is null) return;
             var profile = new MailingProfile { Name = name };
+            _loading = true;
             _profiles.Add(profile);
             ProfileCombo.SelectedItem = profile;
+            _loading = false;
+            LoadProfile(profile);
             MarkDirty();
         }
         catch (Exception ex) { ShowError(ex); }
@@ -275,9 +279,11 @@ public partial class ExcelMailingWindow : Window
             var copy = SnapshotProfile();
             copy.Id = Guid.NewGuid().ToString("N");
             copy.Name = name;
+            _loading = true;
             _profiles.Add(copy);
-            _dirty = false;
             ProfileCombo.SelectedItem = copy;
+            _loading = false;
+            LoadProfile(copy);
             MarkDirty();
         }
         catch (Exception ex) { ShowError(ex); }
