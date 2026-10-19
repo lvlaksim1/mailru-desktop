@@ -1042,8 +1042,8 @@ internal static class Program
             outgoingRich.Document.Blocks.Add(new Paragraph(
                 new Run("Пример https://example.com и www.example.org")));
             var linkedHtml = mainRichEditor!.ToHtml();
-            Check(linkedHtml.Contains("href=\\"https://example.com\\"", StringComparison.Ordinal) &&
-                  linkedHtml.Contains("href=\\"https://www.example.org\\"", StringComparison.Ordinal),
+            Check(linkedHtml.Contains("href=\"https://example.com\"", StringComparison.Ordinal) &&
+                  linkedHtml.Contains("href=\"https://www.example.org\"", StringComparison.Ordinal),
                 "URL text becomes safe HTML links before sending");
             var send = Require<Button>(mail, "SendButton");
             Check(ReferenceEquals(
