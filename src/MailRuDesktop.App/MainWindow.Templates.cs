@@ -538,6 +538,14 @@ public partial class MainWindow
             else
                 ApplyDefaultComposeSignature();
         }
+        // Templates replace the editable body, not the greeting policy.
+        // Avoid duplicates when a template already begins with «Добрый день».
+        if (_composeRichEditor is not null)
+            _composeRichEditor.EnsureOpeningGreeting();
+        else if (!ComposeBodyTextBox.Text.TrimStart().StartsWith(
+                     "Добрый день", StringComparison.OrdinalIgnoreCase))
+            ComposeBodyTextBox.Text = "Добрый день\n\n" + ComposeBodyTextBox.Text;
+
         _attachmentPaths.Clear();
         var missing = 0;
         foreach (var path in template.Attachments)

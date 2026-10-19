@@ -764,7 +764,7 @@
                 </Border>
             </Grid>
 
-            <Grid x:Name="SettingsWorkspace" Visibility="Collapsed">
+            <Grid x:Name="SettingsWorkspace" Visibility="Collapsed" Margin="16,0,0,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition x:Name="SettingsOptionsColumn" Width="620" MinWidth="390"/>
                     <ColumnDefinition Width="6"/>
