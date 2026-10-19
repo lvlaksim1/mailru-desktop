@@ -18170,193 +18170,6 @@
       "window": "MessageWindow"
     },
     {
-      "color_roles_and_values": {},
-      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/AttachmentsItemsControl",
-      "location": {
-        "Grid.Row": "2",
-        "Margin": "0,0,0,10"
-      },
-      "name": "AttachmentsItemsControl",
-      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]",
-      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ItemsControl",
-      "typography": {},
-      "window": "MessageWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]",
-      "location": {},
-      "name": null,
-      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/AttachmentsItemsControl",
-      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ItemsControl.ItemTemplate",
-      "typography": {},
-      "window": "MessageWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]",
-      "location": {},
-      "name": null,
-      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]",
-      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
-      "states": {
-        "Key": "",
-        "TargetType": ""
-      },
-      "style": null,
-      "type": "DataTemplate",
-      "typography": {},
-      "window": "MessageWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]",
-      "location": {
-        "Margin": "0,0,6,6",
-        "MaxWidth": "190",
-        "Padding": "9,5"
-      },
-      "name": null,
-      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]",
-      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "MessageWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]/Button.ContextMenu[0]",
-      "location": {},
-      "name": null,
-      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]",
-      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button.ContextMenu",
-      "typography": {},
-      "window": "MessageWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]/Button.ContextMenu[0]/ContextMenu[0]",
-      "location": {},
-      "name": null,
-      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]/Button.ContextMenu[0]",
-      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ContextMenu",
-      "typography": {},
-      "window": "MessageWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]/Button.ContextMenu[0]/ContextMenu[0]/MenuItem[0]",
-      "location": {},
-      "name": null,
-      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]/Button.ContextMenu[0]/ContextMenu[0]",
-      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "MenuItem",
-      "typography": {},
-      "window": "MessageWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]/StackPanel[1]",
-      "location": {
-        "Orientation": "Horizontal"
-      },
-      "name": null,
-      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]",
-      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "StackPanel",
-      "typography": {},
-      "window": "MessageWindow"
-    },
-    {
-      "color_roles_and_values": {
-        "Stroke": "{DynamicResource AppMutedTextBrush}"
-      },
-      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]/StackPanel[1]/Path[0]",
-      "location": {
-        "Height": "14",
-        "Margin": "0,0,6,0",
-        "Width": "14"
-      },
-      "name": null,
-      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]/StackPanel[1]",
-      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Path",
-      "typography": {},
-      "window": "MessageWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]/StackPanel[1]/TextBlock[1]",
-      "location": {},
-      "name": null,
-      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]/StackPanel[1]",
-      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
-      "typography": {},
-      "window": "MessageWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/AttachmentsItemsControl/ItemsControl.ItemsPanel[0]",
-      "location": {},
-      "name": null,
-      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/AttachmentsItemsControl",
-      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ItemsControl.ItemsPanel",
-      "typography": {},
-      "window": "MessageWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/AttachmentsItemsControl/ItemsControl.ItemsPanel[0]/ItemsPanelTemplate[0]",
-      "location": {},
-      "name": null,
-      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/AttachmentsItemsControl/ItemsControl.ItemsPanel[0]",
-      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ItemsPanelTemplate",
-      "typography": {},
-      "window": "MessageWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/AttachmentsItemsControl/ItemsControl.ItemsPanel[0]/ItemsPanelTemplate[0]/WrapPanel[0]",
-      "location": {},
-      "name": null,
-      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/AttachmentsItemsControl/ItemsControl.ItemsPanel[0]/ItemsPanelTemplate[0]",
-      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "WrapPanel",
-      "typography": {},
-      "window": "MessageWindow"
-    },
-    {
       "color_roles_and_values": {
         "Background": "{DynamicResource AppPanelBrush}",
         "BorderBrush": "{DynamicResource AppBorderBrush}"
@@ -19167,6 +18980,224 @@
       "states": null,
       "style": null,
       "type": "TextBox",
+      "typography": {},
+      "window": "MessageWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]",
+      "location": {
+        "Grid.Row": "2",
+        "Margin": "0,0,0,10"
+      },
+      "name": null,
+      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]",
+      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "StackPanel",
+      "typography": {},
+      "window": "MessageWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/AttachmentsItemsControl",
+      "location": {},
+      "name": "AttachmentsItemsControl",
+      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]",
+      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ItemsControl",
+      "typography": {},
+      "window": "MessageWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]",
+      "location": {},
+      "name": null,
+      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/AttachmentsItemsControl",
+      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ItemsControl.ItemTemplate",
+      "typography": {},
+      "window": "MessageWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]",
+      "location": {},
+      "name": null,
+      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]",
+      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
+      "states": {
+        "Key": "",
+        "TargetType": ""
+      },
+      "style": null,
+      "type": "DataTemplate",
+      "typography": {},
+      "window": "MessageWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]",
+      "location": {
+        "Margin": "0,0,6,6",
+        "MaxWidth": "190",
+        "Padding": "9,5"
+      },
+      "name": null,
+      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]",
+      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Button",
+      "typography": {},
+      "window": "MessageWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]/Button.ContextMenu[0]",
+      "location": {},
+      "name": null,
+      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]",
+      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Button.ContextMenu",
+      "typography": {},
+      "window": "MessageWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]/Button.ContextMenu[0]/ContextMenu[0]",
+      "location": {},
+      "name": null,
+      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]/Button.ContextMenu[0]",
+      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ContextMenu",
+      "typography": {},
+      "window": "MessageWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]/Button.ContextMenu[0]/ContextMenu[0]/MenuItem[0]",
+      "location": {},
+      "name": null,
+      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]/Button.ContextMenu[0]/ContextMenu[0]",
+      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "MenuItem",
+      "typography": {},
+      "window": "MessageWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]/StackPanel[1]",
+      "location": {
+        "Orientation": "Horizontal"
+      },
+      "name": null,
+      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]",
+      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "StackPanel",
+      "typography": {},
+      "window": "MessageWindow"
+    },
+    {
+      "color_roles_and_values": {
+        "Stroke": "{DynamicResource AppMutedTextBrush}"
+      },
+      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]/StackPanel[1]/Path[0]",
+      "location": {
+        "Height": "14",
+        "Margin": "0,0,6,0",
+        "Width": "14"
+      },
+      "name": null,
+      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]/StackPanel[1]",
+      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Path",
+      "typography": {},
+      "window": "MessageWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]/StackPanel[1]/TextBlock[1]",
+      "location": {},
+      "name": null,
+      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/AttachmentsItemsControl/ItemsControl.ItemTemplate[1]/DataTemplate[0]/Button[0]/StackPanel[1]",
+      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {},
+      "window": "MessageWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/AttachmentsItemsControl/ItemsControl.ItemsPanel[0]",
+      "location": {},
+      "name": null,
+      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/AttachmentsItemsControl",
+      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ItemsControl.ItemsPanel",
+      "typography": {},
+      "window": "MessageWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/AttachmentsItemsControl/ItemsControl.ItemsPanel[0]/ItemsPanelTemplate[0]",
+      "location": {},
+      "name": null,
+      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/AttachmentsItemsControl/ItemsControl.ItemsPanel[0]",
+      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ItemsPanelTemplate",
+      "typography": {},
+      "window": "MessageWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/AttachmentsItemsControl/ItemsControl.ItemsPanel[0]/ItemsPanelTemplate[0]/WrapPanel[0]",
+      "location": {},
+      "name": null,
+      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/AttachmentsItemsControl/ItemsControl.ItemsPanel[0]/ItemsPanelTemplate[0]",
+      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "WrapPanel",
+      "typography": {},
+      "window": "MessageWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]/DownloadAllAttachmentsButton",
+      "location": {
+        "HorizontalAlignment": "Left",
+        "Margin": "0,2,0,0",
+        "Padding": "12,7",
+        "Visibility": "Collapsed"
+      },
+      "name": "DownloadAllAttachmentsButton",
+      "parent": "MessageWindow/src/MailRuDesktop.App/MessageWindow.xaml/Window[0]/Grid[0]/StackPanel[3]",
+      "source": "src/MailRuDesktop.App/MessageWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Button",
       "typography": {},
       "window": "MessageWindow"
     },
@@ -20668,7 +20699,7 @@
         "Foreground": "{DynamicResource AppTextBrush}"
       },
       "declared_as": "XAML",
-      "element_count": 74,
+      "element_count": 76,
       "geometry": {
         "Height": "760",
         "MinHeight": "560",
