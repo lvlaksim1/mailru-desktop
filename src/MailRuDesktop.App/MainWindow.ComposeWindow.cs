@@ -95,7 +95,10 @@ public partial class MainWindow
             ApplyDefaultComposeSignature();
             // Preserve an unfinished draft when reopening the window.
             if (wasEmpty)
+            {
                 _composeRichEditor?.EnsureOpeningGreeting(reserveEditableLine: true);
+                _composeRichEditor?.PrepareInitialTypingFormat();
+            }
         }
         ComposeToTextBox.Focus();
     }
@@ -153,6 +156,7 @@ public partial class MainWindow
         else
             ComposeBodyTextBox.Text = "Добрый день\n\n" + quoted;
         ApplyDefaultComposeSignature();
+        _composeRichEditor?.PrepareInitialTypingFormat();
         ComposeStatusText.Text = string.Empty;
 
         if (conversation is not null)
