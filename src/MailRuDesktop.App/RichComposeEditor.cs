@@ -1,5 +1,7 @@
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Windows.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -19,6 +21,10 @@ internal sealed class RichComposeEditor
     private readonly TextBox _plain;
     private readonly RichTextBox _rich;
     private bool _syncing;
+    private bool _autoLinking;
+    private static readonly Regex UrlPattern = new(
+        @"(?<![\w@])(?:https?://|www\.)[^\s<>]+",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
     // A reply owns three independent document regions. Template/signature
     // commands are directed at their regions, never at the current caret.
     private Section? _replyBody;
@@ -98,6 +104,18 @@ internal sealed class RichComposeEditor
         ComposeSpellChecking.Register(rich);
         var editor = new RichComposeEditor(plain, rich);
         editor.CreateToolbar(toolbar, owner);
+        // Finish a typed URL at a word boundary, or after a paste. Never
+        // rewrite an incomplete address while the user is still typing it.
+        rich.PreviewKeyDown += (_, args) =>
+        {
+            if (args.Key is Key.Space or Key.Return or Key.Tab)
+                _ = rich.Dispatcher.BeginInvoke(new Action(editor.AutoLinkUrls),
+                    DispatcherPriority.Background);
+        };
+        DataObject.AddPastingHandler(rich, (_, _) =>
+            _ = rich.Dispatcher.BeginInvoke(new Action(editor.AutoLinkUrls),
+                DispatcherPriority.Background));
+        rich.LostKeyboardFocus += (_, _) => editor.AutoLinkUrls();
         host.Children.Add(toolbar);
         host.Children.Add(textFrame);
 
@@ -337,15 +355,74 @@ internal sealed class RichComposeEditor
         _rich.CaretPosition = _rich.Document.ContentEnd;
     }
 
-    public string ToMarkdown() => MarkdownRichWriter.Write(_rich.Document);
+    public string ToMarkdown()
+    {
+        AutoLinkUrls();
+        return MarkdownRichWriter.Write(_rich.Document);
+    }
 
     public string ToHtml()
     {
+        AutoLinkUrls();
         var builder = new StringBuilder();
         builder.Append("<div style=\"font-family:Segoe UI,Arial,sans-serif;white-space:normal;\">");
         RenderBlocks(_rich.Document.Blocks, builder);
         builder.Append("</div>");
         return builder.ToString();
+    }
+
+    private void AutoLinkUrls()
+    {
+        if (_syncing || _autoLinking) return;
+        _autoLinking = true;
+        try
+        {
+            foreach (var paragraph in EnumerateParagraphs(_rich.Document.Blocks))
+                LinkifyInlines(paragraph.Inlines);
+        }
+        finally { _autoLinking = false; }
+    }
+
+    private static void LinkifyInlines(InlineCollection inlines)
+    {
+        foreach (Inline inline in inlines.ToArray())
+        {
+            if (inline is Hyperlink)
+                continue; // Never modify an existing explicit hyperlink.
+            if (inline is Span span)
+            {
+                LinkifyInlines(span.Inlines);
+                continue;
+            }
+            if (inline is not Run run || string.IsNullOrEmpty(run.Text))
+                continue;
+
+            var original = run.Text;
+            var previousEnd = 0;
+            var changed = false;
+            foreach (Match match in UrlPattern.Matches(original))
+            {
+                var address = match.Value.TrimEnd('.', ',', ';', ':', '!', '?', ')', ']');
+                if (address.Length == 0) continue;
+                var uriText = address.StartsWith("www.", StringComparison.OrdinalIgnoreCase)
+                    ? "https://" + address : address;
+                if (!Uri.TryCreate(uriText, UriKind.Absolute, out var target) ||
+                    target.Scheme is not ("http" or "https"))
+                    continue;
+
+                if (match.Index > previousEnd)
+                    inlines.InsertBefore(run,
+                        new Run(original.Substring(previousEnd, match.Index - previousEnd)));
+                inlines.InsertBefore(run, new Hyperlink(new Run(address))
+                {
+                    NavigateUri = target
+                });
+                previousEnd = match.Index + address.Length;
+                changed = true;
+            }
+            if (changed)
+                run.Text = original[previousEnd..];
+        }
     }
 
     private void CreateToolbar(Panel toolbar, Window owner)
