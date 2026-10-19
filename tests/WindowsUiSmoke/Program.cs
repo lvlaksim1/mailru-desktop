@@ -748,8 +748,8 @@ internal static class Program
             var senderAvatar = FindDescendant<Image>(pinRow, _ => true);
             Check(senderAvatar is not null &&
                   BindingOperations.GetBinding(senderAvatar, Image.SourceProperty)?.Path?.Path
-                    == "AvatarUrl",
-                "sender portraits use the original native WPF image binding");
+                    == "CorrespondentAvatarUrl",
+                "correspondent portraits use the original native WPF image binding");
 
             // Stage 1: only the active modern row owns columns and commands.
             // Legacy V033/XAML item templates must never silently replace it.
