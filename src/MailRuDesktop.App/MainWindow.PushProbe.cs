@@ -180,6 +180,19 @@ public partial class MainWindow
             ? "REPLAY_SUPPRESSION_ENABLED" : "REPLAY_SUPPRESSION_DISABLED");
     }
 
+    internal void ActivateFromSecondLaunch()
+    {
+        RestoreFromTray();
+        // Windows may otherwise leave a minimized tray window behind the
+        // invoking process when a shortcut is opened for the second time.
+        if (IsVisible)
+        {
+            Topmost = true;
+            Activate();
+            Topmost = false;
+        }
+    }
+
     private void RestoreFromTray()
     {
         if (_pushShuttingDown) return;
