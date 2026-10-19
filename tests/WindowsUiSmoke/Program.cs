@@ -95,62 +95,6 @@ internal static class Program
                   readerHeader.DateText is SelectableText,
                 "reader header subject and date are selectable");
 
-            // Detached reader: download-all is available only with multiple
-            // real attachments, exactly like the main preview.
-            using (var downloadTestMailClient = new MailRuDesktop.Protocol.MailRuClient())
-            {
-                var summary = new MailRuDesktop.Protocol.MailRuMessageSummary(
-                    "zip-test", "Файлы", "", "Sender", "sender@example.test",
-                    null, null, 0, false, false, true);
-                var detachedReader = new MessageWindow(downloadTestMailClient,
-                    summary, null, 0,
-                    Array.Empty<MailRuDesktop.Protocol.MailRuFolderSummary>());
-                var zipButton = Require<Button>(detachedReader,
-                    "DownloadAllAttachmentsButton");
-                Check(zipButton.Visibility == Visibility.Collapsed,
-                    "detached reader initially hides download-all ZIP button");
-                var updateFull = typeof(MessageWindow).GetMethod(
-                    "ApplyFullMessageAsync", BindingFlags.Instance | BindingFlags.NonPublic);
-                Check(updateFull is not null,
-                    "detached reader accepts full attachment metadata");
-                var oneFile = new MailRuDesktop.Protocol.MailRuIncomingAttachment(
-                    "file-1", "report.pdf", "application/pdf", "", 123);
-                var anotherFile = new MailRuDesktop.Protocol.MailRuIncomingAttachment(
-                    "file-2", "report.pdf", "application/pdf", "", 456);
-                MailRuDesktop.Protocol.MailRuFullMessage WithAttachments(
-                    params MailRuDesktop.Protocol.MailRuIncomingAttachment[] attachments) =>
-                    new("zip-test", "Файлы", "Sender", "sender@example.test",
-                        Array.Empty<string>(), Array.Empty<string>(), null,
-                        "", "", attachments, "");
-                void ShowMetadata(params MailRuDesktop.Protocol.MailRuIncomingAttachment[] attachments) =>
-                    ((Task)updateFull!.Invoke(detachedReader,
-                        new object[] { WithAttachments(attachments) })!).GetAwaiter().GetResult();
-                ShowMetadata(oneFile);
-                Check(zipButton.Visibility == Visibility.Collapsed,
-                    "single attachment keeps ZIP batch action hidden");
-                ShowMetadata(oneFile, anotherFile);
-                Check(zipButton.Visibility == Visibility.Visible &&
-                      zipButton.IsEnabled &&
-                      Require<ItemsControl>(detachedReader, "AttachmentsItemsControl")
-                          .Items.Count == 2,
-                    "two attachments show an enabled ZIP action without hiding existing files");
-                var archiveName = typeof(MessageWindow).GetMethod(
-                    "UniqueZipEntryName", BindingFlags.Static | BindingFlags.NonPublic);
-                Check(archiveName is not null,
-                    "ZIP archive has a collision-safe entry naming method");
-                var knownNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                var first = (string)archiveName!.Invoke(null,
-                    new object[] { "report.pdf", knownNames })!;
-                var second = (string)archiveName.Invoke(null,
-                    new object[] { "REPORT.pdf", knownNames })!;
-                Check(first == "report.pdf" && second == "REPORT (2).pdf",
-                    "ZIP preserves attachment names and distinguishes duplicates");
-                ShowMetadata();
-                Check(zipButton.Visibility == Visibility.Collapsed,
-                    "no attachments hide ZIP batch action");
-                detachedReader.Close();
-            }
-
             // Markdown signatures are discovered from files, not an independent JSON list.
             // Old values migrate without deleting the settings.json backup.
             var signaturesTemp = Path.Combine(Path.GetTempPath(),
@@ -475,6 +419,62 @@ internal static class Program
                   FindDescendant<Microsoft.Web.WebView2.Wpf.WebView2>(
                       extractedHeader, _ => true) is null,
                 "single permanent WebView2 remains outside extracted header");
+
+            // Detached reader: download-all is available only with multiple
+            // real attachments, exactly like the main preview.
+            using (var downloadTestMailClient = new MailRuDesktop.Protocol.MailRuClient())
+            {
+                var summary = new MailRuDesktop.Protocol.MailRuMessageSummary(
+                    "zip-test", "Файлы", "", "Sender", "sender@example.test",
+                    null, null, 0, false, false, true);
+                var detachedReader = new MessageWindow(downloadTestMailClient,
+                    summary, null, 0,
+                    Array.Empty<MailRuDesktop.Protocol.MailRuFolderSummary>());
+                var zipButton = Require<Button>(detachedReader,
+                    "DownloadAllAttachmentsButton");
+                Check(zipButton.Visibility == Visibility.Collapsed,
+                    "detached reader initially hides download-all ZIP button");
+                var updateFull = typeof(MessageWindow).GetMethod(
+                    "ApplyFullMessageAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+                Check(updateFull is not null,
+                    "detached reader accepts full attachment metadata");
+                var oneFile = new MailRuDesktop.Protocol.MailRuIncomingAttachment(
+                    "file-1", "report.pdf", "application/pdf", "", 123);
+                var anotherFile = new MailRuDesktop.Protocol.MailRuIncomingAttachment(
+                    "file-2", "report.pdf", "application/pdf", "", 456);
+                MailRuDesktop.Protocol.MailRuFullMessage WithAttachments(
+                    params MailRuDesktop.Protocol.MailRuIncomingAttachment[] attachments) =>
+                    new("zip-test", "Файлы", "Sender", "sender@example.test",
+                        Array.Empty<string>(), Array.Empty<string>(), null,
+                        "", "", attachments, "");
+                void ShowMetadata(params MailRuDesktop.Protocol.MailRuIncomingAttachment[] attachments) =>
+                    ((Task)updateFull!.Invoke(detachedReader,
+                        new object[] { WithAttachments(attachments) })!).GetAwaiter().GetResult();
+                ShowMetadata(oneFile);
+                Check(zipButton.Visibility == Visibility.Collapsed,
+                    "single attachment keeps ZIP batch action hidden");
+                ShowMetadata(oneFile, anotherFile);
+                Check(zipButton.Visibility == Visibility.Visible &&
+                      zipButton.IsEnabled &&
+                      Require<ItemsControl>(detachedReader, "AttachmentsItemsControl")
+                          .Items.Count == 2,
+                    "two attachments show an enabled ZIP action without hiding existing files");
+                var archiveName = typeof(MessageWindow).GetMethod(
+                    "UniqueZipEntryName", BindingFlags.Static | BindingFlags.NonPublic);
+                Check(archiveName is not null,
+                    "ZIP archive has a collision-safe entry naming method");
+                var knownNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var first = (string)archiveName!.Invoke(null,
+                    new object[] { "report.pdf", knownNames })!;
+                var second = (string)archiveName.Invoke(null,
+                    new object[] { "REPORT.pdf", knownNames })!;
+                Check(first == "report.pdf" && second == "REPORT (2).pdf",
+                    "ZIP preserves attachment names and distinguishes duplicates");
+                ShowMetadata();
+                Check(zipButton.Visibility == Visibility.Collapsed,
+                    "no attachments hide ZIP batch action");
+                detachedReader.Close();
+            }
 
             // Stage 4.2: real WPF folder selections while a load is in progress.
             // Simulated mailbox state; no network requests or secrets.
