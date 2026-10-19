@@ -67,6 +67,17 @@ public partial class MainWindow
     private ContextMenu CreateAccountContextMenu(AccountRailItem account)
     {
         var menu = CreateCompactContextMenu();
+        var copyItem = CreateCompactMenuItem("Копировать адрес");
+        copyItem.Click += (_, _) =>
+        {
+            try { Clipboard.SetText(account.Login); }
+            catch (Exception ex)
+            {
+                DiagnosticLog.Write("account_copy_address", ex.GetType().Name);
+            }
+        };
+        menu.Items.Add(copyItem);
+
         var reauthItem = CreateCompactMenuItem("Повторная авторизация");
         reauthItem.IsEnabled = !_accountReauthInProgress;
         reauthItem.Click += async (_, _) => await ReauthenticateSavedAccountAsync(account.Login);

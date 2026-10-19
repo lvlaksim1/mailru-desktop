@@ -647,6 +647,10 @@ public partial class MainWindow : Window
 
         CancelServerSearch();
         _serverSearchMode = false;
+        // A refresh of the same account/folder keeps the current rows visible
+        // while the new server snapshot is fetched and reconciled.
+        var seamlessRefresh = folderId == _currentFolderId &&
+            accountSwitchGeneration is null;
 
         if (folderId != _currentFolderId || accountSwitchGeneration is not null)
         {
@@ -657,17 +661,17 @@ public partial class MainWindow : Window
         ++_missingSenderLoadGeneration;
         RefreshFolderButton.IsEnabled = false;
         FolderStatusText.Text = "Загрузка...";
-        _suppressMessageSelectionChanged = true;
-        try
+        if (!seamlessRefresh)
         {
-            MessagesGrid.SelectedItem = null;
-            _visibleMessages.Clear();
+            _suppressMessageSelectionChanged = true;
+            try
+            {
+                MessagesGrid.SelectedItem = null;
+                _visibleMessages.Clear();
+            }
+            finally { _suppressMessageSelectionChanged = false; }
+            ClearSelectedMessage();
         }
-        finally
-        {
-            _suppressMessageSelectionChanged = false;
-        }
-        ClearSelectedMessage();
 
         try
         {
@@ -683,14 +687,36 @@ public partial class MainWindow : Window
             var folderThreads = BuildFolderThreadState(raw);
             var completeRows = CollapseVerifiedConversations(
                 snapshot.Messages, folderThreads.Conversations);
-            await PrefetchFirstMissingSendersAsync(completeRows, _accessToken);
+            var folderIsSent = IsSentFolder(folderId, snapshot.Folders);
+            await PrefetchFirstMissingSendersAsync(completeRows, _accessToken,
+                folderIsSent, folderLoadLogin);
             if (IsInvalidFolderLoad() || HasNewerFolderSelection())
                 return;
 
             PublishFolderThreadState(folderThreads);
             ResponseTextBox.Text = raw;
             _currentFolderId = snapshot.SelectedFolderId ?? folderId;
-            _currentMessages = completeRows;
+            // Reuse known full-message recipient metadata on a refresh when
+            // compact smart-status omitted it. Never infer recipients.
+            var previousRows = seamlessRefresh
+                ? _currentMessages.ToDictionary(x => x.Id, StringComparer.Ordinal)
+                : new Dictionary<string, MailRuMessageSummary>(StringComparer.Ordinal);
+            _currentMessages = completeRows.Select(message =>
+            {
+                if (previousRows.TryGetValue(message.Id, out var old))
+                    message = message with
+                    {
+                        ToAddresses = message.ToAddresses.Count > 0
+                            ? message.ToAddresses : old.ToAddresses,
+                        CcAddresses = message.CcAddresses.Count > 0
+                            ? message.CcAddresses : old.CcAddresses,
+                        SenderName = string.IsNullOrEmpty(message.SenderName)
+                            ? old.SenderName : message.SenderName,
+                        SenderEmail = string.IsNullOrEmpty(message.SenderEmail)
+                            ? old.SenderEmail : message.SenderEmail
+                    };
+                return WithCorrespondent(message, folderIsSent, folderLoadLogin);
+            }).ToList();
             _serverSearchMode = false;
             ApplyFilters();
             ScheduleMissingSenderResolution();
@@ -880,14 +906,7 @@ public partial class MainWindow : Window
             // /messages/message still supplies the true sender address.
             // Enrich the selected list row from the verified full message,
             // rather than leaving a blank sender or guessing from the subject.
-            var completeSender = message with
-            {
-                SenderName = string.IsNullOrWhiteSpace(message.SenderName)
-                    ? full.FromName : message.SenderName,
-                SenderEmail = string.IsNullOrWhiteSpace(message.SenderEmail)
-                    ? full.FromEmail : message.SenderEmail,
-                Unread = message.Unread
-            };
+            var completeSender = EnrichFromFullMessage(message, full);
             if (!Equals(message, completeSender))
                 ReplaceMessage(message, completeSender);
 
@@ -1281,8 +1300,8 @@ public partial class MainWindow : Window
         if (!string.IsNullOrWhiteSpace(sender))
         {
             filtered = filtered.Where(message =>
-                message.SenderDisplay.Contains(sender, StringComparison.CurrentCultureIgnoreCase) ||
-                message.SenderEmail.Contains(sender, StringComparison.CurrentCultureIgnoreCase));
+                message.CorrespondentDisplay.Contains(sender, StringComparison.CurrentCultureIgnoreCase) ||
+                (message.CorrespondentEmail?.Contains(sender, StringComparison.CurrentCultureIgnoreCase) ?? false));
         }
 
         var subject = FilterSubjectTextBox.Text.Trim();
@@ -1298,8 +1317,8 @@ public partial class MainWindow : Window
             filtered = filtered.Where(message =>
                 message.Subject.Contains(query, StringComparison.CurrentCultureIgnoreCase) ||
                 message.Snippet.Contains(query, StringComparison.CurrentCultureIgnoreCase) ||
-                message.SenderDisplay.Contains(query, StringComparison.CurrentCultureIgnoreCase) ||
-                message.SenderEmail.Contains(query, StringComparison.CurrentCultureIgnoreCase));
+                message.CorrespondentDisplay.Contains(query, StringComparison.CurrentCultureIgnoreCase) ||
+                (message.CorrespondentEmail?.Contains(query, StringComparison.CurrentCultureIgnoreCase) ?? false));
         }
 
         if (FilterAttachmentsCheckBox.IsChecked == true)
@@ -1336,10 +1355,7 @@ public partial class MainWindow : Window
         _suppressMessageSelectionChanged = true;
         try
         {
-            _visibleMessages.Clear();
-            foreach (var message in list)
-                _visibleMessages.Add(message);
-
+            MailListReconciliation.Apply(_visibleMessages, list);
             RestoreSelectedMailIds();
         }
         finally

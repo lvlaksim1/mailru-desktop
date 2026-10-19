@@ -32,6 +32,17 @@ public sealed record MailRuMessageSummary(
     bool HasAttachment,
     bool Pinned = false)
 {
+    // Recipient metadata is independent of sender fields: reply actions still
+    // require the original sender even when the list displays the other party.
+    public IReadOnlyList<string> ToAddresses { get; init; } = Array.Empty<string>();
+    public IReadOnlyList<string> CcAddresses { get; init; } = Array.Empty<string>();
+    public string? CorrespondentText { get; init; }
+    public string? CorrespondentEmail { get; init; }
+    public string CorrespondentDisplay => CorrespondentText ?? SenderDisplay;
+    public string? CorrespondentAvatarUrl => MailRuAvatarUrls.ForEmail(
+        CorrespondentEmail ?? SenderEmail);
+    public string CorrespondentInitials => BuildInitials(CorrespondentDisplay);
+
     public string SenderDisplay =>
         !string.IsNullOrWhiteSpace(SenderName)
             ? SenderName.Trim()
@@ -39,11 +50,11 @@ public sealed record MailRuMessageSummary(
 
     public string? AvatarUrl => MailRuAvatarUrls.ForEmail(SenderEmail);
 
-    public string SenderInitials
+    public string SenderInitials => BuildInitials(SenderDisplay);
+
+    private static string BuildInitials(string display)
     {
-        get
-        {
-            var source = SenderDisplay.Trim();
+            var source = display.Trim();
             if (source.Length == 0)
                 return "?";
 
@@ -66,7 +77,6 @@ public sealed record MailRuMessageSummary(
             }
 
             return char.ToUpperInvariant(source[0]).ToString();
-        }
     }
 
     public string DateDisplay
@@ -440,7 +450,34 @@ public static class MailRuThreadStatusParser
                 parsed = parsed with { SenderName = name, SenderEmail = email };
         }
 
+        if (parentThread is { } parent)
+        {
+            var to = parsed.ToAddresses.Count > 0 ? parsed.ToAddresses :
+                ReadRecipientFromThread(parent, id, "to");
+            var cc = parsed.CcAddresses.Count > 0 ? parsed.CcAddresses :
+                ReadRecipientFromThread(parent, id, "cc");
+            parsed = parsed with { ToAddresses = to, CcAddresses = cc };
+        }
         result.Add(parsed);
+    }
+
+    private static IReadOnlyList<string> ReadRecipientFromThread(
+        JsonElement thread, string selectedMessageId, string key)
+    {
+        foreach (var group in new[] { "messages", "representations" })
+        {
+            if (!thread.TryGetProperty(group, out var source) ||
+                source.ValueKind != JsonValueKind.Array) continue;
+            foreach (var candidate in source.EnumerateArray())
+            {
+                if (candidate.ValueKind != JsonValueKind.Object ||
+                    !TryResolveMessageId(candidate, string.Empty, out var candidateId) ||
+                    candidateId != selectedMessageId) continue;
+                var recipients = ReadRecipients(candidate, key);
+                if (recipients.Count > 0) return recipients;
+            }
+        }
+        return Array.Empty<string>();
     }
 
     private static (string Name, string Email) ReadSenderFromThread(
@@ -510,7 +547,45 @@ public static class MailRuThreadStatusParser
             unread,
             flagged,
             attach,
-            pinned);
+            pinned)
+        {
+            ToAddresses = ReadRecipients(message, "to"),
+            CcAddresses = ReadRecipients(message, "cc")
+        };
+    }
+
+    private static IReadOnlyList<string> ReadRecipients(JsonElement message, string key)
+    {
+        if (message.ValueKind != JsonValueKind.Object) return Array.Empty<string>();
+        if (message.TryGetProperty("correspondents", out var people) &&
+            people.ValueKind == JsonValueKind.Object &&
+            people.TryGetProperty(key, out var nested))
+        {
+            var fromNested = CollectRecipients(nested);
+            if (fromNested.Count > 0) return fromNested;
+        }
+        return message.TryGetProperty(key, out var direct)
+            ? CollectRecipients(direct) : Array.Empty<string>();
+    }
+
+    private static IReadOnlyList<string> CollectRecipients(JsonElement element)
+    {
+        if (element.ValueKind == JsonValueKind.Array)
+            return element.EnumerateArray().SelectMany(CollectRecipients).ToArray();
+        if (element.ValueKind == JsonValueKind.Object)
+        {
+            var name = Decode(ReadString(element, "name") ?? "").Trim();
+            var email = Decode(ReadString(element, "email") ?? "").Trim();
+            if (!string.IsNullOrEmpty(email))
+                return new[] { name.Length == 0 ? email : $"{name} <{email}>" };
+            return Array.Empty<string>();
+        }
+        if (element.ValueKind == JsonValueKind.String)
+        {
+            var text = Decode(element.GetString() ?? "").Trim();
+            return text.Length == 0 ? Array.Empty<string>() : new[] { text };
+        }
+        return Array.Empty<string>();
     }
 
     private static (string Name, string Email) ReadSender(JsonElement element)

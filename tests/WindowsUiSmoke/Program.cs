@@ -48,6 +48,45 @@ internal static class Program
             Expect(string.Join(";", replyAddresses.Select(x => x.ToLowerInvariant())),
                 "first@example.test;second@example.test;third@example.test",
                 "group reply includes deduplicated To/Cc only, excluding sender, Bcc and self");
+            Expect(EmailAddressText.ForClipboard(
+                "От: Иван Иванов <ivan@example.com>, Пётр <petr@example.com>"),
+                "ivan@example.com, petr@example.com",
+                "address copy strips names and labels");
+            var counterpart = new MailRuDesktop.Protocol.MailRuMessageSummary(
+                "c1", "Тема", "Текст", "Владелец", "me@example.test",
+                null, null, 500001, false, false, false)
+            {
+                ToAddresses = new[] { "Пётр <petr@example.com>",
+                    "Мария <maria@example.com>", "me@example.test" }
+            };
+            var counterpartShown = MailCounterparty.Resolve(
+                counterpart, "me@example.test", sentFolder: true);
+            Check(counterpartShown.CorrespondentDisplay.Contains("petr@example.com") &&
+                  counterpartShown.CorrespondentDisplay.Contains("maria@example.com") &&
+                  !counterpartShown.CorrespondentDisplay.Contains("me@example.test") &&
+                  counterpartShown.SenderEmail == "me@example.test",
+                "outgoing correspondence shows recipients but preserves sender");
+            var inboundCounterpart = counterpart with
+            {
+                SenderName = "Олег", SenderEmail = "oleg@example.com",
+                ToAddresses = new[] { "me@example.test" }
+            };
+            var inboundShown = MailCounterparty.Resolve(
+                inboundCounterpart, "me@example.test", sentFolder: false);
+            Check(inboundShown.CorrespondentDisplay.Contains("oleg@example.com"),
+                "incoming correspondence shows the other party");
+            var listRows = new System.Collections.ObjectModel.ObservableCollection<
+                MailRuDesktop.Protocol.MailRuMessageSummary> { inboundShown, counterpartShown };
+            var changes = new List<System.Collections.Specialized.NotifyCollectionChangedAction>();
+            listRows.CollectionChanged += (_, args) => changes.Add(args.Action);
+            MailListReconciliation.Apply(listRows, new[]
+            {
+                inboundShown, counterpartShown with { Unread = true }
+            });
+            Check(listRows.Count == 2 && ReferenceEquals(listRows[0], inboundShown) &&
+                  listRows[1].Unread && !changes.Contains(
+                      System.Collections.Specialized.NotifyCollectionChangedAction.Reset),
+                "refresh patches row without empty reset");
             var copyableText = new SelectableText { Text = "Тема письма" };
             Check(copyableText.IsReadOnly && copyableText.IsReadOnlyCaretVisible,
                 "selectable read-only text supports highlighting and copying");
@@ -467,10 +506,11 @@ internal static class Program
             {
                 new AccountRailItem("other@example.invalid")
             }) as ContextMenu;
-            Check(accountMenu is not null && accountMenu.Items.Count == 2 &&
-                  (string)((MenuItem)accountMenu.Items[0]).Header == "Повторная авторизация" &&
-                  (string)((MenuItem)accountMenu.Items[1]).Header == "Удалить",
-                "account context menu offers targeted reauthorization and existing delete");
+            Check(accountMenu is not null && accountMenu.Items.Count == 3 &&
+                  (string)((MenuItem)accountMenu.Items[0]).Header == "Копировать адрес" &&
+                  (string)((MenuItem)accountMenu.Items[1]).Header == "Повторная авторизация" &&
+                  (string)((MenuItem)accountMenu.Items[2]).Header == "Удалить",
+                "account context menu copies address and keeps existing commands");
 
             var reauthDialog = new AddAccountWindow("other@example.invalid");
             Check(reauthDialog.Title == "Повторная авторизация Mail.ru" &&
@@ -708,8 +748,8 @@ internal static class Program
             var senderAvatar = FindDescendant<Image>(pinRow, _ => true);
             Check(senderAvatar is not null &&
                   BindingOperations.GetBinding(senderAvatar, Image.SourceProperty)?.Path?.Path
-                    == "AvatarUrl",
-                "sender portraits use the original native WPF image binding");
+                    == "CorrespondentAvatarUrl",
+                "correspondent portraits use the original native WPF image binding");
 
             // Stage 1: only the active modern row owns columns and commands.
             // Legacy V033/XAML item templates must never silently replace it.

@@ -8,14 +8,16 @@ public partial class MainWindow
     private long _missingSenderLoadGeneration;
 
     private async Task PrefetchFirstMissingSendersAsync(
-        List<MailRuMessageSummary> messages, string? token)
+        List<MailRuMessageSummary> messages, string? token,
+        bool sentFolder, string? account)
     {
         if (string.IsNullOrWhiteSpace(token))
             return;
 
         var missing = messages
-            .Where(message => string.IsNullOrWhiteSpace(message.SenderEmail) &&
-                              string.IsNullOrWhiteSpace(message.SenderName))
+            .Where(message => (string.IsNullOrWhiteSpace(message.SenderEmail) &&
+                               string.IsNullOrWhiteSpace(message.SenderName)) ||
+                MailCounterparty.NeedsOutgoingRecipients(message, account, sentFolder))
             .Take(1).ToArray();
 
         // A few missing correspondents can be populated before first paint.
@@ -39,7 +41,9 @@ public partial class MainWindow
                     messages[index] = messages[index] with
                     {
                         SenderName = full.FromName,
-                        SenderEmail = full.FromEmail
+                        SenderEmail = full.FromEmail,
+                        ToAddresses = full.To,
+                        CcAddresses = full.Cc
                     };
             }
             catch (OperationCanceledException) when (timeBudget.IsCancellationRequested)
@@ -64,12 +68,14 @@ public partial class MainWindow
         var account = _activeLogin;
         var token = _accessToken;
         var folder = _currentFolderId;
+        var sentFolder = CurrentFolderIsSent();
         if (string.IsNullOrWhiteSpace(account) || string.IsNullOrWhiteSpace(token))
             return;
 
         var lacking = _currentMessages
-            .Where(item => string.IsNullOrWhiteSpace(item.SenderEmail) &&
-                           string.IsNullOrWhiteSpace(item.SenderName))
+            .Where(item => (string.IsNullOrWhiteSpace(item.SenderEmail) &&
+                            string.IsNullOrWhiteSpace(item.SenderName)) ||
+                           MailCounterparty.NeedsOutgoingRecipients(item, account, sentFolder))
             .Take(20)
             .Select(item => item.Id)
             .Distinct(StringComparer.Ordinal)
@@ -104,7 +110,10 @@ public partial class MainWindow
 
             var id = ids[index];
             var current = _currentMessages.FirstOrDefault(message => message.Id == id);
-            if (current is null || !string.IsNullOrWhiteSpace(current.SenderDisplay))
+            if (current is null ||
+                (!string.IsNullOrWhiteSpace(current.SenderDisplay) &&
+                 !MailCounterparty.NeedsOutgoingRecipients(current, account,
+                     CurrentFolderIsSent())))
                 continue;
 
             try
@@ -113,19 +122,13 @@ public partial class MainWindow
                 if (Stale())
                     return;
 
-                if (string.IsNullOrWhiteSpace(full.FromName) &&
-                    string.IsNullOrWhiteSpace(full.FromEmail))
-                    continue;
-
                 var latest = _currentMessages.FirstOrDefault(message => message.Id == id);
                 if (latest is null)
                     continue;
 
-                ReplaceMessage(latest, latest with
-                {
-                    SenderName = full.FromName,
-                    SenderEmail = full.FromEmail
-                });
+                var enriched = EnrichFromFullMessage(latest, full);
+                if (!Equals(latest, enriched))
+                    ReplaceMessage(latest, enriched);
             }
             catch (Exception ex)
             {
