@@ -122,87 +122,165 @@ internal static class ExcelInteropService
     private static string NormalizeHeader(string? text) =>
         (text ?? "").Trim().Replace('\u00a0', ' ').ToUpperInvariant();
 
-    internal static ExcelSheetSnapshot Read(OpenExcelBook book, string sheetName,
-        Action<int, int>? progress = null)
+    // xlUp / xlToLeft ignore formatting-only cells, unlike UsedRange.
+    private const int XlUp = -4162;
+    private const int XlToLeft = -4159;
+    private const int RowsPerBatch = 192;
+
+    internal static ExcelRowReader OpenReader(OpenExcelBook book, string sheetName)
     {
-        if (book is null || string.IsNullOrWhiteSpace(sheetName))
+        ArgumentNullException.ThrowIfNull(book);
+        if (string.IsNullOrWhiteSpace(sheetName))
             throw new InvalidOperationException("Выберите книгу Excel и лист.");
+
         dynamic wb = book.Workbook;
+        dynamic excel = wb.Application;
+        dynamic activeBook = excel.ActiveWorkbook;
+        if (activeBook is null ||
+            !string.Equals((string)activeBook.FullName, (string)wb.FullName,
+                StringComparison.OrdinalIgnoreCase) ||
+            Convert.ToInt32(excel.Hwnd, CultureInfo.InvariantCulture) != book.ApplicationHwnd)
+            throw new InvalidOperationException(
+                "Сделайте выбранную книгу Excel активной и выделите ячейку в нужной строке.");
+
+        dynamic activeSheet = excel.ActiveSheet;
+        if (activeSheet is null ||
+            !string.Equals((string)activeSheet.Name, sheetName,
+                StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException(
+                "Активная ячейка находится на другом листе. Выделите ячейку на листе «"
+                + sheetName + "» в Excel и повторите подготовку.");
+
+        int startRow = Convert.ToInt32(excel.ActiveCell.Row, CultureInfo.InvariantCulture);
+        startRow = Math.Max(2, startRow); // Row 1 is the mandatory header.
+
         dynamic sheet = wb.Worksheets.Item[sheetName];
-        dynamic used = sheet.UsedRange;
-        var lastColumn = checked(Convert.ToInt32(used.Column) +
-            Convert.ToInt32(used.Columns.Count) - 1);
-        var lastRow = checked(Convert.ToInt32(used.Row) +
-            Convert.ToInt32(used.Rows.Count) - 1);
+        int lastColumn = Convert.ToInt32(
+            sheet.Cells[1, sheet.Columns.Count].End(XlToLeft).Column,
+            CultureInfo.InvariantCulture);
         if (lastColumn < 1 || lastColumn > 300)
-            throw new InvalidOperationException("Неподдерживаемое число столбцов Excel (1–300).");
-        if (lastRow < 1 || lastRow > 100000)
-            throw new InvalidOperationException("Слишком много строк Excel (более 100 000).");
-        // One bulk COM read preserves unsaved changes and formula results.
-        dynamic range = sheet.Range[sheet.Cells[1, 1], sheet.Cells[lastRow, lastColumn]];
-        object? value = range.Value2;
-        string Cell(int row, int col)
-        {
-            object? raw = value is Array arr && arr.Rank == 2
-                ? arr.GetValue(row - 1 + arr.GetLowerBound(0),
-                               col - 1 + arr.GetLowerBound(1))
-                : row == 1 && col == 1 ? value : null;
-            return raw switch
-            {
-                null => "",
-                string str => str.Trim(),
-                double number => number.ToString("0.################", CultureInfo.InvariantCulture),
-                _ => Convert.ToString(raw, CultureInfo.InvariantCulture)?.Trim() ?? ""
-            };
-        }
+            throw new InvalidOperationException(
+                "Не удалось определить заголовки: более 300 непустых столбцов.");
+
+        // Only the header is read before determining actual data columns.
+        dynamic headers = sheet.Range[sheet.Cells[1, 1], sheet.Cells[1, lastColumn]];
+        var headerValues = headers.Value2;
+        string HeaderCell(int col) => Convert.ToString(lastColumn == 1
+                ? headerValues
+                : ((Array)headerValues).GetValue(
+                    ((Array)headerValues).GetLowerBound(0),
+                    col - 1 + ((Array)headerValues).GetLowerBound(1)),
+            CultureInfo.InvariantCulture)?.Trim() ?? "";
         var columns = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         for (var col = 1; col <= lastColumn; col++)
         {
-            var label = NormalizeHeader(Cell(1, col));
-            if (string.IsNullOrEmpty(label)) continue;
-            if (columns.ContainsKey(label))
-                throw new InvalidOperationException("Повторяющийся заголовок Excel: " + Cell(1, col));
-            columns[label] = col;
+            var raw = HeaderCell(col);
+            var label = NormalizeHeader(raw);
+            if (label.Length == 0) continue;
+            if (!columns.TryAdd(label, col))
+                throw new InvalidOperationException(
+                    "Повторяющийся заголовок Excel: " + raw);
         }
         foreach (var required in Required)
             if (!columns.ContainsKey(NormalizeHeader(required)))
-                throw new InvalidOperationException("Не найден обязательный столбец: " + required);
-        int Idx(string header) => columns[NormalizeHeader(header)];
-        var hasName = columns.TryGetValue(NormalizeHeader("Наименование работодателя"),
-            out var nameIndex);
-        var results = new List<MailingExcelRow>();
-        for (var row = 2; row <= lastRow; row++)
+                throw new InvalidOperationException(
+                    "Не найден обязательный столбец: " + required);
+
+        int Idx(string name) => columns[NormalizeHeader(name)];
+        // The data boundary is based on actual INN / email cells, not the
+        // million formatted-but-empty rows commonly present in Excel.
+        int LastNonempty(int col) => Convert.ToInt32(
+            sheet.Cells[sheet.Rows.Count, col].End(XlUp).Row,
+            CultureInfo.InvariantCulture);
+        var lastRow = Math.Max(LastNonempty(Idx("ИНН работодателя")),
+                               LastNonempty(Idx("E-mail работодателя")));
+        return new ExcelRowReader(sheet, columns, startRow, lastRow, lastColumn,
+            RowsPerBatch);
+    }
+
+    internal sealed class ExcelRowReader
+    {
+        private readonly dynamic _sheet;
+        private readonly Dictionary<string, int> _columns;
+        private readonly int _lastColumn;
+        private readonly int _batchSize;
+        private int _nextRow;
+        internal int StartRow { get; }
+        internal int LastRow { get; }
+        internal int NextRow => _nextRow;
+        internal bool HasMore => _nextRow <= LastRow;
+        internal IReadOnlyDictionary<string, int> Columns => _columns;
+
+        internal ExcelRowReader(object sheet, Dictionary<string, int> columns,
+            int startRow, int lastRow, int lastColumn, int batchSize)
         {
-            // EntireRow.Hidden also reflects AutoFilter, unlike checking only
-            // that the row is currently within the UsedRange.
-            bool visible = !Convert.ToBoolean(sheet.Rows[row].Hidden,
-                CultureInfo.InvariantCulture);
-            var inn = Cell(row, Idx("ИНН работодателя"));
-            // With a numeric INN formatted as 000..., Value2 has no leading
-            // zeroes; read the rendered cell text for that column only.
-            if (inn.Length is not (10 or 12))
-            {
-                try
-                {
-                    var rendered = (string)sheet.Cells[row, Idx("ИНН работодателя")].Text;
-                    if (rendered.All(char.IsAsciiDigit) && rendered.Length is 10 or 12)
-                        inn = rendered;
-                }
-                catch (COMException) { /* Keep raw number; validation will reject it. */ }
-            }
-            results.Add(new MailingExcelRow(row, visible,
-                Cell(row, Idx("E-mail работодателя")), inn,
-                Cell(row, Idx("Регион")),
-                Cell(row, Idx("рассылка по СОУТ")),
-                hasName ? Cell(row, nameIndex) : "",
-                Cell(row, Idx("исх электронка"))));
-            if (row % 250 == 0) progress?.Invoke(row, lastRow);
+            _sheet = sheet;
+            _columns = columns;
+            StartRow = startRow;
+            LastRow = lastRow;
+            _nextRow = startRow;
+            _lastColumn = lastColumn;
+            _batchSize = batchSize;
         }
-        progress?.Invoke(lastRow, lastRow);
-        return new ExcelSheetSnapshot
+
+        internal List<MailingExcelRow> ReadNext(CancellationToken cancellationToken = default)
         {
-            Rows = results, Columns = columns,
-            WorkbookPath = book.FullName, SheetName = sheetName
-        };
+            var results = new List<MailingExcelRow>();
+            if (!HasMore) return results;
+            var first = _nextRow;
+            var last = Math.Min(LastRow, first + _batchSize - 1);
+            _nextRow = last + 1;
+            dynamic values = _sheet.Range[
+                _sheet.Cells[first, 1], _sheet.Cells[last, _lastColumn]].Value2;
+            var source = values as Array;
+            string Cell(int row, int col)
+            {
+                var raw = source is { Rank: 2 }
+                    ? source.GetValue(row - first + source.GetLowerBound(0),
+                        col - 1 + source.GetLowerBound(1))
+                    : row == first && col == 1 ? values : null;
+                return raw switch
+                {
+                    null => "",
+                    string text => text.Trim(),
+                    double number => number.ToString(
+                        "0.################", CultureInfo.InvariantCulture),
+                    _ => Convert.ToString(raw, CultureInfo.InvariantCulture)?.Trim() ?? ""
+                };
+            }
+            int Idx(string header) => _columns[NormalizeHeader(header)];
+            bool hasName = _columns.TryGetValue(
+                NormalizeHeader("Наименование работодателя"), out var nameIndex);
+            for (var row = first; row <= last; row++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                // Excel EntireRow.Hidden includes AutoFilter and manual hiding;
+                // hidden rows are never materialized as mailing candidates.
+                if (Convert.ToBoolean(_sheet.Rows[row].Hidden,
+                        CultureInfo.InvariantCulture))
+                    continue;
+                var inn = Cell(row, Idx("ИНН работодателя"));
+                var email = Cell(row, Idx("E-mail работодателя"));
+                var mark = Cell(row, Idx("рассылка по СОУТ"));
+                if (inn.Length == 0 && email.Length == 0 && mark.Length == 0)
+                    continue;
+                if (inn.Length is not (10 or 12))
+                {
+                    // Excel numeric INNs may use a leading-zero number format.
+                    try
+                    {
+                        string rendered = _sheet.Cells[row, Idx("ИНН работодателя")].Text;
+                        if (rendered.All(char.IsAsciiDigit) &&
+                            rendered.Length is 10 or 12) inn = rendered;
+                    }
+                    catch (COMException) { /* Validation rejects unrecognized values. */ }
+                }
+                results.Add(new MailingExcelRow(row, true, email, inn,
+                    Cell(row, Idx("Регион")), mark,
+                    hasName ? Cell(row, nameIndex) : "",
+                    Cell(row, Idx("исх электронка"))));
+            }
+            return results;
+        }
     }
 }
