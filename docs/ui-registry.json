@@ -7885,6 +7885,24 @@
       "window": "ExcelMailingWindow"
     },
     {
+      "color_roles_and_values": {
+        "Background": "{DynamicResource AppBorderBrush}"
+      },
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/SenderGridResizeThumb",
+      "location": {
+        "Height": "8",
+        "Margin": "0,3,0,0"
+      },
+      "name": "SenderGridResizeThumb",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Thumb",
+      "typography": {},
+      "window": "ExcelMailingWindow"
+    },
+    {
       "color_roles_and_values": {},
       "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/TextBlock[0]",
       "location": {
@@ -7901,7 +7919,7 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/WrapPanel[2]",
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/WrapPanel[3]",
       "location": {
         "Margin": "0,4,0,0"
       },
@@ -7916,13 +7934,13 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/WrapPanel[2]/Button[0]",
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/WrapPanel[3]/Button[0]",
       "location": {
         "Margin": "0,0,6,0",
         "Padding": "7,3"
       },
       "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/WrapPanel[2]",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/WrapPanel[3]",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
@@ -7932,12 +7950,12 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/WrapPanel[2]/Button[1]",
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/WrapPanel[3]/Button[1]",
       "location": {
         "Padding": "7,3"
       },
       "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/WrapPanel[2]",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/WrapPanel[3]",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
@@ -7947,13 +7965,13 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/WrapPanel[2]/QuotaSummaryText",
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/WrapPanel[3]/QuotaSummaryText",
       "location": {
         "Margin": "12,0,0,0",
         "VerticalAlignment": "Center"
       },
       "name": "QuotaSummaryText",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/WrapPanel[2]",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/WrapPanel[3]",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
@@ -21960,7 +21978,7 @@
         "Foreground": "{DynamicResource AppTextBrush}"
       },
       "declared_as": "XAML",
-      "element_count": 80,
+      "element_count": 81,
       "geometry": {
         "Height": "880",
         "MinHeight": "650",
