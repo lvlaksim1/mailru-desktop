@@ -678,6 +678,10 @@ internal static class Program
                   sizeTable.Height > initialHeight,
                 "drag handle changes account-table height and shifts remaining layout");
             mailingWindow.SaveSenderGridHeight();
+            Check(Require<Button>(mailingWindow, "RetryOrganizationButton").IsEnabled &&
+                  Require<Button>(mailingWindow, "ManualOrganizationButton").IsEnabled &&
+                  Require<Button>(mailingWindow, "IncludeOrganizationButton").IsEnabled,
+                "Excel preparation exposes single-row retry, manual entry and reinclusion");
 
             Check(FindDescendant<Button>(mailingWindow!, b =>
                       (b.Content as string)?.Contains("Проверить и подготовить") == true) is not null &&
@@ -715,6 +719,12 @@ internal static class Program
                 var detachedReader = new MessageWindow(downloadTestMailClient,
                     summary, null, 0,
                     Array.Empty<MailRuDesktop.Protocol.MailRuFolderSummary>());
+                var resendButton = Require<Button>(detachedReader,
+                    "SendScheduledNowButton");
+                Check((string?)resendButton.Content == "Отправить повторно" &&
+                      resendButton.IsEnabled &&
+                      typeof(MessageWindow).GetProperty("ResendRequested") is not null,
+                    "outbox reader uses an enabled resend action and reports compose request");
                 var zipButton = Require<Button>(detachedReader,
                     "DownloadAllAttachmentsButton");
                 Check(zipButton.Visibility == Visibility.Collapsed,
