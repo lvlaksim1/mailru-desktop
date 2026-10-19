@@ -48,7 +48,7 @@ internal static class ExcelInteropService
             while (enumerator.Next(1, item, IntPtr.Zero) == 0)
             {
                 string display;
-                try { item[0].GetDisplayName(ctx, null, out display!); }
+                try { item[0].GetDisplayName(ctx, null, out display); }
                 catch (COMException) { continue; }
                 // Excel registers open workbooks in ROT; never touch unrelated apps.
                 if (display.IndexOf(".xls", StringComparison.OrdinalIgnoreCase) < 0)
