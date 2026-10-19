@@ -314,7 +314,14 @@
                     </Expander>
                 </Grid>
 
-                <Button Grid.Row="3" Style="{StaticResource NavButtonStyle}" Click="ShowSettingsButton_Click" Content="⚙  Настройки"/>
+                <StackPanel Grid.Row="3">
+                    <Button x:Name="OpenExcelMailingButton"
+                            Style="{StaticResource NavButtonStyle}"
+                            Margin="0,0,0,5" Content="Рассылки Excel"
+                            Click="OpenExcelMailingButton_Click"/>
+                    <Button Style="{StaticResource NavButtonStyle}"
+                            Click="ShowSettingsButton_Click" Content="⚙  Настройки"/>
+                </StackPanel>
                 <local:SelectableText x:Name="AuthStatusText"
                            Grid.Row="4"
                            Margin="8,8,8,2"
