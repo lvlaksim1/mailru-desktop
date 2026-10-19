@@ -1355,44 +1355,7 @@ public partial class MainWindow : Window
         _suppressMessageSelectionChanged = true;
         try
         {
-            // Patch the existing observable collection without a transient
-            // empty state. Retain row instances for unchanged messages.
-            var desiredIds = new HashSet<string>(list.Select(x => x.Id),
-                StringComparer.Ordinal);
-            for (var i = _visibleMessages.Count - 1; i >= 0; i--)
-                if (!desiredIds.Contains(_visibleMessages[i].Id))
-                    _visibleMessages.RemoveAt(i);
-
-            for (var i = 0; i < list.Count; i++)
-            {
-                var desired = list[i];
-                if (i < _visibleMessages.Count &&
-                    string.Equals(_visibleMessages[i].Id, desired.Id,
-                        StringComparison.Ordinal))
-                {
-                    if (!Equals(_visibleMessages[i], desired))
-                        _visibleMessages[i] = desired;
-                    continue;
-                }
-                var existingIndex = -1;
-                for (var j = i + 1; j < _visibleMessages.Count; j++)
-                    if (string.Equals(_visibleMessages[j].Id, desired.Id,
-                        StringComparison.Ordinal))
-                    {
-                        existingIndex = j;
-                        break;
-                    }
-                if (existingIndex >= 0)
-                {
-                    _visibleMessages.Move(existingIndex, i);
-                    if (!Equals(_visibleMessages[i], desired))
-                        _visibleMessages[i] = desired;
-                }
-                else
-                    _visibleMessages.Insert(i, desired);
-            }
-            while (_visibleMessages.Count > list.Count)
-                _visibleMessages.RemoveAt(_visibleMessages.Count - 1);
+            MailListReconciliation.Apply(_visibleMessages, list);
             RestoreSelectedMailIds();
         }
         finally
