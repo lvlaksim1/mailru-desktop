@@ -34,9 +34,9 @@
                     Content="Переслать"/>
             <Button x:Name="SendScheduledNowButton"
                     Padding="14,7" Margin="0,0,8,0"
-                    Content="Отправить сейчас"
-                    Visibility="Collapsed" IsEnabled="False"
-                    ToolTip="Не включено: нельзя гарантировать отсутствие дублирования отложенного письма"/>
+                    Content="Отправить повторно"
+                    Visibility="Collapsed" Click="ResendScheduledButton_Click"
+                    ToolTip="Новое письмо; исходное архивируется после подтверждённой отправки"/>
             <Button x:Name="ArchiveButton"
                     Padding="14,7"
                     Margin="0,0,14,0"
