@@ -95,7 +95,7 @@ public partial class MainWindow
             ApplyDefaultComposeSignature();
             // Preserve an unfinished draft when reopening the window.
             if (wasEmpty)
-                _composeRichEditor?.EnsureOpeningGreeting();
+                _composeRichEditor?.EnsureOpeningGreeting(reserveEditableLine: true);
         }
         ComposeToTextBox.Focus();
     }
