@@ -1,0 +1,29 @@
+name: Refresh v0.3.77 UI registry
+on:
+  push:
+    branches: [feature/v0.3.77-reader-download-all-attachments]
+    paths: [.github/workflows/regen-v0377.yml]
+permissions:
+  contents: write
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/v0.3.77-reader-download-all-attachments
+      - name: Regenerate and check registry
+        run: |
+          python tools/ui_registry.py --write
+          python tools/ui_registry.py --check
+      - name: Commit regenerated inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name mailru-ui-registry
+          git config user.email actions@users.noreply.github.com
+          git add docs/ui-registry.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'ui: register detached reader ZIP action'
+          git pull --rebase origin feature/v0.3.77-reader-download-all-attachments
+          git push origin HEAD:feature/v0.3.77-reader-download-all-attachments
