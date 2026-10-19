@@ -187,9 +187,11 @@ internal sealed class MailingPlanSession
     private readonly DateTimeOffset _start;
     private readonly (string Login, int Quantity, int Used)[] _quotas;
     private int _currentSender;
+    private int _readyCount;
+    private readonly int _totalQuota;
     internal MailingPreparationResult Result { get; } = new();
-    internal int Quota => _quotas.Sum(q => q.Quantity);
-    internal bool IsFull => Result.ReadyCount >= Quota;
+    internal int Quota => _totalQuota;
+    internal bool IsFull => _readyCount >= _totalQuota;
 
     internal MailingPlanSession(MailingProfile profile, string templateBody,
         IReadOnlySet<string> excluded, IReadOnlySet<string> authorized,
@@ -217,6 +219,7 @@ internal sealed class MailingPlanSession
             throw new InvalidOperationException(
                 "Начало рассылки должно быть минимум через 2 минуты.");
         _quotas = profile.Senders.Select(x => (x.Login, x.Quantity, Used: 0)).ToArray();
+        _totalQuota = _quotas.Sum(x => x.Quantity);
     }
 
     internal bool NeedsOrganization(MailingExcelRow row) =>
@@ -271,6 +274,7 @@ internal sealed class MailingPlanSession
                         subject, body, "Ready",
                         "Только предварительный просмотр — постановка на сервер отключена"));
                     _quotas[_currentSender].Used++;
+                    _readyCount++;
                     return;
                 }
                 catch (Exception ex) when (ex is InvalidOperationException or ArgumentOutOfRangeException)
