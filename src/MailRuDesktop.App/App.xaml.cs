@@ -14,25 +14,20 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        // Publish the activation event before claiming the startup mutex:
+        // a simultaneous second launch can never miss the signalling handle.
+        _activationEvent = new EventWaitHandle(false,
+            EventResetMode.AutoReset, ActivationEventName);
         _instanceMutex = new Mutex(true, InstanceMutexName, out var firstInstance);
         _ownsInstance = firstInstance;
         if (!firstInstance)
         {
-            try
-            {
-                using var signal = EventWaitHandle.OpenExisting(ActivationEventName);
-                signal.Set();
-            }
-            catch (WaitHandleCannotBeOpenedException)
-            {
-                // Another instance is starting and has not opened its signal yet.
-            }
+            _activationEvent.Set();
+            _activationEvent.Dispose();
+            _activationEvent = null;
             Shutdown();
             return;
         }
-
-        _activationEvent = new EventWaitHandle(false,
-            EventResetMode.AutoReset, ActivationEventName);
         _activationStop = new CancellationTokenSource();
         var activationEvent = _activationEvent;
         var stopToken = _activationStop.Token;
@@ -41,6 +36,7 @@ public partial class App : Application
             var waits = new WaitHandle[] { activationEvent, stopToken.WaitHandle };
             while (WaitHandle.WaitAny(waits) == 0)
             {
+                if (stopToken.IsCancellationRequested) break;
                 _ = Dispatcher.BeginInvoke(new Action(() =>
                 {
                     if (MainWindow is MailRuDesktop.App.MainWindow main)
