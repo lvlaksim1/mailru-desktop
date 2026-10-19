@@ -93,8 +93,9 @@ public partial class MainWindow
         {
             var wasEmpty = string.IsNullOrWhiteSpace(ComposeBodyTextBox.Text);
             ApplyDefaultComposeSignature();
+            // Preserve an unfinished draft when reopening the window.
             if (wasEmpty)
-                _composeRichEditor?.PlaceCaretAtStart();
+                _composeRichEditor?.EnsureOpeningGreeting();
         }
         ComposeToTextBox.Focus();
     }
@@ -145,9 +146,12 @@ public partial class MainWindow
         ComposeSubjectTextBox.Text = ReplySubject(full?.Subject ?? source.Subject);
         var quoted = BuildQuotedReply(full, source);
         if (_composeRichEditor is not null)
+        {
             _composeRichEditor.LoadReplyQuotedText(quoted);
+            _composeRichEditor.EnsureOpeningGreeting();
+        }
         else
-            ComposeBodyTextBox.Text = quoted;
+            ComposeBodyTextBox.Text = "Добрый день\n\n" + quoted;
         ApplyDefaultComposeSignature();
         ComposeStatusText.Text = string.Empty;
 
