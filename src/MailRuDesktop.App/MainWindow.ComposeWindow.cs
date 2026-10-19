@@ -37,6 +37,8 @@ public partial class MainWindow
         originalParent.Children.Remove(ComposeWorkspace);
         ComposeWorkspace.Visibility = Visibility.Visible;
         ComposeHeaderText.Visibility = reply ? Visibility.Collapsed : Visibility.Visible;
+        ArchiveAfterReplyCheckBox.Visibility = reply ? Visibility.Visible : Visibility.Collapsed;
+        ArchiveAfterReplyCheckBox.IsChecked = true;
         ComposeSenderRow.Margin = reply
             ? new Thickness(0, 0, 0, 8)
             : new Thickness(0, 12, 0, 8);
@@ -70,6 +72,8 @@ public partial class MainWindow
             _composeSenderLogin = null;
             _composeSenderToken = null;
             _composeReplyToId = null;
+            ArchiveAfterReplyCheckBox.Visibility = Visibility.Collapsed;
+            ArchiveAfterReplyCheckBox.IsChecked = true;
             // An outstanding asynchronous recipient lookup must not leave the
             // shared compose workspace read-only on its next opening.
             ComposeToTextBox.IsReadOnly = false;
