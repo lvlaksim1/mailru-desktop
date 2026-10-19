@@ -14,6 +14,7 @@ public partial class MessageWindow : Window
     private readonly MailRuClient _mailRu;
     private readonly MailRuMessageSummary _summary;
     private readonly string? _accessToken;
+    private readonly string? _mailboxLogin;
     private readonly IReadOnlyList<MailRuFolderSummary> _folders;
     private readonly MailRuFullMessage? _initialFullMessage;
     private readonly MailRuConversation? _conversation;
@@ -37,11 +38,13 @@ public partial class MessageWindow : Window
         int currentFolderId,
         IReadOnlyList<MailRuFolderSummary> folders,
         MailRuFullMessage? initialFullMessage = null,
-        MailRuConversation? conversation = null)
+        MailRuConversation? conversation = null,
+        string? mailboxLogin = null)
     {
         _mailRu = mailRu;
         _summary = summary;
         _accessToken = accessToken;
+        _mailboxLogin = mailboxLogin;
         _folders = folders;
         _conversation = conversation;
         _initialFullMessage = initialFullMessage?.Id == summary.Id
@@ -91,10 +94,30 @@ public partial class MessageWindow : Window
         if (_initialFullMessage is not null)
         {
             await ApplyFullMessageAsync(_initialFullMessage);
+            await MarkReadAfterFullOpenAsync();
             return;
         }
 
         await LoadFullMessageAsync();
+    }
+
+    private async Task MarkReadAfterFullOpenAsync()
+    {
+        if (!_summary.Unread || string.IsNullOrWhiteSpace(_accessToken))
+            return;
+        try
+        {
+            var result = await _mailRu.SetUnreadAsync(_accessToken,
+                _mailboxLogin ?? string.Empty, _summary.Id, unread: false);
+            if (result.Success)
+                MailboxChanged = true;
+            else
+                DiagnosticLog.Write("full_open_read", "SERVER_REJECTED");
+        }
+        catch (Exception ex)
+        {
+            DiagnosticLog.Write("full_open_read", ex.GetType().Name);
+        }
     }
 
     private void MessageWindow_Activated(object? sender, EventArgs e)
@@ -146,6 +169,7 @@ public partial class MessageWindow : Window
                 _summary.Id,
                 markRead: false);
             await ApplyFullMessageAsync(full);
+            await MarkReadAfterFullOpenAsync();
             StatusText.Text = "Письмо загружено.";
         }
         catch (Exception ex)
