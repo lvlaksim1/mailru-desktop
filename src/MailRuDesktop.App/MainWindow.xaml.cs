@@ -773,7 +773,8 @@ public partial class MainWindow : Window
             folders,
             _currentFullMessage?.Id == message.Id ? _currentFullMessage : null,
             _conversationIndex.TryGetValue(message.Id, out var thread)
-                ? thread : null)
+                ? thread : null,
+            _activeLogin)
         {
             Owner = this
         };
