@@ -55,10 +55,11 @@ public partial class MainWindow
         if (sender is not TextBox textBox || string.IsNullOrWhiteSpace(textBox.Text))
             return;
 
-        textBox.SelectAll();
+        var emails = EmailAddressText.ForClipboard(textBox.Text);
+        if (emails.Length == 0) return;
         try
         {
-            Clipboard.SetText(textBox.Text.Trim());
+            Clipboard.SetText(emails);
             FolderStatusText.Text = "Адрес скопирован в буфер обмена.";
         }
         catch
