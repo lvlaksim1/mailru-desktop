@@ -1068,6 +1068,22 @@ Expect(parsedRepresentation.Messages.Single().SenderDisplay, "Тестовый �
 Expect(parsedRepresentation.Messages.Single().SenderEmail, "sender@mail.ru",
     "missing-subject sender email resolved without full-message request");
 
+var recipientSnapshot = MailRuThreadStatusParser.Parse("""
+{"body":{"folders_content":[{"id":500001,"threads":[
+{"id":"sent-message","base_message":{"id":"sent-message","subject":"Исходящее",
+"correspondents":{"from":{"email":"me@example.test"},
+"to":[{"name":"Адресат","email":"friend@example.test"},
+{"email":"other@example.test"}],
+"cc":[{"email":"copy@example.test"}]}}}
+]}]}}
+""", 500001);
+var sentParsed = recipientSnapshot.Messages.Single();
+Expect(sentParsed.ToAddresses.Count, 2,
+    "outgoing compact status keeps multiple actual To participants");
+Expect(sentParsed.CcAddresses.Single(), "copy@example.test",
+    "outgoing compact status keeps Cc separately from sender");
+
+
 
 
 using (var handler = new RecordingHandler())
