@@ -377,7 +377,7 @@ internal sealed class RichComposeEditor
         _autoLinking = true;
         try
         {
-            foreach (var paragraph in EnumerateParagraphs(_rich.Document.Blocks))
+            foreach (var paragraph in EnumerateParagraphs(_rich.Document.Blocks).ToArray())
                 LinkifyInlines(paragraph.Inlines);
         }
         finally { _autoLinking = false; }
