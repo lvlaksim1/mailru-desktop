@@ -493,6 +493,113 @@ internal static class Program
                       TextElement.FontWeightProperty), FontWeights.Normal),
                 "new mail text is not bold after previous formatted compose session");
 
+            // Excel mailing is preparation-only in stage 1: pure planning
+            // is checked offline, with no COM/HTTP access or SMTP requests.
+            var testingDir = Path.Combine(Path.GetTempPath(),
+                "MailRuMailingProfiles-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                var mailingStore = new MailRuDesktop.App.Mailing.MailingProfileStore(testingDir);
+                var localProfile = new MailRuDesktop.App.Mailing.MailingProfile
+                {
+                    Name = "Проверочная рассылка",
+                    StartDate = DateTime.Today.AddDays(4),
+                    StartTime = "09:00",
+                    Senders =
+                    [
+                        new() { Login = "first@example.com", Quantity = 1 },
+                        new() { Login = "second@example.com", Quantity = 1 }
+                    ]
+                };
+                mailingStore.Save(new[] { localProfile });
+                Check(mailingStore.Load().Single().Senders.Count == 2 &&
+                      mailingStore.Load().Single().IntervalSeconds == 65,
+                    "independent mailing profiles persist account quotas and 65-second interval");
+                var mailingRows = new[]
+                {
+                    new MailRuDesktop.App.Mailing.MailingExcelRow(2, true,
+                        "one@example.com", "7707083893", "Москва", "", "", ""),
+                    new MailRuDesktop.App.Mailing.MailingExcelRow(3, true,
+                        "two@example.com", "7707083893", "Москва", "", "", ""),
+                    new MailRuDesktop.App.Mailing.MailingExcelRow(4, true,
+                        "three@example.com", "7707083893", "Москва", "", "", ""),
+                    new MailRuDesktop.App.Mailing.MailingExcelRow(5, false,
+                        "hidden@example.com", "7707083893", "Москва", "", "", ""),
+                    new MailRuDesktop.App.Mailing.MailingExcelRow(6, true,
+                        "old@example.com", "7707083893", "Москва",
+                        "15.10.2026", "", ""),
+                    new MailRuDesktop.App.Mailing.MailingExcelRow(7, true,
+                        "excluded@example.com", "7707083893", "Москва", "", "")
+                };
+                var prepared = MailRuDesktop.App.Mailing.MailingPlanner.Prepare(
+                    localProfile, mailingRows,
+                    new Dictionary<string, string> { ["7707083893"] = "ООО Проверка" },
+                    "Здравствуйте, {Название_организации} — {ИНН_организации}",
+                    new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                    { "excluded@example.com" },
+                    new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                    { "first@example.com", "second@example.com" });
+                Check(prepared.ReadyCount == 2 &&
+                      prepared.Rows.Single(x => x.RowNumber == 4).Status == "Пропуск" &&
+                      prepared.Rows.Single(x => x.RowNumber == 5).Status == "Пропуск" &&
+                      prepared.Rows.Single(x => x.RowNumber == 6).Status == "Пропуск" &&
+                      prepared.Rows.Single(x => x.RowNumber == 7).Status == "Пропуск",
+                    "mailing selection skips hidden, previously marked, excluded and over-quota rows");
+                Check(prepared.Rows[0].Sender == "first@example.com" &&
+                      prepared.Rows[1].Sender == "second@example.com" &&
+                      prepared.Rows[0].ScheduledAt == prepared.Rows[1].ScheduledAt,
+                    "sequential sender quotas share a common start but independent schedules");
+                Check(prepared.Rows[0].Subject.Contains("ООО Проверка") &&
+                      prepared.Rows[0].Body.Contains("7707083893"),
+                    "organization and INN placeholders are rendered for preview");
+                var twoLetters = MailRuDesktop.App.Mailing.MailingPlanner.Prepare(
+                    new MailRuDesktop.App.Mailing.MailingProfile
+                    {
+                        StartDate = localProfile.StartDate, StartTime = "09:00",
+                        Senders = [new() { Login = "first@example.com", Quantity = 3 }]
+                    }, mailingRows.Take(3).ToArray(),
+                    new Dictionary<string, string> { ["7707083893"] = "ООО Проверка" },
+                    "Привет, {Название_организации}",
+                    new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+                    new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                    { "first@example.com" });
+                Check(twoLetters.Rows[1].ScheduledAt!.Value -
+                      twoLetters.Rows[0].ScheduledAt!.Value == TimeSpan.FromSeconds(65),
+                    "per-account scheduling uses 65-second intervals");
+                Check(MailRuDesktop.App.Mailing.MailingPlanner.IsValidInn("7707083893") &&
+                      !MailRuDesktop.App.Mailing.MailingPlanner.IsValidInn("7707083894") &&
+                      !MailRuDesktop.App.Mailing.MailingPlanner.IsValidEmail("test;other@example.com"),
+                    "INN checksum and single recipient syntax are checked");
+                var noName = MailRuDesktop.App.Mailing.MailingPlanner.Prepare(
+                    localProfile, mailingRows.Take(1).ToArray(),
+                    new Dictionary<string, string>(),
+                    "Привет, {Название_организации}",
+                    new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+                    new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                    { "first@example.com", "second@example.com" });
+                Check(noName.ReviewCount == 1 && noName.ReadyCount == 0,
+                    "unverified organization cannot be silently replaced by Excel label");
+            }
+            finally
+            {
+                if (Directory.Exists(testingDir))
+                    Directory.Delete(testingDir, recursive: true);
+            }
+            var mailingAction = Require<Button>(mail, "OpenExcelMailingButton");
+            mailingAction.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent, mailingAction));
+            var mailingWindow = Application.Current.Windows
+                .OfType<MailRuDesktop.App.Mailing.ExcelMailingWindow>()
+                .FirstOrDefault();
+            Check(mailingWindow is { IsVisible: true } &&
+                  mailingWindow.Owner == mail && mailingWindow.Title.Contains("Рассылки Excel"),
+                "Excel mailing opens a distinct owned preparation window");
+            Check(FindDescendant<Button>(mailingWindow!, b =>
+                      (b.Content as string)?.Contains("Проверить и подготовить") == true) is not null &&
+                  FindDescendant<Button>(mailingWindow!, b =>
+                      (b.Content as string)?.Contains("Отправить письма") == true) is null,
+                "stage 1 offers preview only, never server submission");
+            mailingWindow!.Close();
+
             // Stage 4.1: metadata is one reusable WPF view, WebView2 is not moved.
             var extractedHeader = Require<MailReaderHeader>(mail, "ReaderHeader");
             Check(extractedHeader.Parent is Grid && Grid.GetRow(extractedHeader) == 2,
