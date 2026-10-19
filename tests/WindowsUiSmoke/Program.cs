@@ -614,11 +614,11 @@ internal static class Program
                     Name = fakeBook.Name, FullName = fakeBook.FullName,
                     Sheets = ["Компании"]
                 };
-                var reader = MailRuDesktop.App.Mailing.ExcelInteropService
+                var excelBatchReader = MailRuDesktop.App.Mailing.ExcelInteropService
                     .OpenReader(discovered, "Компании");
-                Check(reader.StartRow == 74210 && reader.LastRow == 145000,
+                Check(excelBatchReader.StartRow == 74210 && excelBatchReader.LastRow == 145000,
                     "Excel uses active cell row and data boundary even above 100000");
-                var visibleBatch = reader.ReadNext();
+                var visibleBatch = excelBatchReader.ReadNext();
                 Check(visibleBatch.Select(x => x.RowNumber)
                           .SequenceEqual(new[] { 74210, 74212, 74213 }),
                     "Excel reads in order, ignores filtered row and earlier data");
@@ -635,7 +635,7 @@ internal static class Program
                 Check(incremental.IsFull && incremental.Result.ReadyCount == 2 &&
                       incremental.Result.Rows[0].RowNumber == 74210 &&
                       incremental.Result.Rows[1].RowNumber == 74212 &&
-                      reader.HasMore,
+                      excelBatchReader.HasMore,
                     "one-pass planning stops on quota without exhausting worksheet");
                 fakeExcel.ActiveSheet = new FakeExcelSheet { Name = "Другой лист" };
                 var mismatchRejected = false;
