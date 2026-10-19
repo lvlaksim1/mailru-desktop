@@ -195,6 +195,8 @@ public partial class MessageWindow : Window
         AttachmentsItemsControl.ItemsSource = full.Attachments;
         AttachmentsItemsControl.Visibility =
             full.Attachments.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+        DownloadAllAttachmentsButton.Visibility =
+            full.Attachments.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
 
         if (_conversation is { VerifiedCount: > 1 } && _accessToken is not null)
         {
