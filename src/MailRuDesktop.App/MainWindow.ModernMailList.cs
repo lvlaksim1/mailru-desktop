@@ -771,16 +771,16 @@ public partial class MainWindow
                                VerticalAlignment="Center"
                                FontSize="{DynamicResource AppFontTinySize}"
                                FontWeight="SemiBold"
-                               Text="{Binding SenderInitials}"/>
+                               Text="{Binding CorrespondentInitials}"/>
                     <Image Width="{DynamicResource AppAvatarSize}" Height="{DynamicResource AppAvatarSize}" Stretch="UniformToFill"
-                           Source="{Binding AvatarUrl}"/>
+                           Source="{Binding CorrespondentAvatarUrl}"/>
                 </Grid>
                 </Border>
                 <TextBlock Grid.Column="1"
                            Margin="5,0,0,0"
                            VerticalAlignment="Center"
                            TextTrimming="CharacterEllipsis"
-                           Text="{Binding SenderDisplay}">
+                           Text="{Binding CorrespondentDisplay}">
                 <TextBlock.Style>
                     <Style TargetType="TextBlock">
                         <Setter Property="Foreground" Value="{DynamicResource AppTextBrush}"/>
