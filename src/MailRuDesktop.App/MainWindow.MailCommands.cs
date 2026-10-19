@@ -87,8 +87,6 @@ public partial class MainWindow
 
                     if (mark == MailMarkKind.Unread && current.Unread != enabled)
                     {
-                        if (enabled)
-                            _previewAutoReadMessageId = null;
                         if (_currentFolderId == 0)
                             AdjustActiveInboxUnread(enabled ? 1 : -1);
                     }
