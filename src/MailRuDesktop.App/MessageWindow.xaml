@@ -85,9 +85,8 @@
                        Foreground="{DynamicResource AppMutedTextBrush}"/>
         </StackPanel>
 
-        <ItemsControl x:Name="AttachmentsItemsControl"
-                      Grid.Row="2"
-                      Margin="0,0,0,10">
+        <StackPanel Grid.Row="2" Margin="0,0,0,10">
+            <ItemsControl x:Name="AttachmentsItemsControl">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <WrapPanel/>
@@ -121,7 +120,15 @@
                     </Button>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
-        </ItemsControl>
+            </ItemsControl>
+            <Button x:Name="DownloadAllAttachmentsButton"
+                    Content="Скачать всё (ZIP)"
+                    HorizontalAlignment="Left"
+                    Padding="12,7"
+                    Margin="0,2,0,0"
+                    Visibility="Collapsed"
+                    Click="DownloadAllAttachmentsButton_Click"/>
+        </StackPanel>
 
         <Border Grid.Row="3"
                 Margin="0,0,0,10"
