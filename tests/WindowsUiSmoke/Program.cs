@@ -34,6 +34,29 @@ internal static class Program
                   generatedIds.Distinct(StringComparer.Ordinal).Count() == generatedIds.Length,
                 "outgoing message IDs are per-operation unique 32-character tokens");
 
+            // One rendering pipeline for both the preview and the outgoing
+            // HTML payload: formatting tags must not leak into plain text.
+            var sampleMarkdown = "**Важное** *курсив* <u>подчёркнуто</u> " +
+                "<s>зачёркнуто</s> <span style=\"color:#FF0000\">цвет</span>\n" +
+                "[ссылка](https://example.com)\n# Заголовок";
+            var formattedMail = MailRuDesktop.App.Mailing.MailingMarkdownFormatting
+                .Render(sampleMarkdown);
+            Check(formattedMail.PlainText.Contains("Важное курсив подчёркнуто", StringComparison.Ordinal) &&
+                  !formattedMail.PlainText.Contains("**", StringComparison.Ordinal) &&
+                  !formattedMail.PlainText.Contains("<u>", StringComparison.Ordinal) &&
+                  formattedMail.Html.Contains("font-weight:bold", StringComparison.Ordinal) &&
+                  formattedMail.Html.Contains("font-style:italic", StringComparison.Ordinal) &&
+                  formattedMail.Html.Contains("text-decoration:underline", StringComparison.Ordinal) &&
+                  formattedMail.Html.Contains("text-decoration:line-through", StringComparison.Ordinal) &&
+                  formattedMail.Html.Contains("color:#FF0000", StringComparison.Ordinal) &&
+                  formattedMail.Html.Contains("href=\"https://example.com\"", StringComparison.Ordinal) &&
+                  formattedMail.Html.Contains("font-size:20", StringComparison.Ordinal) &&
+                  !formattedMail.Html.Contains("**Важное**", StringComparison.Ordinal),
+                "Excel mailing uses styled HTML and clean text matching rich preview");
+            Check(new TextRange(formattedMail.Document.ContentStart,
+                      formattedMail.Document.ContentEnd).Text.Contains("Важное курсив", StringComparison.Ordinal),
+                "mailing preview WPF document displays rendered content rather than markdown tags");
+
             // Reply-to-thread is To/Cc only; sender, blind-copy and the
             // current mailbox never become automatic recipients.
             var threadMessages = new[]
@@ -934,6 +957,11 @@ internal static class Program
                 correctionWindowType.GetField("_preparedNames",
                     BindingFlags.Instance | BindingFlags.NonPublic)!
                     .GetValue(mailingWindow)!)["7736207543"] = "ООО Готово";
+            var previewViewer = Require<FlowDocumentScrollViewer>(
+                mailingWindow, "MessagePreviewDocument");
+            Check(previewViewer.IsSelectionEnabled &&
+                  Require<GridSplitter>(mailingWindow, "MessagePreviewSplitter") is not null,
+                "letter preview is formatted, selectable and vertically resizable");
             var previewTable = Require<DataGrid>(mailingWindow, "PreviewGrid");
             Check(previewTable.Columns.Count == 8 &&
                   previewTable.Columns.All(column => column is DataGridTemplateColumn),
