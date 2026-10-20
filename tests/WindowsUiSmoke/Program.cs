@@ -697,10 +697,11 @@ internal static class Program
                 fakeExcel.ActiveCell = fakeSheet.Cells[74210, 4];
                 var selectedWindow = new FakeExcelWindow
                 {
-                    Active = true, ActiveSheet = fakeSheet,
+                    Hwnd = 301, ActiveSheet = fakeSheet,
                     ActiveCell = fakeSheet.Cells[74210, 4]
                 };
                 fakeBook.Windows = new FakeExcelWindows(selectedWindow);
+                fakeExcel.ActiveWindow = selectedWindow;
                 var discovered = new MailRuDesktop.App.Mailing.OpenExcelBook
                 {
                     Workbook = fakeBook, ApplicationHwnd = fakeExcel.Hwnd,
@@ -725,11 +726,12 @@ internal static class Program
                     Worksheets = new FakeExcelWorksheets { Sheet = new FakeExcelSheet() },
                     Windows = new FakeExcelWindows(new FakeExcelWindow
                     {
-                        Active = false, ActiveSheet = new FakeExcelSheet(),
+                        Hwnd = 302, ActiveSheet = new FakeExcelSheet(),
                         ActiveCell = new FakeExcelSheet().Cells[3, 1]
                     })
                 };
                 fakeExcel.ActiveWorkbook = anotherBook;
+                fakeExcel.ActiveWindow = anotherBook.Windows.Item[1];
                 fakeExcel.ActiveSheet = anotherBook.Worksheets.Sheet;
                 fakeExcel.ActiveCell = fakeSheet.Cells[74199, 1];
                 Check(MailRuDesktop.App.Mailing.ExcelInteropService
@@ -738,16 +740,16 @@ internal static class Program
                 // Multiple windows for the SAME book: use the one that is active.
                 var secondWindow = new FakeExcelWindow
                 {
-                    Active = true, ActiveSheet = fakeSheet,
+                    Hwnd = 303, ActiveSheet = fakeSheet,
                     ActiveCell = fakeSheet.Cells[74212, 1]
                 };
-                selectedWindow.Active = false;
                 fakeBook.Windows = new FakeExcelWindows(selectedWindow, secondWindow);
+                fakeExcel.ActiveWindow = secondWindow;
                 Check(MailRuDesktop.App.Mailing.ExcelInteropService
                          .OpenReader(discovered, "Компании").StartRow == 74212,
                     "multiple windows for one workbook use the active window cell");
                 fakeBook.Windows = new FakeExcelWindows(selectedWindow);
-                selectedWindow.Active = true;
+                fakeExcel.ActiveWindow = selectedWindow;
                 var incremental = MailRuDesktop.App.Mailing.MailingPlanner.CreateSession(
                     localProfile, "Body {ИНН_организации}",
                     new HashSet<string>(StringComparer.OrdinalIgnoreCase),

@@ -3,6 +3,7 @@
 public sealed class FakeExcelApplication
 {
     public int Hwnd { get; set; } = 43001;
+    public FakeExcelWindow? ActiveWindow { get; set; }
     public FakeExcelWorkbook? ActiveWorkbook { get; set; }
     public FakeExcelSheet? ActiveSheet { get; set; }
     public FakeExcelCell ActiveCell { get; set; } = null!;
@@ -19,7 +20,7 @@ public sealed class FakeExcelWorkbook
 
 public sealed class FakeExcelWindow
 {
-    public bool Active { get; set; }
+    public int Hwnd { get; set; }
     public FakeExcelSheet ActiveSheet { get; set; } = null!;
     public FakeExcelCell ActiveCell { get; set; } = null!;
 }
