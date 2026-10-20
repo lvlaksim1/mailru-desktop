@@ -127,16 +127,86 @@
         </StackPanel>
         <DataGrid x:Name="PreviewGrid" Grid.Row="5" AutoGenerateColumns="False"
                   IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single"
-                  SelectionChanged="PreviewGrid_SelectionChanged">
+                  SelectionChanged="PreviewGrid_SelectionChanged"
+                  EnableRowVirtualization="True" EnableColumnVirtualization="True">
+            <DataGrid.Resources>
+                <Style x:Key="PreviewGridSelectableTextStyle" TargetType="{x:Type TextBox}">
+                    <Setter Property="IsReadOnly" Value="True"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="Padding" Value="3,2"/>
+                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                    <Setter Property="HorizontalScrollBarVisibility" Value="Hidden"/>
+                    <Setter Property="TextWrapping" Value="NoWrap"/>
+                    <EventSetter Event="PreviewMouseLeftButtonDown" Handler="PreviewGridText_PreviewMouseLeftButtonDown"/>
+                    <EventSetter Event="MouseDoubleClick" Handler="PreviewGridText_MouseDoubleClick"/>
+                </Style>
+            </DataGrid.Resources>
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Строка" Width="65" Binding="{Binding RowNumber}"/>
-                <DataGridTextColumn Header="Получатель" Width="180" Binding="{Binding Email}"/>
-                <DataGridTextColumn Header="ИНН" Width="120" Binding="{Binding Inn}"/>
-                <DataGridTextColumn Header="Организация" Width="180" Binding="{Binding Organization}"/>
-                <DataGridTextColumn Header="Отправитель" Width="185" Binding="{Binding Sender}"/>
-                <DataGridTextColumn Header="Назначено" Width="160" Binding="{Binding ScheduledText}"/>
-                <DataGridTextColumn Header="Состояние" Width="130" Binding="{Binding DisplayStatus}"/>
-                <DataGridTextColumn Header="Причина / примечание" Width="*" Binding="{Binding Reason}"/>
+                <DataGridTemplateColumn Header="Строка" Width="65">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBox Style="{StaticResource PreviewGridSelectableTextStyle}"
+                                     Text="{Binding RowNumber, Mode=OneWay}" ToolTip="{Binding RowNumber}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Получатель" Width="180">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBox Style="{StaticResource PreviewGridSelectableTextStyle}"
+                                     Text="{Binding Email, Mode=OneWay}" ToolTip="{Binding Email}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="ИНН" Width="120">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBox Style="{StaticResource PreviewGridSelectableTextStyle}"
+                                     Text="{Binding Inn, Mode=OneWay}" ToolTip="{Binding Inn}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Организация" Width="180">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBox Style="{StaticResource PreviewGridSelectableTextStyle}"
+                                     Text="{Binding Organization, Mode=OneWay}" ToolTip="{Binding Organization}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Отправитель" Width="185">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBox Style="{StaticResource PreviewGridSelectableTextStyle}"
+                                     Text="{Binding Sender, Mode=OneWay}" ToolTip="{Binding Sender}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Назначено" Width="160">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBox Style="{StaticResource PreviewGridSelectableTextStyle}"
+                                     Text="{Binding ScheduledText, Mode=OneWay}" ToolTip="{Binding ScheduledText}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Состояние" Width="130">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBox Style="{StaticResource PreviewGridSelectableTextStyle}"
+                                     Text="{Binding DisplayStatus, Mode=OneWay}" ToolTip="{Binding DisplayStatus}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Причина / примечание" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBox Style="{StaticResource PreviewGridSelectableTextStyle}"
+                                     Text="{Binding Reason, Mode=OneWay}" ToolTip="{Binding Reason}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
         <Grid Grid.Row="6" Margin="0,10,0,0">
