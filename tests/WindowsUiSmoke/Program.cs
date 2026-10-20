@@ -703,6 +703,43 @@ internal static class Program
                 Check(blockedRepeat,
                     "indeterminate or previously accepted Excel row cannot be resubmitted");
 
+                var nextTask = sampleTask with
+                {
+                    RowNumber = 3,
+                    Email = "private2@example.test"
+                };
+                var nextRun = journal.Create(journalProfile, @"C:\mailing\source.xlsx",
+                    "Лист1", [nextTask]);
+                var engine = new MailRuDesktop.App.Mailing.MailingSubmissionEngine(journal);
+                var sent = 0;
+                var written = 0;
+                var fakeAcceptance = new Func<
+                    MailRuDesktop.App.Mailing.MailingJobRecord,
+                    Task<MailRuDesktop.Protocol.MailRuCommandResult>>(_ =>
+                {
+                    sent++;
+                    return Task.FromResult(new MailRuDesktop.Protocol.MailRuCommandResult(
+                        true, "{\"status\":200}"));
+                });
+                engine.ExecuteAsync(nextRun, fakeAcceptance, _ =>
+                    Task.FromException(new IOException("Excel closed")), () => false)
+                    .GetAwaiter().GetResult();
+                Check(sent == 1 && nextRun.Jobs[0].Status ==
+                      MailRuDesktop.App.Mailing.MailingJobStatus.ExcelWritePending &&
+                      !nextRun.Jobs[0].ExcelWritten,
+                    "accepted server action survives failed Excel write");
+                engine.ExecuteAsync(journal.Load(nextRun.Id), fakeAcceptance, _ =>
+                {
+                    written++;
+                    return Task.CompletedTask;
+                }, () => false).GetAwaiter().GetResult();
+                var fullyRecovered = journal.Load(nextRun.Id);
+                Check(sent == 1 && written == 1 &&
+                      fullyRecovered.Jobs[0].Status ==
+                      MailRuDesktop.App.Mailing.MailingJobStatus.CompletedRecord,
+                    "Excel recovery writes once and never repeats the accepted POST");
+
+
 
             }
             finally
