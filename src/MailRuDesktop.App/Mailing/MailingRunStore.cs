@@ -184,6 +184,46 @@ internal sealed class MailingRunStore
         return task;
     }
 
+    // Transient letters bypass all journal reads and writes. The user expressly
+    // accepts that restarted sends may duplicate earlier server operations.
+    internal static MailingRunRecord CreateUnrecorded(
+        MailingProfile profile, string workbookPath, string sheetName,
+        MailingPreparedRow row)
+    {
+        if (row.Status != "Ready" || row.ScheduledAt is null)
+            throw new InvalidOperationException("Неполное задание рассылки.");
+        return new MailingRunRecord
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            ProfileId = profile.Id,
+            ProfileName = profile.Name,
+            WorkbookPath = workbookPath,
+            SheetName = sheetName,
+            CreatedAtUtc = DateTimeOffset.UtcNow,
+            Jobs =
+            [
+                new MailingJobRecord
+                {
+                    RowNumber = row.RowNumber,
+                    Email = row.Email,
+                    Inn = row.Inn,
+                    Region = row.Region,
+                    Organization = row.Organization,
+                    Sender = row.Sender,
+                    MessageId = MailRuClient.CreateMessageId(),
+                    Subject = row.Subject,
+                    Body = row.Body,
+                    ScheduledAt = row.ScheduledAt.Value
+                }
+            ]
+        };
+    }
+
+    internal void Delete(string runId)
+    {
+        File.Delete(GetPath(runId));
+    }
+
     internal static string RowKey(int row, string email, string inn) =>
         row.ToString(System.Globalization.CultureInfo.InvariantCulture) + "\u001F" +
         email.Trim().ToUpperInvariant() + "\u001F" + inn.Trim();
@@ -223,7 +263,7 @@ internal sealed class MailingRunStore
         }
     }
 
-    internal MailingRunRecord Load(string runId)
+    internal MailingRunRecord Load(string runId, bool recoverSubmitting = true)
     {
         var protectedText = File.ReadAllText(GetPath(runId), Encoding.UTF8);
         var json = AuthorizationStore.Dpapi.Unprotect(protectedText);
@@ -235,23 +275,24 @@ internal sealed class MailingRunStore
         // A process can end after POST was sent but before its answer was saved.
         // Such a request must never be automatically submitted again.
         var modified = false;
-        foreach (var task in run.Jobs.Where(x => x.Status == MailingJobStatus.Submitting))
+        foreach (var task in run.Jobs.Where(x => recoverSubmitting && x.Status == MailingJobStatus.Submitting))
         {
             task.Status = MailingJobStatus.Indeterminate;
             task.ErrorCode = "interrupted_while_submitting";
             modified = true;
         }
-        if (modified) Save(run);
+        if (modified && recoverSubmitting) Save(run);
         return run;
     }
 
-    internal IReadOnlyList<MailingRunRecord> ListRecent(int maxCount = 100)
+    internal IReadOnlyList<MailingRunRecord> ListRecent(int maxCount = 100,
+        bool recoverSubmitting = true)
     {
         if (!Directory.Exists(_directory)) return [];
         return Directory.EnumerateFiles(_directory, "*.run")
             .OrderByDescending(File.GetLastWriteTimeUtc)
             .Take(Math.Clamp(maxCount, 1, 1000))
-            .Select(path => Load(Path.GetFileNameWithoutExtension(path)))
+            .Select(path => Load(Path.GetFileNameWithoutExtension(path), recoverSubmitting))
             .OrderByDescending(x => x.CreatedAtUtc)
             .ToArray();
     }

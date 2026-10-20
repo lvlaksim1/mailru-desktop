@@ -22,6 +22,7 @@ internal sealed class MailingProfile
     public string StartTime { get; set; } = "09:00";
     public string TimeZoneId { get; set; } = TimeZoneInfo.Local.Id;
     public int IntervalSeconds { get; set; } = 65;
+    public bool JournalEnabled { get; set; } = true;
     public string TemplateName { get; set; } = "";
     public string SubjectTemplate { get; set; } =
         "О завершении срока действия СОУТ (Специальной оценки условий труда) в {Название_организации} (ИНН {ИНН_организации}) регион {Регион}";
