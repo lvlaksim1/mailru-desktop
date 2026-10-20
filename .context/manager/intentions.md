@@ -451,3 +451,9 @@ Owner directed three changes, including the explicit clarification that group re
 
 ## I-086 — 20.10.2026: приёмка v0.3.82 (ACTIVE)
 Владелец должен испытать повторный поиск одной записи по ИНН, ручное название, возврат с квотами; отдельно исходящее письмо → «Отправить повторно» → штатный редактор с прежним содержимым/вложениями и новой немедленной или отложенной отправкой, затем архив оригинала после подтверждения. CI не подменяет живую проверку.
+
+## I-086 — 20.10.2026: acceptance v0.3.82 (COMPLETED)
+Owner explicitly confirmed Excel row correction/reinclusion and scheduled outbox resend worked as intended in v0.3.82.
+
+## I-087 — 20.10.2026: accept v0.3.83/v0.3.84 Excel mass scheduling (ACTIVE)
+Owner authorized and requested implementation. PR #194 (v0.3.83) and #196 (v0.3.84) are merged and official releases built with successful main CI. Remaining acceptance: owner-installed latest v0.3.84; verify copy/double click, controlled small scheduled send to permitted personal test addresses from an open, filtered Excel sheet, confirmed Mail.ru Outbox jobs, exact original-row Excel two-cell write, journal pause/recovery and no unknown-outcome replay. Do not assume offline smoke is real SMTP delivery or live AJ behavior. Fix observed defects through official update installers only.

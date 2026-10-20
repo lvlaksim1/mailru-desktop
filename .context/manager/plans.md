@@ -486,3 +486,10 @@ Published code via feature branch and PR #174, CI on Windows (pull request 38888
 
 ## 20.10.2026 — план после v0.3.82
 В первую очередь пользовательская приёмка единичного восстановления организации в Excel и повторной отправки из «Исходящих» с архивом оригинала. Владелец уже экспериментально подтвердил отмену первоначального расписания переносом исходного письма. Отправка/запись Excel остаются отключёнными. Следующий отдельный этап Excel — доказательство семантики id в /schedule, способа сверки неизвестного ответа, долговечный журнал, затем постановка и запись подтверждённых результатов. Только официальные выпуски; не переделывать стабильные WPF/WebView2/MCS компоненты.
+
+## 20.10.2026 — plan after v0.3.84 official release
+1. Owner updates MailRu Desktop via built-in update or official https://github.com/lvlaksim1/mailru-desktop/releases/download/v0.3.84/MailRuDesktop_Update_v0.3.84.exe .
+2. Verify eight Excel preview columns allow text selection and Ctrl+C, full-cell selection on double click, without altering underlying prepared rows.
+3. With a saved open Excel workbook and 1–3 controlled permitted own recipients, prepare from active visible row and check filter, organization lookup, account quotas, exact letter body and server schedule. Do not start against real customers before controlled acceptance.
+4. After user confirms launch, compare jobs in Mail.ru Исходящие and history, written «рассылка по СОУТ» (planned date) and «исх электронка» (sender) in corresponding original Excel rows, and no unintended changes. Save Excel manually.
+5. Test pause/resume, disconnected Excel recovery of accepted-but-unwritten marks, and unknown server response no duplicate POST. CI proved simulated cases only; investigate real faults, deliver standard incremental official releases. v0.3.84 already includes two-column writeback originally planned for v0.3.85.
