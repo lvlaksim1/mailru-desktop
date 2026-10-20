@@ -533,7 +533,7 @@ public partial class ExcelMailingWindow : Window
     }
 
     // TextBox normally selects just one word; the requested gesture selects the entire cell.
-    private static void PreviewGridText_MouseDoubleClick(
+    private void PreviewGridText_MouseDoubleClick(
         object sender, MouseButtonEventArgs e)
     {
         if (sender is not TextBox textBox) return;
