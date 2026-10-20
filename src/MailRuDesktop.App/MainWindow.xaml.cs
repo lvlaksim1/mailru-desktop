@@ -1913,6 +1913,7 @@ public partial class MainWindow : Window
         }
 
         var repliedMessageId = _composeReplyToId;
+        var resendOriginalAtSend = _resendOriginalId;
         var archiveAfterReply = ArchiveAfterReplyCheckBox.IsChecked == true &&
             !string.IsNullOrWhiteSpace(repliedMessageId) && scheduledFor is null;
         SendButton.IsEnabled = false;
@@ -1971,7 +1972,7 @@ public partial class MainWindow : Window
 
             // A confirmed send/schedule is irreversible; never repeat it if
             // archiving the old scheduled message fails.
-            var resendOriginalId = _resendOriginalId;
+            var resendOriginalId = resendOriginalAtSend;
             _resendOriginalId = null;
             if (resendOriginalId is not null)
             {
