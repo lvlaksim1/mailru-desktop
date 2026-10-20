@@ -678,6 +678,67 @@ internal static class Program
                   sizeTable.Height > initialHeight,
                 "drag handle changes account-table height and shifts remaining layout");
             mailingWindow.SaveSenderGridHeight();
+            Check(Require<Button>(mailingWindow, "RetryOrganizationButton").IsEnabled &&
+                  Require<Button>(mailingWindow, "ManualOrganizationButton").IsEnabled &&
+                  Require<Button>(mailingWindow, "IncludeOrganizationButton").IsEnabled,
+                "Excel preparation exposes single-row retry, manual entry and reinclusion");
+
+            // A recovered name is staged on one row and explicitly returned,
+            // without changing Excel or exceeding the sender quota.
+            var correctionWindowType = typeof(MailRuDesktop.App.Mailing.ExcelMailingWindow);
+            var recoveryProfile = new MailRuDesktop.App.Mailing.MailingProfile
+            {
+                StartDate = DateTime.Today.AddDays(4),
+                StartTime = "09:00",
+                Senders = [new() { Login = "first@example.com", Quantity = 1 }]
+            };
+            var recoveryRows = new List<MailRuDesktop.App.Mailing.MailingExcelRow>
+            {
+                new(2, true, "failed@example.com", "7707083893", "Москва", "", "", ""),
+                new(3, true, "ready@example.com", "7736207543", "Москва", "", "", "")
+            };
+            var recoveryNames = new Dictionary<string, string>
+            { ["7736207543"] = "ООО Готово" };
+            var recoveryExcluded = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var recoveryAuthorized = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            { "first@example.com" };
+            var recoveryPreview = MailRuDesktop.App.Mailing.MailingPlanner.Prepare(
+                recoveryProfile, recoveryRows, recoveryNames,
+                "Здравствуйте, {Название_организации}", recoveryExcluded,
+                recoveryAuthorized);
+            Check(recoveryPreview.Rows[0].Status == "Требует проверки" &&
+                  recoveryPreview.Rows[1].Status == "Ready",
+                "an unresolved organization remains outside the initial quota");
+            correctionWindowType.GetMethod("CapturePreparationSettings",
+                BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(
+                mailingWindow, new object[]
+                { recoveryProfile, "Здравствуйте, {Название_организации}",
+                  recoveryExcluded, recoveryAuthorized });
+            ((List<MailRuDesktop.App.Mailing.MailingExcelRow>)
+                correctionWindowType.GetField("_preparedSourceRows",
+                    BindingFlags.Instance | BindingFlags.NonPublic)!
+                    .GetValue(mailingWindow)!).AddRange(recoveryRows);
+            ((Dictionary<string, string?>)
+                correctionWindowType.GetField("_preparedNames",
+                    BindingFlags.Instance | BindingFlags.NonPublic)!
+                    .GetValue(mailingWindow)!)["7736207543"] = "ООО Готово";
+            var previewTable = Require<DataGrid>(mailingWindow, "PreviewGrid");
+            previewTable.ItemsSource = recoveryPreview.Rows;
+            previewTable.SelectedItem = recoveryPreview.Rows[0];
+            correctionWindowType.GetMethod("StageOrganizationName",
+                BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(
+                mailingWindow, new object[] { recoveryPreview.Rows[0], "ООО Вручную", true });
+            correctionWindowType.GetMethod("IncludeOrganization_Click",
+                BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(
+                mailingWindow, new object[] { Require<Button>(mailingWindow,
+                    "IncludeOrganizationButton"), new RoutedEventArgs() });
+            var afterRecovery = ((IEnumerable<MailRuDesktop.App.Mailing.MailingPreparedRow>)
+                previewTable.ItemsSource).ToArray();
+            Check(afterRecovery.Single(x => x.RowNumber == 2).Status == "Ready" &&
+                  afterRecovery.Single(x => x.RowNumber == 2).Subject.Contains("ООО Вручную") &&
+                  afterRecovery.Single(x => x.RowNumber == 3).Status == "Пропуск" &&
+                  afterRecovery.Count(x => x.Status == "Ready") == 1,
+                "manual row restoration recalculates schedules without increasing quotas");
 
             Check(FindDescendant<Button>(mailingWindow!, b =>
                       (b.Content as string)?.Contains("Проверить и подготовить") == true) is not null &&
@@ -715,6 +776,12 @@ internal static class Program
                 var detachedReader = new MessageWindow(downloadTestMailClient,
                     summary, null, 0,
                     Array.Empty<MailRuDesktop.Protocol.MailRuFolderSummary>());
+                var resendButton = Require<Button>(detachedReader,
+                    "SendScheduledNowButton");
+                Check((string?)resendButton.Content == "Отправить повторно" &&
+                      resendButton.IsEnabled &&
+                      typeof(MessageWindow).GetProperty("ResendRequested") is not null,
+                    "outbox reader uses an enabled resend action and reports compose request");
                 var zipButton = Require<Button>(detachedReader,
                     "DownloadAllAttachmentsButton");
                 Check(zipButton.Visibility == Visibility.Collapsed,

@@ -205,6 +205,7 @@ public partial class ExcelMailingWindow : Window
             _dirty = false;
             DirtyText.Text = "";
             UpdateQuotaSummary();
+            ClearCorrectionState();
             PreviewGrid.ItemsSource = null;
             MessagePreviewText.Clear();
         }
@@ -425,14 +426,17 @@ public partial class ExcelMailingWindow : Window
             _preparationCancellation = new CancellationTokenSource();
             PrepareButton.IsEnabled = false;
             StopButton.Visibility = Visibility.Visible;
+            ClearCorrectionState();
             PreviewGrid.ItemsSource = null;
             MessagePreviewText.Clear();
             StatusText.Text = "Проверка активной строки и заголовков выбранного листа...";
             var reader = ExcelInteropService.OpenReader(book, sheet);
             var exclusions = _store.ReadExclusions();
+            var authorized = _authorizations.Logins.ToHashSet(
+                StringComparer.OrdinalIgnoreCase);
             var session = MailingPlanner.CreateSession(profile, template.Body,
-                exclusions, _authorizations.Logins.ToHashSet(
-                    StringComparer.OrdinalIgnoreCase));
+                exclusions, authorized);
+            CapturePreparationSettings(profile, template.Body, exclusions, authorized);
             var names = new Dictionary<string, string?>(StringComparer.Ordinal);
             var unavailable = 0;
             using var lookup = new OrganizationLookupService();
@@ -446,6 +450,7 @@ public partial class ExcelMailingWindow : Window
                 {
                     _preparationCancellation.Token.ThrowIfCancellationRequested();
                     if (session.IsFull) break;
+                    _preparedSourceRows.Add(row);
                     countVisible++;
                     string? name = null;
                     if (session.NeedsOrganization(row))
@@ -457,6 +462,7 @@ public partial class ExcelMailingWindow : Window
                                 $"Подготовлено {session.Result.ReadyCount}/{session.Quota}";
                             try
                             {
+                                _lastOrganizationRequestAt = DateTimeOffset.UtcNow;
                                 name = await lookup.ResolveAsync(row.Inn,
                                     _preparationCancellation.Token);
                                 if (string.IsNullOrWhiteSpace(name))
@@ -475,6 +481,8 @@ public partial class ExcelMailingWindow : Window
                             names[row.Inn] = name;
                         }
                     }
+                    if (names.TryGetValue(row.Inn, out var resolved))
+                        _preparedNames[row.Inn] = resolved;
                     session.Accept(row, name);
                 }
                 StatusText.Text =
