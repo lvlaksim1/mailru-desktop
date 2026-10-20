@@ -776,6 +776,29 @@ internal static class Program
                       MailRuDesktop.App.Mailing.MailingJobStatus.CompletedRecord,
                     "Excel recovery writes once and never repeats the accepted POST");
 
+                var refused = journal.Create(journalProfile, @"C:\mailing\source.xlsx",
+                    "Лист1", [nextTask with { RowNumber = 4, Email = "refused@example.test" }]);
+                engine.ExecuteAsync(refused, _ => Task.FromResult(
+                    new MailRuDesktop.Protocol.MailRuCommandResult(false,
+                        "{\"status\":400,\"body\":\"invalid\"}")),
+                    _ => throw new Exception("Excel must not be written"),
+                    () => false).GetAwaiter().GetResult();
+                Check(refused.Jobs[0].Status ==
+                      MailRuDesktop.App.Mailing.MailingJobStatus.Rejected,
+                    "an explicit server refusal is never marked as accepted");
+
+                var ambiguous = journal.Create(journalProfile, @"C:\mailing\source.xlsx",
+                    "Лист1", [nextTask with { RowNumber = 5, Email = "ambiguous@example.test" }]);
+                engine.ExecuteAsync(ambiguous, _ => Task.FromResult(
+                    new MailRuDesktop.Protocol.MailRuCommandResult(false,
+                        "{\"status\":500}")),
+                    _ => throw new Exception("Excel must not be written"),
+                    () => false).GetAwaiter().GetResult();
+                Check(ambiguous.Jobs[0].Status ==
+                      MailRuDesktop.App.Mailing.MailingJobStatus.Indeterminate,
+                    "uncertain server failure is held for review, never replayed");
+
+
 
 
             }
