@@ -14,6 +14,7 @@ public partial class MainWindow
     private readonly List<string> _previewAttachmentPaths = [];
     private PreviewComposeMode _previewComposeMode;
     private bool _previewEnhancementsInitialized;
+    private string? _previewComposeMessageId;
 
     private void PreviewEnhancements_Loaded(object sender, RoutedEventArgs e)
     {
@@ -27,6 +28,7 @@ public partial class MainWindow
 
     private void UpdatePreviewSelectionFields(MailRuMessageSummary message)
     {
+        _previewComposeMessageId = null;
         PreviewComposePanel.Visibility = Visibility.Collapsed;
         PreviewComposeStatusText.Text = string.Empty;
         // The pending message's header is published with the prepared body.
@@ -303,7 +305,7 @@ public partial class MainWindow
         PreviewSendComposeButton.IsEnabled = false;
         try
         {
-            var messageId = MailRuClient.KnownWorkingMessageId;
+            var messageId = _previewComposeMessageId ??= MailRuClient.CreateMessageId();
             var attachmentIds = new List<string>();
 
             for (var i = 0; i < _previewAttachmentPaths.Count; i++)
@@ -348,6 +350,7 @@ public partial class MainWindow
             PreviewComposeStatusText.Text = scheduledFor is null
                 ? "Отправлено."
                 : $"Запланировано на {scheduledFor.Value.LocalDateTime:dd.MM.yyyy HH:mm}.";
+            _previewComposeMessageId = null;
             ResetPreviewSendOptions();
             PreviewComposeBodyTextBox.Clear();
             _previewAttachmentPaths.Clear();

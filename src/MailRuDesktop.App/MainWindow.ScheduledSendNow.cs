@@ -82,7 +82,8 @@ public partial class MainWindow
                         if (full.Html.Contains("cid:", StringComparison.OrdinalIgnoreCase))
                             throw new InvalidOperationException("Unsupported inline CID image.");
 
-                        // Prepare every attachment for the clone before send.
+                        // Bind every attachment and the immediate clone to one fresh ID.
+                        var cloneId = MailRuClient.CreateMessageId();
                         var attachmentIds = new List<string>();
                         foreach (var attachment in full.Attachments)
                         {
@@ -92,7 +93,7 @@ public partial class MainWindow
                                 throw new InvalidOperationException("Missing attachment data.");
                             using var stream = new MemoryStream(bytes, writable: false);
                             attachmentIds.Add(await _mailRu.UploadAttachmentAsync(
-                                token, stream, attachment.DisplayName));
+                                token, stream, attachment.DisplayName, cloneId));
                         }
 
                         return new MailRuOutgoingMessage(
@@ -103,6 +104,7 @@ public partial class MainWindow
                             SendDate: null,
                             AttachmentIds: attachmentIds,
                             Priority: full.Priority,
+                            MessageId: cloneId,
                             Cc: string.Join(", ", full.Cc),
                             Bcc: string.Join(", ", full.Bcc));
                     },

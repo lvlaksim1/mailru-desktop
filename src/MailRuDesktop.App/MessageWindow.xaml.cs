@@ -26,6 +26,7 @@ public partial class MessageWindow : Window
     private readonly Dictionary<string, MailRuIncomingAttachment> _forwardSourceAttachments =
         new(StringComparer.Ordinal);
     private RichComposeEditor? _messageRichEditor;
+    private string? _messageComposeId;
 
     public bool MailboxChanged { get; private set; }
     public bool ReplyRequested { get; private set; }
@@ -413,7 +414,7 @@ public partial class MessageWindow : Window
 
         try
         {
-            var messageId = MailRuClient.KnownWorkingMessageId;
+            var messageId = _messageComposeId ??= MailRuClient.CreateMessageId();
             var attachmentIds = new List<string>();
 
             for (var i = 0; i < _composeAttachmentPaths.Count; i++)
@@ -463,6 +464,7 @@ public partial class MessageWindow : Window
                 return;
             }
 
+            _messageComposeId = null;
             ComposeStatusText.Text = "Отправлено.";
             ComposeBodyTextBox.Clear();
             _composeAttachmentPaths.Clear();

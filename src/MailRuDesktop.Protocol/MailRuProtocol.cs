@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Security.Cryptography;
 using System.Text.Json;
 
 namespace MailRuDesktop.Protocol;
@@ -143,7 +144,11 @@ public sealed class MailRuAuthorizationException : MailRuProtocolException
 
 public sealed partial class MailRuClient : IDisposable
 {
-    public const string KnownWorkingMessageId = "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR";
+    // Like the official Android TornadoSendCommand, each new outgoing operation
+    // owns a freshly generated 32-character message identifier.
+    public static string CreateMessageId() =>
+        RandomNumberGenerator.GetString(
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789", 32);
 
     private readonly MailRuClientOptions _options;
     private readonly HttpClient _http;
@@ -748,7 +753,7 @@ public sealed partial class MailRuClient : IDisposable
         if (string.IsNullOrWhiteSpace(fileName))
             throw new ArgumentException("File name is required.", nameof(fileName));
 
-        messageId ??= KnownWorkingMessageId;
+        messageId ??= CreateMessageId();
 
         var uri = BuildUri("/api/v1/messages/attaches/add", new Dictionary<string, string?>
         {
@@ -801,7 +806,7 @@ public sealed partial class MailRuClient : IDisposable
             throw new ArgumentException("Recipient is required.", nameof(message));
 
         var messageId = string.IsNullOrWhiteSpace(message.MessageId)
-            ? KnownWorkingMessageId
+            ? CreateMessageId()
             : message.MessageId!;
 
         var attachmentIds = message.AttachmentIds ?? Array.Empty<string>();

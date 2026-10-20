@@ -25,6 +25,15 @@ internal static class Program
             var app = new App();
             app.InitializeComponent();
 
+            // Unique 32-character IDs follow the original Android send command.
+            var generatedIds = Enumerable.Range(0, 128)
+                .Select(_ => MailRuDesktop.Protocol.MailRuClient.CreateMessageId())
+                .ToArray();
+            Check(generatedIds.All(id => id.Length == 32 &&
+                      id.All(char.IsLetterOrDigit)) &&
+                  generatedIds.Distinct(StringComparer.Ordinal).Count() == generatedIds.Length,
+                "outgoing message IDs are per-operation unique 32-character tokens");
+
             // Reply-to-thread is To/Cc only; sender, blind-copy and the
             // current mailbox never become automatic recipients.
             var threadMessages = new[]
@@ -723,6 +732,17 @@ internal static class Program
                     BindingFlags.Instance | BindingFlags.NonPublic)!
                     .GetValue(mailingWindow)!)["7736207543"] = "ООО Готово";
             var previewTable = Require<DataGrid>(mailingWindow, "PreviewGrid");
+            Check(previewTable.Columns.Count == 8 &&
+                  previewTable.Columns.All(column => column is DataGridTemplateColumn),
+                "all eight Excel mailing preview columns render selectable text");
+            foreach (DataGridTemplateColumn column in previewTable.Columns)
+            {
+                var cellText = column.CellTemplate!.LoadContent() as TextBox;
+                Check(cellText is { IsReadOnly: true, Focusable: true } &&
+                      BindingOperations.GetBinding(cellText, TextBox.TextProperty) is not null,
+                    "preview cell supports native text selection and copying without editing");
+            }
+
             previewTable.ItemsSource = recoveryPreview.Rows;
             previewTable.SelectedItem = recoveryPreview.Rows[0];
             correctionWindowType.GetMethod("StageOrganizationName",
