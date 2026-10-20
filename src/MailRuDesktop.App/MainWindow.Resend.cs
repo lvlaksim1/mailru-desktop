@@ -39,6 +39,14 @@ public partial class MainWindow
             return;
         }
 
+        if (!string.IsNullOrWhiteSpace(ComposeToTextBox.Text) ||
+            !string.IsNullOrWhiteSpace(ComposeSubjectTextBox.Text) ||
+            !string.IsNullOrWhiteSpace(ComposeBodyTextBox.Text) ||
+            _attachmentPaths.Count != 0)
+        {
+            FolderStatusText.Text = "Сначала завершите или сохраните незавершённое новое письмо.";
+            return;
+        }
         ShowComposeWindow();
         _resendOriginalId = original.Id;
         _resendSourceAttachments.Clear();
