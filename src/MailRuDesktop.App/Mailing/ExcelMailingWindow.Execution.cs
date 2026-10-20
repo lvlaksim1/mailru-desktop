@@ -247,7 +247,10 @@ public partial class ExcelMailingWindow
         {
             StatusText.Text =
                 $"Обработка прервана. Ранее принятые Mail.ru задания не отменены. " +
-                $"Подтверждено: {accepted}; неопределённые результаты повторяться не будут.";
+                $"Подтверждено: {accepted}; " +
+                (JournalEnabledCheck.IsChecked == true
+                    ? "неопределённые результаты защищены журналом."
+                    : "журнал отключён, неопределённые результаты не сохранены.");
         }
         catch (Exception ex)
         {
@@ -255,7 +258,9 @@ public partial class ExcelMailingWindow
                 ex.GetType().Name + ": " + ex.Message);
             StatusText.Text =
                 $"Ошибка: {ex.Message}. Уже подтверждённые отправки: {accepted}. " +
-                "Проверьте журнал и отметки Excel перед следующим запуском.";
+                (JournalEnabledCheck.IsChecked == true
+                    ? "Проверьте журнал и отметки Excel перед следующим запуском."
+                    : "Журнал отключён. Проверьте отметки Excel и письма Mail.ru.");
         }
         finally
         {

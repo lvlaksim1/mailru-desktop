@@ -599,6 +599,14 @@ internal static class Program
                     ]
                 };
                 mailingStore.Save(new[] { localProfile });
+                Check(mailingStore.Load().Single().JournalEnabled,
+                    "journaling defaults to enabled for existing saved profiles");
+                localProfile.JournalEnabled = false;
+                mailingStore.Save([localProfile]);
+                Check(!mailingStore.Load().Single().JournalEnabled,
+                    "journal opt-out persists in the selected mailing profile");
+                localProfile.JournalEnabled = true;
+                mailingStore.Save([localProfile]);
                 Check(mailingStore.Load().Single().Senders.Count == 2 &&
                       mailingStore.Load().Single().IntervalSeconds == 65,
                     "independent mailing profiles persist account quotas and 65-second interval");
@@ -908,6 +916,43 @@ internal static class Program
                     "Тестовая организация", "sender@example.test",
                     DateTimeOffset.Now.AddDays(3), "Проверка", "Секретный текст",
                     "Ready", "");
+                var noJournalDirectory = Path.Combine(testingDir, "no-journal");
+                var noJournalStore = new MailRuDesktop.App.Mailing.MailingRunStore(
+                    noJournalDirectory);
+                var unrecorded = MailRuDesktop.App.Mailing.MailingRunStore
+                    .CreateUnrecorded(journalProfile,
+                        @"C:\mailing\source.xlsx", "Лист1", sampleTask);
+                var unrecordedPostCount = 0;
+                var unrecordedExcelCount = 0;
+                new MailRuDesktop.App.Mailing.MailingSubmissionEngine(noJournalStore)
+                    .ExecuteAsync(unrecorded, job =>
+                    {
+                        unrecordedPostCount++;
+                        return Task.FromResult(new MailRuDesktop.Protocol.MailRuCommandResult(
+                            true, "{\\"status\\":200}"));
+                    }, job =>
+                    {
+                        unrecordedExcelCount++;
+                        return Task.CompletedTask;
+                    }, () => false, persist: false).GetAwaiter().GetResult();
+                Check(!Directory.Exists(noJournalDirectory) &&
+                      unrecordedPostCount == 1 && unrecordedExcelCount == 1 &&
+                      unrecorded.Jobs[0].Status ==
+                          MailRuDesktop.App.Mailing.MailingJobStatus.CompletedRecord,
+                    "journal opt-out schedules and writes Excel without any protected record");
+                var unrecordedFailure = MailRuDesktop.App.Mailing.MailingRunStore
+                    .CreateUnrecorded(journalProfile,
+                        @"C:\mailing\source.xlsx", "Лист1", sampleTask);
+                new MailRuDesktop.App.Mailing.MailingSubmissionEngine(noJournalStore)
+                    .ExecuteAsync(unrecordedFailure, _ => Task.FromResult(
+                        new MailRuDesktop.Protocol.MailRuCommandResult(false,
+                            "{\\"status\\":500}")),
+                        _ => throw new Exception("must not write Excel"),
+                        () => false, persist: false).GetAwaiter().GetResult();
+                Check(!Directory.Exists(noJournalDirectory) &&
+                      unrecordedFailure.Jobs[0].Status ==
+                          MailRuDesktop.App.Mailing.MailingJobStatus.Indeterminate,
+                    "uncertain no-journal POST stops without creating a service journal");
                 var journalRun = journal.Create(journalProfile, @"C:\mailing\source.xlsx",
                     "Лист1", [sampleTask]);
                 Check(journalRun.Jobs.Count == 1 &&
@@ -922,6 +967,14 @@ internal static class Program
                 Check(interrupted.Jobs[0].Status ==
                       MailRuDesktop.App.Mailing.MailingJobStatus.Indeterminate,
                     "an interrupted request is never automatically treated as unsent");
+                var editRecord = journal.Load(journalRun.Id, recoverSubmitting: false);
+                editRecord.Jobs[0].Organization = "Исправленная организация";
+                editRecord.Jobs[0].Body = "Исправленный текст";
+                journal.Save(editRecord);
+                var reloadedEdit = journal.Load(journalRun.Id, recoverSubmitting: false);
+                Check(reloadedEdit.Jobs[0].Organization == "Исправленная организация" &&
+                      reloadedEdit.Jobs[0].Body == "Исправленный текст",
+                    "manual edits of an existing journal round-trip through DPAPI");
                 var blockedRepeat = false;
                 try
                 {
@@ -1029,6 +1082,9 @@ internal static class Program
                   sizeTable.Height > initialHeight,
                 "drag handle changes account-table height and shifts remaining layout");
             mailingWindow.SaveSenderGridHeight();
+            Check(Require<CheckBox>(mailingWindow, "JournalEnabledCheck").IsChecked == true &&
+                  Require<Button>(mailingWindow, "OpenJournalButton") is not null,
+                "mailing form provides the journal opt-out checkbox and editor button");
             Check(Require<Button>(mailingWindow, "SendButton").Content?.ToString() ==
                       "Отправить" &&
                   mailingWindow.FindName("PreviewGrid") is null &&
