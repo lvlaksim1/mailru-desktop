@@ -227,7 +227,7 @@
                 </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
-        <GridSplitter Grid.Row="6" Height="7" HorizontalAlignment="Stretch"
+        <GridSplitter x:Name="MessagePreviewSplitter" Grid.Row="6" Height="7" HorizontalAlignment="Stretch"
                       VerticalAlignment="Stretch" ResizeDirection="Rows"
                       ResizeBehavior="PreviousAndNext" Cursor="SizeNS"
                       Background="{DynamicResource AppBorderBrush}"
