@@ -106,12 +106,8 @@ internal sealed class MailingSubmissionEngine(MailingRunStore store)
             using var parsed = JsonDocument.Parse(response);
             if (!parsed.RootElement.TryGetProperty("status", out var status))
                 return false;
-            var number = status.ValueKind switch
-            {
-                JsonValueKind.Number when status.TryGetInt32(out var n) => n,
-                JsonValueKind.String when int.TryParse(status.GetString(), out var n) => n,
-                _ => 0
-            };
+            if (!int.TryParse(status.ToString(), out var number))
+                return false;
             // 429 and 449 are retry/rate-limit responses, not proof that an
             // already-issued scheduling operation was not accepted.
             return number is >= 400 and < 500 and not (429 or 449);
