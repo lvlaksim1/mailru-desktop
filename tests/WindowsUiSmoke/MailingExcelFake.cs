@@ -71,7 +71,12 @@ public sealed class FakeExcelCell(FakeExcelSheet sheet, int row, int col)
 {
     public int Row => row;
     public int Column => col;
-    public object? Value2 => sheet.Get(row, col);
+    public object? Value2
+    {
+        get => sheet.Get(row, col);
+        set => sheet.Put(row, col, value!);
+    }
+    public string NumberFormat { get; set; } = "General";
     public string Text => Convert.ToString(Value2,
         System.Globalization.CultureInfo.InvariantCulture) ?? "";
     public FakeExcelCell End(int direction) => direction switch
