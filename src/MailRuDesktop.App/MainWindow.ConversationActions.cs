@@ -36,6 +36,7 @@ public partial class MainWindow
             string.IsNullOrWhiteSpace(_accessToken))
             return;
         var readerGeneration = _readerGeneration;
+        var actionNonce = _conversationActionNonce;
 
         var conversation = _displayedConversation!;
         var login = _activeLogin;
@@ -49,8 +50,7 @@ public partial class MainWindow
 
             if (!string.Equals(full.Id, messageId, StringComparison.Ordinal) ||
                 readerGeneration != _readerGeneration ||
-                !string.Equals(_conversationActionNonce,
-                    ConversationActionNavigation.ExtractNonce(e.Uri),
+                !string.Equals(_conversationActionNonce, actionNonce,
                     StringComparison.Ordinal) ||
                 !ReferenceEquals(conversation, _displayedConversation) ||
                 !string.Equals(login, _activeLogin, StringComparison.OrdinalIgnoreCase) ||

@@ -136,6 +136,7 @@ public partial class MainWindow
             _displayedConversationBodies is null ||
             _displayedConversationSelectedId is null)
             return;
+        _conversationActionNonce ??= Guid.NewGuid().ToString("N");
         _currentPreparedHtml = MailRuConversationHtml.Render(
             _displayedConversation, _displayedConversationSelectedId,
             _displayedConversationBodies,

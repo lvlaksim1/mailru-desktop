@@ -141,35 +141,36 @@ internal static class Program
                     new MailRuDesktop.Protocol.MailRuConversationMember(
                         "id-2", "Another", "another@other.test", "Second", "Last", null, null)
                 ]);
-            var conversationMarkup = MailRuConversationHtml.Render(
+            var actionNonce = Guid.NewGuid().ToString("N");
+            var replyLink = ConversationActionNavigation.Create("reply", "id-1", actionNonce);
+            var forwardLink = ConversationActionNavigation.Create("forward", "id-2", actionNonce);
+            var secureMarkup = MailRuConversationHtml.Render(
                 conversationForActions, "id-2",
                 new Dictionary<string, MailRuDesktop.Protocol.MailRuFullMessage>
-                { ["id-1"] = threadMessages[0], ["id-2"] = threadMessages[1] });
-            Check(conversationMarkup.Contains("data-mail-action=\"reply\" data-mail-id=\"id-1\"") &&
-                  conversationMarkup.Contains("data-mail-action=\"forward\" data-mail-id=\"id-1\"") &&
-                  conversationMarkup.Contains("data-mail-action=\"reply\" data-mail-id=\"id-2\"") &&
-                  conversationMarkup.Contains("data-mail-action=\"forward\" data-mail-id=\"id-2\""),
-                "every proven conversation message has its own reply and forward buttons");
-            Check(ConversationMessageActions.TryParse(
-                    "{\"kind\":\"conversation-action\",\"action\":\"reply\",\"id\":\"id-1\",\"revision\":17}",
-                    out var memberAction, out var memberId, out var memberRevision) &&
-                  memberAction == "reply" && memberId == "id-1" &&
-                  memberRevision == 17 &&
-                  ConversationMessageActions.IsVerifiedMember(conversationForActions, memberId),
-                "browser action binds the exact clicked message and current reader revision");
-            Check(!ConversationMessageActions.IsVerifiedMember(
-                      conversationForActions, "guessed-id") &&
-                  !ConversationMessageActions.TryParse(
-                      "{\"kind\":\"conversation-action\",\"action\":\"delete\",\"id\":\"id-1\"}",
-                      out _, out _, out _) &&
-                  !ConversationMessageActions.TryParse(
-                      "{\"kind\":\"conversation-action\",\"action\":\"reply\",\"id\":\"id-1\",\"revision\":\"stale\"}",
-                      out _, out _, out _),
-                "unknown conversation IDs, commands and revisions are rejected");
-            Check(ReaderShellScripts.Commit(17).Contains("conversation-action") &&
-                  ReaderShellScripts.BindDetachedConversationActions().Contains(
-                      "conversation-action"),
-                "main and detached WebView readers bind the same per-message actions");
+                { ["id-1"] = threadMessages[0], ["id-2"] = threadMessages[1] },
+                actionNonce: actionNonce);
+            Check(secureMarkup.Contains(System.Net.WebUtility.HtmlEncode(replyLink)) &&
+                  secureMarkup.Contains(System.Net.WebUtility.HtmlEncode(forwardLink)) &&
+                  secureMarkup.Contains(">Ответить</a>") &&
+                  secureMarkup.Contains(">Переслать</a>"),
+                "each verified letter gets native reply/forward links without scripts");
+            Check(ConversationActionNavigation.TryParse(replyLink, actionNonce,
+                    out var clickedAction, out var clickedId) &&
+                  clickedAction == "reply" && clickedId == "id-1" &&
+                  ConversationMessageActions.IsVerifiedMember(conversationForActions, clickedId),
+                "native action resolves the exact clicked mail ID");
+            Check(!ConversationActionNavigation.TryParse(replyLink, "wrong-token",
+                      out _, out _) &&
+                  !ConversationActionNavigation.TryParse(
+                      ConversationActionNavigation.Create("forward", "guessed-id", actionNonce),
+                      "wrong-token", out _, out _) &&
+                  !ConversationActionNavigation.IsCommandUrl("https://other.example/mail") &&
+                  !ConversationMessageActions.IsVerifiedMember(
+                      conversationForActions, "guessed-id"),
+                "external, forged and stale action links cannot invoke mailing actions");
+            Check(!ReaderShellScripts.Commit(17).Contains("conversation-action") &&
+                  !ReaderShellScripts.CreateShell("#ffffff").Contains("<script"),
+                "untrusted mail readers require no clickable JavaScript handler");
             var richForwardSource = threadMessages[0] with
             {
                 Html = "<p>Важное <strong>письмо</strong> и <em>условие</em></p>",
