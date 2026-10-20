@@ -14,6 +14,24 @@ public sealed class FakeExcelWorkbook
     public string FullName { get; init; } = @"C:\fixture\mailing.xlsx";
     public FakeExcelApplication Application { get; set; } = null!;
     public FakeExcelWorksheets Worksheets { get; set; } = null!;
+    public FakeExcelWindows Windows { get; set; } = null!;
+}
+
+public sealed class FakeExcelWindow
+{
+    public bool Active { get; set; }
+    public FakeExcelSheet ActiveSheet { get; set; } = null!;
+    public FakeExcelCell ActiveCell { get; set; } = null!;
+}
+
+public sealed class FakeExcelWindows(params FakeExcelWindow[] windows)
+{
+    public int Count => windows.Length;
+    public FakeExcelWindowIndexer Item => new(windows);
+}
+public sealed class FakeExcelWindowIndexer(FakeExcelWindow[] windows)
+{
+    public FakeExcelWindow this[int index] => windows[index - 1];
 }
 
 public sealed class FakeExcelWorksheets
