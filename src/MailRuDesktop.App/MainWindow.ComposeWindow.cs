@@ -13,6 +13,11 @@ public partial class MainWindow
     private string? _composeSenderLogin;
     private string? _composeSenderToken;
     private string? _composeReplyToId;
+    // One identifier per prepared letter; retrying its request retains the same ID.
+    private string? _composeMessageId;
+
+    private string GetOrCreateComposeMessageId() =>
+        _composeMessageId ??= MailRuClient.CreateMessageId();
 
     // Keep the existing compose controls and rich-editor state in a separate
     // owned window. Do not duplicate the send, draft or attachment logic.
@@ -31,6 +36,7 @@ public partial class MainWindow
             throw new InvalidOperationException("Compose workspace has no panel parent.");
 
         _composeReplyToId = null;
+        GetOrCreateComposeMessageId();
         _composeSenderLogin = _activeLogin;
         _composeSenderToken = _accessToken;
         ComposeFromTextBox.Text = _composeSenderLogin ?? "Не выбран аккаунт";
