@@ -145,13 +145,13 @@ internal static class Program
                 conversationForActions, "id-2",
                 new Dictionary<string, MailRuDesktop.Protocol.MailRuFullMessage>
                 { ["id-1"] = threadMessages[0], ["id-2"] = threadMessages[1] });
-            Check(conversationMarkup.Contains("data-mail-action=\\"reply\\" data-mail-id=\\"id-1\\"") &&
-                  conversationMarkup.Contains("data-mail-action=\\"forward\\" data-mail-id=\\"id-1\\"") &&
-                  conversationMarkup.Contains("data-mail-action=\\"reply\\" data-mail-id=\\"id-2\\"") &&
-                  conversationMarkup.Contains("data-mail-action=\\"forward\\" data-mail-id=\\"id-2\\""),
+            Check(conversationMarkup.Contains("data-mail-action=\"reply\" data-mail-id=\"id-1\"") &&
+                  conversationMarkup.Contains("data-mail-action=\"forward\" data-mail-id=\"id-1\"") &&
+                  conversationMarkup.Contains("data-mail-action=\"reply\" data-mail-id=\"id-2\"") &&
+                  conversationMarkup.Contains("data-mail-action=\"forward\" data-mail-id=\"id-2\""),
                 "every proven conversation message has its own reply and forward buttons");
             Check(ConversationMessageActions.TryParse(
-                    "{\\"kind\\":\\"conversation-action\\",\\"action\\":\\"reply\\",\\"id\\":\\"id-1\\",\\"revision\\":17}",
+                    "{\"kind\":\"conversation-action\",\"action\":\"reply\",\"id\":\"id-1\",\"revision\":17}",
                     out var memberAction, out var memberId, out var memberRevision) &&
                   memberAction == "reply" && memberId == "id-1" &&
                   memberRevision == 17 &&
@@ -160,10 +160,10 @@ internal static class Program
             Check(!ConversationMessageActions.IsVerifiedMember(
                       conversationForActions, "guessed-id") &&
                   !ConversationMessageActions.TryParse(
-                      "{\\"kind\\":\\"conversation-action\\",\\"action\\":\\"delete\\",\\"id\\":\\"id-1\\"}",
+                      "{\"kind\":\"conversation-action\",\"action\":\"delete\",\"id\":\"id-1\"}",
                       out _, out _, out _) &&
                   !ConversationMessageActions.TryParse(
-                      "{\\"kind\\":\\"conversation-action\\",\\"action\\":\\"reply\\",\\"id\\":\\"id-1\\",\\"revision\\":\\"stale\\"}",
+                      "{\"kind\":\"conversation-action\",\"action\":\"reply\",\"id\":\"id-1\",\"revision\":\"stale\"}",
                       out _, out _, out _),
                 "unknown conversation IDs, commands and revisions are rejected");
             Check(ReaderShellScripts.Commit(17).Contains("conversation-action") &&
