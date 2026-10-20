@@ -1920,7 +1920,7 @@ public partial class MainWindow : Window
         }
 
         var repliedMessageId = _composeReplyToId;
-        var resendOriginalAtSend = _resendOriginalId;
+        var resendOriginalAtSend = _forwardSourceOnly ? null : _resendOriginalId;
         var archiveAfterReply = ArchiveAfterReplyCheckBox.IsChecked == true &&
             !string.IsNullOrWhiteSpace(repliedMessageId) && scheduledFor is null;
         SendButton.IsEnabled = false;
@@ -1981,6 +1981,7 @@ public partial class MainWindow : Window
             // archiving the old scheduled message fails.
             var resendOriginalId = resendOriginalAtSend;
             _resendOriginalId = null;
+            _forwardSourceOnly = false;
             if (resendOriginalId is not null)
             {
                 try

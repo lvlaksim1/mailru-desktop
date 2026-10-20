@@ -171,32 +171,11 @@ public partial class MainWindow
 
     private void PreviewForwardButton_Click(object sender, RoutedEventArgs e)
     {
-        if (ActivePreviewMessage is not MailRuMessageSummary message)
+        if (ActivePreviewMessage is not MailRuMessageSummary selected)
             return;
-
-        _previewComposeMode = PreviewComposeMode.Forward;
-        ResetPreviewSendOptions();
-        ResetPreviewTemplateSelectors();
-        PreviewComposePanel.Visibility = Visibility.Visible;
-        PreviewComposeToTextBox.Clear();
-        PreviewComposeSubjectTextBox.Text = PrefixPreviewSubject(
-            "Fwd:",
-            _currentFullMessage?.Subject ?? message.Subject);
-
-        var full = _currentFullMessage;
-        PreviewComposeBodyTextBox.Text = full is null
-            ? string.Empty
-            : "\n\n---------- Пересланное сообщение ----------\n" +
-              $"От: {full.SenderDisplay}\n" +
-              $"Кому: {string.Join(", ", full.To)}\n" +
-              $"Дата: {full.DateDisplay}\n" +
-              $"Тема: {full.Subject}\n\n" +
-              full.Text;
-
-        _previewAttachmentPaths.Clear();
-        RefreshPreviewAttachments();
-        PreviewComposeStatusText.Text = string.Empty;
-        PreviewComposeToTextBox.Focus();
+        // Exactly the same separate compose window as Reply.
+        OpenForwardComposeWindow(selected,
+            _currentFullMessage?.Id == selected.Id ? _currentFullMessage : null);
     }
 
     private sealed record PreviewAttachmentItem(string Path, string Name);

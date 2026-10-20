@@ -69,7 +69,7 @@ public partial class MainWindow
         window.SetResourceReference(ForegroundProperty, "AppTextBrush");
         window.Closed += (_, _) =>
         {
-            if (_composeReplyToId is not null)
+            if (_composeReplyToId is not null || _forwardSourceOnly)
                 _composeRichEditor?.ClearReplyMode();
             window.Content = null;
             ComposeWorkspace.Visibility = Visibility.Collapsed;
@@ -79,6 +79,7 @@ public partial class MainWindow
             _composeSenderToken = null;
             _composeReplyToId = null;
             _resendOriginalId = null;
+            _forwardSourceOnly = false;
             _resendSourceAttachments.Clear();
             ArchiveAfterReplyCheckBox.Visibility = Visibility.Collapsed;
             ArchiveAfterReplyCheckBox.IsChecked = true;
@@ -116,6 +117,12 @@ public partial class MainWindow
     private async void OpenReplyComposeWindow(
         MailRuMessageSummary source, MailRuFullMessage? full)
     {
+        if (full is not null &&
+            !string.Equals(full.Id, source.Id, StringComparison.Ordinal))
+        {
+            FolderStatusText.Text = "Выбранное письмо не совпадает с загруженным.";
+            return;
+        }
         if (_composeWindow is not null)
         {
             ShowComposeWindow();
