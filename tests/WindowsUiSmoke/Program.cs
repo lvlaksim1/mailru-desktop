@@ -56,6 +56,35 @@ internal static class Program
             Check(new TextRange(formattedMail.Document.ContentStart,
                       formattedMail.Document.ContentEnd).Text.Contains("Важное курсив", StringComparison.Ordinal),
                 "mailing preview WPF document displays rendered content rather than markdown tags");
+            // Inspect the ACTUAL AJ POST form, not just the formatted preview.
+            using (var record = new MailingWireRecorder())
+            using (var http = new HttpClient(record))
+            using (var client = new MailRuDesktop.Protocol.MailRuClient(httpClient: http))
+            {
+                var scheduled = client.SendMessageAsync("test-token",
+                    new MailRuDesktop.Protocol.MailRuOutgoingMessage(
+                        To: "recipient@example.test", Subject: "Тест оформления",
+                        Text: formattedMail.PlainText, Html: formattedMail.Html,
+                        SendDate: "1791507600",
+                        MessageId: MailRuDesktop.Protocol.MailRuClient.CreateMessageId()))
+                    .GetAwaiter().GetResult();
+                var encodedBody = record.LastForm.Split('&')
+                    .First(x => x.StartsWith("body=", StringComparison.Ordinal))
+                    ["body=".Length..].Replace("+", " ", StringComparison.Ordinal);
+                var decodedBody = Uri.UnescapeDataString(encodedBody);
+                using var posted = System.Text.Json.JsonDocument.Parse(decodedBody);
+                var htmlSent = posted.RootElement.GetProperty("html").GetString() ?? "";
+                var textSent = posted.RootElement.GetProperty("text").GetString() ?? "";
+                Check(scheduled.Success && record.LastPath == "/api/v1/messages/schedule" &&
+                      htmlSent.Contains("font-weight:bold", StringComparison.Ordinal) &&
+                      htmlSent.Contains("color:#FF0000", StringComparison.Ordinal) &&
+                      htmlSent.Contains("href=\"https://example.com\"", StringComparison.Ordinal) &&
+                      !textSent.Contains("**", StringComparison.Ordinal) &&
+                      !textSent.Contains("<u>", StringComparison.Ordinal),
+                    "actual scheduled Mail.ru form carries formatted HTML and clean text");
+            }
+
+
 
             // Reply-to-thread is To/Cc only; sender, blind-copy and the
             // current mailbox never become automatic recipients.
@@ -2051,6 +2080,24 @@ internal static class Program
     private static void Expect<T>(T actual, T expected, string label)
     {
         Check(EqualityComparer<T>.Default.Equals(actual, expected), label);
+    }
+
+    private sealed class MailingWireRecorder : HttpMessageHandler
+    {
+        internal string LastPath { get; private set; } = "";
+        internal string LastForm { get; private set; } = "";
+
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            LastPath = request.RequestUri?.AbsolutePath ?? "";
+            LastForm = request.Content is null ? "" :
+                await request.Content.ReadAsStringAsync(cancellationToken);
+            return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new StringContent("{\"status\":200}")
+            };
+        }
     }
 
     private static void Check(bool condition, string description)
