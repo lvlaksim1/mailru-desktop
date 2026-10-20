@@ -44,6 +44,7 @@ public partial class ExcelMailingWindow
             return;
         try
         {
+            ClearCorrectionState();
             _activeRun = _runStore.Load(selected.Id);
             PreviewGrid.ItemsSource = _activeRun.Jobs.Select(ToPreviewRow).ToArray();
             StartMailingButton.IsEnabled = false;
@@ -150,6 +151,9 @@ public partial class ExcelMailingWindow
         StopMailingButton.IsEnabled = true;
         ResumeMailingButton.IsEnabled = false;
         RetryExcelWriteButton.IsEnabled = false;
+        RetryOrganizationButton.IsEnabled = false;
+        ManualOrganizationButton.IsEnabled = false;
+        IncludeOrganizationButton.IsEnabled = false;
         PrepareButton.IsEnabled = false;
         ProfileCombo.IsEnabled = false;
         RunHistoryCombo.IsEnabled = false;
@@ -178,6 +182,9 @@ public partial class ExcelMailingWindow
             StopMailingButton.IsEnabled = false;
             ResumeMailingButton.IsEnabled = true;
             RetryExcelWriteButton.IsEnabled = true;
+            RetryOrganizationButton.IsEnabled = true;
+            ManualOrganizationButton.IsEnabled = true;
+            IncludeOrganizationButton.IsEnabled = true;
             PrepareButton.IsEnabled = true;
             ProfileCombo.IsEnabled = true;
             RunHistoryCombo.IsEnabled = true;
@@ -187,7 +194,8 @@ public partial class ExcelMailingWindow
 
     private async void StartMailing_Click(object sender, RoutedEventArgs e)
     {
-        if (_mailingExecutionRunning || _preparationCancellation is not null ||
+        if (_mailingExecutionRunning || _editingPreparedRow ||
+            _preparationCancellation is not null ||
             _preparedProfile is null || _preparedWorkbookPath is null ||
             _preparedSheetName is null ||
             PreviewGrid.ItemsSource is not IEnumerable<MailingPreparedRow> preview)
