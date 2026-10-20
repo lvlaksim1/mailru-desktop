@@ -19,7 +19,7 @@
         <StackPanel Grid.Row="0" Margin="0,0,0,12">
             <TextBlock FontSize="20" FontWeight="SemiBold" Text="Рассылки Excel"/>
             <TextBlock Foreground="{DynamicResource AppMutedTextBrush}" TextWrapping="Wrap"
-                       Text="Этап 1: профили, живая книга Excel, проверка и предварительный просмотр. Отправка писем и запись в Excel отключены."/>
+                       Text="Подготовьте письма, проверьте расписание и подтвердите постановку на сервер. Подтверждённые задания отмечаются в Excel."/>
         </StackPanel>
         <WrapPanel Grid.Row="1" Margin="0,0,0,10">
             <TextBlock VerticalAlignment="Center" Text="Профиль:" Margin="0,0,6,0"/>
@@ -124,6 +124,23 @@
                 <Button x:Name="IncludeOrganizationButton" Content="Вернуть в рассылку"
                         Padding="9,5" Click="IncludeOrganization_Click"/>
             </WrapPanel>
+            <WrapPanel Margin="0,7,0,0">
+                <Button x:Name="StartMailingButton" Content="Запустить рассылку"
+                        Padding="10,5" Margin="0,0,6,0" IsEnabled="False" Click="StartMailing_Click"/>
+                <Button x:Name="PauseMailingButton" Content="Пауза"
+                        Padding="9,5" Margin="0,0,6,0" IsEnabled="False" Click="PauseMailing_Click"/>
+                <Button x:Name="ResumeMailingButton" Content="Продолжить"
+                        Padding="9,5" Margin="0,0,6,0" Click="ResumeMailing_Click"/>
+                <Button x:Name="StopMailingButton" Content="Остановить новые задания"
+                        Padding="9,5" Margin="0,0,6,0" IsEnabled="False" Click="StopMailing_Click"/>
+                <Button x:Name="RetryExcelWriteButton" Content="Повторить запись в Excel"
+                        Padding="9,5" Margin="0,0,8,0" Click="RetryExcelWrite_Click"/>
+                <TextBlock Text="История:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                <ComboBox x:Name="RunHistoryCombo" Width="270"
+                          DisplayMemberPath="Display" SelectionChanged="RunHistoryCombo_SelectionChanged"/>
+            </WrapPanel>
+            <TextBlock x:Name="RunStatusText" Margin="0,4,0,0" TextWrapping="Wrap"/>
+
         </StackPanel>
         <DataGrid x:Name="PreviewGrid" Grid.Row="5" AutoGenerateColumns="False"
                   IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single"
