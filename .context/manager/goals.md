@@ -29,3 +29,6 @@ Bind the selected workbook, worksheet and active starting row despite other open
 
 ## G-008 — Stable Excel workbook attachment for direct mailing
 Treat a selected workbook as an exact full-path Excel document rather than a stable Excel.Application.Hwnd. Preserve its selected worksheet when refreshing discovery. Reconnect an obsolete COM proxy only to a unique matching full path, never another active or same-basename workbook; require manual reselection after Save As/path change or ambiguity. Apply the same identity rule to direct send and confirmed-result Excel writeback. Obtain owner acceptance on actual Microsoft Excel before closing I-091.
+
+## G-009 — Editable Excel mailing journal and fully disabled logging
+Offer editable DPAPI-protected historical mailing runs (inspect, modify, save or delete local jobs/runs) without modifying actual Mail.ru or Excel. Provide per-profile, default-on persisted “Записывать в журнал” checkbox. When unchecked, DO NOT read, reconcile or write the mailing-run journal, including previously used protection and deduplication; schedule each mail using only transient in-memory state and still write back confirmed results to the two Excel cells. Explicit owner accepts duplicates risk. Keep both modes testable with offline Windows UI and transport fakes.
