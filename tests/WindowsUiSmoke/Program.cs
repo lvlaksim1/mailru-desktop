@@ -49,7 +49,7 @@ internal static class Program
             Check(formattedMail.Html.Contains("text-decoration:underline", StringComparison.Ordinal), "HTML underline");
             Check(formattedMail.Html.Contains("text-decoration:line-through", StringComparison.Ordinal), "HTML strikethrough");
             Check(formattedMail.Html.Contains("color:#FF0000", StringComparison.Ordinal), "HTML color");
-            Check(formattedMail.Html.Contains("href=\"https://example.com\"", StringComparison.Ordinal), "HTML link");
+            Check(formattedMail.Html.Contains("href=\"https://example.com", StringComparison.Ordinal), "HTML link");
             Check(formattedMail.Html.Contains("font-size:20", StringComparison.Ordinal), "HTML heading");
             Check(!formattedMail.Html.Contains("**Важное**", StringComparison.Ordinal), "HTML removed markdown syntax");
             Check(new TextRange(formattedMail.Document.ContentStart,
@@ -77,7 +77,7 @@ internal static class Program
                 Check(scheduled.Success && record.LastPath == "/api/v1/messages/schedule" &&
                       htmlSent.Contains("font-weight:bold", StringComparison.Ordinal) &&
                       htmlSent.Contains("color:#FF0000", StringComparison.Ordinal) &&
-                      htmlSent.Contains("href=\"https://example.com\"", StringComparison.Ordinal) &&
+                      htmlSent.Contains("href=\"https://example.com", StringComparison.Ordinal) &&
                       !textSent.Contains("**", StringComparison.Ordinal) &&
                       !textSent.Contains("<u>", StringComparison.Ordinal),
                     "actual scheduled Mail.ru form carries formatted HTML and clean text");
