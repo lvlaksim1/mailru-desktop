@@ -665,6 +665,45 @@ internal static class Program
                           .ExcelMailingSenderGridHeight == 286,
                     "sender table height is saved and restored in user settings");
 
+                // Journals are created before network submission and survive a
+                // process interruption without leaking the recipient or body.
+                var journalDirectory = Path.Combine(testingDir, "runs");
+                var journal = new MailRuDesktop.App.Mailing.MailingRunStore(journalDirectory);
+                var journalProfile = new MailRuDesktop.App.Mailing.MailingProfile
+                {
+                    Name = "Контрольная рассылка",
+                    Senders = [new() { Login = "sender@example.test", Quantity = 1 }]
+                };
+                var sampleTask = new MailRuDesktop.App.Mailing.MailingPreparedRow(
+                    2, "private@example.test", "7707083893", "Москва",
+                    "Тестовая организация", "sender@example.test",
+                    DateTimeOffset.Now.AddDays(3), "Проверка", "Секретный текст",
+                    "Ready", "");
+                var journalRun = journal.Create(journalProfile, @"C:\mailing\source.xlsx",
+                    "Лист1", [sampleTask]);
+                Check(journalRun.Jobs.Count == 1 &&
+                      journalRun.Jobs[0].MessageId.Length == 32 &&
+                      !File.ReadAllText(Path.Combine(journalDirectory,
+                          journalRun.Id + ".run")).Contains("private@example.test"),
+                    "mailing journal encrypts full per-letter state with Windows DPAPI");
+                journalRun.Jobs[0].Status =
+                    MailRuDesktop.App.Mailing.MailingJobStatus.Submitting;
+                journal.Save(journalRun);
+                var interrupted = journal.Load(journalRun.Id);
+                Check(interrupted.Jobs[0].Status ==
+                      MailRuDesktop.App.Mailing.MailingJobStatus.Indeterminate,
+                    "an interrupted request is never automatically treated as unsent");
+                var blockedRepeat = false;
+                try
+                {
+                    journal.Create(journalProfile, @"C:\mailing\source.xlsx",
+                        "Лист1", [sampleTask]);
+                }
+                catch (InvalidOperationException) { blockedRepeat = true; }
+                Check(blockedRepeat,
+                    "indeterminate or previously accepted Excel row cannot be resubmitted");
+
+
             }
             finally
             {
