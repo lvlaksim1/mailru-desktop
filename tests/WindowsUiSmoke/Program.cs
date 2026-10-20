@@ -898,11 +898,11 @@ internal static class Program
 
             Check(FindDescendant<Button>(mailingWindow!, b =>
                       (b.Content as string)?.Contains("Проверить и подготовить") == true) is not null &&
-                  !Require<Button>(mailingWindow!, "StartMailingButton").IsEnabled &&
+                  Require<Button>(mailingWindow!, "StartMailingButton").IsEnabled &&
                   Require<Button>(mailingWindow!, "PauseMailingButton") is not null &&
                   Require<Button>(mailingWindow!, "ResumeMailingButton") is not null &&
                   Require<Button>(mailingWindow!, "RetryExcelWriteButton") is not null,
-                "mailing execution requires completed preparation and explicit confirmation");
+                "recovered verified row enables explicit mailing launch without automatic submission");
             mailingWindow!.Close();
 
             // Stage 4.1: metadata is one reusable WPF view, WebView2 is not moved.
