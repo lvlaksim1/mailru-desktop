@@ -46,6 +46,8 @@ public sealed record MailRuFullMessage(
 {
     public IReadOnlyList<string> Bcc { get; init; } = Array.Empty<string>();
     public int Priority { get; init; } = 3;
+    // Server-provided conversation identity; never infer from subject or quoted text.
+    public string? ThreadId { get; init; }
 
     public string SenderDisplay =>
         string.IsNullOrWhiteSpace(FromName)
@@ -114,6 +116,8 @@ public static class MailRuFullMessageParser
                 attachments,
                 payload)
             {
+                ThreadId = ReadString(message, "thread_id") ??
+                           ReadString(message, "conversation_id"),
                 Bcc = ReadCorrespondentEmails(message, "bcc"),
                 Priority = ReadInteger(message, "priority") is long priority &&
                            priority is >= 1 and <= 5

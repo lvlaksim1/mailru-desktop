@@ -52,6 +52,33 @@ internal static class Program
                     new[] { "SECOND@example.test" }, null, "", "",
                     Array.Empty<MailRuDesktop.Protocol.MailRuIncomingAttachment>(), "")
             };
+            var ownOutgoing = new MailRuDesktop.Protocol.MailRuMessageSummary(
+                "own-last", "Re: Договор", "Продолжение", "Я", "me@example.test",
+                null, null, 0, false, false, false)
+            {
+                ToAddresses = ["client@example.test", "me@example.test"],
+                CcAddresses = ["copy@example.test", "CLIENT@example.test"]
+            };
+            var selectedOwnAddresses = ConversationReplyAddresses.CollectSelected(
+                ownOutgoing, null, "ME@example.test");
+            Expect(string.Join(";", selectedOwnAddresses),
+                "client@example.test;copy@example.test",
+                "reply to own last message takes only its To/Cc and excludes self");
+            Check(ConversationReplyAddresses.IsOwnSender(
+                      "Me <me@example.test>", "ME@example.test") &&
+                  !ConversationReplyAddresses.IsOwnSender(
+                      "other@example.test", "me@example.test"),
+                "own outgoing message is identified by normalized From address");
+            var parsedOwn = MailRuDesktop.Protocol.MailRuFullMessageParser.Parse(
+                """
+                {"body":{"messages":[{"id":"own-last","thread_id":"thread-of-ours",
+                "subject":"Re: Договор","body":{"text":"Продолжение"},
+                "correspondents":{"from":[{"email":"me@example.test"}],
+                "to":[{"email":"client@example.test"}]}}]}}
+                """, "own-last");
+            Check(parsedOwn.ThreadId == "thread-of-ours" &&
+                  parsedOwn.To.Count == 1,
+                "full message retains explicit server thread ID for reply recovery");
             var replyAddresses = ConversationReplyAddresses.Collect(
                 threadMessages, "ME@example.test");
             Expect(string.Join(";", replyAddresses.Select(x => x.ToLowerInvariant())),
@@ -1721,6 +1748,29 @@ internal static class Program
                 "Reply no longer opens the inline editor above the mail body");
             editor.Close();
             editor = null;
+
+            // Regression: the last message of an unindexed conversation was
+            // sent by the account owner. Its own From must never fill To.
+            var ownLoginField = typeof(MainWindow).GetField("_activeLogin",
+                BindingFlags.Instance | BindingFlags.NonPublic)!;
+            var originalLogin = ownLoginField.GetValue(mail);
+            try
+            {
+                ownLoginField.SetValue(mail, "me@example.test");
+                showReply.Invoke(mail, new object?[] { ownOutgoing, null });
+                editor = Application.Current.Windows.OfType<Window>()
+                    .FirstOrDefault(w => w.Title.StartsWith("Ответ: Re: Договор",
+                        StringComparison.Ordinal));
+                Check(editor is { IsVisible: true } &&
+                      Require<TextBox>(mail, "ComposeToTextBox").Text ==
+                      "client@example.test, copy@example.test" &&
+                      !Require<TextBox>(mail, "ComposeToTextBox").Text
+                          .Contains("me@example.test", StringComparison.OrdinalIgnoreCase),
+                    "reply to own unindexed last message fills verified To/Cc, never own From");
+                editor?.Close();
+                editor = null;
+            }
+            finally { ownLoginField.SetValue(mail, originalLogin); }
 
             var dialogType = typeof(MainWindow).Assembly.GetType("MailRuDesktop.App.AppDialog");
             var createNotice = dialogType?.GetMethod("CreateWindow",
