@@ -656,6 +656,43 @@ internal static class Program
                 catch (InvalidOperationException) { mismatchRejected = true; }
                 Check(mismatchRejected,
                     "selected sheet cannot silently use another sheet's active row");
+
+                var acceptedExcelJob = new MailRuDesktop.App.Mailing.MailingJobRecord
+                {
+                    RowNumber = 74210,
+                    Email = "first-visible@example.com",
+                    Inn = "7707083893",
+                    Sender = "first@example.com",
+                    ScheduledAt = DateTimeOffset.Now.AddDays(3),
+                    MessageId = MailRuDesktop.Protocol.MailRuClient.CreateMessageId()
+                };
+                MailRuDesktop.App.Mailing.ExcelInteropService.WriteConfirmedResult(
+                    discovered, "Компании", acceptedExcelJob);
+                Check(Equals(fakeSheet.Get(74210, 4),
+                          acceptedExcelJob.ScheduledAt.ToString("dd.MM.yyyy")) &&
+                      Equals(fakeSheet.Get(74210, 5), "first@example.com") &&
+                      fakeSheet.Get(74212, 4) is null,
+                    "confirmed scheduling updates exactly two cells of its source row");
+                // Reconciliation is idempotent, and changed source rows are never overwritten.
+                MailRuDesktop.App.Mailing.ExcelInteropService.WriteConfirmedResult(
+                    discovered, "Компании", acceptedExcelJob);
+                fakeSheet.Put(74212, 1, "changed@example.com");
+                var changedRowRejected = false;
+                try
+                {
+                    MailRuDesktop.App.Mailing.ExcelInteropService.WriteConfirmedResult(
+                        discovered, "Компании", new MailRuDesktop.App.Mailing.MailingJobRecord
+                        {
+                            RowNumber = 74212, Email = acceptedExcelJob.Email,
+                            Inn = acceptedExcelJob.Inn, Sender = acceptedExcelJob.Sender,
+                            ScheduledAt = acceptedExcelJob.ScheduledAt,
+                            MessageId = acceptedExcelJob.MessageId
+                        });
+                }
+                catch (InvalidOperationException) { changedRowRejected = true; }
+                Check(changedRowRejected && fakeSheet.Get(74212, 4) is null,
+                    "Excel writer refuses a row whose original recipient has changed");
+
                 fakeExcel.ActiveSheet = fakeSheet;
                 var sizingStore = new AppSettingsStore(Path.Combine(testingDir, "ui"));
                 var layoutState = sizingStore.LoadUserInterfaceState();
