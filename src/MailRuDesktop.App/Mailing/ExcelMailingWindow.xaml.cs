@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
+using System.Windows.Input;
 using MailRuDesktop.App;
 
 namespace MailRuDesktop.App.Mailing;
@@ -522,6 +523,24 @@ public partial class ExcelMailingWindow : Window
 
     private void Stop_Click(object sender, RoutedEventArgs e) =>
         _preparationCancellation?.Cancel();
+
+    // Keep the existing row actions working when the pointer lands on a read-only cell editor.
+    private void PreviewGridText_PreviewMouseLeftButtonDown(
+        object sender, MouseButtonEventArgs e)
+    {
+        if (sender is TextBox { DataContext: MailingPreparedRow row })
+            PreviewGrid.SelectedItem = row;
+    }
+
+    // TextBox normally selects just one word; the requested gesture selects the entire cell.
+    private static void PreviewGridText_MouseDoubleClick(
+        object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not TextBox textBox) return;
+        textBox.Focus();
+        textBox.SelectAll();
+        e.Handled = true;
+    }
 
     private void PreviewGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
