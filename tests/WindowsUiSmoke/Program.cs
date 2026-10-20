@@ -929,7 +929,7 @@ internal static class Program
                     {
                         unrecordedPostCount++;
                         return Task.FromResult(new MailRuDesktop.Protocol.MailRuCommandResult(
-                            true, "{\\"status\\":200}"));
+                            true, "{\"status\":200}"));
                     }, job =>
                     {
                         unrecordedExcelCount++;
@@ -946,7 +946,7 @@ internal static class Program
                 new MailRuDesktop.App.Mailing.MailingSubmissionEngine(noJournalStore)
                     .ExecuteAsync(unrecordedFailure, _ => Task.FromResult(
                         new MailRuDesktop.Protocol.MailRuCommandResult(false,
-                            "{\\"status\\":500}")),
+                            "{\"status\":500}")),
                         _ => throw new Exception("must not write Excel"),
                         () => false, persist: false).GetAwaiter().GetResult();
                 Check(!Directory.Exists(noJournalDirectory) &&
