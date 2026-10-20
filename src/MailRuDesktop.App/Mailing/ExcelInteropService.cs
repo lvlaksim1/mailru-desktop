@@ -198,6 +198,79 @@ internal static class ExcelInteropService
             RowsPerBatch);
     }
 
+    /// <summary>
+    /// Updates only the two agreed columns of an already server-accepted job.
+    /// Must run on the same STA dispatcher as the live Excel reader.
+    /// Never saves or closes the user's workbook.
+    /// </summary>
+    internal static void WriteConfirmedResult(
+        OpenExcelBook book, string sheetName, MailingJobRecord job)
+    {
+        ArgumentNullException.ThrowIfNull(book);
+        ArgumentNullException.ThrowIfNull(job);
+        dynamic workbook = book.Workbook;
+        dynamic excel = workbook.Application;
+        if (Convert.ToInt32(excel.Hwnd, CultureInfo.InvariantCulture) !=
+                book.ApplicationHwnd ||
+            !string.Equals((string)workbook.FullName, book.FullName,
+                StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException(
+                "Исходная книга Excel больше недоступна. Повторите подключение к книге.");
+
+        dynamic sheet = workbook.Worksheets.Item[sheetName];
+        int lastColumn = Convert.ToInt32(
+            sheet.Cells[1, sheet.Columns.Count].End(XlToLeft).Column,
+            CultureInfo.InvariantCulture);
+        if (lastColumn < 1 || lastColumn > 300)
+            throw new InvalidOperationException("Не удалось проверить заголовки Excel.");
+
+        var cols = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        for (var col = 1; col <= lastColumn; col++)
+        {
+            var header = NormalizeHeader(Convert.ToString(
+                sheet.Cells[1, col].Value2, CultureInfo.InvariantCulture));
+            if (header.Length > 0 && !cols.TryAdd(header, col))
+                throw new InvalidOperationException("В Excel обнаружены одинаковые заголовки.");
+        }
+        foreach (var required in Required)
+            if (!cols.ContainsKey(NormalizeHeader(required)))
+                throw new InvalidOperationException("Не найден столбец Excel: " + required);
+        int Index(string name) => cols[NormalizeHeader(name)];
+
+        if (job.RowNumber < 2)
+            throw new InvalidOperationException("Некорректный номер исходной строки.");
+        dynamic emailCell = sheet.Cells[job.RowNumber, Index("E-mail работодателя")];
+        dynamic innCell = sheet.Cells[job.RowNumber, Index("ИНН работодателя")];
+        var email = Convert.ToString(emailCell.Value2, CultureInfo.InvariantCulture)?.Trim() ?? "";
+        var inn = Convert.ToString(innCell.Text, CultureInfo.InvariantCulture)?.Trim() ?? "";
+        if (!string.Equals(inn, job.Inn, StringComparison.Ordinal))
+            inn = Convert.ToString(innCell.Value2, CultureInfo.InvariantCulture)?.Trim() ?? "";
+        if (!string.Equals(email, job.Email, StringComparison.OrdinalIgnoreCase) ||
+            !string.Equals(inn, job.Inn, StringComparison.Ordinal))
+            throw new InvalidOperationException(
+                "Данные исходной строки Excel изменились. Отметки не записаны.");
+
+        dynamic dateCell = sheet.Cells[job.RowNumber, Index("рассылка по СОУТ")];
+        dynamic senderCell = sheet.Cells[job.RowNumber, Index("исх электронка")];
+        var dateText = job.ScheduledAt.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture);
+        var oldDate = Convert.ToString(dateCell.Value2, CultureInfo.InvariantCulture)?.Trim() ?? "";
+        var oldSender = Convert.ToString(senderCell.Value2, CultureInfo.InvariantCulture)?.Trim() ?? "";
+        if ((!string.IsNullOrWhiteSpace(oldDate) &&
+             !string.Equals(oldDate, dateText, StringComparison.Ordinal)) ||
+            (!string.IsNullOrWhiteSpace(oldSender) &&
+             !string.Equals(oldSender, job.Sender, StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidOperationException(
+                "В целевых ячейках Excel уже другие значения. Запись остановлена.");
+
+        if (oldDate.Length == 0)
+        {
+            dateCell.NumberFormat = "@";
+            dateCell.Value2 = dateText;
+        }
+        if (oldSender.Length == 0)
+            senderCell.Value2 = job.Sender;
+    }
+
     internal sealed class ExcelRowReader
     {
         private readonly dynamic _sheet;
