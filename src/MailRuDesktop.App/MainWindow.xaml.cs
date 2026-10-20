@@ -1812,7 +1812,7 @@ public partial class MainWindow : Window
 
         try
         {
-            var messageId = MailRuClient.KnownWorkingMessageId;
+            var messageId = GetOrCreateComposeMessageId();
             var attachmentIds = new List<string>();
 
             for (var i = 0; i < _attachmentPaths.Count; i++)
@@ -1922,7 +1922,7 @@ public partial class MainWindow : Window
 
         try
         {
-            var messageId = MailRuClient.KnownWorkingMessageId;
+            var messageId = GetOrCreateComposeMessageId();
             var attachmentIds = new List<string>();
 
             for (var i = 0; i < _attachmentPaths.Count; i++)
@@ -2041,6 +2041,7 @@ public partial class MainWindow : Window
                 }
             }
 
+            _composeMessageId = null;
             ComposeToTextBox.Clear();
             ComposeSubjectTextBox.Clear();
             ComposeBodyTextBox.Clear();
