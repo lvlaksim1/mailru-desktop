@@ -30,7 +30,14 @@ public partial class MessageWindow : Window
 
     public bool MailboxChanged { get; private set; }
     public bool ReplyRequested { get; private set; }
-    public MailRuFullMessage? ReplySource => _fullMessage ?? _initialFullMessage;
+    public bool ForwardRequested { get; private set; }
+    private MailRuFullMessage? _requestedActionSource;
+    private MailRuConversation? _loadedConversation;
+    private Dictionary<string, MailRuFullMessage>? _loadedConversationBodies;
+    public MailRuFullMessage? ReplySource =>
+        _requestedActionSource ?? _fullMessage ?? _initialFullMessage;
+    public MailRuFullMessage? ForwardSource =>
+        _requestedActionSource ?? _fullMessage ?? _initialFullMessage;
     public bool ResendRequested { get; private set; }
     public MailRuFullMessage? ResendSource => _fullMessage ?? _initialFullMessage;
 
@@ -145,6 +152,8 @@ public partial class MessageWindow : Window
             await MessageWebView.EnsureCoreWebView2Async(environment);
             MessageWebView.CoreWebView2.Settings.UserAgent = MailRuFixedProfile.UserAgent;
             MessageWebView.CoreWebView2.Settings.IsScriptEnabled = false;
+            MessageWebView.CoreWebView2.WebMessageReceived += ConversationAction_WebMessageReceived;
+            MessageWebView.NavigationCompleted += ConversationNavigationCompleted;
             MessageWebView.CoreWebView2.Settings.AreDevToolsEnabled = false;
             MessageWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
             _readerReady = true;
@@ -242,11 +251,15 @@ public partial class MessageWindow : Window
                 }
             }
             if (_readerReady)
+            {
+                _loadedConversation = conversation;
+                _loadedConversationBodies = bodies;
                 MessageWebView.NavigateToString(
                     MailRuConversationHtml.Render(conversation, full.Id, bodies,
                         ThemeManager.ReaderBackgroundHtml,
                         ThemeManager.ReaderForegroundHtml,
                         ThemeManager.ReaderMutedHtml));
+            }
         }
         else if (!string.IsNullOrWhiteSpace(full.Html))
             ShowBody(full.Html, html: true);
@@ -300,6 +313,12 @@ public partial class MessageWindow : Window
     {
         // The caller opens the normal separate compose window when this modal
         // reader closes, preserving the original mailbox and reply-to thread.
+        _requestedActionSource = _fullMessage ?? _initialFullMessage;
+        if (_requestedActionSource is null)
+        {
+            StatusText.Text = "Дождитесь полной загрузки письма перед ответом.";
+            return;
+        }
         ReplyRequested = true;
         Close();
     }
@@ -318,34 +337,15 @@ public partial class MessageWindow : Window
 
     private void ForwardButton_Click(object sender, RoutedEventArgs e)
     {
-        // Never silently forward an incomplete letter: attachment metadata is
-        // only reliable after the source message has finished loading.
         var full = _fullMessage ?? _initialFullMessage;
         if (full is null)
         {
-            StatusText.Text = "Дождитесь загрузки письма перед пересылкой.";
+            StatusText.Text = "Дождитесь полной загрузки письма перед пересылкой.";
             return;
         }
-
-        _composeMode = ComposeMode.Forward;
-        ComposePanel.Visibility = Visibility.Visible;
-        ComposeToTextBox.Clear();
-        ComposeSubjectTextBox.Text = PrefixSubject("Fwd:", full.Subject);
-        ComposeBodyTextBox.Text =
-            "\n\n---------- Пересланное сообщение ----------\n" +
-            $"От: {full.SenderDisplay}\n" +
-            $"Кому: {string.Join(", ", full.To)}\n" +
-            $"Дата: {full.DateDisplay}\n" +
-            $"Тема: {full.Subject}\n\n" + full.Text;
-
-        _composeAttachmentPaths.Clear();
-        _forwardSourceAttachments.Clear();
-        for (var i = 0; i < full.Attachments.Count; i++)
-            _forwardSourceAttachments["source:" + i] = full.Attachments[i];
-
-        ComposeStatusText.Text = string.Empty;
-        RefreshComposeAttachments();
-        ComposeToTextBox.Focus();
+        _requestedActionSource = full;
+        ForwardRequested = true;
+        Close();
     }
 
     private sealed record ComposeAttachmentItem(string Key, string Name);
@@ -654,6 +654,9 @@ public partial class MessageWindow : Window
     {
         ThemeManager.ThemeChanged -= ThemeManager_ThemeChanged;
         Activated -= MessageWindow_Activated;
+        MessageWebView.NavigationCompleted -= ConversationNavigationCompleted;
+        if (MessageWebView.CoreWebView2 is not null)
+            MessageWebView.CoreWebView2.WebMessageReceived -= ConversationAction_WebMessageReceived;
         try
         {
             MessageWebView.Dispose();

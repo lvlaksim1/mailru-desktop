@@ -128,6 +128,17 @@ iframe.mail-frame { display:block; position:absolute; inset:0; width:100%;
  if (!staged?.contentDocument) return false;
  const frames = document.getElementById('frames');
  const old = frames.querySelector('iframe[data-active]');
+ // Event delegation is installed by trusted shell code; sender HTML is
+ // isolated in its own sandbox and can neither execute nor issue commands.
+ staged.contentDocument.addEventListener('click', event => {
+   const button = event.target?.closest?.('button[data-mail-action][data-mail-id]');
+   if (!button || !staged.contentDocument.contains(button)) return;
+   const action = button.getAttribute('data-mail-action');
+   const id = button.getAttribute('data-mail-id');
+   if ((action !== 'reply' && action !== 'forward') || !id) return;
+   event.preventDefault();
+   window.chrome.webview.postMessage({kind:'conversation-action',action,id,revision:rev});
+ });
  staged.removeAttribute('data-stage');
  staged.dataset.active = String(__REV__);
  staged.style.visibility = 'visible';
@@ -140,6 +151,24 @@ iframe.mail-frame { display:block; position:absolute; inset:0; width:100%;
         return js.Replace("__REV__", revision.ToString(System.Globalization.CultureInfo.InvariantCulture),
             StringComparison.Ordinal);
     }
+
+    // The detached reader has its own top-level trusted conversation document.
+    public static string BindDetachedConversationActions() => """
+(() => {
+ if (document.documentElement.dataset.mailActions === '1') return true;
+ document.documentElement.dataset.mailActions = '1';
+ document.addEventListener('click', event => {
+   const button = event.target?.closest?.('button[data-mail-action][data-mail-id]');
+   if (!button || !document.contains(button)) return;
+   const action = button.getAttribute('data-mail-action');
+   const id = button.getAttribute('data-mail-id');
+   if ((action !== 'reply' && action !== 'forward') || !id) return;
+   event.preventDefault();
+   window.chrome.webview.postMessage({kind:'conversation-action',action,id});
+ });
+ return true;
+})()
+""";
 
     public static string StatusOnly(long revision, string caption)
     {
