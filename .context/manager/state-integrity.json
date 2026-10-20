@@ -1,7 +1,7 @@
 {
   "schema": "context-capsule-manager-state-integrity",
   "schema_version": 1,
-  "generation": 117,
+  "generation": 118,
   "algorithm": "git-blob-sha1",
   "coupled_paths": [
     ".context/manager/beliefs.md",
@@ -14,13 +14,13 @@
     ".context/handoffs/latest.md"
   ],
   "digests": {
-    ".context/manager/beliefs.md": "git-blob-sha1:de61dd1922e35528c57222bfdffb6ddce534b576",
-    ".context/manager/goals.md": "git-blob-sha1:b11267d4317c8e86124b243a38114f046c710249",
-    ".context/manager/intentions.md": "git-blob-sha1:c43706ab8584e2c2dd7b0c33db69b084f1049269",
-    ".context/manager/plans.md": "git-blob-sha1:779d7af79696715a20eea4bd29a3d4f969bc4719",
-    ".context/current/state.md": "git-blob-sha1:9389df9ed09011d51cf246734e136ca624bc7cc7",
-    ".context/current/blockers.md": "git-blob-sha1:838d10c3eb75ec69f9b8c91f907c5465bb397b16",
-    ".context/current/next.md": "git-blob-sha1:662c0a16f340d0c9a495a61aa928deea5d80eb11",
-    ".context/handoffs/latest.md": "git-blob-sha1:069d7d0e5796d0dc55d77e541b60d046d0e738dc"
+    ".context/manager/beliefs.md": "git-blob-sha1:8f15d9df2150512a3c19fcbc4e1b7d3022fcc777",
+    ".context/manager/goals.md": "git-blob-sha1:ea2d140ca0e738552f02a87bbebbfe2a5f416606",
+    ".context/manager/intentions.md": "git-blob-sha1:70c64acad3162cc566ed79733e9aee2b34d8e5fb",
+    ".context/manager/plans.md": "git-blob-sha1:dc9109064588f02f005cac46a0ce9118bea012de",
+    ".context/current/state.md": "git-blob-sha1:26a4bc763de2681653c08dade398c36036a2474e",
+    ".context/current/blockers.md": "git-blob-sha1:50fdb6920ee010a3640d7b2db2824f71e45ea571",
+    ".context/current/next.md": "git-blob-sha1:d850e1fed4f66bf3d1ef609509253f721309345a",
+    ".context/handoffs/latest.md": "git-blob-sha1:28ad390f1e8a4ba787b303ce49f3c5bd954e442b"
   }
 }
