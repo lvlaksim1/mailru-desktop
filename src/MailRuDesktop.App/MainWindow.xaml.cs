@@ -98,7 +98,7 @@ public partial class MainWindow : Window
             _messageLoadCancellation?.Cancel();
             if (MessageWebView.CoreWebView2 is not null)
             {
-                MessageWebView.CoreWebView2.WebMessageReceived -= ConversationAction_WebMessageReceived;
+                MessageWebView.CoreWebView2.FrameNavigationStarting -= ConversationAction_FrameNavigationStarting;
                 if (_mailImageProxyConfigured)
                     MessageWebView.CoreWebView2.WebResourceRequested -= MailImageProxy_WebResourceRequested;
             }
@@ -136,7 +136,7 @@ public partial class MainWindow : Window
             MessageWebView.CoreWebView2.Settings.IsScriptEnabled = false;
             MessageWebView.CoreWebView2.Settings.AreDevToolsEnabled = false;
             MessageWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
-            MessageWebView.CoreWebView2.WebMessageReceived += ConversationAction_WebMessageReceived;
+            MessageWebView.CoreWebView2.FrameNavigationStarting += ConversationAction_FrameNavigationStarting;
             ConfigureMailImageProxy();
 
             // Navigate the top-level WebView2 ONCE. All future letters are

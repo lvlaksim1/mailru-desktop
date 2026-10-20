@@ -21,17 +21,21 @@ public partial class MainWindow
             CcAddresses = full.Cc
         };
 
-    private async void ConversationAction_WebMessageReceived(
-        object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+    private async void ConversationAction_FrameNavigationStarting(
+        object? sender, CoreWebView2NavigationStartingEventArgs e)
     {
-        if (!ConversationMessageActions.TryParse(e.WebMessageAsJson,
-                out var action, out var messageId, out var revision) ||
-            revision != _readerGeneration ||
+        // Cancel on the UI thread before any await. The internal action URL
+        // must never be requested from the network, including when invalid.
+        if (!ConversationActionNavigation.IsCommandUrl(e.Uri)) return;
+        e.Cancel = true;
+        if (!ConversationActionNavigation.TryParse(e.Uri,
+                _conversationActionNonce, out var action, out var messageId) ||
             !ConversationMessageActions.IsVerifiedMember(
                 _displayedConversation, messageId) ||
             ActivePreviewMessage is not { } selected ||
             string.IsNullOrWhiteSpace(_accessToken))
             return;
+        var readerGeneration = _readerGeneration;
 
         var conversation = _displayedConversation!;
         var login = _activeLogin;
@@ -44,7 +48,10 @@ public partial class MainWindow
                 full = await _mailRu.GetFullMessageAsync(token, messageId, markRead: false);
 
             if (!string.Equals(full.Id, messageId, StringComparison.Ordinal) ||
-                revision != _readerGeneration ||
+                readerGeneration != _readerGeneration ||
+                !string.Equals(_conversationActionNonce,
+                    ConversationActionNavigation.ExtractNonce(e.Uri),
+                    StringComparison.Ordinal) ||
                 !ReferenceEquals(conversation, _displayedConversation) ||
                 !string.Equals(login, _activeLogin, StringComparison.OrdinalIgnoreCase) ||
                 !ConversationMessageActions.IsVerifiedMember(
