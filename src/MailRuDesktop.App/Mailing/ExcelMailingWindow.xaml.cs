@@ -426,6 +426,7 @@ public partial class ExcelMailingWindow : Window
             _preparationCancellation = new CancellationTokenSource();
             PrepareButton.IsEnabled = false;
             StopButton.Visibility = Visibility.Visible;
+            ClearCorrectionState();
             PreviewGrid.ItemsSource = null;
             MessagePreviewText.Clear();
             StatusText.Text = "Проверка активной строки и заголовков выбранного листа...";
