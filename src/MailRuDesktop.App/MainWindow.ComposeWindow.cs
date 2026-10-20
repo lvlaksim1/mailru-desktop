@@ -134,7 +134,29 @@ public partial class MainWindow
 
         var sender = !string.IsNullOrWhiteSpace(full?.FromEmail)
             ? full.FromEmail : source.SenderEmail;
-        if (conversation is null && string.IsNullOrWhiteSpace(sender))
+        var isOwnMessage = ConversationReplyAddresses.IsOwnSender(sender, _activeLogin);
+        var selectedRecipients = ConversationReplyAddresses.CollectSelected(
+            source, full, _activeLogin);
+
+        // The currently selected outgoing letter can be absent from the
+        // folder-local index even though another entry names it as a member.
+        // Recover only verified member relationships, never equal subjects.
+        conversation ??= _conversationIndex.Values.FirstOrDefault(thread =>
+            (thread.VerifiedCount ?? 0) > 1 &&
+            !string.IsNullOrWhiteSpace(thread.ThreadId) &&
+            thread.Members.Any(member => member.Id == source.Id));
+
+        // When the compact folder response omitted this conversation, a full
+        // message may still carry its explicit thread ID. The member list is
+        // completed by the existing read-only server thread detail request.
+        if (conversation is null && isOwnMessage &&
+            !string.IsNullOrWhiteSpace(full?.ThreadId) &&
+            !string.IsNullOrWhiteSpace(_accessToken))
+            conversation = new MailRuConversation(source.Id, full.ThreadId!, 2,
+                [new MailRuConversationMember(source.Id, "", "", "", "", null, null)]);
+
+        if (conversation is null && !isOwnMessage &&
+            string.IsNullOrWhiteSpace(sender))
         {
             AppDialog.Info(this, "Ответить", "У исходного письма не найден адрес отправителя.");
             return;
@@ -153,7 +175,8 @@ public partial class MainWindow
         ResetComposeTemplateSelectors();
         ScheduleSendCheckBox.IsChecked = false;
         RequestReadReceiptCheckBox.IsChecked = false;
-        ComposeToTextBox.Text = conversation is null ? sender : "";
+        ComposeToTextBox.Text = conversation is not null || isOwnMessage
+            ? string.Join(", ", selectedRecipients) : sender;
         ComposeSubjectTextBox.Text = ReplySubject(full?.Subject ?? source.Subject);
         var quoted = BuildQuotedReply(full, source);
         if (_composeRichEditor is not null)
@@ -165,7 +188,9 @@ public partial class MainWindow
             ComposeBodyTextBox.Text = "Добрый день\n\n" + quoted;
         ApplyDefaultComposeSignature();
         _composeRichEditor?.PrepareInitialTypingFormat();
-        ComposeStatusText.Text = string.Empty;
+        ComposeStatusText.Text = conversation is null && isOwnMessage
+            ? "Полный состав переписки не подтверждён. Проверьте получателей из «Кому» и «Копия» выбранного письма."
+            : string.Empty;
 
         if (conversation is not null)
         {
@@ -184,10 +209,14 @@ public partial class MainWindow
                         StringComparison.OrdinalIgnoreCase))
                     return;
 
-                ComposeToTextBox.Text = string.Join(", ", result.Addresses);
+                // Keep verified To/Cc of the selected message even if another
+                // member's full-message lookup was unsuccessful.
+                var recipients = result.Addresses.Concat(selectedRecipients)
+                    .Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+                ComposeToTextBox.Text = string.Join(", ", recipients);
                 ComposeStatusText.Text = result.Incomplete
                     ? "Не все письма переписки доступны. Проверьте список получателей."
-                    : result.Addresses.Length == 0
+                    : recipients.Length == 0
                         ? "В полях «Кому» и «Копия» переписки нет доступных адресов."
                         : string.Empty;
             }
