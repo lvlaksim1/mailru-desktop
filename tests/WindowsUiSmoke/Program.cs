@@ -41,18 +41,16 @@ internal static class Program
                 "[ссылка](https://example.com)\n# Заголовок";
             var formattedMail = MailRuDesktop.App.Mailing.MailingMarkdownFormatting
                 .Render(sampleMarkdown);
-            Check(formattedMail.PlainText.Contains("Важное курсив подчёркнуто", StringComparison.Ordinal) &&
-                  !formattedMail.PlainText.Contains("**", StringComparison.Ordinal) &&
-                  !formattedMail.PlainText.Contains("<u>", StringComparison.Ordinal) &&
-                  formattedMail.Html.Contains("font-weight:bold", StringComparison.Ordinal) &&
-                  formattedMail.Html.Contains("font-style:italic", StringComparison.Ordinal) &&
-                  formattedMail.Html.Contains("text-decoration:underline", StringComparison.Ordinal) &&
-                  formattedMail.Html.Contains("text-decoration:line-through", StringComparison.Ordinal) &&
-                  formattedMail.Html.Contains("color:#FF0000", StringComparison.Ordinal) &&
-                  formattedMail.Html.Contains("href=\"https://example.com\"", StringComparison.Ordinal) &&
-                  formattedMail.Html.Contains("font-size:20", StringComparison.Ordinal) &&
-                  !formattedMail.Html.Contains("**Важное**", StringComparison.Ordinal),
-                "Excel mailing uses styled HTML and clean text matching rich preview");
+            Check(formattedMail.PlainText.Contains("Важное курсив подчёркнуто", StringComparison.Ordinal), "plain text includes words");
+            Check(!formattedMail.PlainText.Contains("**", StringComparison.Ordinal) && !formattedMail.PlainText.Contains("<u>", StringComparison.Ordinal), "plain text hides raw tags");
+            Check(formattedMail.Html.Contains("font-weight:bold", StringComparison.Ordinal), "HTML bold");
+            Check(formattedMail.Html.Contains("font-style:italic", StringComparison.Ordinal), "HTML italic");
+            Check(formattedMail.Html.Contains("text-decoration:underline", StringComparison.Ordinal), "HTML underline");
+            Check(formattedMail.Html.Contains("text-decoration:line-through", StringComparison.Ordinal), "HTML strikethrough");
+            Check(formattedMail.Html.Contains("color:#FF0000", StringComparison.Ordinal), "HTML color");
+            Check(formattedMail.Html.Contains("href=\"https://example.com\"", StringComparison.Ordinal), "HTML link");
+            Check(formattedMail.Html.Contains("font-size:20", StringComparison.Ordinal), "HTML heading");
+            Check(!formattedMail.Html.Contains("**Важное**", StringComparison.Ordinal), "HTML removed markdown syntax");
             Check(new TextRange(formattedMail.Document.ContentStart,
                       formattedMail.Document.ContentEnd).Text.Contains("Важное курсив", StringComparison.Ordinal),
                 "mailing preview WPF document displays rendered content rather than markdown tags");
