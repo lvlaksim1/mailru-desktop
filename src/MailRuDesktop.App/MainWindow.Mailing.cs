@@ -17,7 +17,7 @@ public partial class MainWindow
             return;
         }
 
-        var window = new ExcelMailingWindow(this, _authStore, _settingsStore);
+        var window = new ExcelMailingWindow(this, _authStore, _settingsStore, _mailRu);
         WindowGeometryPersistence.Restore(window, _settingsStore, "excel-mailing");
         window.Closing += (_, _) =>
             WindowGeometryPersistence.Save(window, _settingsStore, "excel-mailing");
