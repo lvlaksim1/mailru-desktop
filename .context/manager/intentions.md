@@ -464,5 +464,8 @@ Owner explicitly requested fix for reply to last message sent by self showing th
 ## I-088 — 20.10.2026: reply recipient fix v0.3.85 accepted by Owner (CLOSED)
 Owner explicitly reported "да, работает" after real use of the fix that excludes one's own From when replying to the last message from that account and gathers verified To/Cc. Preserve behavior.
 
-## I-089 — 20.10.2026: v0.3.87 Excel multi-book and formatted mail owner acceptance (ACTIVE)
+## I-089 — 20.10.2026: v0.3.87 Excel multi-book and formatted mail owner acceptance (SUPERSEDED by I-090)
 Owner requested repair of false active workbook error with two or more open Excel workbooks, draggable preview height, rendered letter formatting and formatted HTML in outgoing mail. Main PR #200/v0.3.86 and follow-up PR #202/v0.3.87 shipped, Windows CI and official release successful. Owner must now verify selection of actual Excel workbook/worksheet/active cell across multiple files and actual formatted letter appearance after controlled scheduling to permitted own addresses. No large-scale mailing before acceptance; offline fake Excel/HTTP tests are not live confirmation.
+
+## I-090 — 20.10.2026: реальная приёмка прямой рассылки v0.3.88 (ACTIVE)
+Реализация распоряжения владельца закончена PR #204, main 228abdc76048f1dce5ef9085569a2d0cea6ab45c, CI PASS, официальный выпуск v0.3.88. Нужно проверить настоящий Excel с 2+ книгами, активной строкой, фильтрами и fallback названия из «Наименование работодателя», после чего 1–3 письма на собственные разрешённые адреса: Исходящие, время, HTML, две исходные Excel-ячейки, защита журнала от повторной неопределённой операции. Пока не подтверждено. Старый этап UI приёмки v0.3.87 I-089 замещён; сквозная приёмка отправки I-087 перенесена сюда.
