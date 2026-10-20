@@ -1,108 +1,17 @@
 using System.Globalization;
+using System.Threading;
 using System.Windows;
-using System.Windows.Controls;
 using MailRuDesktop.Protocol;
 
 namespace MailRuDesktop.App.Mailing;
-
-internal sealed record MailingRunHistoryItem(string Id, string Display);
 
 public partial class ExcelMailingWindow
 {
     private readonly MailingRunStore _runStore = new();
     private MailRuClient _mailRu = null!;
-    private MailingRunRecord? _activeRun;
-    private string? _preparedWorkbookPath;
-    private string? _preparedSheetName;
-    private bool _mailingExecutionRunning;
-    private bool _pauseMailing;
+    private CancellationTokenSource? _sendCancellation;
     private bool _stopMailing;
-    private bool _loadingRunHistory;
-
-    private void RefreshRunHistory(string? selectId = null)
-    {
-        _loadingRunHistory = true;
-        try
-        {
-            var runs = _runStore.ListRecent();
-            RunHistoryCombo.ItemsSource = runs.Select(run =>
-                new MailingRunHistoryItem(run.Id,
-                    run.CreatedAtUtc.LocalDateTime.ToString("dd.MM.yyyy HH:mm",
-                        CultureInfo.CurrentCulture) + " — " + run.ProfileName +
-                    " (" + run.Jobs.Count + ")")).ToArray();
-            RunHistoryCombo.SelectedItem =
-                (RunHistoryCombo.ItemsSource as IEnumerable<MailingRunHistoryItem>)?
-                .FirstOrDefault(x => x.Id == selectId);
-        }
-        finally { _loadingRunHistory = false; }
-    }
-
-    private void RunHistoryCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (_loadingRunHistory || _mailingExecutionRunning ||
-            RunHistoryCombo.SelectedItem is not MailingRunHistoryItem selected)
-            return;
-        try
-        {
-            ClearCorrectionState();
-            _activeRun = _runStore.Load(selected.Id);
-            PreviewGrid.ItemsSource = _activeRun.Jobs.Select(ToPreviewRow).ToArray();
-            StartMailingButton.IsEnabled = false;
-            RunStatusText.Text = DescribeRun(_activeRun);
-            StatusText.Text = "Загружен журнал рассылки. Для незавершённых заданий выберите " +
-                "«Продолжить» или «Повторить запись в Excel». " +
-                "Задания с неопределённым результатом автоматически не повторяются.";
-        }
-        catch (Exception ex) { ShowError(ex); }
-    }
-
-    private static MailingPreparedRow ToPreviewRow(MailingJobRecord job) =>
-        new(job.RowNumber, job.Email, job.Inn, job.Region, job.Organization,
-            job.Sender, job.ScheduledAt, job.Subject, job.Body,
-            job.Status switch
-            {
-                MailingJobStatus.Prepared => "Ready",
-                MailingJobStatus.Submitting => "Постановка",
-                MailingJobStatus.AcceptedScheduled => "Принято сервером",
-                MailingJobStatus.ExcelWritePending => "Ожидает Excel",
-                MailingJobStatus.CompletedRecord => "Запланировано",
-                MailingJobStatus.Rejected => "Ошибка",
-                MailingJobStatus.Indeterminate => "Требует проверки",
-                _ => "Неизвестно"
-            },
-            job.ErrorCode);
-
-    private static string DescribeRun(MailingRunRecord run) =>
-        "Запуск: " + run.ProfileName +
-        " · записано в Excel: " +
-        run.Jobs.Count(x => x.Status == MailingJobStatus.CompletedRecord) +
-        " · принято, ожидает Excel: " +
-        run.Jobs.Count(x => x.Status == MailingJobStatus.ExcelWritePending) +
-        " · не начато: " +
-        run.Jobs.Count(x => x.Status == MailingJobStatus.Prepared) +
-        " · неопределённо: " +
-        run.Jobs.Count(x => x.Status == MailingJobStatus.Indeterminate) +
-        " · отказов/ошибок: " +
-        run.Jobs.Count(x => x.Status == MailingJobStatus.Rejected);
-
-    private void PublishRunProgress(MailingRunRecord run, MailingJobRecord job)
-    {
-        var rows = (PreviewGrid.ItemsSource as IEnumerable<MailingPreparedRow>)?.ToList();
-        if (rows is not null)
-        {
-            var index = rows.FindIndex(x => x.RowNumber == job.RowNumber &&
-                string.Equals(x.Email, job.Email, StringComparison.OrdinalIgnoreCase));
-            if (index >= 0)
-            {
-                rows[index] = ToPreviewRow(job);
-                var selectedNumber = (PreviewGrid.SelectedItem as MailingPreparedRow)?.RowNumber;
-                PreviewGrid.ItemsSource = rows;
-                PreviewGrid.SelectedItem = rows.FirstOrDefault(x =>
-                    x.RowNumber == selectedNumber);
-            }
-        }
-        RunStatusText.Text = DescribeRun(run);
-    }
+    private static int _activeDirectMailing;
 
     private OpenExcelBook RequireCurrentWorkbook(MailingRunRecord run)
     {
@@ -112,8 +21,7 @@ public partial class ExcelMailingWindow
                 StringComparison.OrdinalIgnoreCase) ||
             !string.Equals(sheet, run.SheetName, StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException(
-                "Выберите исходную открытую книгу и лист рассылки. " +
-                "Повторно обнаружьте книгу, если Excel был закрыт.");
+                "Исходная книга или лист рассылки изменились. Выберите прежнюю книгу.");
         return book;
     }
 
@@ -123,8 +31,6 @@ public partial class ExcelMailingWindow
             string.IsNullOrWhiteSpace(auth?.AccessToken))
             throw new InvalidOperationException("Отсутствует авторизация выбранного аккаунта.");
 
-        // The exact same Markdown rendering is used in preview and the
-        // server payload. Text is readable without tags; HTML keeps styles.
         var rendered = MailingMarkdownFormatting.Render(job.Body);
         return await _mailRu.SendMessageAsync(auth.AccessToken,
             new MailRuOutgoingMessage(
@@ -144,157 +50,190 @@ public partial class ExcelMailingWindow
         return Task.CompletedTask;
     }
 
-    private async Task ExecuteRunAsync(MailingRunRecord run)
+    private async void Send_Click(object sender, RoutedEventArgs e)
     {
-        if (_mailingExecutionRunning) return;
-        _mailingExecutionRunning = true;
-        _pauseMailing = false;
-        _stopMailing = false;
-        StartMailingButton.IsEnabled = false;
-        PauseMailingButton.IsEnabled = true;
-        StopMailingButton.IsEnabled = true;
-        ResumeMailingButton.IsEnabled = false;
-        RetryExcelWriteButton.IsEnabled = false;
-        RetryOrganizationButton.IsEnabled = false;
-        ManualOrganizationButton.IsEnabled = false;
-        IncludeOrganizationButton.IsEnabled = false;
-        PrepareButton.IsEnabled = false;
-        ProfileCombo.IsEnabled = false;
-        RunHistoryCombo.IsEnabled = false;
+        // Several windows may exist, but only one can submit a mailing.
+        if (Interlocked.CompareExchange(ref _activeDirectMailing, 1, 0) != 0)
+        {
+            StatusText.Text = "Другая рассылка уже выполняется.";
+            return;
+        }
+
+        var accepted = 0;
+        var rejected = 0;
+        var skipped = 0;
+        var previouslyScheduled = 0;
+        var employerFallbacks = 0;
+        var stoppedForUncertain = false;
         try
         {
-            RequireCurrentWorkbook(run); // avoid any POST without source book
+            var profile = SnapshotProfile();
+            if (BookCombo.SelectedItem is not OpenExcelBook book ||
+                SheetCombo.SelectedItem is not string sheet)
+                throw new InvalidOperationException("Выберите открытую книгу Excel и лист.");
+            if (book.FullName == book.Name)
+                throw new InvalidOperationException("Сначала сохраните книгу в Excel.");
+            var template = _templates.FirstOrDefault(x => x.Name == profile.TemplateName)
+                ?? throw new InvalidOperationException("Выберите существующий шаблон.");
+            var reader = ExcelInteropService.OpenReader(book, sheet);
+            var excluded = _store.ReadExclusions();
+            var authorized = _authorizations.Logins.ToHashSet(
+                StringComparer.OrdinalIgnoreCase);
+            // No intermediate table: one prepared result is returned at a time.
+            var session = MailingPlanner.CreateSession(profile, template.Body,
+                excluded, authorized, collectRows: false);
+            var priorRuns = _runStore.ForWorkbook(book.FullName, sheet);
+            var reserved = priorRuns.SelectMany(x => x.Jobs)
+                .Where(x => x.Status != MailingJobStatus.Rejected)
+                .Select(x => MailingRunStore.RowKey(x.RowNumber, x.Email, x.Inn))
+                .ToHashSet(StringComparer.Ordinal);
+            _stopMailing = false;
+            _sendCancellation = new CancellationTokenSource();
+            var cancellation = _sendCancellation.Token;
+            SendButton.IsEnabled = false;
+            FindBooksButton.IsEnabled = false;
+            BookCombo.IsEnabled = false;
+            SheetCombo.IsEnabled = false;
+            ProfileControls.IsEnabled = false;
+            OptionsBorder.IsEnabled = false;
             var engine = new MailingSubmissionEngine(_runStore);
-            await engine.ExecuteAsync(run, SubmitOneAsync,
-                job => WriteOneExcelAsync(run, job),
-                () => _pauseMailing || _stopMailing || !IsVisible,
-                job => PublishRunProgress(run, job));
-            RunStatusText.Text = DescribeRun(run);
-            StatusText.Text = _stopMailing
-                ? "Постановка новых писем остановлена. Принятые сервером письма не отменялись."
-                : _pauseMailing
-                    ? "Пауза. Новые задания не ставятся на сервер."
-                    : run.Jobs.Any(x => x.Status == MailingJobStatus.ExcelWritePending)
-                        ? "Запись в Excel не завершена. Проверьте книгу и повторите запись."
-                        : "Текущий проход завершён. Проверьте состояние каждой строки.";
+
+            // When the server accepted a previous letter but Excel was unavailable,
+            // recover the two Excel marks without any repeated server POST.
+            foreach (var previous in priorRuns)
+            {
+                foreach (var old in previous.Jobs.Where(x =>
+                             x.Status == MailingJobStatus.ExcelWritePending))
+                {
+                    cancellation.ThrowIfCancellationRequested();
+                    await WriteOneExcelAsync(previous, old);
+                    old.ExcelWritten = true;
+                    old.Status = MailingJobStatus.CompletedRecord;
+                    old.ErrorCode = "";
+                    _runStore.Save(previous);
+                }
+            }
+
+            MailingRunRecord? run = null;
+            var names = new Dictionary<string, string?>(StringComparer.Ordinal);
+            using var lookup = new OrganizationLookupService();
+            var mustStop = false;
+            while (reader.HasMore && !session.IsFull && !mustStop)
+            {
+                cancellation.ThrowIfCancellationRequested();
+                if (_stopMailing || !IsVisible) break;
+                var rows = reader.ReadNext(cancellation);
+                foreach (var row in rows)
+                {
+                    cancellation.ThrowIfCancellationRequested();
+                    if (_stopMailing || !IsVisible || session.IsFull) break;
+
+                    var key = MailingRunStore.RowKey(row.RowNumber, row.Email, row.Inn);
+                    if (session.NeedsOrganization(row) && reserved.Contains(key))
+                    {
+                        previouslyScheduled++;
+                        continue;
+                    }
+
+                    string? name = null;
+                    if (session.NeedsOrganization(row))
+                    {
+                        if (!names.TryGetValue(row.Inn, out name))
+                        {
+                            StatusText.Text =
+                                $"Строка {row.RowNumber}: поиск организации по ИНН {row.Inn}. " +
+                                $"Принято Mail.ru: {accepted}; квота {session.ReadyCount}/{session.Quota}.";
+                            try
+                            {
+                                name = await lookup.ResolveAsync(row.Inn, cancellation);
+                            }
+                            catch (OperationCanceledException) { throw; }
+                            catch (Exception ex)
+                            {
+                                DiagnosticLog.Write("mailing_org_lookup",
+                                    ex.GetType().Name + ": " + ex.Message);
+                            }
+                            names[row.Inn] = name;
+                        }
+                        if (string.IsNullOrWhiteSpace(name) &&
+                            !string.IsNullOrWhiteSpace(row.EmployerName))
+                            employerFallbacks++;
+                    }
+
+                    var planned = session.Accept(row, name);
+                    if (planned.Status != "Ready")
+                    {
+                        skipped++;
+                        continue;
+                    }
+                    MailingJobRecord job;
+                    if (run is null)
+                    {
+                        run = _runStore.Create(profile, book.FullName, sheet, [planned]);
+                        job = run.Jobs.Single();
+                    }
+                    else job = _runStore.Append(run, planned);
+                    // Reservation is durable BEFORE a single network request.
+                    reserved.Add(key);
+                    StatusText.Text =
+                        $"Строка {row.RowNumber}: постановка письма {session.ReadyCount}/{session.Quota}. " +
+                        $"Принято Mail.ru: {accepted}.";
+                    await engine.ExecuteAsync(run, SubmitOneAsync,
+                        current => WriteOneExcelAsync(run, current),
+                        () => cancellation.IsCancellationRequested ||
+                              _stopMailing || !IsVisible);
+                    if (job.Status == MailingJobStatus.CompletedRecord)
+                        accepted++;
+                    else if (job.Status == MailingJobStatus.Rejected)
+                        rejected++;
+                    else
+                    {
+                        // Unknown reply or Excel write failure: the journal
+                        // protects this row, but do not submit further letters.
+                        stoppedForUncertain = true;
+                        mustStop = true;
+                        break;
+                    }
+                }
+                if (!mustStop && !_stopMailing && IsVisible)
+                    await Task.Yield(); // Excel COM stays on this WPF STA thread
+            }
+
+            StatusText.Text = stoppedForUncertain
+                ? $"Отправка приостановлена: неопределённый ответ Mail.ru либо ошибка записи Excel. " +
+                  $"Принято и отмечено: {accepted}, отказов: {rejected}. " +
+                  "Повторная постановка спорного письма исключена журналом."
+                : $"Проход завершён. Принято и отмечено в Excel: {accepted}; " +
+                  $"отказов: {rejected}; пропущено: {skipped}; " +
+                  $"ранее учтено журналом: {previouslyScheduled}; " +
+                  $"названий взято из Excel: {employerFallbacks}. " +
+                  "Сохраните книгу средствами Excel.";
         }
-        catch (Exception ex) { ShowError(ex); }
+        catch (OperationCanceledException)
+        {
+            StatusText.Text =
+                $"Обработка прервана. Ранее принятые Mail.ru задания не отменены. " +
+                $"Подтверждено: {accepted}; неопределённые результаты повторяться не будут.";
+        }
+        catch (Exception ex)
+        {
+            DiagnosticLog.Write("excel_mailing_direct_send",
+                ex.GetType().Name + ": " + ex.Message);
+            StatusText.Text =
+                $"Ошибка: {ex.Message}. Уже подтверждённые отправки: {accepted}. " +
+                "Проверьте журнал и отметки Excel перед следующим запуском.";
+        }
         finally
         {
-            _mailingExecutionRunning = false;
-            PauseMailingButton.IsEnabled = false;
-            StopMailingButton.IsEnabled = false;
-            ResumeMailingButton.IsEnabled = true;
-            RetryExcelWriteButton.IsEnabled = true;
-            RetryOrganizationButton.IsEnabled = true;
-            ManualOrganizationButton.IsEnabled = true;
-            IncludeOrganizationButton.IsEnabled = true;
-            PrepareButton.IsEnabled = true;
-            ProfileCombo.IsEnabled = true;
-            RunHistoryCombo.IsEnabled = true;
-            RefreshRunHistory(run.Id);
+            _sendCancellation?.Dispose();
+            _sendCancellation = null;
+            SendButton.IsEnabled = true;
+            FindBooksButton.IsEnabled = true;
+            BookCombo.IsEnabled = true;
+            SheetCombo.IsEnabled = true;
+            ProfileControls.IsEnabled = true;
+            OptionsBorder.IsEnabled = true;
+            Interlocked.Exchange(ref _activeDirectMailing, 0);
         }
-    }
-
-    private async void StartMailing_Click(object sender, RoutedEventArgs e)
-    {
-        if (_mailingExecutionRunning || _editingPreparedRow ||
-            _preparationCancellation is not null ||
-            _preparedProfile is null || _preparedWorkbookPath is null ||
-            _preparedSheetName is null ||
-            PreviewGrid.ItemsSource is not IEnumerable<MailingPreparedRow> preview)
-            return;
-        var ready = preview.Where(x => x.Status == "Ready").ToArray();
-        if (ready.Length == 0)
-        {
-            StatusText.Text = "Нет готовых писем для постановки.";
-            return;
-        }
-        if (BookCombo.SelectedItem is not OpenExcelBook book ||
-            SheetCombo.SelectedItem is not string sheet ||
-            !string.Equals(book.FullName, _preparedWorkbookPath,
-                StringComparison.OrdinalIgnoreCase) ||
-            !string.Equals(sheet, _preparedSheetName, StringComparison.OrdinalIgnoreCase))
-        {
-            StatusText.Text = "Подготовленная книга или лист изменились. Повторите проверку.";
-            return;
-        }
-
-        if (MessageBox.Show(this,
-                $"Поставить на отложенную отправку {ready.Length} писем?\n" +
-                "Письма будут переданы Mail.ru. Остановка не отменяет принятые задания.",
-                "Подтверждение запуска рассылки",
-                MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
-            return;
-
-        try
-        {
-            _activeRun = _runStore.Create(_preparedProfile, book.FullName, sheet, ready);
-            PreviewGrid.ItemsSource = _activeRun.Jobs.Select(ToPreviewRow).ToArray();
-            await ExecuteRunAsync(_activeRun);
-        }
-        catch (Exception ex) { ShowError(ex); }
-    }
-
-    private void PauseMailing_Click(object sender, RoutedEventArgs e)
-    {
-        _pauseMailing = true;
-        StatusText.Text = "Пауза будет выполнена после текущей серверной операции.";
-    }
-
-    private void StopMailing_Click(object sender, RoutedEventArgs e)
-    {
-        _stopMailing = true;
-        StatusText.Text = "Остановка после текущей операции. Уже принятые письма остаются в расписании.";
-    }
-
-    private async void ResumeMailing_Click(object sender, RoutedEventArgs e)
-    {
-        if (_mailingExecutionRunning || _activeRun is null) return;
-        try
-        {
-            _activeRun = _runStore.Load(_activeRun.Id);
-            if (!_activeRun.Jobs.Any(x => x.Status is MailingJobStatus.Prepared or
-                    MailingJobStatus.ExcelWritePending))
-            {
-                StatusText.Text = "Нет заданий для продолжения.";
-                return;
-            }
-            if (MessageBox.Show(this,
-                    "Продолжить незавершённые задания этого запуска? " +
-                    "Подтверждённые и неопределённые операции повторяться не будут.",
-                    "Продолжение рассылки",
-                    MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
-                return;
-            await ExecuteRunAsync(_activeRun);
-        }
-        catch (Exception ex) { ShowError(ex); }
-    }
-
-    private async void RetryExcelWrite_Click(object sender, RoutedEventArgs e)
-    {
-        if (_mailingExecutionRunning || _activeRun is null) return;
-        RetryExcelWriteButton.IsEnabled = false;
-        try
-        {
-            var run = _runStore.Load(_activeRun.Id);
-            RequireCurrentWorkbook(run);
-            foreach (var job in run.Jobs.Where(x =>
-                         x.Status == MailingJobStatus.ExcelWritePending))
-            {
-                await WriteOneExcelAsync(run, job);
-                job.ExcelWritten = true;
-                job.Status = MailingJobStatus.CompletedRecord;
-                job.ErrorCode = "";
-                _runStore.Save(run);
-                PublishRunProgress(run, job);
-            }
-            _activeRun = run;
-            RunStatusText.Text = DescribeRun(run);
-            StatusText.Text = "Подтверждённые сервером задания записаны в Excel. " +
-                "Сохраните книгу средствами Excel.";
-        }
-        catch (Exception ex) { ShowError(ex); }
-        finally { RetryExcelWriteButton.IsEnabled = true; }
     }
 }

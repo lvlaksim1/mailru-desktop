@@ -116,13 +116,8 @@ internal sealed class MailingRunStore
 
         // A failed Excel write cannot make an already accepted mail eligible again.
         // An ambiguous network outcome also blocks a silent second submission.
-        foreach (var previous in ListRecent())
+        foreach (var previous in ForWorkbook(workbookPath, sheetName))
         {
-            if (!string.Equals(previous.WorkbookPath, workbookPath,
-                    StringComparison.OrdinalIgnoreCase) ||
-                !string.Equals(previous.SheetName, sheetName,
-                    StringComparison.OrdinalIgnoreCase))
-                continue;
             foreach (var old in previous.Jobs.Where(x => x.Status is not
                          MailingJobStatus.Rejected))
             {
@@ -150,6 +145,62 @@ internal sealed class MailingRunStore
         };
         Save(run);
         return run;
+    }
+
+    // A new letter is persisted in the protected journal before its POST.
+    // No separate preview list or whole-sheet preparation is required.
+    internal MailingJobRecord Append(MailingRunRecord run, MailingPreparedRow prepared)
+    {
+        if (prepared.Status != "Ready" ||
+            run.Jobs.Any(x => x.RowNumber == prepared.RowNumber))
+            throw new InvalidOperationException(
+                "Строка уже есть в текущем запуске или не готова к отправке.");
+        if (string.IsNullOrWhiteSpace(prepared.Email) ||
+            string.IsNullOrWhiteSpace(prepared.Sender) ||
+            string.IsNullOrWhiteSpace(prepared.Subject) ||
+            string.IsNullOrWhiteSpace(prepared.Body) ||
+            prepared.ScheduledAt is null)
+            throw new InvalidOperationException("Неполное задание рассылки.");
+        var task = new MailingJobRecord
+        {
+            RowNumber = prepared.RowNumber,
+            Email = prepared.Email,
+            Inn = prepared.Inn,
+            Region = prepared.Region,
+            Organization = prepared.Organization,
+            Sender = prepared.Sender,
+            MessageId = MailRuClient.CreateMessageId(),
+            Subject = prepared.Subject,
+            Body = prepared.Body,
+            ScheduledAt = prepared.ScheduledAt.Value
+        };
+        run.Jobs.Add(task);
+        try { Save(run); }
+        catch
+        {
+            run.Jobs.Remove(task);
+            throw;
+        }
+        return task;
+    }
+
+    internal static string RowKey(int row, string email, string inn) =>
+        row.ToString(System.Globalization.CultureInfo.InvariantCulture) + "\u001F" +
+        email.Trim().ToUpperInvariant() + "\u001F" + inn.Trim();
+
+    // Unlike recent-run history, conflict checks must cover ALL protected
+    // journals; the oldest pending or indeterminate POST still matters.
+    internal IReadOnlyList<MailingRunRecord> ForWorkbook(string workbookPath, string sheetName)
+    {
+        if (!Directory.Exists(_directory)) return [];
+        return Directory.EnumerateFiles(_directory, "*.run")
+            .Select(path => Load(Path.GetFileNameWithoutExtension(path)))
+            .Where(run => string.Equals(run.WorkbookPath, workbookPath,
+                              StringComparison.OrdinalIgnoreCase) &&
+                          string.Equals(run.SheetName, sheetName,
+                              StringComparison.OrdinalIgnoreCase))
+            .OrderBy(x => x.CreatedAtUtc)
+            .ToArray();
     }
 
     internal void Save(MailingRunRecord run)

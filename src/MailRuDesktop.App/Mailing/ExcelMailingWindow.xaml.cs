@@ -43,7 +43,6 @@ public partial class ExcelMailingWindow : Window
     private bool _loading;
     private bool _dirty;
     private bool _storeReadable = true;
-    private CancellationTokenSource? _preparationCancellation;
     private bool _senderHeightChanged;
 
     internal ExcelMailingWindow(Window owner,
@@ -81,10 +80,8 @@ public partial class ExcelMailingWindow : Window
             _profiles.Add(new MailingProfile());
         if (_profiles.Count > 0)
             ProfileCombo.SelectedIndex = 0;
-        Closed += (_, _) => { _preparationCancellation?.Cancel(); _stopMailing = true; };
+        Closed += (_, _) => { _sendCancellation?.Cancel(); _stopMailing = true; };
         Closing += Window_Closing;
-        try { RefreshRunHistory(); }
-        catch (Exception ex) { ShowError(ex); }
     }
 
     internal static double NormalizeSenderGridHeight(double desired) =>
@@ -92,7 +89,7 @@ public partial class ExcelMailingWindow : Window
 
     internal void ResizeSenderGrid(double verticalDelta)
     {
-        var maxHeight = Math.Max(110, Math.Min(520, ActualHeight - 515));
+        var maxHeight = Math.Max(110, Math.Min(520, ActualHeight - 320));
         var height = Math.Clamp(SenderGrid.Height + verticalDelta, 110, maxHeight);
         if (Math.Abs(height - SenderGrid.Height) < 0.5) return;
         SenderGrid.Height = height;
@@ -127,7 +124,7 @@ public partial class ExcelMailingWindow : Window
     private void Window_Closing(object? sender, CancelEventArgs e)
     {
         SaveSenderGridHeight();
-        if (!_dirty || _preparationCancellation is not null) return;
+        if (!_dirty || _sendCancellation is not null) return;
         var answer = MessageBox.Show(this,
             "Изменения профиля не сохранены. Закрыть без сохранения?",
             "Рассылки Excel", MessageBoxButton.YesNo, MessageBoxImage.Question);
@@ -139,7 +136,6 @@ public partial class ExcelMailingWindow : Window
         if (_loading || _current is null) return;
         _dirty = true;
         DirtyText.Text = "● Несохранённые изменения";
-        StartMailingButton.IsEnabled = false;
         UpdateQuotaSummary();
     }
     private void FieldChanged(object sender, SelectionChangedEventArgs e) => MarkDirty();
@@ -212,11 +208,6 @@ public partial class ExcelMailingWindow : Window
             _dirty = false;
             DirtyText.Text = "";
             UpdateQuotaSummary();
-            ClearCorrectionState();
-            StartMailingButton.IsEnabled = false;
-            _activeRun = null;
-            PreviewGrid.ItemsSource = null;
-            ClearMessagePreview();
         }
         finally { _loading = false; }
     }
@@ -279,7 +270,7 @@ public partial class ExcelMailingWindow : Window
             ProfileCombo.SelectedItem = next;
             _dirty = false;
             DirtyText.Text = "";
-            StatusText.Text = "Профиль сохранён. Никаких писем не отправлено.";
+            StatusText.Text = "Профиль сохранён.";
             return true;
         }
         catch (Exception ex)
@@ -416,171 +407,13 @@ public partial class ExcelMailingWindow : Window
         SheetCombo.ItemsSource = book.Sheets;
         if (book.Sheets.Count > 0) SheetCombo.SelectedIndex = 0;
         BookPathText.Text = book.FullName == book.Name
-            ? "Книга ещё не сохранена — сохраните её в Excel перед подготовкой."
+            ? "Книга ещё не сохранена — сохраните её в Excel перед отправкой."
             : book.FullName;
-    }
-
-    private async void Prepare_Click(object sender, RoutedEventArgs e)
-    {
-        if (_preparationCancellation is not null) return;
-        try
-        {
-            var profile = SnapshotProfile();
-            if (BookCombo.SelectedItem is not OpenExcelBook book ||
-                SheetCombo.SelectedItem is not string sheet)
-                throw new InvalidOperationException("Выберите открытую книгу Excel и лист.");
-            if (book.FullName == book.Name)
-                throw new InvalidOperationException("Сначала сохраните книгу в Excel.");
-            var template = _templates.First(x => x.Name == profile.TemplateName);
-            _preparationCancellation = new CancellationTokenSource();
-            PrepareButton.IsEnabled = false;
-            StopButton.Visibility = Visibility.Visible;
-            ClearCorrectionState();
-            _activeRun = null;
-            StartMailingButton.IsEnabled = false;
-            PreviewGrid.ItemsSource = null;
-            ClearMessagePreview();
-            StatusText.Text = "Проверка активной строки и заголовков выбранного листа...";
-            var reader = ExcelInteropService.OpenReader(book, sheet);
-            _preparedWorkbookPath = book.FullName;
-            _preparedSheetName = sheet;
-            var exclusions = _store.ReadExclusions();
-            var authorized = _authorizations.Logins.ToHashSet(
-                StringComparer.OrdinalIgnoreCase);
-            var session = MailingPlanner.CreateSession(profile, template.Body,
-                exclusions, authorized);
-            CapturePreparationSettings(profile, template.Body, exclusions, authorized);
-            var names = new Dictionary<string, string?>(StringComparer.Ordinal);
-            var unavailable = 0;
-            using var lookup = new OrganizationLookupService();
-            var countVisible = 0;
-
-            while (reader.HasMore && !session.IsFull)
-            {
-                _preparationCancellation.Token.ThrowIfCancellationRequested();
-                var batch = reader.ReadNext(_preparationCancellation.Token);
-                foreach (var row in batch)
-                {
-                    _preparationCancellation.Token.ThrowIfCancellationRequested();
-                    if (session.IsFull) break;
-                    _preparedSourceRows.Add(row);
-                    countVisible++;
-                    string? name = null;
-                    if (session.NeedsOrganization(row))
-                    {
-                        if (!names.TryGetValue(row.Inn, out name))
-                        {
-                            StatusText.Text =
-                                $"Проверка ИНН {row.Inn}, строка {row.RowNumber}. " +
-                                $"Подготовлено {session.Result.ReadyCount}/{session.Quota}";
-                            try
-                            {
-                                _lastOrganizationRequestAt = DateTimeOffset.UtcNow;
-                                name = await lookup.ResolveAsync(row.Inn,
-                                    _preparationCancellation.Token);
-                                if (string.IsNullOrWhiteSpace(name))
-                                {
-                                    name = null;
-                                    unavailable++;
-                                }
-                            }
-                            catch (OperationCanceledException) { throw; }
-                            catch (Exception ex)
-                            {
-                                unavailable++;
-                                DiagnosticLog.Write("mailing_org_lookup",
-                                    ex.GetType().Name + ": " + ex.Message);
-                            }
-                            names[row.Inn] = name;
-                        }
-                    }
-                    if (names.TryGetValue(row.Inn, out var resolved))
-                        _preparedNames[row.Inn] = resolved;
-                    session.Accept(row, name);
-                }
-                StatusText.Text =
-                    $"Просмотрены строки {reader.StartRow}–{Math.Min(reader.NextRow - 1, reader.LastRow)} " +
-                    $"из {reader.LastRow}; видимых кандидатов: {countVisible}; " +
-                    $"готово: {session.Result.ReadyCount}/{session.Quota}.";
-                // Keep the UI responsive and allow cancellation between batches,
-                // without moving any live Excel COM objects to a background thread.
-                await Task.Yield();
-            }
-            _preparationCancellation.Token.ThrowIfCancellationRequested();
-            var ready = session.Result;
-            PreviewGrid.ItemsSource = ready.Rows;
-            StartMailingButton.IsEnabled = ready.ReadyCount > 0;
-            SummaryText.Text =
-                $"Начало: строка {reader.StartRow} · Готово: {ready.ReadyCount} · " +
-                $"Требует проверки: {ready.ReviewCount} · Пропущено: {ready.SkippedCount}";
-            StatusText.Text =
-                $"Предпросмотр {book.Name} / {sheet}, начиная со строки {reader.StartRow}. " +
-                (session.IsFull ? "Квота заполнена; дальнейшие строки не читались. "
-                    : "Достигнут конец данных листа. ") +
-                $"Не удалось подтвердить названия по {unavailable} ИНН. " +
-                "Проверьте письма и нажмите «Запустить рассылку» для подтверждения.";
-        }
-        catch (OperationCanceledException)
-        {
-            StatusText.Text = "Подготовка прервана. Письма не отправлялись, Excel не изменён.";
-        }
-        catch (Exception ex) { ShowError(ex); }
-        finally
-        {
-            _preparationCancellation?.Dispose();
-            _preparationCancellation = null;
-            PrepareButton.IsEnabled = true;
-            StopButton.Visibility = Visibility.Collapsed;
-        }
-    }
-
-    private void Stop_Click(object sender, RoutedEventArgs e) =>
-        _preparationCancellation?.Cancel();
-
-    // Keep the existing row actions working when the pointer lands on a read-only cell editor.
-    private void PreviewGridText_PreviewMouseLeftButtonDown(
-        object sender, MouseButtonEventArgs e)
-    {
-        if (sender is TextBox { DataContext: MailingPreparedRow row })
-            PreviewGrid.SelectedItem = row;
-    }
-
-    // TextBox normally selects just one word; the requested gesture selects the entire cell.
-    private void PreviewGridText_MouseDoubleClick(
-        object sender, MouseButtonEventArgs e)
-    {
-        if (sender is not TextBox textBox) return;
-        textBox.Focus();
-        textBox.SelectAll();
-        e.Handled = true;
-    }
-
-    private void ClearMessagePreview()
-    {
-        MessagePreviewSubject.Clear();
-        MessagePreviewDocument.Document = new System.Windows.Documents.FlowDocument();
-    }
-
-    private void PreviewGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (PreviewGrid.SelectedItem is MailingPreparedRow
-            { Subject: { Length: > 0 } } selected)
-        {
-            MessagePreviewSubject.Text = "Тема: " + selected.Subject;
-            MessagePreviewDocument.Document = MailingMarkdownFormatting
-                .Render(selected.Body).Document;
-        }
-        else if (PreviewGrid.SelectedItem is MailingPreparedRow rejected)
-        {
-            MessagePreviewSubject.Text = rejected.Reason;
-            MessagePreviewDocument.Document = new System.Windows.Documents.FlowDocument();
-        }
-        else ClearMessagePreview();
     }
 
     private void ShowError(Exception ex)
     {
         StatusText.Text = "Ошибка: " + ex.Message;
-        DiagnosticLog.Write("excel_mailing_preparation", ex.GetType().Name + ": " + ex.Message);
+        DiagnosticLog.Write("excel_mailing_direct_send", ex.GetType().Name + ": " + ex.Message);
     }
 }

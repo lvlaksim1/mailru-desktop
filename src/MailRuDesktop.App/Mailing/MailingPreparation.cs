@@ -158,8 +158,8 @@ internal static class MailingPlanner
     internal static MailingPlanSession CreateSession(
         MailingProfile profile, string templateBody,
         IReadOnlySet<string> excluded, IReadOnlySet<string> authorized,
-        DateTimeOffset? now = null) =>
-        new(profile, templateBody, excluded, authorized, now);
+        DateTimeOffset? now = null, bool collectRows = true) =>
+        new(profile, templateBody, excluded, authorized, now, collectRows);
 
     internal static MailingPreparationResult Prepare(
         MailingProfile profile, IReadOnlyList<MailingExcelRow> rows,
@@ -185,18 +185,21 @@ internal sealed class MailingPlanSession
     private readonly IReadOnlySet<string> _excluded;
     private readonly DateTimeOffset _now;
     private readonly DateTimeOffset _start;
+    private readonly bool _collectRows;
     private readonly (string Login, int Quantity, int Used)[] _quotas;
     private int _currentSender;
     private int _readyCount;
     private readonly int _totalQuota;
     internal MailingPreparationResult Result { get; } = new();
     internal int Quota => _totalQuota;
+    internal int ReadyCount => _readyCount;
     internal bool IsFull => _readyCount >= _totalQuota;
 
     internal MailingPlanSession(MailingProfile profile, string templateBody,
         IReadOnlySet<string> excluded, IReadOnlySet<string> authorized,
-        DateTimeOffset? now)
+        DateTimeOffset? now, bool collectRows)
     {
+        _collectRows = collectRows;
         _profile = profile;
         _templateBody = templateBody;
         _excluded = excluded;
@@ -230,8 +233,17 @@ internal sealed class MailingPlanSession
         MailingPlanner.IsValidInn(row.Inn) &&
         !string.IsNullOrWhiteSpace(row.Region);
 
-    internal void Accept(MailingExcelRow row, string? organization)
+    // Direct mode returns each result without accumulating a preview table.
+    private MailingPreparedRow Record(MailingPreparedRow row)
     {
+        if (_collectRows) Result.Rows.Add(row);
+        return row;
+    }
+
+    internal MailingPreparedRow Accept(MailingExcelRow row, string? organization)
+    {
+        organization = string.IsNullOrWhiteSpace(organization)
+            ? row.EmployerName.Trim() : organization.Trim();
         var status = "Пропуск";
         var reason = "";
         if (!row.Visible) reason = "Строка скрыта";
@@ -246,7 +258,7 @@ internal sealed class MailingPlanSession
         else if (string.IsNullOrWhiteSpace(row.Region))
         { status = "Требует проверки"; reason = "Не указан регион"; }
         else if (string.IsNullOrWhiteSpace(organization))
-        { status = "Требует проверки"; reason = "Нет подтверждённого названия организации"; }
+        { status = "Требует проверки"; reason = "Нет названия ни в справочнике, ни в Excel"; }
         else if (IsFull)
             reason = "Сверх суммарной квоты";
         else
@@ -269,20 +281,20 @@ internal sealed class MailingPlanSession
                         organization, row.Inn, row.Region);
                     var body = MailingPlanner.Render(_templateBody,
                         organization, row.Inn, row.Region);
-                    Result.Rows.Add(new MailingPreparedRow(row.RowNumber, row.Email,
+                    var ready = new MailingPreparedRow(row.RowNumber, row.Email,
                         row.Inn, row.Region, organization, selected.Login, time,
-                        subject, body, "Ready",
-                        "Только предварительный просмотр — постановка на сервер отключена"));
+                        subject, body, "Ready", "");
+                    Record(ready);
                     _quotas[_currentSender].Used++;
                     _readyCount++;
-                    return;
+                    return ready;
                 }
                 catch (Exception ex) when (ex is InvalidOperationException or ArgumentOutOfRangeException)
                 { status = "Требует проверки"; reason = ex.Message; }
             }
         }
-        Result.Rows.Add(new MailingPreparedRow(row.RowNumber, row.Email,
-            row.Inn, row.Region, organization ?? "", "", null,
+        return Record(new MailingPreparedRow(row.RowNumber, row.Email,
+            row.Inn, row.Region, organization, "", null,
             "", "", status, reason));
     }
 }
