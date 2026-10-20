@@ -1,8 +1,8 @@
 <Window x:Class="MailRuDesktop.App.Mailing.ExcelMailingWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Рассылки Excel — подготовка"
-        Width="1280" Height="880" MinWidth="920" MinHeight="650"
+        Title="Рассылки Excel — отправка"
+        Width="1200" Height="570" MinWidth="920" MinHeight="420"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource AppWindowBrush}"
         Foreground="{DynamicResource AppTextBrush}">
@@ -12,15 +12,11 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*" MinHeight="125"/>
-            <RowDefinition Height="7"/>
-            <RowDefinition Height="155" MinHeight="90"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Margin="0,0,0,12">
             <TextBlock FontSize="20" FontWeight="SemiBold" Text="Рассылки Excel"/>
             <TextBlock Foreground="{DynamicResource AppMutedTextBrush}" TextWrapping="Wrap"
-                       Text="Подготовьте письма, проверьте расписание и подтвердите постановку на сервер. Подтверждённые задания отмечаются в Excel."/>
+                       Text="Выберите книгу, лист и первую строку. Кнопка «Отправить» сразу ставит письма на отложенную отправку Mail.ru; подтверждённые задания отмечаются в Excel."/>
         </StackPanel>
         <WrapPanel Grid.Row="1" Margin="0,0,0,10">
             <TextBlock VerticalAlignment="Center" Text="Профиль:" Margin="0,0,6,0"/>
@@ -101,153 +97,15 @@
                           DisplayMemberPath="DisplayName" SelectionChanged="BookCombo_SelectionChanged"/>
                 <TextBlock Text="Лист:" VerticalAlignment="Center" Margin="0,0,6,0"/>
                 <ComboBox x:Name="SheetCombo" Width="175" Margin="0,0,8,0"/>
-                <Button x:Name="PrepareButton" Content="Проверить и подготовить" Padding="12,6"
-                        FontWeight="SemiBold" Click="Prepare_Click"/>
-                <Button x:Name="StopButton" Content="Прервать подготовку"
-                        Visibility="Collapsed" Padding="9,6" Margin="8,0,0,0"
-                        Click="Stop_Click"/>
+                <Button x:Name="SendButton" Content="Отправить" Padding="12,6"
+                        FontWeight="SemiBold" Click="Send_Click"/>
             </WrapPanel>
             <TextBlock x:Name="BookPathText" Margin="0,5,0,0" FontSize="11"
                        Foreground="{DynamicResource AppMutedTextBrush}" TextWrapping="Wrap"/>
-            <TextBlock Text="При подготовке ИНН запрашиваются в справочнике организаций; при ошибке источник не заменяется данными Excel."
-                       Foreground="{DynamicResource AppMutedTextBrush}" FontSize="11"
-                       Margin="0,3,0,0"/>
+            <TextBlock Text="Если справочник не определит организацию по ИНН, будет использовано «Наименование работодателя» из Excel."
+                       Foreground="{DynamicResource AppMutedTextBrush}" FontSize="11" Margin="0,3,0,0"/>
+            <TextBlock x:Name="StatusText" Margin="0,7,0,0" TextWrapping="Wrap"
+                       Text="Готово к отправке. Проверьте профиль и исходную строку Excel."/>
         </StackPanel>
-        <StackPanel Grid.Row="4" Margin="0,0,0,8">
-            <TextBlock x:Name="StatusText" TextWrapping="Wrap"
-                       Text="Выберите профиль, книгу и лист. Никаких писем без отдельного этапа отправки не будет."/>
-            <TextBlock x:Name="SummaryText" Margin="0,3,0,0" FontWeight="SemiBold"/>
-            <WrapPanel Margin="0,6,0,0">
-                <Button x:Name="RetryOrganizationButton" Content="Повторить поиск по ИНН"
-                        Padding="9,5" Margin="0,0,6,0" Click="RetryOrganization_Click"/>
-                <Button x:Name="ManualOrganizationButton" Content="Указать название вручную"
-                        Padding="9,5" Margin="0,0,6,0" Click="ManualOrganization_Click"/>
-                <Button x:Name="IncludeOrganizationButton" Content="Вернуть в рассылку"
-                        Padding="9,5" Click="IncludeOrganization_Click"/>
-            </WrapPanel>
-            <WrapPanel Margin="0,7,0,0">
-                <Button x:Name="StartMailingButton" Content="Запустить рассылку"
-                        Padding="10,5" Margin="0,0,6,0" IsEnabled="False" Click="StartMailing_Click"/>
-                <Button x:Name="PauseMailingButton" Content="Пауза"
-                        Padding="9,5" Margin="0,0,6,0" IsEnabled="False" Click="PauseMailing_Click"/>
-                <Button x:Name="ResumeMailingButton" Content="Продолжить"
-                        Padding="9,5" Margin="0,0,6,0" Click="ResumeMailing_Click"/>
-                <Button x:Name="StopMailingButton" Content="Остановить новые задания"
-                        Padding="9,5" Margin="0,0,6,0" IsEnabled="False" Click="StopMailing_Click"/>
-                <Button x:Name="RetryExcelWriteButton" Content="Повторить запись в Excel"
-                        Padding="9,5" Margin="0,0,8,0" Click="RetryExcelWrite_Click"/>
-                <TextBlock Text="История:" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                <ComboBox x:Name="RunHistoryCombo" Width="270"
-                          DisplayMemberPath="Display" SelectionChanged="RunHistoryCombo_SelectionChanged"/>
-            </WrapPanel>
-            <TextBlock x:Name="RunStatusText" Margin="0,4,0,0" TextWrapping="Wrap"/>
-
-        </StackPanel>
-        <DataGrid x:Name="PreviewGrid" Grid.Row="5" AutoGenerateColumns="False"
-                  IsReadOnly="True" CanUserAddRows="False" SelectionMode="Single"
-                  SelectionChanged="PreviewGrid_SelectionChanged"
-                  EnableRowVirtualization="True" EnableColumnVirtualization="True">
-            <DataGrid.Resources>
-                <Style x:Key="PreviewGridSelectableTextStyle" TargetType="{x:Type TextBox}">
-                    <Setter Property="IsReadOnly" Value="True"/>
-                    <Setter Property="BorderThickness" Value="0"/>
-                    <Setter Property="Background" Value="Transparent"/>
-                    <Setter Property="Padding" Value="3,2"/>
-                    <Setter Property="VerticalContentAlignment" Value="Center"/>
-                    <Setter Property="HorizontalScrollBarVisibility" Value="Hidden"/>
-                    <Setter Property="TextWrapping" Value="NoWrap"/>
-                    <EventSetter Event="PreviewMouseLeftButtonDown" Handler="PreviewGridText_PreviewMouseLeftButtonDown"/>
-                    <EventSetter Event="MouseDoubleClick" Handler="PreviewGridText_MouseDoubleClick"/>
-                </Style>
-            </DataGrid.Resources>
-            <DataGrid.Columns>
-                <DataGridTemplateColumn Header="Строка" Width="65">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <TextBox Style="{StaticResource PreviewGridSelectableTextStyle}"
-                                     Text="{Binding RowNumber, Mode=OneWay}" ToolTip="{Binding RowNumber}"/>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Получатель" Width="180">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <TextBox Style="{StaticResource PreviewGridSelectableTextStyle}"
-                                     Text="{Binding Email, Mode=OneWay}" ToolTip="{Binding Email}"/>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="ИНН" Width="120">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <TextBox Style="{StaticResource PreviewGridSelectableTextStyle}"
-                                     Text="{Binding Inn, Mode=OneWay}" ToolTip="{Binding Inn}"/>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Организация" Width="180">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <TextBox Style="{StaticResource PreviewGridSelectableTextStyle}"
-                                     Text="{Binding Organization, Mode=OneWay}" ToolTip="{Binding Organization}"/>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Отправитель" Width="185">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <TextBox Style="{StaticResource PreviewGridSelectableTextStyle}"
-                                     Text="{Binding Sender, Mode=OneWay}" ToolTip="{Binding Sender}"/>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Назначено" Width="160">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <TextBox Style="{StaticResource PreviewGridSelectableTextStyle}"
-                                     Text="{Binding ScheduledText, Mode=OneWay}" ToolTip="{Binding ScheduledText}"/>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Состояние" Width="130">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <TextBox Style="{StaticResource PreviewGridSelectableTextStyle}"
-                                     Text="{Binding DisplayStatus, Mode=OneWay}" ToolTip="{Binding DisplayStatus}"/>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Причина / примечание" Width="*">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <TextBox Style="{StaticResource PreviewGridSelectableTextStyle}"
-                                     Text="{Binding Reason, Mode=OneWay}" ToolTip="{Binding Reason}"/>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-            </DataGrid.Columns>
-        </DataGrid>
-        <GridSplitter x:Name="MessagePreviewSplitter" Grid.Row="6" Height="7" HorizontalAlignment="Stretch"
-                      VerticalAlignment="Stretch" ResizeDirection="Rows"
-                      ResizeBehavior="PreviousAndNext" Cursor="SizeNS"
-                      Background="{DynamicResource AppBorderBrush}"
-                      ToolTip="Перетащите, чтобы изменить высоту просмотра письма"/>
-        <Grid Grid.Row="7" Margin="0,4,0,0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <TextBlock Grid.Row="0" Text="Выбранное письмо: тема и форматированный текст"/>
-            <TextBox x:Name="MessagePreviewSubject" Grid.Row="1" IsReadOnly="True"
-                     BorderThickness="0" Background="Transparent"
-                     FontWeight="SemiBold" Margin="0,4,0,2"
-                     TextWrapping="Wrap" Padding="4"/>
-            <FlowDocumentScrollViewer x:Name="MessagePreviewDocument" Grid.Row="2"
-                    Margin="0,2,0,0" Padding="4" IsSelectionEnabled="True"
-                    VerticalScrollBarVisibility="Auto"
-                    HorizontalScrollBarVisibility="Auto"
-                    Background="{DynamicResource AppWindowBrush}"/>
-        </Grid>
     </Grid>
 </Window>
