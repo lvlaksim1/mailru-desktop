@@ -9404,7 +9404,7 @@
       "line": 391,
       "location": {
         "Margin": "new Thickness(0",
-        "Orientation": "Orienta",
+        "Orientation": "Orientat",
         "Padding": "new Thickness(8)"
       },
       "name": null,
@@ -21808,7 +21808,7 @@
       "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:65:RichTextBox",
       "line": 65,
       "location": {
-        "Padding": "new Thickness"
+        "Padding": "new Thickness("
       },
       "name": null,
       "parent": "RichComposeEditor/runtime",
