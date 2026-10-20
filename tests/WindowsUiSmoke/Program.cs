@@ -1085,6 +1085,43 @@ internal static class Program
             Check(Require<CheckBox>(mailingWindow, "JournalEnabledCheck").IsChecked == true &&
                   Require<Button>(mailingWindow, "OpenJournalButton") is not null,
                 "mailing form provides the journal opt-out checkbox and editor button");
+            // Instantiate the actual editor, modify one displayed message,
+            // save it through the UI and verify protected journal round-trip.
+            var editorPath = Path.Combine(Path.GetTempPath(),
+                "MailRu-Journal-UI-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                var editorStore = new MailRuDesktop.App.Mailing.MailingRunStore(editorPath);
+                var editorProfile = new MailRuDesktop.App.Mailing.MailingProfile
+                { Name = "Редактор", Senders = [new() { Login = "sender@example.test" }] };
+                var editorTask = new MailRuDesktop.App.Mailing.MailingPreparedRow(
+                    2, "recipient@example.test", "7707083893", "Москва",
+                    "Тест", "sender@example.test", DateTimeOffset.Now.AddDays(4),
+                    "Старая тема", "Старое письмо", "Ready", "");
+                var editorRun = editorStore.Create(editorProfile,
+                    @"C:\fixture\journal.xlsx", "Лист1", [editorTask]);
+                var journalWindow = new MailRuDesktop.App.Mailing.MailingJournalWindow(
+                    mailingWindow, editorStore);
+                var journalGrid = Require<DataGrid>(journalWindow, "JobsGrid");
+                Check(journalGrid.Items.Count == 1 &&
+                      Require<ComboBox>(journalWindow, "RunCombo").SelectedItem is not null,
+                    "journal editor opens decrypted runs and existing jobs");
+                var subjectEditor = Require<TextBox>(journalWindow, "SubjectEditor");
+                subjectEditor.Text = "Отредактированная тема";
+                Require<Button>(journalWindow, "SaveButton").RaiseEvent(
+                    new RoutedEventArgs(ButtonBase.ClickEvent,
+                        Require<Button>(journalWindow, "SaveButton")));
+                Check(editorStore.Load(editorRun.Id, recoverSubmitting: false)
+                          .Jobs[0].Subject == "Отредактированная тема",
+                    "journal editor saves changed letter content in DPAPI format");
+                journalWindow.Close();
+            }
+            finally
+            {
+                if (Directory.Exists(editorPath))
+                    Directory.Delete(editorPath, recursive: true);
+            }
+
             Check(Require<Button>(mailingWindow, "SendButton").Content?.ToString() ==
                       "Отправить" &&
                   mailingWindow.FindName("PreviewGrid") is null &&
