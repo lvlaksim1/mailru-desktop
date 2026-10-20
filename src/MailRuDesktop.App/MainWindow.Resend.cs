@@ -86,7 +86,7 @@ public partial class MainWindow
         string token, string messageId, List<string> attachmentIds)
     {
         if (_resendOriginalId is null) return;
-        foreach (var attachment in _resendSourceAttachments.Values)
+        foreach (var attachment in _resendSourceAttachments.Values.ToArray())
         {
             if (string.IsNullOrWhiteSpace(attachment.Id))
                 throw new InvalidOperationException(
