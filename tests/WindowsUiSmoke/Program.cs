@@ -656,6 +656,43 @@ internal static class Program
                 catch (InvalidOperationException) { mismatchRejected = true; }
                 Check(mismatchRejected,
                     "selected sheet cannot silently use another sheet's active row");
+
+                var acceptedExcelJob = new MailRuDesktop.App.Mailing.MailingJobRecord
+                {
+                    RowNumber = 74210,
+                    Email = "first-visible@example.com",
+                    Inn = "7707083893",
+                    Sender = "first@example.com",
+                    ScheduledAt = DateTimeOffset.Now.AddDays(3),
+                    MessageId = MailRuDesktop.Protocol.MailRuClient.CreateMessageId()
+                };
+                MailRuDesktop.App.Mailing.ExcelInteropService.WriteConfirmedResult(
+                    discovered, "Компании", acceptedExcelJob);
+                Check(Equals(fakeSheet.Get(74210, 4),
+                          acceptedExcelJob.ScheduledAt.ToString("dd.MM.yyyy")) &&
+                      Equals(fakeSheet.Get(74210, 5), "first@example.com") &&
+                      fakeSheet.Get(74212, 4) is null,
+                    "confirmed scheduling updates exactly two cells of its source row");
+                // Reconciliation is idempotent, and changed source rows are never overwritten.
+                MailRuDesktop.App.Mailing.ExcelInteropService.WriteConfirmedResult(
+                    discovered, "Компании", acceptedExcelJob);
+                fakeSheet.Put(74212, 1, "changed@example.com");
+                var changedRowRejected = false;
+                try
+                {
+                    MailRuDesktop.App.Mailing.ExcelInteropService.WriteConfirmedResult(
+                        discovered, "Компании", new MailRuDesktop.App.Mailing.MailingJobRecord
+                        {
+                            RowNumber = 74212, Email = acceptedExcelJob.Email,
+                            Inn = acceptedExcelJob.Inn, Sender = acceptedExcelJob.Sender,
+                            ScheduledAt = acceptedExcelJob.ScheduledAt,
+                            MessageId = acceptedExcelJob.MessageId
+                        });
+                }
+                catch (InvalidOperationException) { changedRowRejected = true; }
+                Check(changedRowRejected && fakeSheet.Get(74212, 4) is null,
+                    "Excel writer refuses a row whose original recipient has changed");
+
                 fakeExcel.ActiveSheet = fakeSheet;
                 var sizingStore = new AppSettingsStore(Path.Combine(testingDir, "ui"));
                 var layoutState = sizingStore.LoadUserInterfaceState();
@@ -664,6 +701,105 @@ internal static class Program
                 Check(sizingStore.LoadUserInterfaceState()
                           .ExcelMailingSenderGridHeight == 286,
                     "sender table height is saved and restored in user settings");
+
+                // Journals are created before network submission and survive a
+                // process interruption without leaking the recipient or body.
+                var journalDirectory = Path.Combine(testingDir, "runs");
+                var journal = new MailRuDesktop.App.Mailing.MailingRunStore(journalDirectory);
+                var journalProfile = new MailRuDesktop.App.Mailing.MailingProfile
+                {
+                    Name = "Контрольная рассылка",
+                    Senders = [new() { Login = "sender@example.test", Quantity = 1 }]
+                };
+                var sampleTask = new MailRuDesktop.App.Mailing.MailingPreparedRow(
+                    2, "private@example.test", "7707083893", "Москва",
+                    "Тестовая организация", "sender@example.test",
+                    DateTimeOffset.Now.AddDays(3), "Проверка", "Секретный текст",
+                    "Ready", "");
+                var journalRun = journal.Create(journalProfile, @"C:\mailing\source.xlsx",
+                    "Лист1", [sampleTask]);
+                Check(journalRun.Jobs.Count == 1 &&
+                      journalRun.Jobs[0].MessageId.Length == 32 &&
+                      !File.ReadAllText(Path.Combine(journalDirectory,
+                          journalRun.Id + ".run")).Contains("private@example.test"),
+                    "mailing journal encrypts full per-letter state with Windows DPAPI");
+                journalRun.Jobs[0].Status =
+                    MailRuDesktop.App.Mailing.MailingJobStatus.Submitting;
+                journal.Save(journalRun);
+                var interrupted = journal.Load(journalRun.Id);
+                Check(interrupted.Jobs[0].Status ==
+                      MailRuDesktop.App.Mailing.MailingJobStatus.Indeterminate,
+                    "an interrupted request is never automatically treated as unsent");
+                var blockedRepeat = false;
+                try
+                {
+                    journal.Create(journalProfile, @"C:\mailing\source.xlsx",
+                        "Лист1", [sampleTask]);
+                }
+                catch (InvalidOperationException) { blockedRepeat = true; }
+                Check(blockedRepeat,
+                    "indeterminate or previously accepted Excel row cannot be resubmitted");
+
+                var nextTask = sampleTask with
+                {
+                    RowNumber = 3,
+                    Email = "private2@example.test"
+                };
+                var nextRun = journal.Create(journalProfile, @"C:\mailing\source.xlsx",
+                    "Лист1", [nextTask]);
+                var engine = new MailRuDesktop.App.Mailing.MailingSubmissionEngine(journal);
+                var sent = 0;
+                var written = 0;
+                var fakeAcceptance = new Func<
+                    MailRuDesktop.App.Mailing.MailingJobRecord,
+                    Task<MailRuDesktop.Protocol.MailRuCommandResult>>(_ =>
+                {
+                    sent++;
+                    return Task.FromResult(new MailRuDesktop.Protocol.MailRuCommandResult(
+                        true, "{\"status\":200}"));
+                });
+                engine.ExecuteAsync(nextRun, fakeAcceptance, _ =>
+                    Task.FromException(new IOException("Excel closed")), () => false)
+                    .GetAwaiter().GetResult();
+                Check(sent == 1 && nextRun.Jobs[0].Status ==
+                      MailRuDesktop.App.Mailing.MailingJobStatus.ExcelWritePending &&
+                      !nextRun.Jobs[0].ExcelWritten,
+                    "accepted server action survives failed Excel write");
+                engine.ExecuteAsync(journal.Load(nextRun.Id), fakeAcceptance, _ =>
+                {
+                    written++;
+                    return Task.CompletedTask;
+                }, () => false).GetAwaiter().GetResult();
+                var fullyRecovered = journal.Load(nextRun.Id);
+                Check(sent == 1 && written == 1 &&
+                      fullyRecovered.Jobs[0].Status ==
+                      MailRuDesktop.App.Mailing.MailingJobStatus.CompletedRecord,
+                    "Excel recovery writes once and never repeats the accepted POST");
+
+                var refused = journal.Create(journalProfile, @"C:\mailing\source.xlsx",
+                    "Лист1", [nextTask with { RowNumber = 4, Email = "refused@example.test" }]);
+                engine.ExecuteAsync(refused, _ => Task.FromResult(
+                    new MailRuDesktop.Protocol.MailRuCommandResult(false,
+                        "{\"status\":400,\"body\":\"invalid\"}")),
+                    _ => throw new Exception("Excel must not be written"),
+                    () => false).GetAwaiter().GetResult();
+                Check(refused.Jobs[0].Status ==
+                      MailRuDesktop.App.Mailing.MailingJobStatus.Rejected,
+                    "an explicit server refusal is never marked as accepted");
+
+                var ambiguous = journal.Create(journalProfile, @"C:\mailing\source.xlsx",
+                    "Лист1", [nextTask with { RowNumber = 5, Email = "ambiguous@example.test" }]);
+                engine.ExecuteAsync(ambiguous, _ => Task.FromResult(
+                    new MailRuDesktop.Protocol.MailRuCommandResult(false,
+                        "{\"status\":500}")),
+                    _ => throw new Exception("Excel must not be written"),
+                    () => false).GetAwaiter().GetResult();
+                Check(ambiguous.Jobs[0].Status ==
+                      MailRuDesktop.App.Mailing.MailingJobStatus.Indeterminate,
+                    "uncertain server failure is held for review, never replayed");
+
+
+
 
             }
             finally
@@ -762,9 +898,11 @@ internal static class Program
 
             Check(FindDescendant<Button>(mailingWindow!, b =>
                       (b.Content as string)?.Contains("Проверить и подготовить") == true) is not null &&
-                  FindDescendant<Button>(mailingWindow!, b =>
-                      (b.Content as string)?.Contains("Отправить письма") == true) is null,
-                "stage 1 offers preview only, never server submission");
+                  Require<Button>(mailingWindow!, "StartMailingButton").IsEnabled &&
+                  Require<Button>(mailingWindow!, "PauseMailingButton") is not null &&
+                  Require<Button>(mailingWindow!, "ResumeMailingButton") is not null &&
+                  Require<Button>(mailingWindow!, "RetryExcelWriteButton") is not null,
+                "recovered verified row enables explicit mailing launch without automatic submission");
             mailingWindow!.Close();
 
             // Stage 4.1: metadata is one reusable WPF view, WebView2 is not moved.

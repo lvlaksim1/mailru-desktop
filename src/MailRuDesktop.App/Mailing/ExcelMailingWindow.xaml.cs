@@ -8,6 +8,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using MailRuDesktop.App;
+using MailRuDesktop.Protocol;
 
 namespace MailRuDesktop.App.Mailing;
 
@@ -46,13 +47,15 @@ public partial class ExcelMailingWindow : Window
     private bool _senderHeightChanged;
 
     internal ExcelMailingWindow(Window owner,
-        AuthorizationStore authorizations, AppSettingsStore settings)
+        AuthorizationStore authorizations, AppSettingsStore settings,
+        MailRuClient mailRu)
     {
         InitializeComponent();
         Owner = owner;
         Icon = owner.Icon;
         _authorizations = authorizations;
         _settings = settings;
+        _mailRu = mailRu;
         SenderGrid.Height = NormalizeSenderGridHeight(
             _settings.LoadUserInterfaceState().ExcelMailingSenderGridHeight);
         ThemeManager.AttachWindowChrome(this);
@@ -78,8 +81,10 @@ public partial class ExcelMailingWindow : Window
             _profiles.Add(new MailingProfile());
         if (_profiles.Count > 0)
             ProfileCombo.SelectedIndex = 0;
-        Closed += (_, _) => _preparationCancellation?.Cancel();
+        Closed += (_, _) => { _preparationCancellation?.Cancel(); _stopMailing = true; };
         Closing += Window_Closing;
+        try { RefreshRunHistory(); }
+        catch (Exception ex) { ShowError(ex); }
     }
 
     internal static double NormalizeSenderGridHeight(double desired) =>
@@ -134,6 +139,7 @@ public partial class ExcelMailingWindow : Window
         if (_loading || _current is null) return;
         _dirty = true;
         DirtyText.Text = "● Несохранённые изменения";
+        StartMailingButton.IsEnabled = false;
         UpdateQuotaSummary();
     }
     private void FieldChanged(object sender, SelectionChangedEventArgs e) => MarkDirty();
@@ -207,6 +213,8 @@ public partial class ExcelMailingWindow : Window
             DirtyText.Text = "";
             UpdateQuotaSummary();
             ClearCorrectionState();
+            StartMailingButton.IsEnabled = false;
+            _activeRun = null;
             PreviewGrid.ItemsSource = null;
             MessagePreviewText.Clear();
         }
@@ -428,10 +436,14 @@ public partial class ExcelMailingWindow : Window
             PrepareButton.IsEnabled = false;
             StopButton.Visibility = Visibility.Visible;
             ClearCorrectionState();
+            _activeRun = null;
+            StartMailingButton.IsEnabled = false;
             PreviewGrid.ItemsSource = null;
             MessagePreviewText.Clear();
             StatusText.Text = "Проверка активной строки и заголовков выбранного листа...";
             var reader = ExcelInteropService.OpenReader(book, sheet);
+            _preparedWorkbookPath = book.FullName;
+            _preparedSheetName = sheet;
             var exclusions = _store.ReadExclusions();
             var authorized = _authorizations.Logins.ToHashSet(
                 StringComparer.OrdinalIgnoreCase);
@@ -497,6 +509,7 @@ public partial class ExcelMailingWindow : Window
             _preparationCancellation.Token.ThrowIfCancellationRequested();
             var ready = session.Result;
             PreviewGrid.ItemsSource = ready.Rows;
+            StartMailingButton.IsEnabled = ready.ReadyCount > 0;
             SummaryText.Text =
                 $"Начало: строка {reader.StartRow} · Готово: {ready.ReadyCount} · " +
                 $"Требует проверки: {ready.ReviewCount} · Пропущено: {ready.SkippedCount}";
@@ -505,7 +518,7 @@ public partial class ExcelMailingWindow : Window
                 (session.IsFull ? "Квота заполнена; дальнейшие строки не читались. "
                     : "Достигнут конец данных листа. ") +
                 $"Не удалось подтвердить названия по {unavailable} ИНН. " +
-                "Отправка и запись в Excel отключены.";
+                "Проверьте письма и нажмите «Запустить рассылку» для подтверждения.";
         }
         catch (OperationCanceledException)
         {
@@ -545,7 +558,7 @@ public partial class ExcelMailingWindow : Window
     private void PreviewGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         MessagePreviewText.Text = PreviewGrid.SelectedItem is MailingPreparedRow
-            { Status: "Ready" } selected
+            { Subject: { Length: > 0 } } selected
             ? "Тема: " + selected.Subject + Environment.NewLine + Environment.NewLine +
               selected.Body
             : PreviewGrid.SelectedItem is MailingPreparedRow rejected
