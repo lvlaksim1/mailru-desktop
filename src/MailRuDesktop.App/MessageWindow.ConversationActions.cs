@@ -7,17 +7,19 @@ public partial class MessageWindow
 {
     // The detached reader is modal. Close it and let MainWindow open the
     // existing separate compose workspace for this exact member.
-    private async void ConversationAction_WebMessageReceived(
-        object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+    private async void ConversationAction_NavigationStarting(
+        object? sender, CoreWebView2NavigationStartingEventArgs e)
     {
-        if (!ConversationMessageActions.TryParse(e.WebMessageAsJson,
-                out var action, out var messageId, out var revision) ||
-            revision is not null ||
+        if (!ConversationActionNavigation.IsCommandUrl(e.Uri)) return;
+        e.Cancel = true;
+        if (!ConversationActionNavigation.TryParse(e.Uri,
+                _conversationActionNonce, out var action, out var messageId) ||
             !ConversationMessageActions.IsVerifiedMember(
                 _loadedConversation, messageId))
             return;
 
         var conversation = _loadedConversation;
+        var nonce = _conversationActionNonce;
         try
         {
             MailRuFullMessage? full = null;
@@ -29,6 +31,7 @@ public partial class MessageWindow
             if (full is null ||
                 !string.Equals(full.Id, messageId, StringComparison.Ordinal) ||
                 !ReferenceEquals(conversation, _loadedConversation) ||
+                nonce != _conversationActionNonce ||
                 !ConversationMessageActions.IsVerifiedMember(
                     _loadedConversation, messageId))
                 return;
@@ -42,22 +45,6 @@ public partial class MessageWindow
         {
             DiagnosticLog.Write("detached_conversation_action", ex.GetType().Name);
             StatusText.Text = "Не удалось загрузить выбранное письмо переписки.";
-        }
-    }
-
-    private async void ConversationNavigationCompleted(
-        object? sender, CoreWebView2NavigationCompletedEventArgs e)
-    {
-        if (!e.IsSuccess || _loadedConversation is null ||
-            MessageWebView.CoreWebView2 is null) return;
-        try
-        {
-            await MessageWebView.CoreWebView2.ExecuteScriptAsync(
-                ReaderShellScripts.BindDetachedConversationActions());
-        }
-        catch (Exception ex)
-        {
-            DiagnosticLog.Write("detached_conversation_buttons", ex.GetType().Name);
         }
     }
 }

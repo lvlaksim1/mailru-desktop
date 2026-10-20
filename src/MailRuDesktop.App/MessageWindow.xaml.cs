@@ -32,6 +32,7 @@ public partial class MessageWindow : Window
     public bool ReplyRequested { get; private set; }
     public bool ForwardRequested { get; private set; }
     private MailRuFullMessage? _requestedActionSource;
+    private string? _conversationActionNonce;
     private MailRuConversation? _loadedConversation;
     private Dictionary<string, MailRuFullMessage>? _loadedConversationBodies;
     public MailRuFullMessage? ReplySource =>
@@ -152,8 +153,7 @@ public partial class MessageWindow : Window
             await MessageWebView.EnsureCoreWebView2Async(environment);
             MessageWebView.CoreWebView2.Settings.UserAgent = MailRuFixedProfile.UserAgent;
             MessageWebView.CoreWebView2.Settings.IsScriptEnabled = false;
-            MessageWebView.CoreWebView2.WebMessageReceived += ConversationAction_WebMessageReceived;
-            MessageWebView.NavigationCompleted += ConversationNavigationCompleted;
+            MessageWebView.CoreWebView2.NavigationStarting += ConversationAction_NavigationStarting;
             MessageWebView.CoreWebView2.Settings.AreDevToolsEnabled = false;
             MessageWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
             _readerReady = true;
@@ -253,12 +253,13 @@ public partial class MessageWindow : Window
             if (_readerReady)
             {
                 _loadedConversation = conversation;
+                _conversationActionNonce = Guid.NewGuid().ToString("N");
                 _loadedConversationBodies = bodies;
                 MessageWebView.NavigateToString(
                     MailRuConversationHtml.Render(conversation, full.Id, bodies,
                         ThemeManager.ReaderBackgroundHtml,
                         ThemeManager.ReaderForegroundHtml,
-                        ThemeManager.ReaderMutedHtml));
+                        ThemeManager.ReaderMutedHtml, _conversationActionNonce));
             }
         }
         else if (!string.IsNullOrWhiteSpace(full.Html))
@@ -654,9 +655,8 @@ public partial class MessageWindow : Window
     {
         ThemeManager.ThemeChanged -= ThemeManager_ThemeChanged;
         Activated -= MessageWindow_Activated;
-        MessageWebView.NavigationCompleted -= ConversationNavigationCompleted;
         if (MessageWebView.CoreWebView2 is not null)
-            MessageWebView.CoreWebView2.WebMessageReceived -= ConversationAction_WebMessageReceived;
+            MessageWebView.CoreWebView2.NavigationStarting -= ConversationAction_NavigationStarting;
         try
         {
             MessageWebView.Dispose();

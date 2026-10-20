@@ -6,15 +6,15 @@ namespace MailRuDesktop.App;
 
 /// <summary>
 /// A complete conversation is composed only of server-proven message IDs.
-/// Details work without JavaScript; original HTML is isolated inside sandboxed
-/// srcdoc frames so individual messages cannot modify neighboring headers.
+/// All actions are ordinary links intercepted by the native browser host.
+/// JavaScript remains disabled, including inside sandboxed sender content.
 /// </summary>
 internal static class MailRuConversationHtml
 {
     internal static string Render(MailRuConversation conversation,
         string selectedId, IReadOnlyDictionary<string, MailRuFullMessage> bodies,
         string? background = null, string? foreground = null,
-        string? muted = null)
+        string? muted = null, string? actionNonce = null)
     {
         var members = conversation.Members
             .OrderByDescending(m => m.DateUnix ?? long.MinValue).ToArray();
@@ -49,10 +49,10 @@ font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-wi
 font-size:12px;color:var(--muted);overflow-wrap:anywhere}
 .not-loaded{color:var(--muted);font-size:13px}
 .mail-actions{display:flex;gap:8px;margin:0 0 10px}
-.mail-actions button{font:13px Segoe UI,Arial,sans-serif;cursor:pointer;
-color:var(--ink);background:var(--surface);border:1px solid #aeb5bf;
+.mail-actions a{display:inline-block;font:13px Segoe UI,Arial,sans-serif;cursor:pointer;
+color:var(--ink);text-decoration:none;background:var(--surface);border:1px solid #aeb5bf;
 padding:5px 12px;border-radius:5px}
-.mail-actions button:hover{border-color:#4575ac}
+.mail-actions a:hover,.mail-actions a:focus{border-color:#4575ac}
 </style></head><body>
 """.Replace("__SURFACE__", CssHex(background, "#ffffff"))
    .Replace("__INK__", CssHex(foreground, "#252525"))
@@ -84,11 +84,12 @@ padding:5px 12px;border-radius:5px}
                 .Append("<div class=\"mail-body\">");
             // Controls are generated in the trusted conversation wrapper,
             // separate from the sandboxed untrusted letter HTML.
-            e.Append("<div class=\"mail-actions\">")
-                .Append("<button type=\"button\" data-mail-action=\"reply\" data-mail-id=\"")
-                .Append(H(member.Id)).Append("\">Ответить</button>")
-                .Append("<button type=\"button\" data-mail-action=\"forward\" data-mail-id=\"")
-                .Append(H(member.Id)).Append("\">Переслать</button></div>");
+            if (!string.IsNullOrEmpty(actionNonce))
+                e.Append("<div class=\"mail-actions\"><a href=\"")
+                    .Append(H(ConversationActionNavigation.Create("reply", member.Id, actionNonce)))
+                    .Append("\">Ответить</a><a href=\"")
+                    .Append(H(ConversationActionNavigation.Create("forward", member.Id, actionNonce)))
+                    .Append("\">Переслать</a></div>");
             var to = full?.To;
             if (to is { Count: > 0 })
                 e.Append("<div class=\"mail-to\">Кому: ")

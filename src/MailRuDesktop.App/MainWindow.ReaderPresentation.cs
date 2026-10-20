@@ -21,6 +21,7 @@ public partial class MainWindow
         string loadingText = "Загрузка письма…")
     {
         _readerGeneration++;
+        _conversationActionNonce = null;
         _readerStageCancellation?.Cancel();
         _readerStageCancellation = new CancellationTokenSource();
         _readerPendingHeader = target;

@@ -5,6 +5,7 @@ namespace MailRuDesktop.App;
 public partial class MainWindow
 {
     // RAM-only cache: no mail content or credentials are written to disk.
+    private string? _conversationActionNonce;
     private MailRuConversation? _displayedConversation;
     private Dictionary<string, MailRuFullMessage>? _displayedConversationBodies;
     private string? _displayedConversationSelectedId;
@@ -123,6 +124,7 @@ public partial class MainWindow
         // WebView2 instance, no XAML overlay and no half-painted history.
         _readerWaitingForFullMessage = false;
         _displayedConversation = conversation;
+        _conversationActionNonce = Guid.NewGuid().ToString("N");
         _displayedConversationBodies = bodies;
         _displayedConversationSelectedId = selected.Id;
         ShowTrustedConversationHtml();
@@ -134,12 +136,13 @@ public partial class MainWindow
             _displayedConversationBodies is null ||
             _displayedConversationSelectedId is null)
             return;
+        _conversationActionNonce ??= Guid.NewGuid().ToString("N");
         _currentPreparedHtml = MailRuConversationHtml.Render(
             _displayedConversation, _displayedConversationSelectedId,
             _displayedConversationBodies,
             ThemeManager.ReaderBackgroundHtml,
             ThemeManager.ReaderForegroundHtml,
-            ThemeManager.ReaderMutedHtml);
+            ThemeManager.ReaderMutedHtml, _conversationActionNonce);
         if (_readerReady && MessageWebView.CoreWebView2 is not null)
             _ = StageReaderDocumentAsync(_readerGeneration, _currentPreparedHtml);
     }

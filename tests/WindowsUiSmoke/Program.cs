@@ -141,35 +141,36 @@ internal static class Program
                     new MailRuDesktop.Protocol.MailRuConversationMember(
                         "id-2", "Another", "another@other.test", "Second", "Last", null, null)
                 ]);
-            var conversationMarkup = MailRuConversationHtml.Render(
+            var actionNonce = Guid.NewGuid().ToString("N");
+            var replyLink = ConversationActionNavigation.Create("reply", "id-1", actionNonce);
+            var forwardLink = ConversationActionNavigation.Create("forward", "id-2", actionNonce);
+            var secureMarkup = MailRuConversationHtml.Render(
                 conversationForActions, "id-2",
                 new Dictionary<string, MailRuDesktop.Protocol.MailRuFullMessage>
-                { ["id-1"] = threadMessages[0], ["id-2"] = threadMessages[1] });
-            Check(conversationMarkup.Contains("data-mail-action=\"reply\" data-mail-id=\"id-1\"") &&
-                  conversationMarkup.Contains("data-mail-action=\"forward\" data-mail-id=\"id-1\"") &&
-                  conversationMarkup.Contains("data-mail-action=\"reply\" data-mail-id=\"id-2\"") &&
-                  conversationMarkup.Contains("data-mail-action=\"forward\" data-mail-id=\"id-2\""),
-                "every proven conversation message has its own reply and forward buttons");
-            Check(ConversationMessageActions.TryParse(
-                    "{\"kind\":\"conversation-action\",\"action\":\"reply\",\"id\":\"id-1\",\"revision\":17}",
-                    out var memberAction, out var memberId, out var memberRevision) &&
-                  memberAction == "reply" && memberId == "id-1" &&
-                  memberRevision == 17 &&
-                  ConversationMessageActions.IsVerifiedMember(conversationForActions, memberId),
-                "browser action binds the exact clicked message and current reader revision");
-            Check(!ConversationMessageActions.IsVerifiedMember(
-                      conversationForActions, "guessed-id") &&
-                  !ConversationMessageActions.TryParse(
-                      "{\"kind\":\"conversation-action\",\"action\":\"delete\",\"id\":\"id-1\"}",
-                      out _, out _, out _) &&
-                  !ConversationMessageActions.TryParse(
-                      "{\"kind\":\"conversation-action\",\"action\":\"reply\",\"id\":\"id-1\",\"revision\":\"stale\"}",
-                      out _, out _, out _),
-                "unknown conversation IDs, commands and revisions are rejected");
-            Check(ReaderShellScripts.Commit(17).Contains("conversation-action") &&
-                  ReaderShellScripts.BindDetachedConversationActions().Contains(
-                      "conversation-action"),
-                "main and detached WebView readers bind the same per-message actions");
+                { ["id-1"] = threadMessages[0], ["id-2"] = threadMessages[1] },
+                actionNonce: actionNonce);
+            Check(secureMarkup.Contains(System.Net.WebUtility.HtmlEncode(replyLink)) &&
+                  secureMarkup.Contains(System.Net.WebUtility.HtmlEncode(forwardLink)) &&
+                  secureMarkup.Contains(">Ответить</a>") &&
+                  secureMarkup.Contains(">Переслать</a>"),
+                "each verified letter gets native reply/forward links without scripts");
+            Check(ConversationActionNavigation.TryParse(replyLink, actionNonce,
+                    out var clickedAction, out var clickedId) &&
+                  clickedAction == "reply" && clickedId == "id-1" &&
+                  ConversationMessageActions.IsVerifiedMember(conversationForActions, clickedId),
+                "native action resolves the exact clicked mail ID");
+            Check(!ConversationActionNavigation.TryParse(replyLink, "wrong-token",
+                      out _, out _) &&
+                  !ConversationActionNavigation.TryParse(
+                      ConversationActionNavigation.Create("forward", "guessed-id", actionNonce),
+                      "wrong-token", out _, out _) &&
+                  !ConversationActionNavigation.IsCommandUrl("https://other.example/mail") &&
+                  !ConversationMessageActions.IsVerifiedMember(
+                      conversationForActions, "guessed-id"),
+                "external, forged and stale action links cannot invoke mailing actions");
+            Check(!ReaderShellScripts.Commit(17).Contains("conversation-action") &&
+                  !ReaderShellScripts.CreateShell("#ffffff").Contains("<script"),
+                "untrusted mail readers require no clickable JavaScript handler");
             var richForwardSource = threadMessages[0] with
             {
                 Html = "<p>Важное <strong>письмо</strong> и <em>условие</em></p>",
@@ -2139,6 +2140,47 @@ internal static class Program
             "switching mail must not navigate the top-level WebView2");
         Check(reader.Visibility == Visibility.Visible,
             "the same WPF browser remains continuously visible");
+        // Real WebView2 integration: synthesize a click on an ordinary link
+        // inside the sandboxed iframe while IsScriptEnabled is false.
+        // This must reach the native FrameNavigationStarting event; checking
+        // only generated HTML would not detect a dead action button.
+        var nonce = Guid.NewGuid().ToString("N");
+        var clickedUrl = ConversationActionNavigation.Create("reply", "id-1", nonce);
+        string? navigated = null;
+        void ObserveClick(object? _, Microsoft.Web.WebView2.Core.CoreWebView2NavigationStartingEventArgs args)
+        {
+            if (!ConversationActionNavigation.IsCommandUrl(args.Uri)) return;
+            navigated = args.Uri;
+            args.Cancel = true;
+        }
+        browser.FrameNavigationStarting += ObserveClick;
+        try
+        {
+            begin.Invoke(owner, new object?[] { null, "Загрузка письма…" });
+            show.Invoke(owner, new object?[]
+            {
+                "<a id='native-reply-integration' href='" + clickedUrl +
+                "'>Ответить на выбранное письмо</a>"
+            });
+            Check(AwaitOnDispatcher(WaitForNativeAction(browser)),
+                "action link appears in the sandboxed mail reading frame");
+            var clickResult = AwaitOnDispatcher(browser.ExecuteScriptAsync(
+                "(() => {const frame=document.querySelector('iframe[data-active]');" +
+                "const link=frame?.contentDocument?.getElementById('native-reply-integration');" +
+                "if(!link)return false;link.click();return true;})()"));
+            Check(clickResult == "true",
+                "click can be dispatched to the action without scripts in mail content");
+            Check(AwaitOnDispatcher(WaitForNativeNavigation(() => navigated)),
+                "click reaches native FrameNavigationStarting and is cancelled");
+            Check(ConversationActionNavigation.TryParse(navigated, nonce,
+                    out var action, out var selectedId) &&
+                  action == "reply" && selectedId == "id-1",
+                "real browser click delivers the exact selected mail action");
+        }
+        finally
+        {
+            browser.FrameNavigationStarting -= ObserveClick;
+        }
     }
 
     private static async Task<bool> WaitForShell(
@@ -2154,6 +2196,30 @@ internal static class Program
                     return true;
             }
             await Task.Delay(70);
+        }
+        return false;
+    }
+
+    private static async Task<bool> WaitForNativeAction(
+        Microsoft.Web.WebView2.Core.CoreWebView2 browser)
+    {
+        for (var i = 0; i < 80; i++)
+        {
+            var result = await browser.ExecuteScriptAsync(
+                "Boolean(document.querySelector('iframe[data-active]')?.contentDocument" +
+                "?.getElementById('native-reply-integration'))");
+            if (result == "true") return true;
+            await Task.Delay(65);
+        }
+        return false;
+    }
+
+    private static async Task<bool> WaitForNativeNavigation(Func<string?> observe)
+    {
+        for (var i = 0; i < 80; i++)
+        {
+            if (observe() is not null) return true;
+            await Task.Delay(65);
         }
         return false;
     }
