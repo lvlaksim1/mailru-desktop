@@ -22,6 +22,8 @@ internal sealed class MailingJobRecord
     public int RowNumber { get; set; }
     public string Email { get; set; } = "";
     public string Inn { get; set; } = "";
+    public string Region { get; set; } = "";
+    public string Organization { get; set; } = "";
     public string Sender { get; set; } = "";
     public string MessageId { get; set; } = "";
     public string Subject { get; set; } = "";
@@ -101,6 +103,8 @@ internal sealed class MailingRunStore
                 RowNumber = row.RowNumber,
                 Email = row.Email,
                 Inn = row.Inn,
+                Region = row.Region,
+                Organization = row.Organization,
                 Sender = row.Sender,
                 MessageId = MailRuClient.CreateMessageId(),
                 Subject = row.Subject,
