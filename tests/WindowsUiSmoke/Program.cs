@@ -2140,6 +2140,47 @@ internal static class Program
             "switching mail must not navigate the top-level WebView2");
         Check(reader.Visibility == Visibility.Visible,
             "the same WPF browser remains continuously visible");
+        // Real WebView2 integration: synthesize a click on an ordinary link
+        // inside the sandboxed iframe while IsScriptEnabled is false.
+        // This must reach the native FrameNavigationStarting event; checking
+        // only generated HTML would not detect a dead action button.
+        var nonce = Guid.NewGuid().ToString("N");
+        var clickedUrl = ConversationActionNavigation.Create("reply", "id-1", nonce);
+        string? navigated = null;
+        void ObserveClick(object? _, Microsoft.Web.WebView2.Core.CoreWebView2NavigationStartingEventArgs args)
+        {
+            if (!ConversationActionNavigation.IsCommandUrl(args.Uri)) return;
+            navigated = args.Uri;
+            args.Cancel = true;
+        }
+        browser.FrameNavigationStarting += ObserveClick;
+        try
+        {
+            begin.Invoke(owner, new object?[] { null, "Загрузка письма…" });
+            show.Invoke(owner, new object?[]
+            {
+                "<a id='native-reply-integration' href='" + clickedUrl +
+                "'>Ответить на выбранное письмо</a>"
+            });
+            Check(AwaitOnDispatcher(WaitForNativeAction(browser)),
+                "action link appears in the sandboxed mail reading frame");
+            var clickResult = AwaitOnDispatcher(browser.ExecuteScriptAsync(
+                "(() => {const frame=document.querySelector('iframe[data-active]');" +
+                "const link=frame?.contentDocument?.getElementById('native-reply-integration');" +
+                "if(!link)return false;link.click();return true;})()"));
+            Check(clickResult == "true",
+                "click can be dispatched to the action without scripts in mail content");
+            Check(AwaitOnDispatcher(WaitForNativeNavigation(() => navigated)),
+                "click reaches native FrameNavigationStarting and is cancelled");
+            Check(ConversationActionNavigation.TryParse(navigated, nonce,
+                    out var action, out var selectedId) &&
+                  action == "reply" && selectedId == "id-1",
+                "real browser click delivers the exact selected mail action");
+        }
+        finally
+        {
+            browser.FrameNavigationStarting -= ObserveClick;
+        }
     }
 
     private static async Task<bool> WaitForShell(
@@ -2155,6 +2196,30 @@ internal static class Program
                     return true;
             }
             await Task.Delay(70);
+        }
+        return false;
+    }
+
+    private static async Task<bool> WaitForNativeAction(
+        Microsoft.Web.WebView2.Core.CoreWebView2 browser)
+    {
+        for (var i = 0; i < 80; i++)
+        {
+            var result = await browser.ExecuteScriptAsync(
+                "Boolean(document.querySelector('iframe[data-active]')?.contentDocument" +
+                "?.getElementById('native-reply-integration'))");
+            if (result == "true") return true;
+            await Task.Delay(65);
+        }
+        return false;
+    }
+
+    private static async Task<bool> WaitForNativeNavigation(Func<string?> observe)
+    {
+        for (var i = 0; i < 80; i++)
+        {
+            if (observe() is not null) return true;
+            await Task.Delay(65);
         }
         return false;
     }
