@@ -644,6 +644,12 @@ internal static class Program
                 fakeExcel.ActiveWorkbook = fakeBook;
                 fakeExcel.ActiveSheet = fakeSheet;
                 fakeExcel.ActiveCell = fakeSheet.Cells[74210, 4];
+                var selectedWindow = new FakeExcelWindow
+                {
+                    Active = true, ActiveSheet = fakeSheet,
+                    ActiveCell = fakeSheet.Cells[74210, 4]
+                };
+                fakeBook.Windows = new FakeExcelWindows(selectedWindow);
                 var discovered = new MailRuDesktop.App.Mailing.OpenExcelBook
                 {
                     Workbook = fakeBook, ApplicationHwnd = fakeExcel.Hwnd,
@@ -658,6 +664,39 @@ internal static class Program
                 Check(visibleBatch.Select(x => x.RowNumber)
                           .SequenceEqual(new[] { 74210, 74212, 74213 }),
                     "Excel reads in order, ignores filtered row and earlier data");
+                // The selected workbook window is authoritative even if the
+                // globally active Excel workbook belongs to a different file.
+                var anotherBook = new FakeExcelWorkbook
+                {
+                    Name = "another.xlsx",
+                    FullName = @"C:\fixture\another.xlsx",
+                    Application = fakeExcel,
+                    Worksheets = new FakeExcelWorksheets { Sheet = new FakeExcelSheet() },
+                    Windows = new FakeExcelWindows(new FakeExcelWindow
+                    {
+                        Active = false, ActiveSheet = new FakeExcelSheet(),
+                        ActiveCell = new FakeExcelSheet().Cells[3, 1]
+                    })
+                };
+                fakeExcel.ActiveWorkbook = anotherBook;
+                fakeExcel.ActiveSheet = anotherBook.Worksheets.Sheet;
+                fakeExcel.ActiveCell = fakeSheet.Cells[74199, 1];
+                Check(MailRuDesktop.App.Mailing.ExcelInteropService
+                         .OpenReader(discovered, "Компании").StartRow == 74210,
+                    "multiple open Excel books do not redirect the chosen workbook active row");
+                // Multiple windows for the SAME book: use the one that is active.
+                var secondWindow = new FakeExcelWindow
+                {
+                    Active = true, ActiveSheet = fakeSheet,
+                    ActiveCell = fakeSheet.Cells[74212, 1]
+                };
+                selectedWindow.Active = false;
+                fakeBook.Windows = new FakeExcelWindows(selectedWindow, secondWindow);
+                Check(MailRuDesktop.App.Mailing.ExcelInteropService
+                         .OpenReader(discovered, "Компании").StartRow == 74212,
+                    "multiple windows for one workbook use the active window cell");
+                fakeBook.Windows = new FakeExcelWindows(selectedWindow);
+                selectedWindow.Active = true;
                 var incremental = MailRuDesktop.App.Mailing.MailingPlanner.CreateSession(
                     localProfile, "Body {ИНН_организации}",
                     new HashSet<string>(StringComparer.OrdinalIgnoreCase),
@@ -673,7 +712,7 @@ internal static class Program
                       incremental.Result.Rows[1].RowNumber == 74212 &&
                       excelBatchReader.HasMore,
                     "one-pass planning stops on quota without exhausting worksheet");
-                fakeExcel.ActiveSheet = new FakeExcelSheet { Name = "Другой лист" };
+                selectedWindow.ActiveSheet = new FakeExcelSheet { Name = "Другой лист" };
                 var mismatchRejected = false;
                 try
                 {
@@ -683,6 +722,7 @@ internal static class Program
                 catch (InvalidOperationException) { mismatchRejected = true; }
                 Check(mismatchRejected,
                     "selected sheet cannot silently use another sheet's active row");
+                selectedWindow.ActiveSheet = fakeSheet;
 
                 var acceptedExcelJob = new MailRuDesktop.App.Mailing.MailingJobRecord
                 {
