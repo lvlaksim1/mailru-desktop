@@ -12,7 +12,15 @@ public sealed class FakeExcelApplication
 public sealed class FakeExcelWorkbook
 {
     public string Name { get; init; } = "mailing.xlsx";
-    public string FullName { get; init; } = @"C:\fixture\mailing.xlsx";
+    private string _fullName = @"C:\fixture\mailing.xlsx";
+    public bool IsDisconnected { get; set; }
+    public string FullName
+    {
+        get => IsDisconnected
+            ? throw new System.Runtime.InteropServices.COMException("Excel COM disconnected")
+            : _fullName;
+        init => _fullName = value;
+    }
     public FakeExcelApplication Application { get; set; } = null!;
     public FakeExcelWorksheets Worksheets { get; set; } = null!;
     public FakeExcelWindows Windows { get; set; } = null!;

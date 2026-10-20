@@ -731,6 +731,55 @@ internal static class Program
                     Name = fakeBook.Name, FullName = fakeBook.FullName,
                     Sheets = ["Компании"]
                 };
+                fakeExcel.Hwnd += 500;
+                Check(MailRuDesktop.App.Mailing.ExcelInteropService
+                         .OpenReader(discovered, "Компании").StartRow == 74210,
+                    "Excel application HWND changes do not invalidate a selected workbook");
+                var replacementBook = new FakeExcelWorkbook
+                {
+                    Application = fakeExcel, Worksheets = fakeBook.Worksheets,
+                    Windows = fakeBook.Windows
+                };
+                var replacement = new MailRuDesktop.App.Mailing.OpenExcelBook
+                {
+                    Workbook = replacementBook, ApplicationHwnd = fakeExcel.Hwnd,
+                    Name = replacementBook.Name, FullName = replacementBook.FullName,
+                    Sheets = ["Компании"]
+                };
+                fakeBook.IsDisconnected = true;
+                Check(ReferenceEquals(
+                    MailRuDesktop.App.Mailing.ExcelInteropService
+                        .ResolveSelectedWorkbook(discovered, () => [replacement]),
+                    replacement), "disconnected workbook reconnects by exact path");
+                var ambiguousRejected = false;
+                try
+                {
+                    _ = MailRuDesktop.App.Mailing.ExcelInteropService
+                        .ResolveSelectedWorkbook(discovered, () => [replacement, replacement]);
+                }
+                catch (InvalidOperationException) { ambiguousRejected = true; }
+                Check(ambiguousRejected, "ambiguous same-path workbook rebind is rejected");
+                fakeBook.IsDisconnected = false;
+                var renamedBook = new FakeExcelWorkbook
+                {
+                    FullName = @"C:\fixture\renamed.xlsx", Application = fakeExcel,
+                    Worksheets = fakeBook.Worksheets, Windows = fakeBook.Windows
+                };
+                var renamedSelection = new MailRuDesktop.App.Mailing.OpenExcelBook
+                {
+                    Workbook = renamedBook, ApplicationHwnd = fakeExcel.Hwnd,
+                    Name = fakeBook.Name, FullName = fakeBook.FullName,
+                    Sheets = ["Компании"]
+                };
+                var renamedRejected = false;
+                try
+                {
+                    _ = MailRuDesktop.App.Mailing.ExcelInteropService
+                        .ResolveSelectedWorkbook(renamedSelection, () =>
+                            throw new Exception("Wrong-file silent rebinding"));
+                }
+                catch (InvalidOperationException) { renamedRejected = true; }
+                Check(renamedRejected, "a Save As path change requires new workbook selection");
                 var excelBatchReader = MailRuDesktop.App.Mailing.ExcelInteropService
                     .OpenReader(discovered, "Компании");
                 Check(excelBatchReader.StartRow == 74210 && excelBatchReader.LastRow == 145000,

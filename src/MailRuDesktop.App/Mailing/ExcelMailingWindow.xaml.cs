@@ -386,12 +386,34 @@ public partial class ExcelMailingWindow : Window
     {
         try
         {
+            var selectedPath = (BookCombo.SelectedItem as OpenExcelBook)?.FullName;
+            var selectedSheet = SheetCombo.SelectedItem as string;
+            var books = ExcelInteropService.Discover();
             BookCombo.ItemsSource = null;
             SheetCombo.ItemsSource = null;
-            var books = ExcelInteropService.Discover();
             BookCombo.ItemsSource = books;
-            if (books.Count > 0) BookCombo.SelectedIndex = 0;
-            else StatusText.Text = "Открытых книг Excel не обнаружено. Откройте книгу в Microsoft Excel.";
+            if (selectedPath is null)
+            {
+                if (books.Count > 0) BookCombo.SelectedIndex = 0;
+            }
+            else
+            {
+                var matched = books.Where(x => string.Equals(x.FullName,
+                    selectedPath, StringComparison.OrdinalIgnoreCase)).ToArray();
+                if (matched.Length == 1)
+                {
+                    BookCombo.SelectedItem = matched[0];
+                    if (selectedSheet is not null)
+                        SheetCombo.SelectedItem = matched[0].Sheets.FirstOrDefault(x =>
+                            string.Equals(x, selectedSheet, StringComparison.OrdinalIgnoreCase));
+                }
+                else
+                    StatusText.Text = matched.Length == 0
+                        ? "Прежняя книга больше не найдена. Выберите нужную книгу."
+                        : "Открыто несколько экземпляров выбранного файла. Выберите книгу вручную.";
+            }
+            if (books.Count == 0)
+                StatusText.Text = "Открытых книг Excel не обнаружено. Откройте книгу в Microsoft Excel.";
         }
         catch (Exception ex) { ShowError(ex); }
     }
