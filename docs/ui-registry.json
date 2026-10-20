@@ -9363,8 +9363,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow.ComposeWindow/window@369/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:369:Window",
-      "line": 369,
+      "id": "MainWindow.ComposeWindow/window@376/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:376:Window",
+      "line": 376,
       "location": {
         "Height": "520",
         "MinHeight": "320",
@@ -9373,53 +9373,53 @@
         "WindowStartupLocation": "WindowStartupLocation.CenterOwner"
       },
       "name": null,
-      "parent": "MainWindow.ComposeWindow/window@369/runtime",
+      "parent": "MainWindow.ComposeWindow/window@376/runtime",
       "source": "src/MailRuDesktop.App/MainWindow.ComposeWindow.cs",
       "states": null,
       "style": null,
       "type": "Window",
       "typography": {},
-      "window": "MainWindow.ComposeWindow/window@369"
+      "window": "MainWindow.ComposeWindow/window@376"
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow.ComposeWindow/window@369/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:383:DockPanel",
-      "line": 383,
+      "id": "MainWindow.ComposeWindow/window@376/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:390:DockPanel",
+      "line": 390,
       "location": {
         "Margin": "new Thickness(14)",
         "Padding": "new Thickness(8)"
       },
       "name": null,
-      "parent": "MainWindow.ComposeWindow/window@369/runtime",
+      "parent": "MainWindow.ComposeWindow/window@376/runtime",
       "source": "src/MailRuDesktop.App/MainWindow.ComposeWindow.cs",
       "states": null,
       "style": null,
       "type": "DockPanel",
       "typography": {},
-      "window": "MainWindow.ComposeWindow/window@369"
+      "window": "MainWindow.ComposeWindow/window@376"
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow.ComposeWindow/window@369/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:384:TextBox",
-      "line": 384,
+      "id": "MainWindow.ComposeWindow/window@376/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:391:TextBox",
+      "line": 391,
       "location": {
         "Margin": "new Thickness(0",
         "Orientation": "Orientat",
         "Padding": "new Thickness(8)"
       },
       "name": null,
-      "parent": "MainWindow.ComposeWindow/window@369/runtime",
+      "parent": "MainWindow.ComposeWindow/window@376/runtime",
       "source": "src/MailRuDesktop.App/MainWindow.ComposeWindow.cs",
       "states": null,
       "style": null,
       "type": "TextBox",
       "typography": {},
-      "window": "MainWindow.ComposeWindow/window@369"
+      "window": "MainWindow.ComposeWindow/window@376"
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow.ComposeWindow/window@369/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:393:StackPanel",
-      "line": 393,
+      "id": "MainWindow.ComposeWindow/window@376/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:400:StackPanel",
+      "line": 400,
       "location": {
         "HorizontalAlignment": "HorizontalAlignment.Right",
         "Margin": "new Thickness(0",
@@ -9427,61 +9427,61 @@
         "Padding": "new Thickness(15"
       },
       "name": null,
-      "parent": "MainWindow.ComposeWindow/window@369/runtime",
+      "parent": "MainWindow.ComposeWindow/window@376/runtime",
       "source": "src/MailRuDesktop.App/MainWindow.ComposeWindow.cs",
       "states": null,
       "style": null,
       "type": "StackPanel",
       "typography": {},
-      "window": "MainWindow.ComposeWindow/window@369"
+      "window": "MainWindow.ComposeWindow/window@376"
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow.ComposeWindow/window@369/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:399:Button",
-      "line": 399,
+      "id": "MainWindow.ComposeWindow/window@376/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:406:Button",
+      "line": 406,
       "location": {
         "Margin": "new Thickness(8",
         "Padding": "new Thickness(15"
       },
       "name": null,
-      "parent": "MainWindow.ComposeWindow/window@369/runtime",
+      "parent": "MainWindow.ComposeWindow/window@376/runtime",
       "source": "src/MailRuDesktop.App/MainWindow.ComposeWindow.cs",
       "states": null,
       "style": null,
       "type": "Button",
       "typography": {},
-      "window": "MainWindow.ComposeWindow/window@369"
+      "window": "MainWindow.ComposeWindow/window@376"
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow.ComposeWindow/window@369/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:400:Button",
-      "line": 400,
+      "id": "MainWindow.ComposeWindow/window@376/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:407:Button",
+      "line": 407,
       "location": {
         "Margin": "new Thickness(8",
         "Padding": "new Thickness(15"
       },
       "name": null,
-      "parent": "MainWindow.ComposeWindow/window@369/runtime",
+      "parent": "MainWindow.ComposeWindow/window@376/runtime",
       "source": "src/MailRuDesktop.App/MainWindow.ComposeWindow.cs",
       "states": null,
       "style": null,
       "type": "Button",
       "typography": {},
-      "window": "MainWindow.ComposeWindow/window@369"
+      "window": "MainWindow.ComposeWindow/window@376"
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow.ComposeWindow/window@369/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:411:ListBox",
-      "line": 411,
+      "id": "MainWindow.ComposeWindow/window@376/runtime/src/MailRuDesktop.App/MainWindow.ComposeWindow.cs:418:ListBox",
+      "line": 418,
       "location": {},
       "name": null,
-      "parent": "MainWindow.ComposeWindow/window@369/runtime",
+      "parent": "MainWindow.ComposeWindow/window@376/runtime",
       "source": "src/MailRuDesktop.App/MainWindow.ComposeWindow.cs",
       "states": null,
       "style": null,
       "type": "ListBox",
       "typography": {},
-      "window": "MainWindow.ComposeWindow/window@369"
+      "window": "MainWindow.ComposeWindow/window@376"
     },
     {
       "color_roles_and_values": {},
@@ -9505,8 +9505,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow.xaml/window@2431/runtime/src/MailRuDesktop.App/MainWindow.xaml.cs:2431:Window",
-      "line": 2431,
+      "id": "MainWindow.xaml/window@2439/runtime/src/MailRuDesktop.App/MainWindow.xaml.cs:2439:Window",
+      "line": 2439,
       "location": {
         "Height": "810",
         "MinHeight": "530",
@@ -9515,13 +9515,13 @@
         "WindowStartupLocation": "WindowStartupLocation.CenterOwner"
       },
       "name": null,
-      "parent": "MainWindow.xaml/window@2431/runtime",
+      "parent": "MainWindow.xaml/window@2439/runtime",
       "source": "src/MailRuDesktop.App/MainWindow.xaml.cs",
       "states": null,
       "style": null,
       "type": "Window",
       "typography": {},
-      "window": "MainWindow.xaml/window@2431"
+      "window": "MainWindow.xaml/window@2439"
     },
     {
       "color_roles_and_values": {},
@@ -21603,8 +21603,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:319:FlowDocument",
-      "line": 319,
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:316:FlowDocument",
+      "line": 316,
       "location": {},
       "name": null,
       "parent": "RichComposeEditor/runtime",
@@ -21617,8 +21617,22 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:348:Paragraph",
-      "line": 348,
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:346:FlowDocument",
+      "line": 346,
+      "location": {},
+      "name": null,
+      "parent": "RichComposeEditor/runtime",
+      "source": "src/MailRuDesktop.App/RichComposeEditor.cs",
+      "states": null,
+      "style": null,
+      "type": "FlowDocument",
+      "typography": {},
+      "window": "RichComposeEditor"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:375:Paragraph",
+      "line": 375,
       "location": {
         "Margin": "new Thickness(0)"
       },
@@ -21633,8 +21647,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:394:FlowDocument",
-      "line": 394,
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:421:FlowDocument",
+      "line": 421,
       "location": {
         "Margin": "new Thickness(0)"
       },
@@ -21649,8 +21663,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:396:Paragraph",
-      "line": 396,
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:423:Paragraph",
+      "line": 423,
       "location": {
         "Margin": "new Thickness(0)"
       },
@@ -21665,8 +21679,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:437:Paragraph",
-      "line": 437,
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:464:Paragraph",
+      "line": 464,
       "location": {
         "Margin": "new Thickness(0)"
       },
@@ -21676,48 +21690,6 @@
       "states": null,
       "style": null,
       "type": "Paragraph",
-      "typography": {},
-      "window": "RichComposeEditor"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:511:Run",
-      "line": 511,
-      "location": {},
-      "name": null,
-      "parent": "RichComposeEditor/runtime",
-      "source": "src/MailRuDesktop.App/RichComposeEditor.cs",
-      "states": null,
-      "style": null,
-      "type": "Run",
-      "typography": {},
-      "window": "RichComposeEditor"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:512:Hyperlink",
-      "line": 512,
-      "location": {},
-      "name": null,
-      "parent": "RichComposeEditor/runtime",
-      "source": "src/MailRuDesktop.App/RichComposeEditor.cs",
-      "states": null,
-      "style": null,
-      "type": "Hyperlink",
-      "typography": {},
-      "window": "RichComposeEditor"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:512:Run",
-      "line": 512,
-      "location": {},
-      "name": null,
-      "parent": "RichComposeEditor/runtime",
-      "source": "src/MailRuDesktop.App/RichComposeEditor.cs",
-      "states": null,
-      "style": null,
-      "type": "Run",
       "typography": {},
       "window": "RichComposeEditor"
     },
@@ -21740,8 +21712,22 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:574:Hyperlink",
-      "line": 574,
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:538:Run",
+      "line": 538,
+      "location": {},
+      "name": null,
+      "parent": "RichComposeEditor/runtime",
+      "source": "src/MailRuDesktop.App/RichComposeEditor.cs",
+      "states": null,
+      "style": null,
+      "type": "Run",
+      "typography": {},
+      "window": "RichComposeEditor"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:539:Hyperlink",
+      "line": 539,
       "location": {},
       "name": null,
       "parent": "RichComposeEditor/runtime",
@@ -21754,23 +21740,30 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:630:Button",
-      "line": 630,
-      "location": {
-        "Height": "27",
-        "Margin": "new Thickness(0",
-        "MinWidth": "26",
-        "Padding": "new Thickness(7"
-      },
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:539:Run",
+      "line": 539,
+      "location": {},
       "name": null,
       "parent": "RichComposeEditor/runtime",
       "source": "src/MailRuDesktop.App/RichComposeEditor.cs",
       "states": null,
       "style": null,
-      "type": "Button",
-      "typography": {
-        "FontSize": "12"
-      },
+      "type": "Run",
+      "typography": {},
+      "window": "RichComposeEditor"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:601:Hyperlink",
+      "line": 601,
+      "location": {},
+      "name": null,
+      "parent": "RichComposeEditor/runtime",
+      "source": "src/MailRuDesktop.App/RichComposeEditor.cs",
+      "states": null,
+      "style": null,
+      "type": "Hyperlink",
+      "typography": {},
       "window": "RichComposeEditor"
     },
     {
@@ -21791,34 +21784,23 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:659:Paragraph",
-      "line": 659,
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:657:Button",
+      "line": 657,
       "location": {
-        "Margin": "new Thickness(0)"
+        "Height": "27",
+        "Margin": "new Thickness(0",
+        "MinWidth": "26",
+        "Padding": "new Thickness(7"
       },
       "name": null,
       "parent": "RichComposeEditor/runtime",
       "source": "src/MailRuDesktop.App/RichComposeEditor.cs",
       "states": null,
       "style": null,
-      "type": "Paragraph",
-      "typography": {},
-      "window": "RichComposeEditor"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:659:Run",
-      "line": 659,
-      "location": {
-        "Margin": "new Thickness(0)"
+      "type": "Button",
+      "typography": {
+        "FontSize": "12"
       },
-      "name": null,
-      "parent": "RichComposeEditor/runtime",
-      "source": "src/MailRuDesktop.App/RichComposeEditor.cs",
-      "states": null,
-      "style": null,
-      "type": "Run",
-      "typography": {},
       "window": "RichComposeEditor"
     },
     {
@@ -21868,6 +21850,38 @@
       "states": null,
       "style": null,
       "type": "Paragraph",
+      "typography": {},
+      "window": "RichComposeEditor"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:686:Paragraph",
+      "line": 686,
+      "location": {
+        "Margin": "new Thickness(0)"
+      },
+      "name": null,
+      "parent": "RichComposeEditor/runtime",
+      "source": "src/MailRuDesktop.App/RichComposeEditor.cs",
+      "states": null,
+      "style": null,
+      "type": "Paragraph",
+      "typography": {},
+      "window": "RichComposeEditor"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "RichComposeEditor/runtime/src/MailRuDesktop.App/RichComposeEditor.cs:686:Run",
+      "line": 686,
+      "location": {
+        "Margin": "new Thickness(0)"
+      },
+      "name": null,
+      "parent": "RichComposeEditor/runtime",
+      "source": "src/MailRuDesktop.App/RichComposeEditor.cs",
+      "states": null,
+      "style": null,
+      "type": "Run",
       "typography": {},
       "window": "RichComposeEditor"
     },
@@ -22378,7 +22392,7 @@
         "FontFamily": "Segoe UI Variable Text, Segoe UI"
       }
     },
-    "MainWindow.ComposeWindow/window@369": {
+    "MainWindow.ComposeWindow/window@376": {
       "colors": {},
       "declared_as": "C# runtime Window",
       "element_count": 7,
@@ -22389,7 +22403,7 @@
         "Width": "570",
         "WindowStartupLocation": "WindowStartupLocation.CenterOwner"
       },
-      "id": "MainWindow.ComposeWindow/window@369",
+      "id": "MainWindow.ComposeWindow/window@376",
       "source": "src/MailRuDesktop.App/MainWindow.ComposeWindow.cs",
       "typography": {}
     },
@@ -22408,7 +22422,7 @@
       "source": "src/MailRuDesktop.App/MainWindow.ComposeWindow.cs",
       "typography": {}
     },
-    "MainWindow.xaml/window@2431": {
+    "MainWindow.xaml/window@2439": {
       "colors": {},
       "declared_as": "C# runtime Window",
       "element_count": 1,
@@ -22419,7 +22433,7 @@
         "Width": "1130",
         "WindowStartupLocation": "WindowStartupLocation.CenterOwner"
       },
-      "id": "MainWindow.xaml/window@2431",
+      "id": "MainWindow.xaml/window@2439",
       "source": "src/MailRuDesktop.App/MainWindow.xaml.cs",
       "typography": {}
     },

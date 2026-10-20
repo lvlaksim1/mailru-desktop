@@ -48,6 +48,11 @@ font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-wi
 .attachments{border-top:1px solid #eceef0;padding-top:9px;margin-top:10px;
 font-size:12px;color:var(--muted);overflow-wrap:anywhere}
 .not-loaded{color:var(--muted);font-size:13px}
+.mail-actions{display:flex;gap:8px;margin:0 0 10px}
+.mail-actions button{font:13px Segoe UI,Arial,sans-serif;cursor:pointer;
+color:var(--ink);background:var(--surface);border:1px solid #aeb5bf;
+padding:5px 12px;border-radius:5px}
+.mail-actions button:hover{border-color:#4575ac}
 </style></head><body>
 """.Replace("__SURFACE__", CssHex(background, "#ffffff"))
    .Replace("__INK__", CssHex(foreground, "#252525"))
@@ -77,6 +82,13 @@ font-size:12px;color:var(--muted);overflow-wrap:anywhere}
                 .Append("</span></span><span class=\"when\">")
                 .Append(H(date)).Append("</span></summary>")
                 .Append("<div class=\"mail-body\">");
+            // Controls are generated in the trusted conversation wrapper,
+            // separate from the sandboxed untrusted letter HTML.
+            e.Append("<div class=\"mail-actions\">")
+                .Append("<button type=\"button\" data-mail-action=\"reply\" data-mail-id=\"")
+                .Append(H(member.Id)).Append("\">Ответить</button>")
+                .Append("<button type=\"button\" data-mail-action=\"forward\" data-mail-id=\"")
+                .Append(H(member.Id)).Append("\">Переслать</button></div>");
             var to = full?.To;
             if (to is { Count: > 0 })
                 e.Append("<div class=\"mail-to\">Кому: ")

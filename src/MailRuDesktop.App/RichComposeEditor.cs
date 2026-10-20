@@ -303,6 +303,33 @@ internal sealed class RichComposeEditor
     }
 
     /// <summary>
+    /// Insert formatted forwarded history as editable paragraphs while keeping
+    /// the signature/template boundaries used by the reply editor.
+    /// MarkdownRichLoader converts supported bold, italic, underline and links.
+    /// </summary>
+    public void LoadReplyQuotedMarkdown(string markdown)
+    {
+        LoadReplyQuotedText("");
+        _syncing = true;
+        try
+        {
+            var staged = new FlowDocument();
+            MarkdownRichLoader.Load(staged, markdown);
+            if (_replyHistory is null)
+                throw new InvalidOperationException("Reply history was not initialized.");
+            while (staged.Blocks.FirstBlock is { } block)
+            {
+                staged.Blocks.Remove(block);
+                _replyHistory.Blocks.Add(block);
+            }
+            _rich.Document.Blocks.Add(_replyHistory);
+        }
+        finally { _syncing = false; }
+        SyncFromRich();
+        _rich.CaretPosition = _replyBody!.ContentStart;
+    }
+
+    /// <summary>
     /// Replace only this reply's text, preserving historical messages and any
     /// separately chosen signature. An embedded known template signature is
     /// moved into the signature region rather than duplicated.

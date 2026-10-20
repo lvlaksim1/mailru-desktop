@@ -96,8 +96,12 @@ public partial class MainWindow : Window
             ThemeManager.ThemeChanged -= ThemeManager_ThemeChanged;
             CancelReaderPresentation();
             _messageLoadCancellation?.Cancel();
-            if (MessageWebView.CoreWebView2 is not null && _mailImageProxyConfigured)
-                MessageWebView.CoreWebView2.WebResourceRequested -= MailImageProxy_WebResourceRequested;
+            if (MessageWebView.CoreWebView2 is not null)
+            {
+                MessageWebView.CoreWebView2.WebMessageReceived -= ConversationAction_WebMessageReceived;
+                if (_mailImageProxyConfigured)
+                    MessageWebView.CoreWebView2.WebResourceRequested -= MailImageProxy_WebResourceRequested;
+            }
             _mailImageHttp.Dispose();
             _mailRu.Dispose();
         };
@@ -132,6 +136,7 @@ public partial class MainWindow : Window
             MessageWebView.CoreWebView2.Settings.IsScriptEnabled = false;
             MessageWebView.CoreWebView2.Settings.AreDevToolsEnabled = false;
             MessageWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
+            MessageWebView.CoreWebView2.WebMessageReceived += ConversationAction_WebMessageReceived;
             ConfigureMailImageProxy();
 
             // Navigate the top-level WebView2 ONCE. All future letters are
@@ -811,8 +816,10 @@ public partial class MainWindow : Window
 
         if (window.MailboxChanged)
             await LoadFolderAsync(_currentFolderId);
-        if (window.ReplyRequested)
-            OpenReplyComposeWindow(message, window.ReplySource);
+        if (window.ReplyRequested && window.ReplySource is { } reply)
+            OpenReplyComposeWindow(ConversationSourceSummary(message, reply), reply);
+        if (window.ForwardRequested && window.ForwardSource is { } forward)
+            OpenForwardComposeWindow(ConversationSourceSummary(message, forward), forward);
         if (window.ResendRequested)
             OpenResendComposeWindow(message, window.ResendSource);
     }
@@ -1913,7 +1920,7 @@ public partial class MainWindow : Window
         }
 
         var repliedMessageId = _composeReplyToId;
-        var resendOriginalAtSend = _resendOriginalId;
+        var resendOriginalAtSend = _forwardSourceOnly ? null : _resendOriginalId;
         var archiveAfterReply = ArchiveAfterReplyCheckBox.IsChecked == true &&
             !string.IsNullOrWhiteSpace(repliedMessageId) && scheduledFor is null;
         SendButton.IsEnabled = false;
@@ -1974,6 +1981,7 @@ public partial class MainWindow : Window
             // archiving the old scheduled message fails.
             var resendOriginalId = resendOriginalAtSend;
             _resendOriginalId = null;
+            _forwardSourceOnly = false;
             if (resendOriginalId is not null)
             {
                 try

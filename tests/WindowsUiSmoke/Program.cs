@@ -130,6 +130,57 @@ internal static class Program
             Check(parsedOwn.ThreadId == "thread-of-ours" &&
                   parsedOwn.To.Count == 1,
                 "full message retains explicit server thread ID for reply recovery");
+            // The browser renders native-receiver commands only for exact,
+            // server-verified member IDs. Reply and forwarding must target
+            // the clicked letter rather than the last member.
+            var conversationForActions = new MailRuDesktop.Protocol.MailRuConversation(
+                "id-2", "thread-verified", 2,
+                [
+                    new MailRuDesktop.Protocol.MailRuConversationMember(
+                        "id-1", "Sender", "sender@other.test", "First", "Original", null, null),
+                    new MailRuDesktop.Protocol.MailRuConversationMember(
+                        "id-2", "Another", "another@other.test", "Second", "Last", null, null)
+                ]);
+            var conversationMarkup = MailRuConversationHtml.Render(
+                conversationForActions, "id-2",
+                new Dictionary<string, MailRuDesktop.Protocol.MailRuFullMessage>
+                { ["id-1"] = threadMessages[0], ["id-2"] = threadMessages[1] });
+            Check(conversationMarkup.Contains("data-mail-action=\"reply\" data-mail-id=\"id-1\"") &&
+                  conversationMarkup.Contains("data-mail-action=\"forward\" data-mail-id=\"id-1\"") &&
+                  conversationMarkup.Contains("data-mail-action=\"reply\" data-mail-id=\"id-2\"") &&
+                  conversationMarkup.Contains("data-mail-action=\"forward\" data-mail-id=\"id-2\""),
+                "every proven conversation message has its own reply and forward buttons");
+            Check(ConversationMessageActions.TryParse(
+                    "{\"kind\":\"conversation-action\",\"action\":\"reply\",\"id\":\"id-1\",\"revision\":17}",
+                    out var memberAction, out var memberId, out var memberRevision) &&
+                  memberAction == "reply" && memberId == "id-1" &&
+                  memberRevision == 17 &&
+                  ConversationMessageActions.IsVerifiedMember(conversationForActions, memberId),
+                "browser action binds the exact clicked message and current reader revision");
+            Check(!ConversationMessageActions.IsVerifiedMember(
+                      conversationForActions, "guessed-id") &&
+                  !ConversationMessageActions.TryParse(
+                      "{\"kind\":\"conversation-action\",\"action\":\"delete\",\"id\":\"id-1\"}",
+                      out _, out _, out _) &&
+                  !ConversationMessageActions.TryParse(
+                      "{\"kind\":\"conversation-action\",\"action\":\"reply\",\"id\":\"id-1\",\"revision\":\"stale\"}",
+                      out _, out _, out _),
+                "unknown conversation IDs, commands and revisions are rejected");
+            Check(ReaderShellScripts.Commit(17).Contains("conversation-action") &&
+                  ReaderShellScripts.BindDetachedConversationActions().Contains(
+                      "conversation-action"),
+                "main and detached WebView readers bind the same per-message actions");
+            var richForwardSource = threadMessages[0] with
+            {
+                Html = "<p>Важное <strong>письмо</strong> и <em>условие</em></p>",
+                Text = "Важное письмо и условие"
+            };
+            var markdownForward = MainWindow.BuildForwardMarkdown(richForwardSource);
+            Check(markdownForward.Contains("**письмо**") &&
+                  markdownForward.Contains("*условие*") &&
+                  markdownForward.Contains("От: " + richForwardSource.SenderDisplay),
+                "forwarded HTML retains common bold and italic styles and original sender");
+
             var replyAddresses = ConversationReplyAddresses.Collect(
                 threadMessages, "ME@example.test");
             Expect(string.Join(";", replyAddresses.Select(x => x.ToLowerInvariant())),
