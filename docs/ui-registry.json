@@ -9077,6 +9077,21 @@
     },
     {
       "color_roles_and_values": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/RunStatusText",
+      "location": {
+        "Margin": "0,4,0,0"
+      },
+      "name": "RunStatusText",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {},
+      "window": "ExcelMailingWindow"
+    },
+    {
+      "color_roles_and_values": {},
       "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/StatusText",
       "location": {},
       "name": "StatusText",
@@ -9164,6 +9179,132 @@
       "states": null,
       "style": null,
       "type": "Button",
+      "typography": {},
+      "window": "ExcelMailingWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]",
+      "location": {
+        "Margin": "0,7,0,0"
+      },
+      "name": null,
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "WrapPanel",
+      "typography": {},
+      "window": "ExcelMailingWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]/PauseMailingButton",
+      "location": {
+        "Margin": "0,0,6,0",
+        "Padding": "9,5"
+      },
+      "name": "PauseMailingButton",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Button",
+      "typography": {},
+      "window": "ExcelMailingWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]/ResumeMailingButton",
+      "location": {
+        "Margin": "0,0,6,0",
+        "Padding": "9,5"
+      },
+      "name": "ResumeMailingButton",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Button",
+      "typography": {},
+      "window": "ExcelMailingWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]/RetryExcelWriteButton",
+      "location": {
+        "Margin": "0,0,8,0",
+        "Padding": "9,5"
+      },
+      "name": "RetryExcelWriteButton",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Button",
+      "typography": {},
+      "window": "ExcelMailingWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]/RunHistoryCombo",
+      "location": {
+        "Width": "270"
+      },
+      "name": "RunHistoryCombo",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ComboBox",
+      "typography": {},
+      "window": "ExcelMailingWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]/StartMailingButton",
+      "location": {
+        "Margin": "0,0,6,0",
+        "Padding": "10,5"
+      },
+      "name": "StartMailingButton",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Button",
+      "typography": {},
+      "window": "ExcelMailingWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]/StopMailingButton",
+      "location": {
+        "Margin": "0,0,6,0",
+        "Padding": "9,5"
+      },
+      "name": "StopMailingButton",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Button",
+      "typography": {},
+      "window": "ExcelMailingWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]/TextBlock[5]",
+      "location": {
+        "Margin": "0,0,5,0",
+        "VerticalAlignment": "Center"
+      },
+      "name": null,
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
       "typography": {},
       "window": "ExcelMailingWindow"
     },
@@ -22522,7 +22663,7 @@
         "Foreground": "{DynamicResource AppTextBrush}"
       },
       "declared_as": "XAML",
-      "element_count": 120,
+      "element_count": 129,
       "geometry": {
         "Height": "880",
         "MinHeight": "650",
