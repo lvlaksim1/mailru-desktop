@@ -123,11 +123,15 @@ public partial class ExcelMailingWindow
             string.IsNullOrWhiteSpace(auth?.AccessToken))
             throw new InvalidOperationException("Отсутствует авторизация выбранного аккаунта.");
 
+        // The exact same Markdown rendering is used in preview and the
+        // server payload. Text is readable without tags; HTML keeps styles.
+        var rendered = MailingMarkdownFormatting.Render(job.Body);
         return await _mailRu.SendMessageAsync(auth.AccessToken,
             new MailRuOutgoingMessage(
                 To: job.Email,
                 Subject: job.Subject,
-                Text: job.Body,
+                Text: rendered.PlainText,
+                Html: rendered.Html,
                 SendDate: job.ScheduledAt.ToUnixTimeSeconds()
                     .ToString(CultureInfo.InvariantCulture),
                 MessageId: job.MessageId));

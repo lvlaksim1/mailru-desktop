@@ -453,9 +453,16 @@ internal sealed class RichComposeEditor
     public string ToHtml()
     {
         AutoLinkUrls();
+        return RenderDocumentHtml(_rich.Document);
+    }
+
+    // Shared with Excel mailing: the preview and sent HTML must use exactly
+    // the same document-to-HTML rendering as ordinary composed letters.
+    internal static string RenderDocumentHtml(FlowDocument document)
+    {
         var builder = new StringBuilder();
         builder.Append("<div style=\"font-family:Segoe UI,Arial,sans-serif;white-space:normal;\">");
-        RenderBlocks(_rich.Document.Blocks, builder);
+        RenderBlocks(document.Blocks, builder);
         builder.Append("</div>");
         return builder.ToString();
     }

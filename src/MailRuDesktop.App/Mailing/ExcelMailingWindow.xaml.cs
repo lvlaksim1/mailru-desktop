@@ -216,7 +216,7 @@ public partial class ExcelMailingWindow : Window
             StartMailingButton.IsEnabled = false;
             _activeRun = null;
             PreviewGrid.ItemsSource = null;
-            MessagePreviewText.Clear();
+            ClearMessagePreview();
         }
         finally { _loading = false; }
     }
@@ -439,7 +439,7 @@ public partial class ExcelMailingWindow : Window
             _activeRun = null;
             StartMailingButton.IsEnabled = false;
             PreviewGrid.ItemsSource = null;
-            MessagePreviewText.Clear();
+            ClearMessagePreview();
             StatusText.Text = "Проверка активной строки и заголовков выбранного листа...";
             var reader = ExcelInteropService.OpenReader(book, sheet);
             _preparedWorkbookPath = book.FullName;
@@ -555,14 +555,27 @@ public partial class ExcelMailingWindow : Window
         e.Handled = true;
     }
 
+    private void ClearMessagePreview()
+    {
+        MessagePreviewSubject.Clear();
+        MessagePreviewDocument.Document = new System.Windows.Documents.FlowDocument();
+    }
+
     private void PreviewGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        MessagePreviewText.Text = PreviewGrid.SelectedItem is MailingPreparedRow
-            { Subject: { Length: > 0 } } selected
-            ? "Тема: " + selected.Subject + Environment.NewLine + Environment.NewLine +
-              selected.Body
-            : PreviewGrid.SelectedItem is MailingPreparedRow rejected
-                ? rejected.Reason : "";
+        if (PreviewGrid.SelectedItem is MailingPreparedRow
+            { Subject: { Length: > 0 } } selected)
+        {
+            MessagePreviewSubject.Text = "Тема: " + selected.Subject;
+            MessagePreviewDocument.Document = MailingMarkdownFormatting
+                .Render(selected.Body).Document;
+        }
+        else if (PreviewGrid.SelectedItem is MailingPreparedRow rejected)
+        {
+            MessagePreviewSubject.Text = rejected.Reason;
+            MessagePreviewDocument.Document = new System.Windows.Documents.FlowDocument();
+        }
+        else ClearMessagePreview();
     }
 
     private void ShowError(Exception ex)

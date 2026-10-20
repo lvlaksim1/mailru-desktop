@@ -135,23 +135,43 @@ internal static class ExcelInteropService
 
         dynamic wb = book.Workbook;
         dynamic excel = wb.Application;
-        dynamic activeBook = excel.ActiveWorkbook;
-        if (activeBook is null ||
-            !string.Equals((string)activeBook.FullName, (string)wb.FullName,
-                StringComparison.OrdinalIgnoreCase) ||
-            Convert.ToInt32(excel.Hwnd, CultureInfo.InvariantCulture) != book.ApplicationHwnd)
+        if (Convert.ToInt32(excel.Hwnd, CultureInfo.InvariantCulture) != book.ApplicationHwnd ||
+            !string.Equals((string)wb.FullName, book.FullName,
+                StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException(
-                "Сделайте выбранную книгу Excel активной и выделите ячейку в нужной строке.");
+                "Выбранная книга Excel больше не соответствует открытому экземпляру. Найдите книги повторно.");
 
-        dynamic activeSheet = excel.ActiveSheet;
+        // ActiveWorkbook/ActiveSheet/ActiveCell on Excel.Application refer to
+        // the globally active window. With several open books this can be
+        // another workbook, even though the chosen Workbook COM object is valid.
+        // Resolve the selected cell from a window BELONGING TO that workbook.
+        dynamic windows = wb.Windows;
+        int windowCount = Convert.ToInt32(windows.Count, CultureInfo.InvariantCulture);
+        if (windowCount < 1)
+            throw new InvalidOperationException("У выбранной книги Excel нет открытого окна.");
+        dynamic selectedWindow = windows.Item[1];
+        for (var index = 1; index <= windowCount; index++)
+        {
+            dynamic candidate = windows.Item[index];
+            if (Convert.ToBoolean(candidate.Active, CultureInfo.InvariantCulture))
+            {
+                selectedWindow = candidate;
+                break;
+            }
+        }
+        dynamic activeSheet = selectedWindow.ActiveSheet;
         if (activeSheet is null ||
             !string.Equals((string)activeSheet.Name, sheetName,
                 StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException(
-                "Активная ячейка находится на другом листе. Выделите ячейку на листе «"
-                + sheetName + "» в Excel и повторите подготовку.");
+                "Выделите ячейку на листе «" + sheetName +
+                "» выбранной книги Excel и повторите подготовку.");
 
-        int startRow = Convert.ToInt32(excel.ActiveCell.Row, CultureInfo.InvariantCulture);
+        dynamic activeCell = selectedWindow.ActiveCell;
+        if (activeCell is null)
+            throw new InvalidOperationException(
+                "Не удалось получить активную ячейку выбранной книги Excel.");
+        int startRow = Convert.ToInt32(activeCell.Row, CultureInfo.InvariantCulture);
         startRow = Math.Max(2, startRow); // Row 1 is the mandatory header.
 
         dynamic sheet = wb.Worksheets.Item[sheetName];

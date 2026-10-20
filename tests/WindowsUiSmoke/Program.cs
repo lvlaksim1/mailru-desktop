@@ -1,4 +1,5 @@
 using System.IO;
+using System.Net.Http;
 using System.Diagnostics;
 using System.Reflection;
 using System.Windows.Threading;
@@ -33,6 +34,56 @@ internal static class Program
                       id.All(char.IsLetterOrDigit)) &&
                   generatedIds.Distinct(StringComparer.Ordinal).Count() == generatedIds.Length,
                 "outgoing message IDs are per-operation unique 32-character tokens");
+
+            // One rendering pipeline for both the preview and the outgoing
+            // HTML payload: formatting tags must not leak into plain text.
+            var sampleMarkdown = "**Важное** *курсив* <u>подчёркнуто</u> " +
+                "<s>зачёркнуто</s> <span style=\"color:#FF0000\">цвет</span>\n" +
+                "[ссылка](https://example.com)\n# Заголовок";
+            var formattedMail = MailRuDesktop.App.Mailing.MailingMarkdownFormatting
+                .Render(sampleMarkdown);
+            Check(formattedMail.PlainText.Contains("Важное курсив подчёркнуто", StringComparison.Ordinal), "plain text includes words");
+            Check(!formattedMail.PlainText.Contains("**", StringComparison.Ordinal) && !formattedMail.PlainText.Contains("<u>", StringComparison.Ordinal), "plain text hides raw tags");
+            Check(formattedMail.Html.Contains("font-weight:bold", StringComparison.Ordinal), "HTML bold");
+            Check(formattedMail.Html.Contains("font-style:italic", StringComparison.Ordinal), "HTML italic");
+            Check(formattedMail.Html.Contains("text-decoration:underline", StringComparison.Ordinal), "HTML underline");
+            Check(formattedMail.Html.Contains("text-decoration:line-through", StringComparison.Ordinal), "HTML strikethrough");
+            Check(formattedMail.Html.Contains("color:#FF0000", StringComparison.Ordinal), "HTML color");
+            Check(formattedMail.Html.Contains("href=\"https://example.com", StringComparison.Ordinal), "HTML link");
+            Check(formattedMail.Html.Contains("font-size:20", StringComparison.Ordinal), "HTML heading");
+            Check(!formattedMail.Html.Contains("**Важное**", StringComparison.Ordinal), "HTML removed markdown syntax");
+            Check(new TextRange(formattedMail.Document.ContentStart,
+                      formattedMail.Document.ContentEnd).Text.Contains("Важное курсив", StringComparison.Ordinal),
+                "mailing preview WPF document displays rendered content rather than markdown tags");
+            // Inspect the ACTUAL AJ POST form, not just the formatted preview.
+            using (var record = new MailingWireRecorder())
+            using (var http = new HttpClient(record))
+            using (var client = new MailRuDesktop.Protocol.MailRuClient(httpClient: http))
+            {
+                var scheduled = client.SendMessageAsync("test-token",
+                    new MailRuDesktop.Protocol.MailRuOutgoingMessage(
+                        To: "recipient@example.test", Subject: "Тест оформления",
+                        Text: formattedMail.PlainText, Html: formattedMail.Html,
+                        SendDate: "1791507600",
+                        MessageId: MailRuDesktop.Protocol.MailRuClient.CreateMessageId()))
+                    .GetAwaiter().GetResult();
+                var encodedBody = record.LastForm.Split('&')
+                    .First(x => x.StartsWith("body=", StringComparison.Ordinal))
+                    ["body=".Length..].Replace("+", " ", StringComparison.Ordinal);
+                var decodedBody = Uri.UnescapeDataString(encodedBody);
+                using var posted = System.Text.Json.JsonDocument.Parse(decodedBody);
+                var htmlSent = posted.RootElement.GetProperty("html").GetString() ?? "";
+                var textSent = posted.RootElement.GetProperty("text").GetString() ?? "";
+                Check(scheduled.Success && record.LastPath == "/api/v1/messages/schedule" &&
+                      htmlSent.Contains("font-weight:bold", StringComparison.Ordinal) &&
+                      htmlSent.Contains("color:#FF0000", StringComparison.Ordinal) &&
+                      htmlSent.Contains("href=\"https://example.com", StringComparison.Ordinal) &&
+                      !textSent.Contains("**", StringComparison.Ordinal) &&
+                      !textSent.Contains("<u>", StringComparison.Ordinal),
+                    "actual scheduled Mail.ru form carries formatted HTML and clean text");
+            }
+
+
 
             // Reply-to-thread is To/Cc only; sender, blind-copy and the
             // current mailbox never become automatic recipients.
@@ -644,6 +695,12 @@ internal static class Program
                 fakeExcel.ActiveWorkbook = fakeBook;
                 fakeExcel.ActiveSheet = fakeSheet;
                 fakeExcel.ActiveCell = fakeSheet.Cells[74210, 4];
+                var selectedWindow = new FakeExcelWindow
+                {
+                    Active = true, ActiveSheet = fakeSheet,
+                    ActiveCell = fakeSheet.Cells[74210, 4]
+                };
+                fakeBook.Windows = new FakeExcelWindows(selectedWindow);
                 var discovered = new MailRuDesktop.App.Mailing.OpenExcelBook
                 {
                     Workbook = fakeBook, ApplicationHwnd = fakeExcel.Hwnd,
@@ -658,6 +715,39 @@ internal static class Program
                 Check(visibleBatch.Select(x => x.RowNumber)
                           .SequenceEqual(new[] { 74210, 74212, 74213 }),
                     "Excel reads in order, ignores filtered row and earlier data");
+                // The selected workbook window is authoritative even if the
+                // globally active Excel workbook belongs to a different file.
+                var anotherBook = new FakeExcelWorkbook
+                {
+                    Name = "another.xlsx",
+                    FullName = @"C:\fixture\another.xlsx",
+                    Application = fakeExcel,
+                    Worksheets = new FakeExcelWorksheets { Sheet = new FakeExcelSheet() },
+                    Windows = new FakeExcelWindows(new FakeExcelWindow
+                    {
+                        Active = false, ActiveSheet = new FakeExcelSheet(),
+                        ActiveCell = new FakeExcelSheet().Cells[3, 1]
+                    })
+                };
+                fakeExcel.ActiveWorkbook = anotherBook;
+                fakeExcel.ActiveSheet = anotherBook.Worksheets.Sheet;
+                fakeExcel.ActiveCell = fakeSheet.Cells[74199, 1];
+                Check(MailRuDesktop.App.Mailing.ExcelInteropService
+                         .OpenReader(discovered, "Компании").StartRow == 74210,
+                    "multiple open Excel books do not redirect the chosen workbook active row");
+                // Multiple windows for the SAME book: use the one that is active.
+                var secondWindow = new FakeExcelWindow
+                {
+                    Active = true, ActiveSheet = fakeSheet,
+                    ActiveCell = fakeSheet.Cells[74212, 1]
+                };
+                selectedWindow.Active = false;
+                fakeBook.Windows = new FakeExcelWindows(selectedWindow, secondWindow);
+                Check(MailRuDesktop.App.Mailing.ExcelInteropService
+                         .OpenReader(discovered, "Компании").StartRow == 74212,
+                    "multiple windows for one workbook use the active window cell");
+                fakeBook.Windows = new FakeExcelWindows(selectedWindow);
+                selectedWindow.Active = true;
                 var incremental = MailRuDesktop.App.Mailing.MailingPlanner.CreateSession(
                     localProfile, "Body {ИНН_организации}",
                     new HashSet<string>(StringComparer.OrdinalIgnoreCase),
@@ -673,7 +763,7 @@ internal static class Program
                       incremental.Result.Rows[1].RowNumber == 74212 &&
                       excelBatchReader.HasMore,
                     "one-pass planning stops on quota without exhausting worksheet");
-                fakeExcel.ActiveSheet = new FakeExcelSheet { Name = "Другой лист" };
+                selectedWindow.ActiveSheet = new FakeExcelSheet { Name = "Другой лист" };
                 var mismatchRejected = false;
                 try
                 {
@@ -683,6 +773,7 @@ internal static class Program
                 catch (InvalidOperationException) { mismatchRejected = true; }
                 Check(mismatchRejected,
                     "selected sheet cannot silently use another sheet's active row");
+                selectedWindow.ActiveSheet = fakeSheet;
 
                 var acceptedExcelJob = new MailRuDesktop.App.Mailing.MailingJobRecord
                 {
@@ -894,6 +985,11 @@ internal static class Program
                 correctionWindowType.GetField("_preparedNames",
                     BindingFlags.Instance | BindingFlags.NonPublic)!
                     .GetValue(mailingWindow)!)["7736207543"] = "ООО Готово";
+            var previewViewer = Require<FlowDocumentScrollViewer>(
+                mailingWindow, "MessagePreviewDocument");
+            Check(previewViewer.IsSelectionEnabled &&
+                  Require<GridSplitter>(mailingWindow, "MessagePreviewSplitter") is not null,
+                "letter preview is formatted, selectable and vertically resizable");
             var previewTable = Require<DataGrid>(mailingWindow, "PreviewGrid");
             Check(previewTable.Columns.Count == 8 &&
                   previewTable.Columns.All(column => column is DataGridTemplateColumn),
@@ -1983,6 +2079,24 @@ internal static class Program
     private static void Expect<T>(T actual, T expected, string label)
     {
         Check(EqualityComparer<T>.Default.Equals(actual, expected), label);
+    }
+
+    private sealed class MailingWireRecorder : HttpMessageHandler
+    {
+        internal string LastPath { get; private set; } = "";
+        internal string LastForm { get; private set; } = "";
+
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            LastPath = request.RequestUri?.AbsolutePath ?? "";
+            LastForm = request.Content is null ? "" :
+                await request.Content.ReadAsStringAsync(cancellationToken);
+            return new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new StringContent("{\"status\":200}")
+            };
+        }
     }
 
     private static void Check(bool condition, string description)
