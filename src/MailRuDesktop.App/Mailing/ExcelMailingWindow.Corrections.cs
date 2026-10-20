@@ -27,6 +27,9 @@ public partial class ExcelMailingWindow
         _preparedTemplate = null;
         _preparedExclusions = null;
         _preparedAuthorized = null;
+        _preparedWorkbookPath = null;
+        _preparedSheetName = null;
+        StartMailingButton.IsEnabled = false;
     }
 
     private void CapturePreparationSettings(MailingProfile profile, string template,
@@ -141,6 +144,7 @@ public partial class ExcelMailingWindow
         PreviewGrid.ItemsSource = rows;
         PreviewGrid.SelectedItem = rows[at];
         UpdateCorrectionSummary(rows);
+        StartMailingButton.IsEnabled = rows.Any(x => x.Status == "Ready");
         StatusText.Text = "Название записано в предпросмотр. Для включения нажмите «Вернуть в рассылку».";
     }
 
@@ -170,6 +174,7 @@ public partial class ExcelMailingWindow
             PreviewGrid.ItemsSource = items;
             PreviewGrid.SelectedItem = items.FirstOrDefault(x => x.RowNumber == source.RowNumber);
             UpdateCorrectionSummary(items);
+            StartMailingButton.IsEnabled = items.Any(x => x.Status == "Ready");
             var updated = items.First(x => x.RowNumber == source.RowNumber);
             StatusText.Text = updated.Status == "Ready"
                 ? "Запись возвращена в рассылку. Квоты и время пересчитаны по порядку строк. " +
