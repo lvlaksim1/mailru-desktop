@@ -580,8 +580,8 @@ internal static class Program
                       TextElement.FontWeightProperty), FontWeights.Normal),
                 "new mail text is not bold after previous formatted compose session");
 
-            // Excel mailing is preparation-only in stage 1: pure planning
-            // is checked offline, with no COM/HTTP access or SMTP requests.
+            // Excel direct sending uses single-row planning and a durable journal;
+            // these regression checks use no real Excel or Mail.ru traffic.
             var testingDir = Path.Combine(Path.GetTempPath(),
                 "MailRuMailingProfiles-" + Guid.NewGuid().ToString("N"));
             try
@@ -665,7 +665,30 @@ internal static class Program
                     new HashSet<string>(StringComparer.OrdinalIgnoreCase)
                     { "first@example.com", "second@example.com" });
                 Check(noName.ReviewCount == 1 && noName.ReadyCount == 0,
-                    "unverified organization cannot be silently replaced by Excel label");
+                    "missing organization in both sources safely skips the row");
+                var fallbackSource = mailingRows[0] with
+                { EmployerName = "ООО Работодатель из Excel" };
+                var fallbackPlan = MailRuDesktop.App.Mailing.MailingPlanner.Prepare(
+                    localProfile, [fallbackSource],
+                    new Dictionary<string, string>(),
+                    "Привет, {Название_организации}",
+                    new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+                    new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                    { "first@example.com", "second@example.com" });
+                Check(fallbackPlan.ReadyCount == 1 &&
+                      fallbackPlan.Rows[0].Organization == "ООО Работодатель из Excel" &&
+                      fallbackPlan.Rows[0].Body.Contains("ООО Работодатель из Excel"),
+                    "Excel employer name is used when INN lookup has no organization");
+                var streamSession = MailRuDesktop.App.Mailing.MailingPlanner.CreateSession(
+                    localProfile, "Привет, {Название_организации}",
+                    new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+                    new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                    { "first@example.com", "second@example.com" },
+                    collectRows: false);
+                var streamed = streamSession.Accept(fallbackSource, null);
+                Check(streamed.Status == "Ready" && streamSession.ReadyCount == 1 &&
+                      streamSession.Result.Rows.Count == 0,
+                    "direct mailing plans one row without accumulating a preview table");
                 // Fake Excel COM object: start from its actual active cell,
                 // skip AutoFilter-hidden rows, do not read >100000 rows at once.
                 var fakeExcel = new FakeExcelApplication();
@@ -895,6 +918,20 @@ internal static class Program
                       fullyRecovered.Jobs[0].Status ==
                       MailRuDesktop.App.Mailing.MailingJobStatus.CompletedRecord,
                     "Excel recovery writes once and never repeats the accepted POST");
+                var extraRow = nextTask with
+                { RowNumber = 10, Email = "streamed@example.test" };
+                var appended = journal.Append(nextRun, extraRow);
+                Check(nextRun.Jobs.Count == 2 &&
+                      appended.Status == MailRuDesktop.App.Mailing.MailingJobStatus.Prepared &&
+                      journal.Load(nextRun.Id).Jobs.Count == 2 &&
+                      journal.ForWorkbook(@"C:\mailing\source.xlsx", "Лист1")
+                          .Any(x => x.Id == nextRun.Id) &&
+                      MailRuDesktop.App.Mailing.MailingRunStore.RowKey(
+                          appended.RowNumber, appended.Email, appended.Inn) ==
+                      MailRuDesktop.App.Mailing.MailingRunStore.RowKey(
+                          10, "STREAMED@example.test", extraRow.Inn),
+                    "new streaming job is durably appended before any POST and reserved by row");
+
 
                 var refused = journal.Create(journalProfile, @"C:\mailing\source.xlsx",
                     "Лист1", [nextTask with { RowNumber = 4, Email = "refused@example.test" }]);
@@ -943,91 +980,13 @@ internal static class Program
                   sizeTable.Height > initialHeight,
                 "drag handle changes account-table height and shifts remaining layout");
             mailingWindow.SaveSenderGridHeight();
-            Check(Require<Button>(mailingWindow, "RetryOrganizationButton").IsEnabled &&
-                  Require<Button>(mailingWindow, "ManualOrganizationButton").IsEnabled &&
-                  Require<Button>(mailingWindow, "IncludeOrganizationButton").IsEnabled,
-                "Excel preparation exposes single-row retry, manual entry and reinclusion");
-
-            // A recovered name is staged on one row and explicitly returned,
-            // without changing Excel or exceeding the sender quota.
-            var correctionWindowType = typeof(MailRuDesktop.App.Mailing.ExcelMailingWindow);
-            var recoveryProfile = new MailRuDesktop.App.Mailing.MailingProfile
-            {
-                StartDate = DateTime.Today.AddDays(4),
-                StartTime = "09:00",
-                Senders = [new() { Login = "first@example.com", Quantity = 1 }]
-            };
-            var recoveryRows = new List<MailRuDesktop.App.Mailing.MailingExcelRow>
-            {
-                new(2, true, "failed@example.com", "7707083893", "Москва", "", "", ""),
-                new(3, true, "ready@example.com", "7736207543", "Москва", "", "", "")
-            };
-            var recoveryNames = new Dictionary<string, string>
-            { ["7736207543"] = "ООО Готово" };
-            var recoveryExcluded = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            var recoveryAuthorized = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            { "first@example.com" };
-            var recoveryPreview = MailRuDesktop.App.Mailing.MailingPlanner.Prepare(
-                recoveryProfile, recoveryRows, recoveryNames,
-                "Здравствуйте, {Название_организации}", recoveryExcluded,
-                recoveryAuthorized);
-            Check(recoveryPreview.Rows[0].Status == "Требует проверки" &&
-                  recoveryPreview.Rows[1].Status == "Ready",
-                "an unresolved organization remains outside the initial quota");
-            correctionWindowType.GetMethod("CapturePreparationSettings",
-                BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(
-                mailingWindow, new object[]
-                { recoveryProfile, "Здравствуйте, {Название_организации}",
-                  recoveryExcluded, recoveryAuthorized });
-            ((List<MailRuDesktop.App.Mailing.MailingExcelRow>)
-                correctionWindowType.GetField("_preparedSourceRows",
-                    BindingFlags.Instance | BindingFlags.NonPublic)!
-                    .GetValue(mailingWindow)!).AddRange(recoveryRows);
-            ((Dictionary<string, string?>)
-                correctionWindowType.GetField("_preparedNames",
-                    BindingFlags.Instance | BindingFlags.NonPublic)!
-                    .GetValue(mailingWindow)!)["7736207543"] = "ООО Готово";
-            var previewViewer = Require<FlowDocumentScrollViewer>(
-                mailingWindow, "MessagePreviewDocument");
-            Check(previewViewer.IsSelectionEnabled &&
-                  Require<GridSplitter>(mailingWindow, "MessagePreviewSplitter") is not null,
-                "letter preview is formatted, selectable and vertically resizable");
-            var previewTable = Require<DataGrid>(mailingWindow, "PreviewGrid");
-            Check(previewTable.Columns.Count == 8 &&
-                  previewTable.Columns.All(column => column is DataGridTemplateColumn),
-                "all eight Excel mailing preview columns render selectable text");
-            foreach (DataGridTemplateColumn column in previewTable.Columns)
-            {
-                var cellText = column.CellTemplate!.LoadContent() as TextBox;
-                Check(cellText is { IsReadOnly: true, Focusable: true } &&
-                      BindingOperations.GetBinding(cellText, TextBox.TextProperty) is not null,
-                    "preview cell supports native text selection and copying without editing");
-            }
-
-            previewTable.ItemsSource = recoveryPreview.Rows;
-            previewTable.SelectedItem = recoveryPreview.Rows[0];
-            correctionWindowType.GetMethod("StageOrganizationName",
-                BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(
-                mailingWindow, new object[] { recoveryPreview.Rows[0], "ООО Вручную", true });
-            correctionWindowType.GetMethod("IncludeOrganization_Click",
-                BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(
-                mailingWindow, new object[] { Require<Button>(mailingWindow,
-                    "IncludeOrganizationButton"), new RoutedEventArgs() });
-            var afterRecovery = ((IEnumerable<MailRuDesktop.App.Mailing.MailingPreparedRow>)
-                previewTable.ItemsSource).ToArray();
-            Check(afterRecovery.Single(x => x.RowNumber == 2).Status == "Ready" &&
-                  afterRecovery.Single(x => x.RowNumber == 2).Subject.Contains("ООО Вручную") &&
-                  afterRecovery.Single(x => x.RowNumber == 3).Status == "Пропуск" &&
-                  afterRecovery.Count(x => x.Status == "Ready") == 1,
-                "manual row restoration recalculates schedules without increasing quotas");
-
-            Check(FindDescendant<Button>(mailingWindow!, b =>
-                      (b.Content as string)?.Contains("Проверить и подготовить") == true) is not null &&
-                  Require<Button>(mailingWindow!, "StartMailingButton").IsEnabled &&
-                  Require<Button>(mailingWindow!, "PauseMailingButton") is not null &&
-                  Require<Button>(mailingWindow!, "ResumeMailingButton") is not null &&
-                  Require<Button>(mailingWindow!, "RetryExcelWriteButton") is not null,
-                "recovered verified row enables explicit mailing launch without automatic submission");
+            Check(Require<Button>(mailingWindow, "SendButton").Content?.ToString() ==
+                      "Отправить" &&
+                  mailingWindow.FindName("PreviewGrid") is null &&
+                  mailingWindow.FindName("StartMailingButton") is null &&
+                  mailingWindow.FindName("RunHistoryCombo") is null &&
+                  mailingWindow.FindName("MessagePreviewDocument") is null,
+                "Excel mailing exposes one direct-send action and no preview, correction or history panel");
             mailingWindow!.Close();
 
             // Stage 4.1: metadata is one reusable WPF view, WebView2 is not moved.

@@ -91,7 +91,7 @@ public partial class ExcelMailingWindow : Window
 
     internal void ResizeSenderGrid(double verticalDelta)
     {
-        var maxHeight = Math.Max(110, Math.Min(520, ActualHeight - 515));
+        var maxHeight = Math.Max(110, Math.Min(520, ActualHeight - 320));
         var height = Math.Clamp(SenderGrid.Height + verticalDelta, 110, maxHeight);
         if (Math.Abs(height - SenderGrid.Height) < 0.5) return;
         SenderGrid.Height = height;
