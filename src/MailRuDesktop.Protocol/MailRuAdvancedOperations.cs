@@ -433,7 +433,7 @@ public sealed partial class MailRuClient
         ArgumentNullException.ThrowIfNull(message);
 
         var messageId = string.IsNullOrWhiteSpace(message.MessageId)
-            ? KnownWorkingMessageId
+            ? CreateMessageId()
             : message.MessageId!;
 
         var attachmentIds = message.AttachmentIds ?? Array.Empty<string>();
