@@ -223,3 +223,6 @@ No CI or release blocker. Controlled validation with real Microsoft Excel and Ma
 
 ## 20.10.2026 — v0.3.85 owner acceptance for reply recipients
 Build, Windows UI smoke and official release are successful; live real-thread check remains. Server thread member metadata may be unavailable when compact folder response omits explicit thread mapping and full-message JSON omits thread_id; code then uses verified current letter To/Cc with visible warning, not inferred historical correspondents. This is a deliberate limit, not proof that every historical recipient has been recovered. Do not use From for own-sent last message. User should confirm on known grouped conversation and verify standard incoming reply unaffected. No real-account experiments were performed.
+
+## 20.10.2026 — v0.3.86 real-environment verification remaining
+Implementation and Windows CI complete; no build/release blocker. Multiple workbook/window behavior is covered by fakes but not yet owner-tested against real Excel COM; WPF preview is a MarkdownRichLoader-rendered FlowDocument. Sender builds Html using same RichComposeEditor renderer and sends plain text as fallback, verified by mock HTTP POST; actual final appearance in mail clients remains to be accepted with controlled personal test. Do not claim live delivery tested. Existing Excel bulk scheduling acceptance remains pending.
