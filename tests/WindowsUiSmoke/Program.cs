@@ -875,9 +875,11 @@ internal static class Program
 
             Check(FindDescendant<Button>(mailingWindow!, b =>
                       (b.Content as string)?.Contains("Проверить и подготовить") == true) is not null &&
-                  FindDescendant<Button>(mailingWindow!, b =>
-                      (b.Content as string)?.Contains("Отправить письма") == true) is null,
-                "stage 1 offers preview only, never server submission");
+                  !Require<Button>(mailingWindow!, "StartMailingButton").IsEnabled &&
+                  Require<Button>(mailingWindow!, "PauseMailingButton") is not null &&
+                  Require<Button>(mailingWindow!, "ResumeMailingButton") is not null &&
+                  Require<Button>(mailingWindow!, "RetryExcelWriteButton") is not null,
+                "mailing execution requires completed preparation and explicit confirmation");
             mailingWindow!.Close();
 
             // Stage 4.1: metadata is one reusable WPF view, WebView2 is not moved.
