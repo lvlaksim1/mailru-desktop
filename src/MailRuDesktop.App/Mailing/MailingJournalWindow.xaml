@@ -1,0 +1,86 @@
+<Window x:Class="MailRuDesktop.App.Mailing.MailingJournalWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Журнал рассылок Excel — просмотр и редактирование"
+        Width="1250" Height="760" MinWidth="920" MinHeight="550"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource AppWindowBrush}"
+        Foreground="{DynamicResource AppTextBrush}">
+    <Grid Margin="14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*" MinHeight="200"/>
+            <RowDefinition Height="175" MinHeight="105"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" TextWrapping="Wrap" Margin="0,0,0,10"
+                   Text="Изменения затрагивают только локальный журнал. Они не изменяют отправленные письма Mail.ru и данные Excel. Удаление или изменение состояния задания влияет на проверку повторных отправок."/>
+        <DockPanel Grid.Row="1" Margin="0,0,0,8">
+            <Button DockPanel.Dock="Right" x:Name="RefreshButton" Content="Обновить список"
+                    Padding="9,5" Margin="9,0,0,0" Click="Refresh_Click"/>
+            <ComboBox x:Name="RunCombo" DisplayMemberPath="Display"
+                      SelectionChanged="RunCombo_SelectionChanged"/>
+        </DockPanel>
+        <DataGrid x:Name="JobsGrid" Grid.Row="2" AutoGenerateColumns="False"
+                  CanUserAddRows="False" CanUserDeleteRows="False"
+                  SelectionMode="Single" CellEditEnding="JobsGrid_CellEditEnding">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Строка" Width="62"
+                                    Binding="{Binding RowNumber}"/>
+                <DataGridTextColumn Header="Получатель" Width="190"
+                                    Binding="{Binding Email}"/>
+                <DataGridTextColumn Header="ИНН" Width="120"
+                                    Binding="{Binding Inn}"/>
+                <DataGridTextColumn Header="Организация" Width="180"
+                                    Binding="{Binding Organization}"/>
+                <DataGridTextColumn Header="Отправитель" Width="185"
+                                    Binding="{Binding Sender}"/>
+                <DataGridTextColumn Header="Назначено" Width="160"
+                                    Binding="{Binding ScheduledAt}"/>
+                <DataGridComboBoxColumn x:Name="StatusColumn" Header="Состояние" Width="145"
+                                        SelectedItemBinding="{Binding Status, Mode=TwoWay}"/>
+                <DataGridCheckBoxColumn Header="Excel" Width="65"
+                                       Binding="{Binding ExcelWritten, Mode=TwoWay}"/>
+                <DataGridTextColumn Header="Причина" Width="180"
+                                    Binding="{Binding ErrorCode}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+        <Grid Grid.Row="3" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                <TextBlock Text="Тема выбранного письма" Margin="0,0,0,4"/>
+                <TextBox x:Name="SubjectEditor" TextWrapping="Wrap"
+                         AcceptsReturn="True" VerticalScrollBarVisibility="Auto"
+                         Height="100" TextChanged="EditorTextChanged"
+                         Text="{Binding SelectedItem.Subject, ElementName=JobsGrid, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                <TextBlock x:Name="RunInfo" TextWrapping="Wrap" FontSize="11"
+                           Foreground="{DynamicResource AppMutedTextBrush}"
+                           Margin="0,7,0,0"/>
+            </StackPanel>
+            <StackPanel Grid.Column="1">
+                <TextBlock Text="Текст выбранного письма (Markdown)" Margin="0,0,0,4"/>
+                <TextBox x:Name="BodyEditor" TextWrapping="Wrap" AcceptsReturn="True"
+                         VerticalScrollBarVisibility="Auto"
+                         Height="135" TextChanged="EditorTextChanged"
+                         Text="{Binding SelectedItem.Body, ElementName=JobsGrid, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+            </StackPanel>
+        </Grid>
+        <DockPanel Grid.Row="4" Margin="0,12,0,0">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <Button x:Name="DeleteJobButton" Content="Удалить запись" Padding="10,5"
+                        Margin="0,0,6,0" Click="DeleteJob_Click"/>
+                <Button x:Name="DeleteRunButton" Content="Удалить запуск" Padding="10,5"
+                        Margin="0,0,6,0" Click="DeleteRun_Click"/>
+                <Button x:Name="SaveButton" Content="Сохранить изменения" Padding="12,5"
+                        FontWeight="SemiBold" Click="Save_Click"/>
+            </StackPanel>
+            <TextBlock x:Name="JournalStatus" VerticalAlignment="Center" TextWrapping="Wrap"
+                       Margin="0,0,10,0" Foreground="{DynamicResource AppMutedTextBrush}"
+                       Text="Выберите запуск для просмотра записей."/>
+        </DockPanel>
+    </Grid>
+</Window>
