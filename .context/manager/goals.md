@@ -26,3 +26,6 @@ Prioritize permanent delete, flags/pinning, server search, address book, folders
 
 ## G-007 — Excel direct mailing end-to-end acceptance
 Bind the selected workbook, worksheet and active starting row despite other open Excel files, respecting hidden/filter rows and sender quotas. The single «Отправить» action must process each row, look up organization by INN and fall back to Excel «Наименование работодателя», render styled HTML and clean text, schedule via existing Mail.ru AJ /schedule, and write only two original row cells after server acceptance. No preview/correction/history/pause interface. Preserve per-letter DPAPI journal, no blind repeat of unknown server outcomes, and protected Excel writeback recovery. Require small real Excel/Mail.ru acceptance before mass use.
+
+## G-008 — Stable Excel workbook attachment for direct mailing
+Treat a selected workbook as an exact full-path Excel document rather than a stable Excel.Application.Hwnd. Preserve its selected worksheet when refreshing discovery. Reconnect an obsolete COM proxy only to a unique matching full path, never another active or same-basename workbook; require manual reselection after Save As/path change or ambiguity. Apply the same identity rule to direct send and confirmed-result Excel writeback. Obtain owner acceptance on actual Microsoft Excel before closing I-091.
