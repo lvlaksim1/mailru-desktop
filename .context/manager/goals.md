@@ -23,3 +23,6 @@ Prioritize permanent delete, flags/pinning, server search, address book, folders
 
 ## Цель после v0.3.51
 Отделять транспортное подтверждение MCS от локального подавления повторов. Добиваться устранения причины серверного повтора, но не объявлять результат доказанным без проверки нового потока Google. Оставить Google/PushMe регистрации и состав групп нетронутыми. Единый диагностический инструмент занимает доступную площадь справа; журнал должен быть действительно большим.
+
+## G-007 — Excel mailing end-to-end acceptance
+Keep Excel scanning bound to the explicitly selected workbook, selected worksheet and its active row despite other open Excel books, while honoring hidden/filter rows and sender quotas. Render Markdown in a vertically resizable readable preview and transmit matching formatted HTML plus clean text using the existing internal Mail.ru AJ /schedule path. Preserve the DPAPI-protected per-message journal and update only the two specified Excel source cells after server acceptance. Require small controlled real-Excel and Mail.ru verification before considering large-scale mailing ready.

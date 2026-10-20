@@ -460,3 +460,9 @@ Owner authorized and requested implementation. PR #194 (v0.3.83) and #196 (v0.3.
 
 ## I-088 — 20.10.2026: owner acceptance of reply-recipient fix v0.3.85 (ACTIVE)
 Owner explicitly requested fix for reply to last message sent by self showing their own email. Implemented in PR #198, merged main 08b3e906ba9d2ceb2b685ab0a77b133ac4291346; CI PR 39462254099/main 39462773985 PASS; official release 39463110366 SUCCESS. On owner's real grouped conversation, verify replying to last own-sent letter yields addresses of participants from To/Cc, excludes self and duplicates; incomplete thread shows clear warning and retains verified selected-message recipients. Also verify ordinary single-message inbound reply still targets From. Latest official update v0.3.85. No live mailbox requests were run by developer.
+
+## I-088 — 20.10.2026: reply recipient fix v0.3.85 accepted by Owner (CLOSED)
+Owner explicitly reported "да, работает" after real use of the fix that excludes one's own From when replying to the last message from that account and gathers verified To/Cc. Preserve behavior.
+
+## I-089 — 20.10.2026: v0.3.87 Excel multi-book and formatted mail owner acceptance (ACTIVE)
+Owner requested repair of false active workbook error with two or more open Excel workbooks, draggable preview height, rendered letter formatting and formatted HTML in outgoing mail. Main PR #200/v0.3.86 and follow-up PR #202/v0.3.87 shipped, Windows CI and official release successful. Owner must now verify selection of actual Excel workbook/worksheet/active cell across multiple files and actual formatted letter appearance after controlled scheduling to permitted own addresses. No large-scale mailing before acceptance; offline fake Excel/HTTP tests are not live confirmation.
