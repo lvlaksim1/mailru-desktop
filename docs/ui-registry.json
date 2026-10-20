@@ -7525,10 +7525,10 @@
       },
       "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]",
       "location": {
-        "Height": "880",
-        "MinHeight": "650",
+        "Height": "570",
+        "MinHeight": "420",
         "MinWidth": "920",
-        "Width": "1280",
+        "Width": "1200",
         "WindowStartupLocation": "CenterOwner"
       },
       "name": null,
@@ -7552,430 +7552,6 @@
       "states": null,
       "style": null,
       "type": "Grid",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {
-        "BorderBrush": "{DynamicResource AppBorderBrush}"
-      },
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]",
-      "location": {
-        "Grid.Row": "2",
-        "Margin": "0,0,0,10",
-        "Padding": "10"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Border",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Grid",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/Grid.ColumnDefinitions[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Grid.ColumnDefinitions",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[0]",
-      "location": {
-        "Width": "2*"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/Grid.ColumnDefinitions[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ColumnDefinition",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[1]",
-      "location": {
-        "Width": "3*"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/Grid.ColumnDefinitions[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ColumnDefinition",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[1]",
-      "location": {
-        "Grid.Column": "0",
-        "Margin": "0,0,14,0"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "StackPanel",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[1]/IntervalBox",
-      "location": {
-        "HorizontalAlignment": "Left",
-        "Margin": "0,4,0,0",
-        "Padding": "6",
-        "Width": "90"
-      },
-      "name": "IntervalBox",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[1]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBox",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[1]/TemplateCombo",
-      "location": {
-        "Margin": "0,4,0,8"
-      },
-      "name": "TemplateCombo",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[1]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ComboBox",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[1]/TextBlock[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[1]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[1]/TextBlock[2]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[1]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[1]/TextBlock[4]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[1]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[1]/WrapPanel[3]",
-      "location": {
-        "Margin": "0,4,0,8"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[1]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "WrapPanel",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[1]/WrapPanel[3]/StartDatePicker",
-      "location": {
-        "Width": "145"
-      },
-      "name": "StartDatePicker",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[1]/WrapPanel[3]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "DatePicker",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[1]/WrapPanel[3]/StartTimeBox",
-      "location": {
-        "Margin": "6,0,0,0",
-        "Padding": "6",
-        "Width": "76"
-      },
-      "name": "StartTimeBox",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[1]/WrapPanel[3]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBox",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[1]/WrapPanel[3]/TimeZoneText",
-      "location": {
-        "Margin": "8,0,0,0",
-        "VerticalAlignment": "Center"
-      },
-      "name": "TimeZoneText",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[1]/WrapPanel[3]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]",
-      "location": {
-        "Grid.Column": "1"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "StackPanel",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/SenderGrid",
-      "location": {
-        "Height": "124"
-      },
-      "name": "SenderGrid",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "DataGrid",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/SenderGrid/DataGrid.Columns[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/SenderGrid",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "DataGrid.Columns",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/SenderGrid/DataGrid.Columns[0]/DataGridCheckBoxColumn[0]",
-      "location": {
-        "Width": "72"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/SenderGrid/DataGrid.Columns[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "DataGridCheckBoxColumn",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/SenderGrid/DataGrid.Columns[0]/DataGridTextColumn[1]",
-      "location": {
-        "Width": "*"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/SenderGrid/DataGrid.Columns[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "DataGridTextColumn",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/SenderGrid/DataGrid.Columns[0]/DataGridTextColumn[2]",
-      "location": {
-        "Width": "112"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/SenderGrid/DataGrid.Columns[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "DataGridTextColumn",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/SenderGrid/DataGrid.Columns[0]/DataGridTextColumn[3]",
-      "location": {
-        "Width": "82"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/SenderGrid/DataGrid.Columns[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "DataGridTextColumn",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {
-        "Background": "{DynamicResource AppBorderBrush}"
-      },
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/SenderGridResizeThumb",
-      "location": {
-        "Height": "8",
-        "Margin": "0,3,0,0"
-      },
-      "name": "SenderGridResizeThumb",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Thumb",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/TextBlock[0]",
-      "location": {
-        "Margin": "0,0,0,4"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/WrapPanel[3]",
-      "location": {
-        "Margin": "0,4,0,0"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "WrapPanel",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/WrapPanel[3]/Button[0]",
-      "location": {
-        "Margin": "0,0,6,0",
-        "Padding": "7,3"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/WrapPanel[3]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/WrapPanel[3]/Button[1]",
-      "location": {
-        "Padding": "7,3"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/WrapPanel[3]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/WrapPanel[3]/QuotaSummaryText",
-      "location": {
-        "Margin": "12,0,0,0",
-        "VerticalAlignment": "Center"
-      },
-      "name": "QuotaSummaryText",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Border[3]/Grid[0]/StackPanel[2]/WrapPanel[3]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
       "typography": {},
       "window": "ExcelMailingWindow"
     },
@@ -8053,76 +7629,30 @@
       "window": "ExcelMailingWindow"
     },
     {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Grid.RowDefinitions[0]/RowDefinition[4]",
-      "location": {
-        "Height": "Auto"
+      "color_roles_and_values": {
+        "BorderBrush": "{DynamicResource AppBorderBrush}"
       },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Grid.RowDefinitions[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "RowDefinition",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Grid.RowDefinitions[0]/RowDefinition[5]",
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder",
       "location": {
-        "Height": "*",
-        "MinHeight": "125"
+        "Grid.Row": "2",
+        "Margin": "0,0,0,10",
+        "Padding": "10"
       },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Grid.RowDefinitions[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "RowDefinition",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Grid.RowDefinitions[0]/RowDefinition[6]",
-      "location": {
-        "Height": "7"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Grid.RowDefinitions[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "RowDefinition",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Grid.RowDefinitions[0]/RowDefinition[7]",
-      "location": {
-        "Height": "155",
-        "MinHeight": "90"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Grid.RowDefinitions[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "RowDefinition",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Grid[8]",
-      "location": {
-        "Grid.Row": "7",
-        "Margin": "0,4,0,0"
-      },
-      "name": null,
+      "name": "OptionsBorder",
       "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Border",
+      "typography": {},
+      "window": "ExcelMailingWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]",
+      "location": {},
+      "name": null,
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
@@ -8132,110 +7662,102 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Grid[8]/Grid.RowDefinitions[0]",
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/Grid.ColumnDefinitions[0]",
       "location": {},
       "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Grid[8]",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
-      "type": "Grid.RowDefinitions",
+      "type": "Grid.ColumnDefinitions",
       "typography": {},
       "window": "ExcelMailingWindow"
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Grid[8]/Grid.RowDefinitions[0]/RowDefinition[0]",
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[0]",
       "location": {
-        "Height": "Auto"
+        "Width": "2*"
       },
       "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Grid[8]/Grid.RowDefinitions[0]",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/Grid.ColumnDefinitions[0]",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
-      "type": "RowDefinition",
+      "type": "ColumnDefinition",
       "typography": {},
       "window": "ExcelMailingWindow"
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Grid[8]/Grid.RowDefinitions[0]/RowDefinition[1]",
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[1]",
       "location": {
-        "Height": "Auto"
+        "Width": "3*"
       },
       "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Grid[8]/Grid.RowDefinitions[0]",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/Grid.ColumnDefinitions[0]",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
-      "type": "RowDefinition",
+      "type": "ColumnDefinition",
       "typography": {},
       "window": "ExcelMailingWindow"
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Grid[8]/Grid.RowDefinitions[0]/RowDefinition[2]",
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[1]",
       "location": {
-        "Height": "*"
+        "Grid.Column": "0",
+        "Margin": "0,0,14,0"
       },
       "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Grid[8]/Grid.RowDefinitions[0]",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
-      "type": "RowDefinition",
+      "type": "StackPanel",
       "typography": {},
       "window": "ExcelMailingWindow"
     },
     {
-      "color_roles_and_values": {
-        "Background": "{DynamicResource AppWindowBrush}"
-      },
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Grid[8]/MessagePreviewDocument",
+      "color_roles_and_values": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[1]/IntervalBox",
       "location": {
-        "Grid.Row": "2",
-        "Margin": "0,2,0,0",
-        "Padding": "4"
+        "HorizontalAlignment": "Left",
+        "Margin": "0,4,0,0",
+        "Padding": "6",
+        "Width": "90"
       },
-      "name": "MessagePreviewDocument",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Grid[8]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "FlowDocumentScrollViewer",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {
-        "Background": "Transparent"
-      },
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Grid[8]/MessagePreviewSubject",
-      "location": {
-        "Grid.Row": "1",
-        "Margin": "0,4,0,2",
-        "Padding": "4"
-      },
-      "name": "MessagePreviewSubject",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Grid[8]",
+      "name": "IntervalBox",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[1]",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
       "type": "TextBox",
-      "typography": {
-        "FontWeight": "SemiBold"
-      },
+      "typography": {},
       "window": "ExcelMailingWindow"
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Grid[8]/TextBlock[1]",
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[1]/TemplateCombo",
       "location": {
-        "Grid.Row": "0"
+        "Margin": "0,4,0,8"
       },
+      "name": "TemplateCombo",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[1]",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ComboBox",
+      "typography": {},
+      "window": "ExcelMailingWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[1]/TextBlock[0]",
+      "location": {},
       "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/Grid[8]",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[1]",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
@@ -8244,33 +7766,117 @@
       "window": "ExcelMailingWindow"
     },
     {
-      "color_roles_and_values": {
-        "Background": "{DynamicResource AppBorderBrush}"
-      },
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/MessagePreviewSplitter",
-      "location": {
-        "Grid.Row": "6",
-        "Height": "7",
-        "HorizontalAlignment": "Stretch",
-        "VerticalAlignment": "Stretch"
-      },
-      "name": "MessagePreviewSplitter",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]",
+      "color_roles_and_values": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[1]/TextBlock[2]",
+      "location": {},
+      "name": null,
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[1]",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
-      "type": "GridSplitter",
+      "type": "TextBlock",
       "typography": {},
       "window": "ExcelMailingWindow"
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid",
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[1]/TextBlock[4]",
+      "location": {},
+      "name": null,
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[1]",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {},
+      "window": "ExcelMailingWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[1]/WrapPanel[3]",
       "location": {
-        "Grid.Row": "5"
+        "Margin": "0,4,0,8"
       },
-      "name": "PreviewGrid",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]",
+      "name": null,
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[1]",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "WrapPanel",
+      "typography": {},
+      "window": "ExcelMailingWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[1]/WrapPanel[3]/StartDatePicker",
+      "location": {
+        "Width": "145"
+      },
+      "name": "StartDatePicker",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[1]/WrapPanel[3]",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "DatePicker",
+      "typography": {},
+      "window": "ExcelMailingWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[1]/WrapPanel[3]/StartTimeBox",
+      "location": {
+        "Margin": "6,0,0,0",
+        "Padding": "6",
+        "Width": "76"
+      },
+      "name": "StartTimeBox",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[1]/WrapPanel[3]",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBox",
+      "typography": {},
+      "window": "ExcelMailingWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[1]/WrapPanel[3]/TimeZoneText",
+      "location": {
+        "Margin": "8,0,0,0",
+        "VerticalAlignment": "Center"
+      },
+      "name": "TimeZoneText",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[1]/WrapPanel[3]",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {},
+      "window": "ExcelMailingWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[2]",
+      "location": {
+        "Grid.Column": "1"
+      },
+      "name": null,
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "StackPanel",
+      "typography": {},
+      "window": "ExcelMailingWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[2]/SenderGrid",
+      "location": {
+        "Height": "124"
+      },
+      "name": "SenderGrid",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[2]",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
@@ -8280,10 +7886,10 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]",
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[2]/SenderGrid/DataGrid.Columns[0]",
       "location": {},
       "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[2]/SenderGrid",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
@@ -8293,603 +7899,303 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[0]",
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[2]/SenderGrid/DataGrid.Columns[0]/DataGridCheckBoxColumn[0]",
       "location": {
-        "Width": "65"
+        "Width": "72"
       },
       "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[2]/SenderGrid/DataGrid.Columns[0]",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
-      "type": "DataGridTemplateColumn",
+      "type": "DataGridCheckBoxColumn",
       "typography": {},
       "window": "ExcelMailingWindow"
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[0]/DataGridTemplateColumn.CellTemplate[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "DataGridTemplateColumn.CellTemplate",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[0]/DataGridTemplateColumn.CellTemplate[0]/DataTemplate[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[0]/DataGridTemplateColumn.CellTemplate[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": {
-        "Key": "",
-        "TargetType": ""
-      },
-      "style": null,
-      "type": "DataTemplate",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[0]/DataGridTemplateColumn.CellTemplate[0]/DataTemplate[0]/TextBox[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[0]/DataGridTemplateColumn.CellTemplate[0]/DataTemplate[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": "{StaticResource PreviewGridSelectableTextStyle}",
-      "type": "TextBox",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[1]",
-      "location": {
-        "Width": "180"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "DataGridTemplateColumn",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[1]/DataGridTemplateColumn.CellTemplate[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[1]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "DataGridTemplateColumn.CellTemplate",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[1]/DataGridTemplateColumn.CellTemplate[0]/DataTemplate[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[1]/DataGridTemplateColumn.CellTemplate[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": {
-        "Key": "",
-        "TargetType": ""
-      },
-      "style": null,
-      "type": "DataTemplate",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[1]/DataGridTemplateColumn.CellTemplate[0]/DataTemplate[0]/TextBox[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[1]/DataGridTemplateColumn.CellTemplate[0]/DataTemplate[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": "{StaticResource PreviewGridSelectableTextStyle}",
-      "type": "TextBox",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[2]",
-      "location": {
-        "Width": "120"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "DataGridTemplateColumn",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[2]/DataGridTemplateColumn.CellTemplate[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[2]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "DataGridTemplateColumn.CellTemplate",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[2]/DataGridTemplateColumn.CellTemplate[0]/DataTemplate[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[2]/DataGridTemplateColumn.CellTemplate[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": {
-        "Key": "",
-        "TargetType": ""
-      },
-      "style": null,
-      "type": "DataTemplate",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[2]/DataGridTemplateColumn.CellTemplate[0]/DataTemplate[0]/TextBox[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[2]/DataGridTemplateColumn.CellTemplate[0]/DataTemplate[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": "{StaticResource PreviewGridSelectableTextStyle}",
-      "type": "TextBox",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[3]",
-      "location": {
-        "Width": "180"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "DataGridTemplateColumn",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[3]/DataGridTemplateColumn.CellTemplate[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[3]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "DataGridTemplateColumn.CellTemplate",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[3]/DataGridTemplateColumn.CellTemplate[0]/DataTemplate[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[3]/DataGridTemplateColumn.CellTemplate[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": {
-        "Key": "",
-        "TargetType": ""
-      },
-      "style": null,
-      "type": "DataTemplate",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[3]/DataGridTemplateColumn.CellTemplate[0]/DataTemplate[0]/TextBox[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[3]/DataGridTemplateColumn.CellTemplate[0]/DataTemplate[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": "{StaticResource PreviewGridSelectableTextStyle}",
-      "type": "TextBox",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[4]",
-      "location": {
-        "Width": "185"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "DataGridTemplateColumn",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[4]/DataGridTemplateColumn.CellTemplate[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[4]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "DataGridTemplateColumn.CellTemplate",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[4]/DataGridTemplateColumn.CellTemplate[0]/DataTemplate[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[4]/DataGridTemplateColumn.CellTemplate[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": {
-        "Key": "",
-        "TargetType": ""
-      },
-      "style": null,
-      "type": "DataTemplate",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[4]/DataGridTemplateColumn.CellTemplate[0]/DataTemplate[0]/TextBox[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[4]/DataGridTemplateColumn.CellTemplate[0]/DataTemplate[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": "{StaticResource PreviewGridSelectableTextStyle}",
-      "type": "TextBox",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[5]",
-      "location": {
-        "Width": "160"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "DataGridTemplateColumn",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[5]/DataGridTemplateColumn.CellTemplate[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[5]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "DataGridTemplateColumn.CellTemplate",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[5]/DataGridTemplateColumn.CellTemplate[0]/DataTemplate[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[5]/DataGridTemplateColumn.CellTemplate[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": {
-        "Key": "",
-        "TargetType": ""
-      },
-      "style": null,
-      "type": "DataTemplate",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[5]/DataGridTemplateColumn.CellTemplate[0]/DataTemplate[0]/TextBox[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[5]/DataGridTemplateColumn.CellTemplate[0]/DataTemplate[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": "{StaticResource PreviewGridSelectableTextStyle}",
-      "type": "TextBox",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[6]",
-      "location": {
-        "Width": "130"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "DataGridTemplateColumn",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[6]/DataGridTemplateColumn.CellTemplate[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[6]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "DataGridTemplateColumn.CellTemplate",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[6]/DataGridTemplateColumn.CellTemplate[0]/DataTemplate[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[6]/DataGridTemplateColumn.CellTemplate[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": {
-        "Key": "",
-        "TargetType": ""
-      },
-      "style": null,
-      "type": "DataTemplate",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[6]/DataGridTemplateColumn.CellTemplate[0]/DataTemplate[0]/TextBox[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[6]/DataGridTemplateColumn.CellTemplate[0]/DataTemplate[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": "{StaticResource PreviewGridSelectableTextStyle}",
-      "type": "TextBox",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[7]",
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[2]/SenderGrid/DataGrid.Columns[0]/DataGridTextColumn[1]",
       "location": {
         "Width": "*"
       },
       "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[2]/SenderGrid/DataGrid.Columns[0]",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
-      "type": "DataGridTemplateColumn",
+      "type": "DataGridTextColumn",
       "typography": {},
       "window": "ExcelMailingWindow"
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[7]/DataGridTemplateColumn.CellTemplate[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[7]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "DataGridTemplateColumn.CellTemplate",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[7]/DataGridTemplateColumn.CellTemplate[0]/DataTemplate[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[7]/DataGridTemplateColumn.CellTemplate[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": {
-        "Key": "",
-        "TargetType": ""
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[2]/SenderGrid/DataGrid.Columns[0]/DataGridTextColumn[2]",
+      "location": {
+        "Width": "112"
       },
-      "style": null,
-      "type": "DataTemplate",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[7]/DataGridTemplateColumn.CellTemplate[0]/DataTemplate[0]/TextBox[0]",
-      "location": {},
       "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Columns[1]/DataGridTemplateColumn[7]/DataGridTemplateColumn.CellTemplate[0]/DataTemplate[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": "{StaticResource PreviewGridSelectableTextStyle}",
-      "type": "TextBox",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Resources[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[2]/SenderGrid/DataGrid.Columns[0]",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
-      "type": "DataGrid.Resources",
+      "type": "DataGridTextColumn",
       "typography": {},
       "window": "ExcelMailingWindow"
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Resources[0]/Style[0]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Resources[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": {
-        "Key": "PreviewGridSelectableTextStyle",
-        "TargetType": "{x:Type TextBox}"
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[2]/SenderGrid/DataGrid.Columns[0]/DataGridTextColumn[3]",
+      "location": {
+        "Width": "82"
       },
-      "style": "PreviewGridSelectableTextStyle",
-      "type": "Style",
+      "name": null,
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[2]/SenderGrid/DataGrid.Columns[0]",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "DataGridTextColumn",
+      "typography": {},
+      "window": "ExcelMailingWindow"
+    },
+    {
+      "color_roles_and_values": {
+        "Background": "{DynamicResource AppBorderBrush}"
+      },
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[2]/SenderGridResizeThumb",
+      "location": {
+        "Height": "8",
+        "Margin": "0,3,0,0"
+      },
+      "name": "SenderGridResizeThumb",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[2]",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Thumb",
       "typography": {},
       "window": "ExcelMailingWindow"
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Resources[0]/Style[0]/EventSetter[7]",
-      "location": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[2]/TextBlock[0]",
+      "location": {
+        "Margin": "0,0,0,4"
+      },
       "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Resources[0]/Style[0]",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[2]",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
-      "type": "EventSetter",
+      "type": "TextBlock",
       "typography": {},
       "window": "ExcelMailingWindow"
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Resources[0]/Style[0]/EventSetter[8]",
-      "location": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[2]/WrapPanel[3]",
+      "location": {
+        "Margin": "0,4,0,0"
+      },
       "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Resources[0]/Style[0]",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[2]",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
-      "type": "EventSetter",
+      "type": "WrapPanel",
       "typography": {},
       "window": "ExcelMailingWindow"
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Resources[0]/Style[0]/Setter[0]",
-      "location": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[2]/WrapPanel[3]/Button[0]",
+      "location": {
+        "Margin": "0,0,6,0",
+        "Padding": "7,3"
+      },
       "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Resources[0]/Style[0]",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[2]/WrapPanel[3]",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
-      "type": "Setter",
+      "type": "Button",
       "typography": {},
       "window": "ExcelMailingWindow"
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Resources[0]/Style[0]/Setter[1]",
-      "location": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[2]/WrapPanel[3]/Button[1]",
+      "location": {
+        "Padding": "7,3"
+      },
       "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Resources[0]/Style[0]",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[2]/WrapPanel[3]",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
-      "type": "Setter",
+      "type": "Button",
       "typography": {},
       "window": "ExcelMailingWindow"
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Resources[0]/Style[0]/Setter[2]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Resources[0]/Style[0]",
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[2]/WrapPanel[3]/QuotaSummaryText",
+      "location": {
+        "Margin": "12,0,0,0",
+        "VerticalAlignment": "Center"
+      },
+      "name": "QuotaSummaryText",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/OptionsBorder/Grid[0]/StackPanel[2]/WrapPanel[3]",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
-      "type": "Setter",
+      "type": "TextBlock",
       "typography": {},
       "window": "ExcelMailingWindow"
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Resources[0]/Style[0]/Setter[3]",
-      "location": {},
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Resources[0]/Style[0]",
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/ProfileControls",
+      "location": {
+        "Grid.Row": "1",
+        "Margin": "0,0,0,10"
+      },
+      "name": "ProfileControls",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
-      "type": "Setter",
+      "type": "WrapPanel",
       "typography": {},
       "window": "ExcelMailingWindow"
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Resources[0]/Style[0]/Setter[4]",
-      "location": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/ProfileControls/Button[2]",
+      "location": {
+        "Margin": "0,0,6,0",
+        "Padding": "10,5"
+      },
       "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Resources[0]/Style[0]",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/ProfileControls",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
-      "type": "Setter",
+      "type": "Button",
       "typography": {},
       "window": "ExcelMailingWindow"
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Resources[0]/Style[0]/Setter[5]",
-      "location": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/ProfileControls/Button[3]",
+      "location": {
+        "Margin": "0,0,6,0",
+        "Padding": "10,5"
+      },
       "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Resources[0]/Style[0]",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/ProfileControls",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
-      "type": "Setter",
+      "type": "Button",
       "typography": {},
       "window": "ExcelMailingWindow"
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Resources[0]/Style[0]/Setter[6]",
-      "location": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/ProfileControls/Button[4]",
+      "location": {
+        "Margin": "0,0,6,0",
+        "Padding": "10,5"
+      },
       "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/PreviewGrid/DataGrid.Resources[0]/Style[0]",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/ProfileControls",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
-      "type": "Setter",
+      "type": "Button",
+      "typography": {},
+      "window": "ExcelMailingWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/ProfileControls/Button[5]",
+      "location": {
+        "Margin": "0,0,6,0",
+        "Padding": "10,5"
+      },
+      "name": null,
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/ProfileControls",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Button",
+      "typography": {},
+      "window": "ExcelMailingWindow"
+    },
+    {
+      "color_roles_and_values": {
+        "Foreground": "{DynamicResource AppMutedTextBrush}"
+      },
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/ProfileControls/DirtyText",
+      "location": {
+        "Margin": "10,0,0,0",
+        "VerticalAlignment": "Center"
+      },
+      "name": "DirtyText",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/ProfileControls",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {},
+      "window": "ExcelMailingWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/ProfileControls/ProfileCombo",
+      "location": {
+        "Margin": "0,0,8,0",
+        "Width": "220"
+      },
+      "name": "ProfileCombo",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/ProfileControls",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ComboBox",
+      "typography": {},
+      "window": "ExcelMailingWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/ProfileControls/SaveProfileButton",
+      "location": {
+        "Padding": "10,5"
+      },
+      "name": "SaveProfileButton",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/ProfileControls",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Button",
+      "typography": {
+        "FontWeight": "SemiBold"
+      },
+      "window": "ExcelMailingWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/ProfileControls/TextBlock[0]",
+      "location": {
+        "Margin": "0,0,6,0",
+        "VerticalAlignment": "Center"
+      },
+      "name": null,
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/ProfileControls",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
       "typography": {},
       "window": "ExcelMailingWindow"
     },
@@ -8977,6 +8283,21 @@
     },
     {
       "color_roles_and_values": {},
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[4]/StatusText",
+      "location": {
+        "Margin": "0,7,0,0"
+      },
+      "name": "StatusText",
+      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[4]",
+      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBlock",
+      "typography": {},
+      "window": "ExcelMailingWindow"
+    },
+    {
+      "color_roles_and_values": {},
       "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[4]/SubjectBox",
       "location": {
         "Margin": "0,4,0,9",
@@ -9054,12 +8375,12 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[4]/WrapPanel[2]/Button[0]",
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[4]/WrapPanel[2]/FindBooksButton",
       "location": {
         "Margin": "0,0,8,0",
         "Padding": "10,6"
       },
-      "name": null,
+      "name": "FindBooksButton",
       "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[4]/WrapPanel[2]",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
@@ -9070,11 +8391,11 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[4]/WrapPanel[2]/PrepareButton",
+      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[4]/WrapPanel[2]/SendButton",
       "location": {
         "Padding": "12,6"
       },
-      "name": "PrepareButton",
+      "name": "SendButton",
       "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[4]/WrapPanel[2]",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
@@ -9103,23 +8424,6 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[4]/WrapPanel[2]/StopButton",
-      "location": {
-        "Margin": "8,0,0,0",
-        "Padding": "9,6",
-        "Visibility": "Collapsed"
-      },
-      "name": "StopButton",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[4]/WrapPanel[2]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
       "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[4]/WrapPanel[2]/TextBlock[2]",
       "location": {
         "Margin": "0,0,6,0",
@@ -9127,402 +8431,6 @@
       },
       "name": null,
       "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[4]/WrapPanel[2]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]",
-      "location": {
-        "Grid.Row": "4",
-        "Margin": "0,0,0,8"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "StackPanel",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/RunStatusText",
-      "location": {
-        "Margin": "0,4,0,0"
-      },
-      "name": "RunStatusText",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/StatusText",
-      "location": {},
-      "name": "StatusText",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/SummaryText",
-      "location": {
-        "Margin": "0,3,0,0"
-      },
-      "name": "SummaryText",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
-      "typography": {
-        "FontWeight": "SemiBold"
-      },
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[2]",
-      "location": {
-        "Margin": "0,6,0,0"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "WrapPanel",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[2]/IncludeOrganizationButton",
-      "location": {
-        "Padding": "9,5"
-      },
-      "name": "IncludeOrganizationButton",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[2]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[2]/ManualOrganizationButton",
-      "location": {
-        "Margin": "0,0,6,0",
-        "Padding": "9,5"
-      },
-      "name": "ManualOrganizationButton",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[2]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[2]/RetryOrganizationButton",
-      "location": {
-        "Margin": "0,0,6,0",
-        "Padding": "9,5"
-      },
-      "name": "RetryOrganizationButton",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[2]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]",
-      "location": {
-        "Margin": "0,7,0,0"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "WrapPanel",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]/PauseMailingButton",
-      "location": {
-        "Margin": "0,0,6,0",
-        "Padding": "9,5"
-      },
-      "name": "PauseMailingButton",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]/ResumeMailingButton",
-      "location": {
-        "Margin": "0,0,6,0",
-        "Padding": "9,5"
-      },
-      "name": "ResumeMailingButton",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]/RetryExcelWriteButton",
-      "location": {
-        "Margin": "0,0,8,0",
-        "Padding": "9,5"
-      },
-      "name": "RetryExcelWriteButton",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]/RunHistoryCombo",
-      "location": {
-        "Width": "270"
-      },
-      "name": "RunHistoryCombo",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ComboBox",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]/StartMailingButton",
-      "location": {
-        "Margin": "0,0,6,0",
-        "Padding": "10,5"
-      },
-      "name": "StartMailingButton",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]/StopMailingButton",
-      "location": {
-        "Margin": "0,0,6,0",
-        "Padding": "9,5"
-      },
-      "name": "StopMailingButton",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]/TextBlock[5]",
-      "location": {
-        "Margin": "0,0,5,0",
-        "VerticalAlignment": "Center"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/StackPanel[5]/WrapPanel[3]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/WrapPanel[2]",
-      "location": {
-        "Grid.Row": "1",
-        "Margin": "0,0,0,10"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "WrapPanel",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/WrapPanel[2]/Button[2]",
-      "location": {
-        "Margin": "0,0,6,0",
-        "Padding": "10,5"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/WrapPanel[2]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/WrapPanel[2]/Button[3]",
-      "location": {
-        "Margin": "0,0,6,0",
-        "Padding": "10,5"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/WrapPanel[2]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/WrapPanel[2]/Button[4]",
-      "location": {
-        "Margin": "0,0,6,0",
-        "Padding": "10,5"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/WrapPanel[2]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/WrapPanel[2]/Button[5]",
-      "location": {
-        "Margin": "0,0,6,0",
-        "Padding": "10,5"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/WrapPanel[2]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {
-        "Foreground": "{DynamicResource AppMutedTextBrush}"
-      },
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/WrapPanel[2]/DirtyText",
-      "location": {
-        "Margin": "10,0,0,0",
-        "VerticalAlignment": "Center"
-      },
-      "name": "DirtyText",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/WrapPanel[2]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/WrapPanel[2]/ProfileCombo",
-      "location": {
-        "Margin": "0,0,8,0",
-        "Width": "220"
-      },
-      "name": "ProfileCombo",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/WrapPanel[2]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "ComboBox",
-      "typography": {},
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/WrapPanel[2]/SaveProfileButton",
-      "location": {
-        "Padding": "10,5"
-      },
-      "name": "SaveProfileButton",
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/WrapPanel[2]",
-      "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {
-        "FontWeight": "SemiBold"
-      },
-      "window": "ExcelMailingWindow"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/WrapPanel[2]/TextBlock[0]",
-      "location": {
-        "Margin": "0,0,6,0",
-        "VerticalAlignment": "Center"
-      },
-      "name": null,
-      "parent": "ExcelMailingWindow/src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml/Window[0]/Grid[0]/WrapPanel[2]",
       "source": "src/MailRuDesktop.App/Mailing/ExcelMailingWindow.xaml",
       "states": null,
       "style": null,
@@ -22752,12 +21660,12 @@
         "Foreground": "{DynamicResource AppTextBrush}"
       },
       "declared_as": "XAML",
-      "element_count": 133,
+      "element_count": 59,
       "geometry": {
-        "Height": "880",
-        "MinHeight": "650",
+        "Height": "570",
+        "MinHeight": "420",
         "MinWidth": "920",
-        "Width": "1280",
+        "Width": "1200",
         "WindowStartupLocation": "CenterOwner"
       },
       "id": "ExcelMailingWindow",

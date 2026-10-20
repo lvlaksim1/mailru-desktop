@@ -82,8 +82,6 @@ public partial class ExcelMailingWindow : Window
             ProfileCombo.SelectedIndex = 0;
         Closed += (_, _) => { _sendCancellation?.Cancel(); _stopMailing = true; };
         Closing += Window_Closing;
-        try { RefreshRunHistory(); }
-        catch (Exception ex) { ShowError(ex); }
     }
 
     internal static double NormalizeSenderGridHeight(double desired) =>

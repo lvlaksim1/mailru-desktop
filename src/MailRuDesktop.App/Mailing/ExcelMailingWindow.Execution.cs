@@ -10,7 +10,6 @@ public partial class ExcelMailingWindow
     private readonly MailingRunStore _runStore = new();
     private MailRuClient _mailRu = null!;
     private CancellationTokenSource? _sendCancellation;
-    private bool _mailingExecutionRunning;
     private bool _stopMailing;
     private static int _activeDirectMailing;
 
@@ -88,7 +87,6 @@ public partial class ExcelMailingWindow
                 .Where(x => x.Status != MailingJobStatus.Rejected)
                 .Select(x => MailingRunStore.RowKey(x.RowNumber, x.Email, x.Inn))
                 .ToHashSet(StringComparer.Ordinal);
-            _mailingExecutionRunning = true;
             _stopMailing = false;
             _sendCancellation = new CancellationTokenSource();
             var cancellation = _sendCancellation.Token;
@@ -227,7 +225,6 @@ public partial class ExcelMailingWindow
         }
         finally
         {
-            _mailingExecutionRunning = false;
             _sendCancellation?.Dispose();
             _sendCancellation = null;
             SendButton.IsEnabled = true;
