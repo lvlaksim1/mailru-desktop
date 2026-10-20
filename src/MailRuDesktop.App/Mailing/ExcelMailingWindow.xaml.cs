@@ -139,6 +139,7 @@ public partial class ExcelMailingWindow : Window
         if (_loading || _current is null) return;
         _dirty = true;
         DirtyText.Text = "● Несохранённые изменения";
+        StartMailingButton.IsEnabled = false;
         UpdateQuotaSummary();
     }
     private void FieldChanged(object sender, SelectionChangedEventArgs e) => MarkDirty();
@@ -557,7 +558,7 @@ public partial class ExcelMailingWindow : Window
     private void PreviewGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         MessagePreviewText.Text = PreviewGrid.SelectedItem is MailingPreparedRow
-            { Status: "Ready" } selected
+            { Subject: { Length: > 0 } } selected
             ? "Тема: " + selected.Subject + Environment.NewLine + Environment.NewLine +
               selected.Body
             : PreviewGrid.SelectedItem is MailingPreparedRow rejected
