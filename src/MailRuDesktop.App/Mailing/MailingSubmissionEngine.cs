@@ -1,3 +1,4 @@
+using System.Text.Json;
 using MailRuDesktop.Protocol;
 
 namespace MailRuDesktop.App.Mailing;
@@ -57,10 +58,15 @@ internal sealed class MailingSubmissionEngine(MailingRunStore store)
 
                 if (!result.Success)
                 {
-                    job.Status = MailingJobStatus.Rejected;
-                    job.ErrorCode = "server_rejected";
+                    // Failure with no recognizable application-level refusal may
+                    // still mean the server accepted the operation.
+                    var explicitRefusal = IsExplicitRejection(result.RawResponse);
+                    job.Status = explicitRefusal
+                        ? MailingJobStatus.Rejected : MailingJobStatus.Indeterminate;
+                    job.ErrorCode = explicitRefusal ? "server_rejected" : "unconfirmed_server_reply";
                     store.Save(run);
                     onChanged?.Invoke(job);
+                    if (!explicitRefusal) break;
                     continue;
                 }
 
@@ -92,4 +98,25 @@ internal sealed class MailingSubmissionEngine(MailingRunStore store)
             }
         }
     }
+
+    private static bool IsExplicitRejection(string response)
+    {
+        try
+        {
+            using var parsed = JsonDocument.Parse(response);
+            if (!parsed.RootElement.TryGetProperty("status", out var status))
+                return false;
+            var number = status.ValueKind switch
+            {
+                JsonValueKind.Number when status.TryGetInt32(out var n) => n,
+                JsonValueKind.String when int.TryParse(status.GetString(), out var n) => n,
+                _ => 0
+            };
+            // 429 and 449 are retry/rate-limit responses, not proof that an
+            // already-issued scheduling operation was not accepted.
+            return number is >= 400 and < 500 and not (429 or 449);
+        }
+        catch (JsonException) { return false; }
+    }
+
 }
