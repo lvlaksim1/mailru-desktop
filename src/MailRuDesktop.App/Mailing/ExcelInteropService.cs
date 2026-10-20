@@ -113,6 +113,45 @@ internal static class ExcelInteropService
             StringComparer.CurrentCultureIgnoreCase).ToList();
     }
 
+    // Application.Hwnd identifies an Excel window, not a durable workbook.
+    // A closed/reopened workbook can invalidate the COM proxy even when its
+    // path is unchanged. Rebind only to one exact full-path match.
+    internal static OpenExcelBook ResolveSelectedWorkbook(OpenExcelBook selected,
+        Func<IReadOnlyList<OpenExcelBook>>? discover = null)
+    {
+        ArgumentNullException.ThrowIfNull(selected);
+        try
+        {
+            dynamic workbook = selected.Workbook;
+            string currentPath = workbook.FullName;
+            if (!string.Equals(currentPath, selected.FullName,
+                    StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException(
+                    "Выбранная книга Excel сохранена под другим именем или путём. " +
+                    "Обновите список книг и выберите нужный файл.");
+            return selected;
+        }
+        catch (COMException) { /* Old workbook COM proxy is disconnected. */ }
+        catch (InvalidComObjectException) { /* Reacquire the proxy. */ }
+        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)
+        { /* Disconnected automation proxy. */ }
+
+        var matches = (discover is null ? Discover() : discover())
+            .Where(x => string.Equals(x.FullName, selected.FullName,
+                StringComparison.OrdinalIgnoreCase)).ToArray();
+        if (matches.Length == 0)
+            throw new InvalidOperationException(
+                "Выбранная книга Excel больше не найдена по исходному пути. " +
+                "Откройте её либо повторно найдите открытые книги.");
+        if (matches.Length != 1)
+            throw new InvalidOperationException(
+                "Найдено несколько экземпляров одного файла Excel. " +
+                "Закройте дубликаты и выберите книгу повторно.");
+        DiagnosticLog.Write("mailing_excel_reconnect",
+            "Reconnected by original full workbook path.");
+        return matches[0];
+    }
+
     private static readonly string[] Required =
     [
         "E-mail работодателя", "ИНН работодателя", "Регион",
@@ -133,13 +172,9 @@ internal static class ExcelInteropService
         if (string.IsNullOrWhiteSpace(sheetName))
             throw new InvalidOperationException("Выберите книгу Excel и лист.");
 
-        dynamic wb = book.Workbook;
+        // The selected file path, not Excel.Application.Hwnd, is authoritative.
+        dynamic wb = ResolveSelectedWorkbook(book).Workbook;
         dynamic excel = wb.Application;
-        if (Convert.ToInt32(excel.Hwnd, CultureInfo.InvariantCulture) != book.ApplicationHwnd ||
-            !string.Equals((string)wb.FullName, book.FullName,
-                StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException(
-                "Выбранная книга Excel больше не соответствует открытому экземпляру. Найдите книги повторно.");
 
         // ActiveWorkbook/ActiveSheet/ActiveCell on Excel.Application refer to
         // the globally active window. With several open books this can be
@@ -177,7 +212,7 @@ internal static class ExcelInteropService
         if (selectedWindow is null)
             throw new InvalidOperationException(
                 "Выделите ячейку на листе «" + sheetName +
-                "» выбранной книги Excel и повторите подготовку.");
+                "» выбранной книги Excel и повторите отправку.");
 
         dynamic activeCell = ((dynamic)selectedWindow).ActiveCell;
         if (activeCell is null)
@@ -240,14 +275,8 @@ internal static class ExcelInteropService
     {
         ArgumentNullException.ThrowIfNull(book);
         ArgumentNullException.ThrowIfNull(job);
-        dynamic workbook = book.Workbook;
-        dynamic excel = workbook.Application;
-        if (Convert.ToInt32(excel.Hwnd, CultureInfo.InvariantCulture) !=
-                book.ApplicationHwnd ||
-            !string.Equals((string)workbook.FullName, book.FullName,
-                StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException(
-                "Исходная книга Excel больше недоступна. Повторите подключение к книге.");
+        // For writeback use the original document only; window IDs may change.
+        dynamic workbook = ResolveSelectedWorkbook(book).Workbook;
 
         dynamic sheet = workbook.Worksheets.Item[sheetName];
         int lastColumn = Convert.ToInt32(
