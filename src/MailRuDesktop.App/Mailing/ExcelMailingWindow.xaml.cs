@@ -141,6 +141,7 @@ public partial class ExcelMailingWindow : Window
     private void FieldChanged(object sender, SelectionChangedEventArgs e) => MarkDirty();
     private void FieldChangedText(object sender, TextChangedEventArgs e) => MarkDirty();
     private void DateChanged(object sender, SelectionChangedEventArgs e) => MarkDirty();
+    private void JournalEnabled_Changed(object sender, RoutedEventArgs e) => MarkDirty();
     private void SenderGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e) =>
         Dispatcher.BeginInvoke(new Action(MarkDirty));
 
@@ -200,6 +201,7 @@ public partial class ExcelMailingWindow : Window
             StartDatePicker.SelectedDate = profile.StartDate;
             StartTimeBox.Text = profile.StartTime;
             IntervalBox.Text = profile.IntervalSeconds.ToString();
+            JournalEnabledCheck.IsChecked = profile.JournalEnabled;
             SubjectBox.Text = profile.SubjectTemplate;
             TemplateCombo.SelectedItem = _templates.FirstOrDefault(x =>
                 string.Equals(x.Name, profile.TemplateName,
@@ -242,6 +244,7 @@ public partial class ExcelMailingWindow : Window
             Id = _current.Id, Name = _current.Name,
             StartDate = date.Date, StartTime = StartTimeBox.Text.Trim(),
             TimeZoneId = _current.TimeZoneId, IntervalSeconds = interval,
+            JournalEnabled = JournalEnabledCheck.IsChecked == true,
             TemplateName = template.Name,
             SubjectTemplate = SubjectBox.Text,
             Senders = selected.Select(x => new MailingSenderQuota

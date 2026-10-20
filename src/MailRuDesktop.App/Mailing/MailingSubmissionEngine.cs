@@ -15,7 +15,8 @@ internal sealed class MailingSubmissionEngine(MailingRunStore store)
         Func<MailingJobRecord, Task<MailRuCommandResult>> submit,
         Func<MailingJobRecord, Task> writeExcel,
         Func<bool> stopRequested,
-        Action<MailingJobRecord>? onChanged = null)
+        Action<MailingJobRecord>? onChanged = null,
+        bool persist = true)
     {
         ArgumentNullException.ThrowIfNull(run);
         ArgumentNullException.ThrowIfNull(submit);
@@ -32,14 +33,14 @@ internal sealed class MailingSubmissionEngine(MailingRunStore store)
                 {
                     job.Status = MailingJobStatus.Rejected;
                     job.ErrorCode = "scheduled_time_too_near";
-                    store.Save(run);
+                    if (persist) store.Save(run);
                     onChanged?.Invoke(job);
                     continue;
                 }
 
                 job.Status = MailingJobStatus.Submitting;
                 job.ErrorCode = "";
-                store.Save(run); // durable BEFORE any network traffic
+                if (persist) store.Save(run); // durable BEFORE any network traffic
                 onChanged?.Invoke(job);
 
                 MailRuCommandResult result;
@@ -51,7 +52,7 @@ internal sealed class MailingSubmissionEngine(MailingRunStore store)
                 {
                     job.Status = MailingJobStatus.Indeterminate;
                     job.ErrorCode = "no_confirmed_response_" + ex.GetType().Name;
-                    store.Save(run);
+                    if (persist) store.Save(run);
                     onChanged?.Invoke(job);
                     break; // avoid a cascade of uncertain network outcomes
                 }
@@ -64,7 +65,7 @@ internal sealed class MailingSubmissionEngine(MailingRunStore store)
                     job.Status = explicitRefusal
                         ? MailingJobStatus.Rejected : MailingJobStatus.Indeterminate;
                     job.ErrorCode = explicitRefusal ? "server_rejected" : "unconfirmed_server_reply";
-                    store.Save(run);
+                    if (persist) store.Save(run);
                     onChanged?.Invoke(job);
                     if (!explicitRefusal) break;
                     continue;
@@ -72,7 +73,7 @@ internal sealed class MailingSubmissionEngine(MailingRunStore store)
 
                 job.Status = MailingJobStatus.ExcelWritePending;
                 job.ConfirmedAtUtc = DateTimeOffset.UtcNow;
-                store.Save(run); // server acceptance recorded BEFORE Excel write
+                if (persist) store.Save(run); // server acceptance recorded BEFORE Excel write
                 onChanged?.Invoke(job);
             }
 
@@ -86,13 +87,13 @@ internal sealed class MailingSubmissionEngine(MailingRunStore store)
                 job.ExcelWritten = true;
                 job.Status = MailingJobStatus.CompletedRecord;
                 job.ErrorCode = "";
-                store.Save(run);
+                if (persist) store.Save(run);
                 onChanged?.Invoke(job);
             }
             catch (Exception ex)
             {
                 job.ErrorCode = "excel_write_pending_" + ex.GetType().Name;
-                store.Save(run);
+                if (persist) store.Save(run);
                 onChanged?.Invoke(job);
                 break; // pause new POSTs while the workbook is unavailable
             }

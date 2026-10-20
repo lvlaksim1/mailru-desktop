@@ -50,6 +50,17 @@ public partial class ExcelMailingWindow
         return Task.CompletedTask;
     }
 
+    private void OpenJournal_Click(object sender, RoutedEventArgs e)
+    {
+        if (Volatile.Read(ref _activeDirectMailing) != 0)
+        {
+            StatusText.Text = "Во время рассылки изменение журнала недоступно.";
+            return;
+        }
+        var editor = new MailingJournalWindow(this, _runStore);
+        editor.ShowDialog();
+    }
+
     private async void Send_Click(object sender, RoutedEventArgs e)
     {
         // Several windows may exist, but only one can submit a mailing.
@@ -82,7 +93,12 @@ public partial class ExcelMailingWindow
             // No intermediate table: one prepared result is returned at a time.
             var session = MailingPlanner.CreateSession(profile, template.Body,
                 excluded, authorized, collectRows: false);
-            var priorRuns = _runStore.ForWorkbook(book.FullName, sheet);
+            // Checkbox applies to this entire send, not only the UI display.
+            // Disabled means no journal access, no DPAPI files, no recovery.
+            var journalEnabled = profile.JournalEnabled;
+            var priorRuns = journalEnabled
+                ? _runStore.ForWorkbook(book.FullName, sheet)
+                : [];
             var reserved = priorRuns.SelectMany(x => x.Jobs)
                 .Where(x => x.Status != MailingJobStatus.Rejected)
                 .Select(x => MailingRunStore.RowKey(x.RowNumber, x.Email, x.Inn))
@@ -96,6 +112,8 @@ public partial class ExcelMailingWindow
             SheetCombo.IsEnabled = false;
             ProfileControls.IsEnabled = false;
             OptionsBorder.IsEnabled = false;
+            OpenJournalButton.IsEnabled = false;
+            JournalEnabledCheck.IsEnabled = false;
             var engine = new MailingSubmissionEngine(_runStore);
 
             // When the server accepted a previous letter but Excel was unavailable,
@@ -167,21 +185,34 @@ public partial class ExcelMailingWindow
                         continue;
                     }
                     MailingJobRecord job;
-                    if (run is null)
+                    MailingRunRecord currentRun;
+                    if (!journalEnabled)
                     {
-                        run = _runStore.Create(profile, book.FullName, sheet, [planned]);
-                        job = run.Jobs.Single();
+                        // No persisted or service journal and no duplicate check.
+                        currentRun = MailingRunStore.CreateUnrecorded(
+                            profile, book.FullName, sheet, planned);
+                        job = currentRun.Jobs.Single();
                     }
-                    else job = _runStore.Append(run, planned);
-                    // Reservation is durable BEFORE a single network request.
-                    reserved.Add(key);
+                    else
+                    {
+                        if (run is null)
+                        {
+                            run = _runStore.Create(profile, book.FullName, sheet, [planned]);
+                            job = run.Jobs.Single();
+                        }
+                        else job = _runStore.Append(run, planned);
+                        currentRun = run;
+                        // Durable journal reservation BEFORE network traffic.
+                        reserved.Add(key);
+                    }
                     StatusText.Text =
                         $"Строка {row.RowNumber}: постановка письма {session.ReadyCount}/{session.Quota}. " +
                         $"Принято Mail.ru: {accepted}.";
-                    await engine.ExecuteAsync(run, SubmitOneAsync,
-                        current => WriteOneExcelAsync(run, current),
+                    await engine.ExecuteAsync(currentRun, SubmitOneAsync,
+                        current => WriteOneExcelAsync(currentRun, current),
                         () => cancellation.IsCancellationRequested ||
-                              _stopMailing || !IsVisible);
+                              _stopMailing || !IsVisible,
+                        persist: journalEnabled);
                     if (job.Status == MailingJobStatus.CompletedRecord)
                         accepted++;
                     else if (job.Status == MailingJobStatus.Rejected)
@@ -202,18 +233,24 @@ public partial class ExcelMailingWindow
             StatusText.Text = stoppedForUncertain
                 ? $"Отправка приостановлена: неопределённый ответ Mail.ru либо ошибка записи Excel. " +
                   $"Принято и отмечено: {accepted}, отказов: {rejected}. " +
-                  "Повторная постановка спорного письма исключена журналом."
+                  (journalEnabled
+                      ? "Повторная постановка спорного письма исключена журналом."
+                      : "Журнал отключён: сведения об этом письме не сохранены.")
                 : $"Проход завершён. Принято и отмечено в Excel: {accepted}; " +
                   $"отказов: {rejected}; пропущено: {skipped}; " +
                   $"ранее учтено журналом: {previouslyScheduled}; " +
                   $"названий взято из Excel: {employerFallbacks}. " +
+                  (journalEnabled ? "" : "Журнал отключён. ") +
                   "Сохраните книгу средствами Excel.";
         }
         catch (OperationCanceledException)
         {
             StatusText.Text =
                 $"Обработка прервана. Ранее принятые Mail.ru задания не отменены. " +
-                $"Подтверждено: {accepted}; неопределённые результаты повторяться не будут.";
+                $"Подтверждено: {accepted}; " +
+                (JournalEnabledCheck.IsChecked == true
+                    ? "неопределённые результаты защищены журналом."
+                    : "журнал отключён, неопределённые результаты не сохранены.");
         }
         catch (Exception ex)
         {
@@ -221,7 +258,9 @@ public partial class ExcelMailingWindow
                 ex.GetType().Name + ": " + ex.Message);
             StatusText.Text =
                 $"Ошибка: {ex.Message}. Уже подтверждённые отправки: {accepted}. " +
-                "Проверьте журнал и отметки Excel перед следующим запуском.";
+                (JournalEnabledCheck.IsChecked == true
+                    ? "Проверьте журнал и отметки Excel перед следующим запуском."
+                    : "Журнал отключён. Проверьте отметки Excel и письма Mail.ru.");
         }
         finally
         {
@@ -233,6 +272,8 @@ public partial class ExcelMailingWindow
             SheetCombo.IsEnabled = true;
             ProfileControls.IsEnabled = true;
             OptionsBorder.IsEnabled = true;
+            OpenJournalButton.IsEnabled = true;
+            JournalEnabledCheck.IsEnabled = true;
             Interlocked.Exchange(ref _activeDirectMailing, 0);
         }
     }

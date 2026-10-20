@@ -99,6 +99,12 @@
                 <ComboBox x:Name="SheetCombo" Width="175" Margin="0,0,8,0"/>
                 <Button x:Name="SendButton" Content="Отправить" Padding="12,6"
                         FontWeight="SemiBold" Click="Send_Click"/>
+                <CheckBox x:Name="JournalEnabledCheck" Content="Записывать в журнал"
+                          Margin="14,0,10,0" VerticalAlignment="Center"
+                          IsChecked="True" Checked="JournalEnabled_Changed"
+                          Unchecked="JournalEnabled_Changed"/>
+                <Button x:Name="OpenJournalButton" Content="Открыть журнал"
+                        Padding="10,6" Click="OpenJournal_Click"/>
             </WrapPanel>
             <TextBlock x:Name="BookPathText" Margin="0,5,0,0" FontSize="11"
                        Foreground="{DynamicResource AppMutedTextBrush}" TextWrapping="Wrap"/>
