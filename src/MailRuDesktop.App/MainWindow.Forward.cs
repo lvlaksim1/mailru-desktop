@@ -12,6 +12,37 @@ public partial class MainWindow
     // forwarding MUST NEVER archive the source message.
     private bool _forwardSourceOnly;
 
+    // Convert the editable common formatting subset of incoming HTML; sender
+    // scripts, style elements, tracking markup and arbitrary attributes are
+    // never imported into the outgoing editor.
+    internal static string BuildForwardMarkdown(MailRuFullMessage full)
+    {
+        var html = full.Html;
+        html = Regex.Replace(html, @"(?is)<(script|style|iframe|object)\b[^>]*>.*?</\1>", "");
+        html = Regex.Replace(html, @"(?is)<\s*br\b[^>]*>", "\n");
+        html = Regex.Replace(html, @"(?is)</\s*(p|div|section|article|h[1-6]|tr|li)\s*>", "\n");
+        html = Regex.Replace(html, @"(?is)<\s*li\b[^>]*>", "- ");
+        html = Regex.Replace(html, @"(?is)<\s*(strong|b)\b[^>]*>", "**");
+        html = Regex.Replace(html, @"(?is)</\s*(strong|b)\s*>", "**");
+        html = Regex.Replace(html, @"(?is)<\s*(em|i)\b[^>]*>", "*");
+        html = Regex.Replace(html, @"(?is)</\s*(em|i)\s*>", "*");
+        html = Regex.Replace(html, @"(?is)<\s*u\b[^>]*>", "<u>");
+        html = Regex.Replace(html, @"(?is)</\s*u\s*>", "</u>");
+        html = Regex.Replace(html, @"(?is)<\s*(strike|del|s)\b[^>]*>", "<s>");
+        html = Regex.Replace(html, @"(?is)</\s*(strike|del|s)\s*>", "</s>");
+        html = Regex.Replace(html,
+            @"(?is)<a\s+[^>]*href\s*=\s*[""'](?<url>(?:https?://|mailto:)[^""']+)[""'][^>]*>(?<title>[^<]*)</a>",
+            m => "[" + m.Groups["title"].Value + "](" + m.Groups["url"].Value + ")");
+        html = WebUtility.HtmlDecode(Regex.Replace(html, @"(?s)<[^>]+>", ""));
+        html = Regex.Replace(html, @"\n{3,}", "\n\n").Trim();
+        var header = "---------- Пересланное сообщение ----------\n" +
+            "От: " + full.SenderDisplay + "\n" +
+            "Кому: " + string.Join(", ", full.To) + "\n" +
+            "Дата: " + full.DateDisplay + "\n" +
+            "Тема: " + full.Subject + "\n\n";
+        return header + (string.IsNullOrWhiteSpace(html) ? full.Text : html);
+    }
+
     private void OpenForwardComposeWindow(
         MailRuMessageSummary selected, MailRuFullMessage? full)
     {
@@ -72,7 +103,13 @@ public partial class MainWindow
                     "Тема: " + full.Subject + "\n\n" + (body ?? "");
         if (_composeRichEditor is not null)
         {
-            _composeRichEditor.LoadReplyQuotedText(quote);
+            if (!string.IsNullOrWhiteSpace(full.Html))
+            {
+                var formatted = BuildForwardMarkdown(full);
+                _composeRichEditor.LoadReplyQuotedMarkdown(formatted);
+            }
+            else
+                _composeRichEditor.LoadReplyQuotedText(quote);
             _composeRichEditor.EnsureOpeningGreeting();
         }
         else ComposeBodyTextBox.Text = "Добрый день\n\n" + quote;
