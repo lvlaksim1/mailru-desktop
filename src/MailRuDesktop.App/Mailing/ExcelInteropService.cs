@@ -149,25 +149,37 @@ internal static class ExcelInteropService
         int windowCount = Convert.ToInt32(windows.Count, CultureInfo.InvariantCulture);
         if (windowCount < 1)
             throw new InvalidOperationException("У выбранной книги Excel нет открытого окна.");
-        dynamic selectedWindow = windows.Item[1];
+        // Excel.Window has no "Active" property. Match a supported Window.Hwnd
+        // against Application.ActiveWindow.Hwnd where possible; if another
+        // workbook owns the application's foreground window, still read the
+        // selected workbook's own window with the requested active sheet.
+        dynamic foregroundWindow = excel.ActiveWindow;
+        int foregroundHwnd = foregroundWindow is null ? 0 :
+            Convert.ToInt32(foregroundWindow.Hwnd, CultureInfo.InvariantCulture);
+        object? selectedWindow = null;
         for (var index = 1; index <= windowCount; index++)
         {
             dynamic candidate = windows.Item[index];
-            if (Convert.ToBoolean(candidate.Active, CultureInfo.InvariantCulture))
+            dynamic candidateSheet = candidate.ActiveSheet;
+            if (candidateSheet is null ||
+                !string.Equals((string)candidateSheet.Name, sheetName,
+                    StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            selectedWindow ??= (object)candidate;
+            if (Convert.ToInt32(candidate.Hwnd, CultureInfo.InvariantCulture) ==
+                foregroundHwnd)
             {
                 selectedWindow = candidate;
                 break;
             }
         }
-        dynamic activeSheet = selectedWindow.ActiveSheet;
-        if (activeSheet is null ||
-            !string.Equals((string)activeSheet.Name, sheetName,
-                StringComparison.OrdinalIgnoreCase))
+        if (selectedWindow is null)
             throw new InvalidOperationException(
                 "Выделите ячейку на листе «" + sheetName +
                 "» выбранной книги Excel и повторите подготовку.");
 
-        dynamic activeCell = selectedWindow.ActiveCell;
+        dynamic activeCell = ((dynamic)selectedWindow).ActiveCell;
         if (activeCell is null)
             throw new InvalidOperationException(
                 "Не удалось получить активную ячейку выбранной книги Excel.");
