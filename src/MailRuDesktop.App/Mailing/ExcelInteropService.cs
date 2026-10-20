@@ -116,7 +116,7 @@ internal static class ExcelInteropService
     private static readonly string[] Required =
     [
         "E-mail работодателя", "ИНН работодателя", "Регион",
-        "рассылка по СОУТ", "исх электронка"
+        "рассылка по СОУТ", "исх электронка", "Наименование работодателя"
     ];
 
     private static string NormalizeHeader(string? text) =>
@@ -354,8 +354,6 @@ internal static class ExcelInteropService
                 };
             }
             int Idx(string header) => _columns[NormalizeHeader(header)];
-            bool hasName = _columns.TryGetValue(
-                NormalizeHeader("Наименование работодателя"), out var nameIndex);
             for (var row = first; row <= last; row++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -382,7 +380,7 @@ internal static class ExcelInteropService
                 }
                 results.Add(new MailingExcelRow(row, true, email, inn,
                     Cell(row, Idx("Регион")), mark,
-                    hasName ? Cell(row, nameIndex) : "",
+                    Cell(row, Idx("Наименование работодателя")),
                     Cell(row, Idx("исх электронка"))));
             }
             return results;

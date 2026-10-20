@@ -18,7 +18,7 @@
             <TextBlock Foreground="{DynamicResource AppMutedTextBrush}" TextWrapping="Wrap"
                        Text="Выберите книгу, лист и первую строку. Кнопка «Отправить» сразу ставит письма на отложенную отправку Mail.ru; подтверждённые задания отмечаются в Excel."/>
         </StackPanel>
-        <WrapPanel Grid.Row="1" Margin="0,0,0,10">
+        <WrapPanel x:Name="ProfileControls" Grid.Row="1" Margin="0,0,0,10">
             <TextBlock VerticalAlignment="Center" Text="Профиль:" Margin="0,0,6,0"/>
             <ComboBox x:Name="ProfileCombo" Width="220" Margin="0,0,8,0"
                       DisplayMemberPath="Name" SelectionChanged="ProfileCombo_SelectionChanged"/>
@@ -31,7 +31,7 @@
             <TextBlock x:Name="DirtyText" VerticalAlignment="Center" Margin="10,0,0,0"
                        Foreground="{DynamicResource AppMutedTextBrush}"/>
         </WrapPanel>
-        <Border Grid.Row="2" BorderBrush="{DynamicResource AppBorderBrush}"
+        <Border x:Name="OptionsBorder" Grid.Row="2" BorderBrush="{DynamicResource AppBorderBrush}"
                 BorderThickness="1" Padding="10" Margin="0,0,0,10">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -91,7 +91,7 @@
             <TextBox x:Name="SubjectBox" Margin="0,4,0,9" Padding="6"
                      TextChanged="FieldChangedText"/>
             <WrapPanel>
-                <Button Content="Найти открытые книги Excel" Padding="10,6"
+                <Button x:Name="FindBooksButton" Content="Найти открытые книги Excel" Padding="10,6"
                         Margin="0,0,8,0" Click="FindBooks_Click"/>
                 <ComboBox x:Name="BookCombo" Width="360" Margin="0,0,8,0"
                           DisplayMemberPath="DisplayName" SelectionChanged="BookCombo_SelectionChanged"/>
