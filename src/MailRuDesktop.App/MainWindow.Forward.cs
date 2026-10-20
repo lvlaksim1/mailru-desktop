@@ -33,7 +33,10 @@ public partial class MainWindow
         html = Regex.Replace(html,
             @"(?is)<a\s+[^>]*href\s*=\s*[""'](?<url>(?:https?://|mailto:)[^""']+)[""'][^>]*>(?<title>[^<]*)</a>",
             m => "[" + m.Groups["title"].Value + "](" + m.Groups["url"].Value + ")");
-        html = WebUtility.HtmlDecode(Regex.Replace(html, @"(?s)<[^>]+>", ""));
+        // Retain only the two explicitly supported safe inline tags; the
+        // rich-text importer recognizes their exact forms.
+        html = WebUtility.HtmlDecode(Regex.Replace(html,
+            @"(?s)<(?!/?(?:u|s)\s*>)[^>]+>", ""));
         html = Regex.Replace(html, @"\n{3,}", "\n\n").Trim();
         var header = "---------- Пересланное сообщение ----------\n" +
             "От: " + full.SenderDisplay + "\n" +
