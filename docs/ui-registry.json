@@ -9505,8 +9505,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow.xaml/window@2439/runtime/src/MailRuDesktop.App/MainWindow.xaml.cs:2439:Window",
-      "line": 2439,
+      "id": "MainWindow.xaml/window@2437/runtime/src/MailRuDesktop.App/MainWindow.xaml.cs:2437:Window",
+      "line": 2437,
       "location": {
         "Height": "810",
         "MinHeight": "530",
@@ -9515,13 +9515,13 @@
         "WindowStartupLocation": "WindowStartupLocation.CenterOwner"
       },
       "name": null,
-      "parent": "MainWindow.xaml/window@2439/runtime",
+      "parent": "MainWindow.xaml/window@2437/runtime",
       "source": "src/MailRuDesktop.App/MainWindow.xaml.cs",
       "states": null,
       "style": null,
       "type": "Window",
       "typography": {},
-      "window": "MainWindow.xaml/window@2439"
+      "window": "MainWindow.xaml/window@2437"
     },
     {
       "color_roles_and_values": {},
@@ -22422,7 +22422,7 @@
       "source": "src/MailRuDesktop.App/MainWindow.ComposeWindow.cs",
       "typography": {}
     },
-    "MainWindow.xaml/window@2439": {
+    "MainWindow.xaml/window@2437": {
       "colors": {},
       "declared_as": "C# runtime Window",
       "element_count": 1,
@@ -22433,7 +22433,7 @@
         "Width": "1130",
         "WindowStartupLocation": "WindowStartupLocation.CenterOwner"
       },
-      "id": "MainWindow.xaml/window@2439",
+      "id": "MainWindow.xaml/window@2437",
       "source": "src/MailRuDesktop.App/MainWindow.xaml.cs",
       "typography": {}
     },

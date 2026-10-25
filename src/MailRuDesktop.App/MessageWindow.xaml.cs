@@ -33,6 +33,7 @@ public partial class MessageWindow : Window
     public bool ForwardRequested { get; private set; }
     private MailRuFullMessage? _requestedActionSource;
     private string? _conversationActionNonce;
+    private MailImageProxyHandler? _mailImageHandler;
     private MailRuConversation? _loadedConversation;
     private Dictionary<string, MailRuFullMessage>? _loadedConversationBodies;
     public MailRuFullMessage? ReplySource =>
@@ -154,6 +155,16 @@ public partial class MessageWindow : Window
             MessageWebView.CoreWebView2.Settings.UserAgent = MailRuFixedProfile.UserAgent;
             MessageWebView.CoreWebView2.Settings.IsScriptEnabled = false;
             MessageWebView.CoreWebView2.NavigationStarting += ConversationAction_NavigationStarting;
+            _mailImageHandler = new MailImageProxyHandler(
+                MessageWebView.CoreWebView2, _mailRu,
+                () => _accessToken,
+                () => _mailboxLogin,
+                () => _loadedConversationBodies is { Count: > 0 }
+                    ? _loadedConversationBodies.Keys.ToArray()
+                    : _fullMessage is { } mail
+                        ? new[] { mail.Id }
+                        : Array.Empty<string>());
+            _mailImageHandler.Attach();
             MessageWebView.CoreWebView2.Settings.AreDevToolsEnabled = false;
             MessageWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
             _readerReady = true;
@@ -657,6 +668,7 @@ public partial class MessageWindow : Window
         Activated -= MessageWindow_Activated;
         if (MessageWebView.CoreWebView2 is not null)
             MessageWebView.CoreWebView2.NavigationStarting -= ConversationAction_NavigationStarting;
+        _mailImageHandler?.Dispose();
         try
         {
             MessageWebView.Dispose();

@@ -99,10 +99,8 @@ public partial class MainWindow : Window
             if (MessageWebView.CoreWebView2 is not null)
             {
                 MessageWebView.CoreWebView2.FrameNavigationStarting -= ConversationAction_FrameNavigationStarting;
-                if (_mailImageProxyConfigured)
-                    MessageWebView.CoreWebView2.WebResourceRequested -= MailImageProxy_WebResourceRequested;
             }
-            _mailImageHttp.Dispose();
+            _mailImageHandler?.Dispose();
             _mailRu.Dispose();
         };
     }

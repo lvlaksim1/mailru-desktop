@@ -159,6 +159,29 @@ internal static class Program
                   clickedAction == "reply" && clickedId == "id-1" &&
                   ConversationMessageActions.IsVerifiedMember(conversationForActions, clickedId),
                 "native action resolves the exact clicked mail ID");
+            // Both the main and detached readers use the same Mail.ru image
+            // handler. Inline images may belong to any VERIFIED displayed
+            // message of a conversation, never another mailbox/message.
+            var verifiedInline = new Uri(
+                "https://af12.mail.ru/cgi-bin/readmsg?mode=attachment" +
+                "&id=id-2%3B5%3B7&email=me%40example.test");
+            Check(MailImageProxyHandler.TrySelectInlineImage(
+                      verifiedInline, "me@example.test", new[] { "id-1", "id-2" },
+                      out var resolvedImageMailId, out var resolvedImageAttachmentId) &&
+                  resolvedImageMailId == "id-2" &&
+                  resolvedImageAttachmentId == "5;7",
+                "separate reader may load inline images from another verified conversation member");
+            Check(!MailImageProxyHandler.TrySelectInlineImage(
+                      verifiedInline, "other@example.test", new[] { "id-1", "id-2" },
+                      out _, out _) &&
+                  !MailImageProxyHandler.TrySelectInlineImage(
+                      verifiedInline, "me@example.test", new[] { "id-1" },
+                      out _, out _) &&
+                  !MailImageProxyHandler.TrySelectInlineImage(
+                      new Uri("https://malicious.example/cgi-bin/readmsg?" +
+                              "mode=attachment&id=id-2%3B5%3B7&email=me%40example.test"),
+                      "me@example.test", new[] { "id-2" }, out _, out _),
+                "shared image handler refuses a different account, message or host");
             Check(!ConversationActionNavigation.TryParse(replyLink, "wrong-token",
                       out _, out _) &&
                   !ConversationActionNavigation.TryParse(
