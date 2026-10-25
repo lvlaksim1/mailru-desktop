@@ -502,7 +502,8 @@ public partial class MainWindow : Window
             ClearRuntimeAuthorization();
             AuthStatusText.Text = "Ошибка авторизации";
             ResponseTextBox.Text = ex.Message;
-            DiagnosticLog.Write("auth_exception", ex.GetType().Name + ": " + ex.Message);
+            DiagnosticLog.Write("auth_exception", ex.GetType().Name + ": " + ex.Message,
+                login);
         }
         finally
         {
@@ -676,6 +677,8 @@ public partial class MainWindow : Window
             ClearSelectedMessage();
         }
 
+        DiagnosticLog.Write("folder_load", "started; folder=" + folderId,
+            folderLoadLogin);
         try
         {
             var raw = await LoadFolderWithRefreshAsync(folderId);
@@ -734,6 +737,9 @@ public partial class MainWindow : Window
             var unread = snapshot.MessagesUnread?.ToString() ?? "?";
             FolderStatusText.Text =
                 $"Всего: {total} · непрочитанных: {unread} · показано: {snapshot.Messages.Count}";
+            DiagnosticLog.Write("folder_load",
+                "completed; folder=" + folderId + "; messages=" + snapshot.Messages.Count,
+                folderLoadLogin);
 
             if (_currentFolderId == 0)
                 UpdateAccountRailState(
@@ -759,7 +765,8 @@ public partial class MainWindow : Window
             UpdateAccountRailState(status: tokenDenied
                 ? "Требуется повторный вход"
                 : "Ошибка загрузки");
-            DiagnosticLog.Write("folder_load", ex.GetType().Name + ": " + ex.Message);
+            DiagnosticLog.Write("folder_load", ex.GetType().Name + ": " + ex.Message,
+                folderLoadLogin);
 
             if (!string.IsNullOrWhiteSpace(_activeLogin))
                 AuthStatusText.Text = tokenDenied
@@ -880,6 +887,8 @@ public partial class MainWindow : Window
         var generation = ++_messageLoadGeneration;
         var requestCancellation = _messageLoadCancellation ??= new CancellationTokenSource();
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        var previewAccount = _activeLogin;
+        DiagnosticLog.Write("full_message", "started", previewAccount);
         _currentFullMessage = null;
         _currentPreparedHtml = null;
         IncomingAttachmentsListBox.ItemsSource = null;
@@ -943,7 +952,7 @@ public partial class MainWindow : Window
             DiagnosticLog.Write("mail_render_timing",
                 $"id-length={message.Id.Length}; fetch-ms={fetchElapsed}; " +
                 $"body-ready-ms={stopwatch.ElapsedMilliseconds}; html={full.Html.Length}; " +
-                $"attachment-count={full.Attachments.Count}");
+                $"attachment-count={full.Attachments.Count}", previewAccount);
         }
         catch (OperationCanceledException) when (
             requestCancellation.IsCancellationRequested ||
@@ -960,7 +969,8 @@ public partial class MainWindow : Window
             ShowReaderText(string.IsNullOrWhiteSpace(message.Snippet)
                 ? "Не удалось загрузить полное письмо."
                 : message.Snippet);
-            DiagnosticLog.Write("full_message", ex.GetType().Name + ": " + ex.Message);
+            DiagnosticLog.Write("full_message", ex.GetType().Name + ": " + ex.Message,
+                previewAccount);
         }
         finally
         {
@@ -1924,6 +1934,8 @@ public partial class MainWindow : Window
         SendButton.IsEnabled = false;
         AttachButton.IsEnabled = false;
         ComposeStatusText.Text = "Подготовка письма...";
+        DiagnosticLog.Write(scheduledFor is null ? "send" : "schedule",
+            "started", senderLogin);
 
         try
         {
@@ -1971,9 +1983,12 @@ public partial class MainWindow : Window
                     : "Mail.ru отклонил отложенную отправку.";
                 DiagnosticLog.Write(
                     scheduledFor is null ? "send_rejected" : "schedule_rejected",
-                    result.RawResponse);
+                    "SERVER_REJECTED", senderLogin);
                 return;
             }
+
+            DiagnosticLog.Write(scheduledFor is null ? "send" : "schedule",
+                "completed", senderLogin);
 
             // A confirmed send/schedule is irreversible; never repeat it if
             // archiving the old scheduled message fails.
@@ -1997,20 +2012,20 @@ public partial class MainWindow : Window
                         if (string.Equals(senderLogin, _activeLogin,
                             StringComparison.OrdinalIgnoreCase) && !_loadingFolder)
                             RemoveConfirmedMailRows([resendOriginalId]);
-                        DiagnosticLog.Write("outbox_resend", "accepted_and_archived");
+                        DiagnosticLog.Write("outbox_resend", "accepted_and_archived", senderLogin);
                     }
                     else
                     {
                         FolderStatusText.Text =
                             "Новое письмо принято, но исходное письмо не архивировано.";
-                        DiagnosticLog.Write("outbox_resend", "archive_rejected");
+                        DiagnosticLog.Write("outbox_resend", "archive_rejected", senderLogin);
                     }
                 }
                 catch (Exception ex)
                 {
                     FolderStatusText.Text =
                         "Новое письмо принято, но архивирование исходного не подтверждено.";
-                    DiagnosticLog.Write("outbox_resend", ex.GetType().Name);
+                    DiagnosticLog.Write("outbox_resend", ex.GetType().Name, senderLogin);
                 }
             }
 
@@ -2036,13 +2051,13 @@ public partial class MainWindow : Window
                     }
                     else
                     {
-                        DiagnosticLog.Write("reply_archive", "SERVER_REJECTED");
+                        DiagnosticLog.Write("reply_archive", "SERVER_REJECTED", senderLogin);
                         FolderStatusText.Text = "Ответ отправлен, но исходное письмо не архивировано.";
                     }
                 }
                 catch (Exception ex)
                 {
-                    DiagnosticLog.Write("reply_archive", ex.GetType().Name);
+                    DiagnosticLog.Write("reply_archive", ex.GetType().Name, senderLogin);
                     FolderStatusText.Text = "Ответ отправлен, но архивирование не удалось.";
                 }
             }
@@ -2081,7 +2096,8 @@ public partial class MainWindow : Window
         {
             ComposeStatusText.SetResourceReference(TextBlock.ForegroundProperty, "AppDangerBrush");
             ComposeStatusText.Text = ex.Message;
-            DiagnosticLog.Write("send", ex.GetType().Name + ": " + ex.Message);
+            DiagnosticLog.Write(scheduledFor is null ? "send" : "schedule",
+                ex.GetType().Name + ": " + ex.Message, senderLogin);
         }
         finally
         {
@@ -2100,7 +2116,7 @@ public partial class MainWindow : Window
     {
         var label = AuthTokenDiagnostics.AccountLabel(login, _authStore.Logins);
         DiagnosticLog.Write("auth_token_flow", AuthTokenDiagnostics.Format(
-            label, flow, stage, outcome, httpStatus, kind));
+            label, flow, stage, outcome, httpStatus, kind), login);
     }
 
     private async Task<string> LoadFolderWithRefreshAsync(int folderId)
