@@ -206,6 +206,7 @@ public partial class MessageWindow : Window
     private async Task ApplyFullMessageAsync(MailRuFullMessage full)
     {
         _fullMessage = full;
+        DiagnosticLog.Write("message_window_full", "started", _mailboxLogin);
 
         Title = $"{full.Subject} — MailRu Desktop";
         SubjectText.Text = full.Subject;
@@ -279,6 +280,7 @@ public partial class MessageWindow : Window
             ShowBody(full.Text, html: false);
         else
             ShowBody(_summary.Snippet, html: false);
+        DiagnosticLog.Write("message_window_full", "completed", _mailboxLogin);
     }
 
     private void ShowBody(string body, bool html)
