@@ -123,7 +123,7 @@ public partial class MainWindow
 
             if (!result.Success || string.IsNullOrWhiteSpace(result.AccessToken))
             {
-                WriteAuthDiagnostics(result);
+                WriteAuthDiagnostics(result, login);
                 TraceAuthToken(login, "manual_reauth", "new_credentials", "not_received",
                     kind: result.State.ToString());
                 if (item is not null)
