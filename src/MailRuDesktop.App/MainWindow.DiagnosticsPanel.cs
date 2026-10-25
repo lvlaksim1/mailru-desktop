@@ -7,6 +7,31 @@ namespace MailRuDesktop.App;
 
 public partial class MainWindow
 {
+    private double _diagnosticsExpandedHeight = 320;
+
+    private void ApplyDiagnosticsPanelHeight(bool expanded)
+    {
+        DiagnosticsPaneRow.Height = new GridLength(
+            expanded ? _diagnosticsExpandedHeight : 32);
+        DiagnosticsSplitterRow.Height = new GridLength(expanded ? 6 : 0);
+        DiagnosticsPaneSplitter.Visibility = expanded
+            ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void UnifiedDiagnosticsExpander_Expanded(object sender, RoutedEventArgs e)
+    {
+        ApplyDiagnosticsPanelHeight(true);
+        RefreshPushDiagnosticsView();
+        RefreshApplicationDiagnosticsView();
+    }
+
+    private void UnifiedDiagnosticsExpander_Collapsed(object sender, RoutedEventArgs e)
+    {
+        if (DiagnosticsPaneRow.ActualHeight > 80)
+            _diagnosticsExpandedHeight = DiagnosticsPaneRow.ActualHeight;
+        ApplyDiagnosticsPanelHeight(false);
+    }
+
     private void UnifiedDiagnosticsTabs_SelectionChanged(
         object sender, SelectionChangedEventArgs e)
     {
