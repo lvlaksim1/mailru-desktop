@@ -55,18 +55,9 @@ internal static class DiagnosticLog
             .Replace("\t", " ", StringComparison.Ordinal)
             .Trim();
 
-        normalized = Regex.Replace(
-            normalized,
-            @"(?i)\b(access_token|refresh_token|token|password|cookie)=([^&;\s]+)",
-            "$1=<redacted>");
-
-        normalized = Regex.Replace(
-            normalized,
-            @"(?i)\b(Mpop|ssdc|sdcs)=([^;\s]+)",
-            "$1=<redacted>");
-
-        return normalized.Length <= 2000
-            ? normalized
-            : normalized[..2000] + "…";
+        // The user explicitly selected full local diagnostics. Retain all
+        // fields and response data. Escape line breaks, so every event remains
+        // a single parseable record without imposing a truncation limit.
+        return normalized;
     }
 }
