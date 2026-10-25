@@ -484,6 +484,8 @@ public sealed partial class MailRuClient : IDisposable
         string sessionId,
         string? tsaCookie,
         IReadOnlyDictionary<string, string> additionalParams,
+        string? updatedPassword = null,
+        string? browserCookies = null,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(sessionId))
@@ -522,8 +524,8 @@ public sealed partial class MailRuClient : IDisposable
 
         return await AuthenticateCoreAsync(
             session.Login,
-            session.Password,
-            tsaHeader,
+            updatedPassword ?? session.Password,
+            browserCookies ?? tsaHeader,
             additionalParams,
             registerChallengeSession: false,
             cancellationToken).ConfigureAwait(false);
