@@ -392,7 +392,7 @@ public partial class MainWindow
         }
         catch (Exception error)
         {
-            DiagnosticLog.Write("push_notification", error.GetType().Name);
+            DiagnosticLog.Write("push_notification", error.GetType().Name, login);
         }
         _ = RecordPushDeliveryAsync(login);
         _ = RefreshAfterPushAsync(login);
@@ -424,7 +424,7 @@ public partial class MainWindow
         }
         catch (Exception ex)
         {
-            DiagnosticLog.Write("push_event_folder_refresh", ex.GetType().Name);
+            DiagnosticLog.Write("push_event_folder_refresh", ex.GetType().Name, login);
             BackgroundPushStatusText.Text = "Уведомление получено; ошибка обновления списка.";
         }
     }
