@@ -1816,7 +1816,7 @@ internal static class Program
                   mailListGrid is not null &&
                   !diagnosticExpander.IsExpanded,
                 "diagnostics are collapsed under the message list, not in settings");
-            var diagnosticPane = Require<RowDefinition>(mail, "DiagnosticsPaneRow");
+            var diagnosticPane = mailListGrid!.RowDefinitions[4];
             var diagnosticSplitter = Require<GridSplitter>(mail, "DiagnosticsPaneSplitter");
             Check(diagnosticPane.Height.Value <= 40 && !diagnosticSplitter.IsVisible,
                 "collapsed diagnostic panel gives vertical space back to messages");
