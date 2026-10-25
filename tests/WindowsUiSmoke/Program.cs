@@ -415,6 +415,27 @@ internal static class Program
             Check(appTechnical.Contains("auth_token_flow", StringComparison.Ordinal) &&
                   !appTechnical.Contains("one@example.org", StringComparison.Ordinal),
                 "technical diagnostics remain available and safe for anonymous export");
+            var responseRaw =
+                "{\"error\":\"invalid_grant\",\"error_description\":\"refresh expired\"}";
+            var responseEncoded = Convert.ToBase64String(
+                System.Text.Encoding.UTF8.GetBytes(responseRaw));
+            var refreshLine = "2026-10-25T23:38:40+03:00\tauth_refresh_http\t" +
+                "flow=active_folder; method=POST; http=200; outcome=rejected; " +
+                "raw_base64=" + responseEncoded + "; account=one@example.org\n";
+            var refreshHuman = HumanDiagnostics.Application(refreshLine, true);
+            Check(refreshHuman.Contains("HTTP 200", StringComparison.Ordinal) &&
+                  refreshHuman.Contains("invalid_grant", StringComparison.Ordinal) &&
+                  refreshHuman.Contains("refresh expired", StringComparison.Ordinal) &&
+                  refreshHuman.Contains(responseRaw, StringComparison.Ordinal) &&
+                  refreshHuman.Contains("access_token в корне: отсутствует",
+                      StringComparison.Ordinal),
+                "refresh diagnostic contains exact HTTP response, original JSON and missing token field");
+            var internalDenial = HumanDiagnostics.Application(
+                "2026-10-25T23:38:40+03:00\tauth_local_failure\t" +
+                "HTTP 403 создан приложением; account=one@example.org\n", true);
+            Check(internalDenial.Contains("не HTTP-код нового ответа сервера",
+                    StringComparison.Ordinal),
+                "local rejection is distinguished from a server HTTP refusal");
             var oldAlias = HumanDiagnostics.Application(
                 "2026-10-25T22:25:24+03:00\tauth_token_flow\t" +
                 "account=ACCOUNT_030; flow=background_counter; stage=result; " +
@@ -1762,12 +1783,8 @@ internal static class Program
                       Require<Grid>(mail, "SettingsWorkspace")),
                 "Settings open in one independent owned window");
             var settingsGrid = Require<Grid>(mail, "SettingsWorkspace");
-            Check(settingsGrid.ColumnDefinitions.Count == 3,
-                "settings and diagnostics have an independent splitter column");
-            Check(FindDescendant<GridSplitter>(settingsGrid, x => Grid.GetColumn(x) == 1) is not null,
-                "settings diagnostic divider can be dragged");
-            Check(settingsGrid.ColumnDefinitions[0].Width.Value >= 390,
-                "settings diagnostic splitter width is restored");
+            Check(settingsGrid.ColumnDefinitions.Count == 1,
+                "settings no longer contain the diagnostic panel or its splitter");
 
             var backgroundSwitch = Require<CheckBox>(mail, "BackgroundPushEnabledCheckBox");
             Check(!backgroundSwitch.IsVisible,
@@ -1790,10 +1807,23 @@ internal static class Program
             Check(Require<SelectableText>(mail, "BackgroundPushStatusText").IsVisible,
                 "brief connection status remains visible");
             var diagnosticExpander = Require<Expander>(mail, "UnifiedDiagnosticsExpander");
-            Check(!diagnosticExpander.IsExpanded && Grid.GetColumn(diagnosticExpander.Parent as UIElement ?? diagnosticExpander) == 2,
-                "all diagnostics are collapsed and placed on the right");
+            var diagnosticsHost = diagnosticExpander.Parent as ScrollViewer;
+            var mailListGrid = FindDescendant<Grid>(
+                Require<Grid>(mail, "MailWorkspace"),
+                x => x.RowDefinitions.Cast<RowDefinition>().Any(
+                    r => r.Name == "DiagnosticsPaneRow"));
+            Check(diagnosticsHost is not null && Grid.GetRow(diagnosticsHost) == 4 &&
+                  mailListGrid is not null &&
+                  !diagnosticExpander.IsExpanded,
+                "diagnostics are collapsed under the message list, not in settings");
+            var diagnosticPane = mailListGrid!.RowDefinitions[4];
+            var diagnosticSplitter = Require<GridSplitter>(mail, "DiagnosticsPaneSplitter");
+            Check(diagnosticPane.Height.Value <= 40 && !diagnosticSplitter.IsVisible,
+                "collapsed diagnostic panel gives vertical space back to messages");
             diagnosticExpander.IsExpanded = true;
             mail.UpdateLayout();
+            Check(diagnosticPane.Height.Value >= 180 && diagnosticSplitter.IsVisible,
+                "expanded diagnostics provide a resizable panel beneath the mail list");
             var diagTabs = Require<TabControl>(mail, "UnifiedDiagnosticsTabs");
             Check(diagTabs.Items.Count == 3,
                 "Google PushMe, protocol and application diagnostics share one tool");
@@ -1805,7 +1835,7 @@ internal static class Program
             mail.UpdateLayout();
             var pushLog = Require<TextBox>(mail, "PushDiagnosticsLogTextBox");
             Check(pushLog.IsReadOnly && pushLog.IsVisible,
-                "read-only Google PushMe diagnostic journal visible in Settings");
+                "read-only Google PushMe diagnostic journal visible under mail list");
             foreach (var name in new[]
                      {
                          "RefreshPushDiagnosticsButton",
@@ -1815,11 +1845,9 @@ internal static class Program
                      })
                 Check(Require<Button>(mail, name).IsVisible,
                     "push diagnostics action exists: " + name);
-            var exportMode = Require<ComboBox>(
-                mail, "PushDiagnosticsExportModeComboBox");
-            Check(exportMode.IsVisible && exportMode.Items.Count == 2 &&
-                  exportMode.SelectedIndex == 0,
-                "diagnostic report defaults to anonymized, with explicit full-address option");
+            Check(mail.FindName("PushDiagnosticsExportModeComboBox") is null &&
+                  mail.FindName("ApplicationDiagnosticsExportModeComboBox") is null,
+                "diagnostics do not offer address masking or abbreviated export");
             var refreshPushLog = Require<Button>(mail, "RefreshPushDiagnosticsButton");
             refreshPushLog.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent, refreshPushLog));
             Check(pushLog.Text.Contains("Google / PushMe", StringComparison.Ordinal),

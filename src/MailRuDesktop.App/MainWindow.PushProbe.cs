@@ -284,7 +284,7 @@ public partial class MainWindow
     {
         try
         {
-            var includeAccounts = PushDiagnosticsExportModeComboBox.SelectedIndex == 1;
+            const bool includeAccounts = true;
             Clipboard.SetText(HumanDiagnostics.Push(
                 PushDiagnostics.Report(redactAccounts: !includeAccounts),
                 includeAccounts,
@@ -310,7 +310,7 @@ public partial class MainWindow
         if (dialog.ShowDialog(this) != true) return;
         try
         {
-            var includeAccounts = PushDiagnosticsExportModeComboBox.SelectedIndex == 1;
+            const bool includeAccounts = true;
             File.WriteAllText(dialog.FileName, HumanDiagnostics.Push(
                     PushDiagnostics.Report(redactAccounts: !includeAccounts),
                     includeAccounts,

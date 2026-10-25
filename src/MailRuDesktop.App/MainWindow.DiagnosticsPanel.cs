@@ -7,6 +7,31 @@ namespace MailRuDesktop.App;
 
 public partial class MainWindow
 {
+    private double _diagnosticsExpandedHeight = 320;
+
+    private void ApplyDiagnosticsPanelHeight(bool expanded)
+    {
+        DiagnosticsPaneRow.Height = new GridLength(
+            expanded ? _diagnosticsExpandedHeight : 32);
+        DiagnosticsSplitterRow.Height = new GridLength(expanded ? 6 : 0);
+        DiagnosticsPaneSplitter.Visibility = expanded
+            ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void UnifiedDiagnosticsExpander_Expanded(object sender, RoutedEventArgs e)
+    {
+        ApplyDiagnosticsPanelHeight(true);
+        RefreshPushDiagnosticsView();
+        RefreshApplicationDiagnosticsView();
+    }
+
+    private void UnifiedDiagnosticsExpander_Collapsed(object sender, RoutedEventArgs e)
+    {
+        if (DiagnosticsPaneRow.ActualHeight > 80)
+            _diagnosticsExpandedHeight = DiagnosticsPaneRow.ActualHeight;
+        ApplyDiagnosticsPanelHeight(false);
+    }
+
     private void UnifiedDiagnosticsTabs_SelectionChanged(
         object sender, SelectionChangedEventArgs e)
     {
@@ -27,8 +52,6 @@ public partial class MainWindow
             if (!File.Exists(path)) return string.Empty;
             using var reader = new FileStream(path, FileMode.Open, FileAccess.Read,
                 FileShare.ReadWrite | FileShare.Delete);
-            if (reader.Length > 300_000)
-                reader.Seek(-300_000, SeekOrigin.End);
             using var textReader = new StreamReader(reader, Encoding.UTF8);
             return textReader.ReadToEnd();
         }
@@ -67,7 +90,7 @@ public partial class MainWindow
         try
         {
             Clipboard.SetText(AppDiagnosticsReport(
-                includeAccounts: ApplicationDiagnosticsExportModeComboBox.SelectedIndex == 1,
+                includeAccounts: true,
                 technical: ApplicationDiagnosticsTechnicalCheckBox.IsChecked == true));
             ApplicationDiagnosticsStatusText.Text = "Отчёт скопирован.";
         }
@@ -91,7 +114,7 @@ public partial class MainWindow
         try
         {
             File.WriteAllText(dialog.FileName, AppDiagnosticsReport(
-                includeAccounts: ApplicationDiagnosticsExportModeComboBox.SelectedIndex == 1,
+                includeAccounts: true,
                 technical: ApplicationDiagnosticsTechnicalCheckBox.IsChecked == true),
                 new UTF8Encoding(false));
             ApplicationDiagnosticsStatusText.Text = "Отчёт сохранён.";
