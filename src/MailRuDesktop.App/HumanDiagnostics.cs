@@ -43,6 +43,7 @@ internal static class HumanDiagnostics
         ["incoming_attachment"] = "Скачивание вложения",
         ["incoming_attachment_open"] = "Открытие вложения",
         ["send"] = "Отправка письма",
+        ["schedule"] = "Отложенная отправка письма",
         ["send_rejected"] = "Отправка письма",
         ["schedule_rejected"] = "Постановка письма на отложенную отправку",
         ["reply_archive"] = "Архивирование письма после ответа",
@@ -153,6 +154,7 @@ internal static class HumanDiagnostics
         var result = new StringBuilder("Журнал приложения — действия и результаты\n");
         result.AppendLine("Указан только достоверно установленный аккаунт. Старые записи могут не содержать адрес.");
         result.AppendLine();
+        var shown = 0;
         foreach (var line in report.Split('\n'))
         {
             var fields = line.TrimEnd('\r').Split('\t', 3);
@@ -228,11 +230,12 @@ internal static class HumanDiagnostics
                 explanation = success ? "Выполнено" : pending ? "Операция выполняется" :
                     ErrorReason(reason);
             }
+            shown++;
             result.Append(when).Append(" | ").Append(status).Append(" | ")
                 .Append(account).Append(" | ").Append(action)
                 .Append(" — ").AppendLine(explanation);
         }
-        if (result.ToString().EndsWith("\n\n", StringComparison.Ordinal))
+        if (shown == 0)
             result.AppendLine("Записей пока нет.");
         return result.ToString();
     }
@@ -244,6 +247,7 @@ internal static class HumanDiagnostics
         var result = new StringBuilder("Google / PushMe — история подключений и уведомлений\n");
         result.AppendLine("События без аккаунта относятся к общему соединению или группе.");
         result.AppendLine();
+        var shown = 0;
         foreach (var line in report.Split('\n'))
         {
             var match = PushLine.Match(line.TrimEnd('\r'));
@@ -270,13 +274,14 @@ internal static class HumanDiagnostics
                 detail.Add("значение " + http);
             var item = Get(properties, "item");
             if (item.Length > 0) detail.Add("аккаунт " + item + " в группе");
+            shown++;
             result.Append(Time(match.Groups["date"].Value))
                 .Append(" | ").Append(status).Append(" | ")
                 .Append(account).Append(" | ").Append(action);
             if (detail.Count > 0) result.Append(" — ").Append(string.Join("; ", detail));
             result.AppendLine();
         }
-        if (result.ToString().EndsWith("\n\n", StringComparison.Ordinal))
+        if (shown == 0)
             result.AppendLine("Записей пока нет.");
         return result.ToString();
     }
