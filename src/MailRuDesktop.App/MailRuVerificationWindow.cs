@@ -18,6 +18,7 @@ internal sealed class MailRuVerificationWindow : Window
     private readonly Button _continueButton = new();
     private bool _terminalResultInProgress;
 
+    public bool MailboxReached { get; private set; }
     public string? SessionCookieHeader { get; private set; }
     public string? TsaCookie { get; private set; }
     public IReadOnlyDictionary<string, string> AdditionalParams { get; private set; } =
@@ -309,12 +310,33 @@ internal sealed class MailRuVerificationWindow : Window
 
         if (_officialSecondStep)
         {
-            _statusText.Text =
-                "Пройдите проверку и нажмите штатную кнопку «Войти» на странице Mail.ru.";
+            var page = _webView.Source;
+            if (page is not null && page.Host == "e.mail.ru" &&
+                page.AbsolutePath.StartsWith("/inbox", StringComparison.OrdinalIgnoreCase))
+            {
+                MailboxReached = true;
+                _ = HandleMailboxLandingAsync();
+                return;
+            }
+            _statusText.Text = "Завершите проверку на странице Mail.ru.";
             return;
         }
 
         _continueButton.IsEnabled = true;
+    }
+
+    private async Task HandleMailboxLandingAsync()
+    {
+        if (_terminalResultInProgress) return;
+        _terminalResultInProgress = true;
+        try
+        {
+            TsaCookie = await ReadTsaCookieAsync();
+            DiagnosticLog.Write("auth_browser_landed", "mailbox-opened; client-token-pending");
+            DialogResult = true;
+        }
+        catch (Exception ex) { _statusText.Text = ex.Message; }
+        finally { _terminalResultInProgress = false; }
     }
 
     private async Task HandleMobileAuthResultAsync(Uri uri)
