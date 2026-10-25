@@ -40,6 +40,7 @@ internal sealed class UserInterfaceState
     public double ContactsListPaneWidth { get; set; } = 390;
     public double SettingsPaneWidth { get; set; } = 620;
     public double ExcelMailingSenderGridHeight { get; set; } = 124;
+    public double DiagnosticsPaneHeight { get; set; } = 320;
     public bool DiagnosticsExpanded { get; set; }
     public bool SignaturesExpanded { get; set; }
     public bool TemplatesExpanded { get; set; }
