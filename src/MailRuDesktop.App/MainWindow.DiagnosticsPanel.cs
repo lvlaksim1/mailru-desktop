@@ -1,6 +1,5 @@
 using System.IO;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -18,40 +17,43 @@ public partial class MainWindow
             RefreshApplicationDiagnosticsView();
     }
 
-    private static string AppDiagnosticsReport()
+    private static string ReadApplicationDiagnostics()
     {
         var path = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "MailRuDesktop", "diagnostics.log");
         try
         {
-            if (!File.Exists(path)) return "Журнал приложения пока пуст.";
+            if (!File.Exists(path)) return string.Empty;
             using var reader = new FileStream(path, FileMode.Open, FileAccess.Read,
                 FileShare.ReadWrite | FileShare.Delete);
             if (reader.Length > 300_000)
                 reader.Seek(-300_000, SeekOrigin.End);
             using var textReader = new StreamReader(reader, Encoding.UTF8);
-            var report = textReader.ReadToEnd();
-            // Existing diagnostic log is already sanitized at write time. The
-            // unified exporter additionally hides addresses and token patterns
-            // before showing/copying/saving anything from historical records.
-            report = Regex.Replace(report,
-                @"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b",
-                "<account>");
-            report = Regex.Replace(report,
-                @"(?i)\b(access_token|refresh_token|securitytoken|token|password|cookie)\s*[:=]\s*[^\s&;,]+",
-                "$1=<hidden>");
-            return report;
+            return textReader.ReadToEnd();
         }
-        catch (IOException) { return "Журнал приложения недоступен."; }
-        catch (UnauthorizedAccessException) { return "Нет доступа к журналу приложения."; }
+        catch (IOException) { return string.Empty; }
+        catch (UnauthorizedAccessException) { return string.Empty; }
+    }
+
+    private string AppDiagnosticsReport(bool includeAccounts, bool technical)
+    {
+        return HumanDiagnostics.Application(
+            ReadApplicationDiagnostics(), includeAccounts, technical);
     }
 
     private void RefreshApplicationDiagnosticsView()
     {
         if (_pushShuttingDown || ApplicationDiagnosticsLogTextBox is null) return;
-        ApplicationDiagnosticsLogTextBox.Text = AppDiagnosticsReport();
+        ApplicationDiagnosticsLogTextBox.Text = AppDiagnosticsReport(
+            includeAccounts: true,
+            technical: ApplicationDiagnosticsTechnicalCheckBox.IsChecked == true);
         ApplicationDiagnosticsLogTextBox.ScrollToEnd();
+    }
+
+    private void ApplicationDiagnosticsDisplayMode_Changed(object sender, RoutedEventArgs e)
+    {
+        RefreshApplicationDiagnosticsView();
     }
 
     private void RefreshApplicationDiagnosticsButton_Click(object sender, RoutedEventArgs e)
@@ -64,7 +66,9 @@ public partial class MainWindow
     {
         try
         {
-            Clipboard.SetText(AppDiagnosticsReport());
+            Clipboard.SetText(AppDiagnosticsReport(
+                includeAccounts: ApplicationDiagnosticsExportModeComboBox.SelectedIndex == 1,
+                technical: ApplicationDiagnosticsTechnicalCheckBox.IsChecked == true));
             ApplicationDiagnosticsStatusText.Text = "Отчёт скопирован.";
         }
         catch (System.Runtime.InteropServices.ExternalException)
@@ -86,7 +90,10 @@ public partial class MainWindow
         if (dialog.ShowDialog(this) != true) return;
         try
         {
-            File.WriteAllText(dialog.FileName, AppDiagnosticsReport(), new UTF8Encoding(false));
+            File.WriteAllText(dialog.FileName, AppDiagnosticsReport(
+                includeAccounts: ApplicationDiagnosticsExportModeComboBox.SelectedIndex == 1,
+                technical: ApplicationDiagnosticsTechnicalCheckBox.IsChecked == true),
+                new UTF8Encoding(false));
             ApplicationDiagnosticsStatusText.Text = "Отчёт сохранён.";
         }
         catch (IOException)
