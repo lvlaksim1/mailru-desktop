@@ -1807,7 +1807,7 @@ internal static class Program
             Check(Require<SelectableText>(mail, "BackgroundPushStatusText").IsVisible,
                 "brief connection status remains visible");
             var diagnosticExpander = Require<Expander>(mail, "UnifiedDiagnosticsExpander");
-            var diagnosticsHost = diagnosticExpander.Parent as ScrollViewer;
+            var diagnosticsHost = diagnosticExpander.Parent as Grid;
             var mailListGrid = FindDescendant<Grid>(
                 Require<Grid>(mail, "MailWorkspace"),
                 x => x.RowDefinitions.Cast<RowDefinition>().Any(
@@ -1827,6 +1827,11 @@ internal static class Program
             var diagTabs = Require<TabControl>(mail, "UnifiedDiagnosticsTabs");
             Check(diagTabs.Items.Count == 3,
                 "Google PushMe, protocol and application diagnostics share one tool");
+            diagTabs.SelectedIndex = 1;
+            mail.UpdateLayout();
+            Check(Require<TextBox>(mail, "HttpProtocolLogTextBox").IsReadOnly &&
+                  Require<TextBox>(mail, "HttpProtocolLogTextBox").IsVisible,
+                "full current-hour HTTP protocol viewer is present");
             diagTabs.SelectedIndex = 2;
             mail.UpdateLayout();
             Check(Require<TextBox>(mail, "ApplicationDiagnosticsLogTextBox").IsReadOnly,

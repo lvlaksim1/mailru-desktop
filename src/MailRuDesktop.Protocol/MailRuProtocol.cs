@@ -154,6 +154,7 @@ public sealed partial class MailRuClient : IDisposable
     private readonly HttpClient _http;
     private readonly bool _ownsHttpClient;
     private readonly SemaphoreSlim _requestGate = new(1, 1);
+    public Func<HttpRequestMessage, string?>? TrafficAccountResolver { get; set; }
     private readonly ConcurrentDictionary<string, PendingAuthSession> _pendingAuthSessions =
         new(StringComparer.Ordinal);
 
@@ -1058,12 +1059,19 @@ public sealed partial class MailRuClient : IDisposable
         }
 
         await _requestGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        MailRuHttpWireLog.Exchange? exchange = null;
         try
         {
-            return await _http.SendAsync(
-                request,
-                completionOption,
-                cancellationToken).ConfigureAwait(false);
+            exchange = MailRuHttpWireLog.Begin(request, TrafficAccountResolver);
+            var response = await _http.SendAsync(
+                request, completionOption, cancellationToken).ConfigureAwait(false);
+            MailRuHttpWireLog.Completed(exchange, response);
+            return response;
+        }
+        catch (Exception error)
+        {
+            MailRuHttpWireLog.Failed(exchange, error);
+            throw;
         }
         finally
         {

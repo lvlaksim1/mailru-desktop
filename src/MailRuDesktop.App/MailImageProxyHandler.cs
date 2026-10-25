@@ -154,9 +154,8 @@ internal sealed class MailImageProxyHandler : IDisposable
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("image/*"));
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*", 0.8));
 
-            using var response = await _mailImageHttp.SendAsync(
-                request,
-                HttpCompletionOption.ResponseHeadersRead);
+            using var response = await MailRuHttpWireLog.SendTrackedAsync(
+                _mailImageHttp, request, HttpCompletionOption.ResponseHeadersRead);
 
             var finalUri = response.RequestMessage?.RequestUri;
             var finalHost = finalUri?.Host ?? uri.Host;

@@ -49,6 +49,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        _mailRu.TrafficAccountResolver = ResolveTrafficAccount;
         ReaderHeader.AddressDoubleClick += PreviewAddress_MouseDoubleClick;
         InitializeSpellCheckSettings();
         InitializeRichComposeEditors();
@@ -103,6 +104,24 @@ public partial class MainWindow : Window
             _mailImageHandler?.Dispose();
             _mailRu.Dispose();
         };
+    }
+
+    private string? ResolveTrafficAccount(System.Net.Http.HttpRequestMessage request)
+    {
+        // Attribute traffic based on the request, never on the UI selection.
+        var query = request.RequestUri?.Query ?? "";
+        foreach (var login in _authStore.Logins)
+        {
+            if (query.Contains(Uri.EscapeDataString(login),
+                    StringComparison.OrdinalIgnoreCase))
+                return login;
+            if (_authStore.TryRestore(login, out var stored) && stored is not null &&
+                !string.IsNullOrEmpty(stored.AccessToken) &&
+                query.Contains(Uri.EscapeDataString(stored.AccessToken),
+                    StringComparison.Ordinal))
+                return login;
+        }
+        return null;
     }
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)

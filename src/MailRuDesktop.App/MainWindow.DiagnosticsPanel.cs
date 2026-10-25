@@ -23,6 +23,7 @@ public partial class MainWindow
         ApplyDiagnosticsPanelHeight(true);
         RefreshPushDiagnosticsView();
         RefreshApplicationDiagnosticsView();
+        RefreshProtocolDiagnosticsView();
     }
 
     private void UnifiedDiagnosticsExpander_Collapsed(object sender, RoutedEventArgs e)
@@ -38,6 +39,8 @@ public partial class MainWindow
         if (!ReferenceEquals(e.Source, UnifiedDiagnosticsTabs)) return;
         if (UnifiedDiagnosticsTabs.SelectedIndex == 0)
             RefreshPushDiagnosticsView();
+        else if (UnifiedDiagnosticsTabs.SelectedIndex == 1)
+            RefreshProtocolDiagnosticsView();
         else if (UnifiedDiagnosticsTabs.SelectedIndex == 2)
             RefreshApplicationDiagnosticsView();
     }
@@ -53,7 +56,17 @@ public partial class MainWindow
             using var reader = new FileStream(path, FileMode.Open, FileAccess.Read,
                 FileShare.ReadWrite | FileShare.Delete);
             using var textReader = new StreamReader(reader, Encoding.UTF8);
-            return textReader.ReadToEnd();
+            var today = DateTime.Today;
+            var filtered = new StringBuilder();
+            while (textReader.ReadLine() is { } line)
+            {
+                var tab = line.IndexOf('\t');
+                if (tab < 1) continue;
+                if (DateTimeOffset.TryParse(line[..tab], out var stamp) &&
+                    stamp.ToLocalTime().Date == today)
+                    filtered.AppendLine(line);
+            }
+            return filtered.ToString();
         }
         catch (IOException) { return string.Empty; }
         catch (UnauthorizedAccessException) { return string.Empty; }
