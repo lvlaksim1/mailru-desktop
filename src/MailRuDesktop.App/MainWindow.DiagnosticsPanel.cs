@@ -92,7 +92,7 @@ public partial class MainWindow
         try
         {
             Clipboard.SetText(AppDiagnosticsReport(
-                includeAccounts: ApplicationDiagnosticsExportModeComboBox.SelectedIndex == 1,
+                includeAccounts: true,
                 technical: ApplicationDiagnosticsTechnicalCheckBox.IsChecked == true));
             ApplicationDiagnosticsStatusText.Text = "Отчёт скопирован.";
         }
@@ -116,7 +116,7 @@ public partial class MainWindow
         try
         {
             File.WriteAllText(dialog.FileName, AppDiagnosticsReport(
-                includeAccounts: ApplicationDiagnosticsExportModeComboBox.SelectedIndex == 1,
+                includeAccounts: true,
                 technical: ApplicationDiagnosticsTechnicalCheckBox.IsChecked == true),
                 new UTF8Encoding(false));
             ApplicationDiagnosticsStatusText.Text = "Отчёт сохранён.";
