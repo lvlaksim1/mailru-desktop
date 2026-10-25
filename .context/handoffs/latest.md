@@ -297,3 +297,7 @@ Owner requested readable diagnostics for accounts and failures based on screensh
 
 ## 25.10.2026 — MailRu Desktop v0.3.96, поколение 121
 PR #220 объединён с main, продуктовый коммит f6c2ed9bf58536d5f23986a207b6aac611ad10de. CI 40233824269 и 40233989685 прошли, официальная публикация v0.3.96 через 40234162351 прошла. Диагностика из настроек перемещена под список писем (разделитель, запоминание высоты и вкладки); журналы при экспорте не скрывают адреса. Подробное обновление ключа: запрос o2.mail.ru/token, точный HTTP, полный ответ сервера, структура JSON и отличие локального 403. Изменений поведения авторизации нет. Следующее действие: приёмка панели и новый журнал проблемного аккаунта. Формальное состояние I-098 — ожидание приёмки.
+
+
+## 26.10.2026 — project-manager generation 122, официальный v0.3.97
+Main c65387a452495be782393a9e95fd57dcd8772544; PR #222 merged, CI PR 40242601552 / CI main 40242799753 success, GitHub Release v0.3.97 via run 40242973540 success, Setup и Update доступны. Исправлено: локальный full HTTP capture (`MailRuHttpWireLog`) MailRuClient + прокси изображений с hourly JSONL, raw *.bin and current-hour presentation/export, no masking; pinned top/bottom diagnostics controls in all three tabs; Application reports current local day only. Не перехватывает WebView2/MCS и не гарантирует сохранение непрочитанного контента. Содержимое локальных журналов крайне чувствительное, не публиковать. Owner acceptance I-099 open. Контекст менеджера поколения 122 требует целостности восьми coupled blobs.
