@@ -263,8 +263,15 @@ public partial class MainWindow
     {
         if (_pushShuttingDown || PushDiagnosticsLogTextBox is null) return;
         // Show the latest entries, but export the full bounded history.
-        PushDiagnosticsLogTextBox.Text = PushDiagnostics.Report(140);
+        PushDiagnosticsLogTextBox.Text = HumanDiagnostics.Push(
+            PushDiagnostics.Report(140), includeAccounts: true,
+            technical: PushDiagnosticsTechnicalCheckBox.IsChecked == true);
         PushDiagnosticsLogTextBox.ScrollToEnd();
+    }
+
+    private void PushDiagnosticsDisplayMode_Changed(object sender, RoutedEventArgs e)
+    {
+        RefreshPushDiagnosticsView();
     }
 
     private void RefreshPushDiagnosticsButton_Click(object sender, RoutedEventArgs e)
@@ -277,8 +284,11 @@ public partial class MainWindow
     {
         try
         {
-            Clipboard.SetText(PushDiagnostics.Report(
-                redactAccounts: PushDiagnosticsExportModeComboBox.SelectedIndex != 1));
+            var includeAccounts = PushDiagnosticsExportModeComboBox.SelectedIndex == 1;
+            Clipboard.SetText(HumanDiagnostics.Push(
+                PushDiagnostics.Report(redactAccounts: !includeAccounts),
+                includeAccounts,
+                technical: PushDiagnosticsTechnicalCheckBox.IsChecked == true));
             PushDiagnosticsActionStatusText.Text = "Отчёт скопирован в буфер обмена.";
         }
         catch (System.Runtime.InteropServices.ExternalException)
@@ -300,8 +310,11 @@ public partial class MainWindow
         if (dialog.ShowDialog(this) != true) return;
         try
         {
-            File.WriteAllText(dialog.FileName, PushDiagnostics.Report(
-                    redactAccounts: PushDiagnosticsExportModeComboBox.SelectedIndex != 1),
+            var includeAccounts = PushDiagnosticsExportModeComboBox.SelectedIndex == 1;
+            File.WriteAllText(dialog.FileName, HumanDiagnostics.Push(
+                    PushDiagnostics.Report(redactAccounts: !includeAccounts),
+                    includeAccounts,
+                    technical: PushDiagnosticsTechnicalCheckBox.IsChecked == true),
                 new UTF8Encoding(false));
             PushDiagnosticsActionStatusText.Text = "Отчёт сохранён в выбранный файл.";
         }
