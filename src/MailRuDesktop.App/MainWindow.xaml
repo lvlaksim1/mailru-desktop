@@ -495,12 +495,7 @@
                                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
                                                  ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
                                         <local:SelectableText Margin="0,9,0,4"
-                                                   Text="Сведения об аккаунтах в отчёте:"/>
-                                        <ComboBox x:Name="PushDiagnosticsExportModeComboBox"
-                                                  SelectedIndex="0">
-                                            <ComboBoxItem Content="Без адресов"/>
-                                            <ComboBoxItem Content="С адресами"/>
-                                        </ComboBox>
+                                                   Text="При копировании и сохранении сохраняются все сведения без обезличивания."/>
                                         <WrapPanel Margin="0,10,0,0">
                                             <Button x:Name="RefreshPushDiagnosticsButton"
                                                     Content="Обновить" Padding="9,6"
@@ -558,12 +553,7 @@
                                                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
                                                  ScrollViewer.VerticalScrollBarVisibility="Auto"/>
                                         <local:SelectableText Margin="0,9,0,4"
-                                                   Text="Адреса аккаунтов при копировании и сохранении:"/>
-                                        <ComboBox x:Name="ApplicationDiagnosticsExportModeComboBox"
-                                                  SelectedIndex="0">
-                                            <ComboBoxItem Content="Скрывать адреса"/>
-                                            <ComboBoxItem Content="Сохранять адреса"/>
-                                        </ComboBox>
+                                                   Text="Отчёт сохраняется целиком с адресами аккаунтов и деталями сервера."/>
                                         <WrapPanel Margin="0,10,0,0">
                                             <Button Content="Обновить" Padding="9,6"
                                                     Margin="0,0,6,6"
