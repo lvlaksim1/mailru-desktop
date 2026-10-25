@@ -471,15 +471,19 @@ public partial class MainWindow : Window
 
         try
         {
-            var result = await _mailRu.AuthenticateAsync(login, password);
-            WriteAuthDiagnostics(result);
+            var passwordForClient = password;
+            var result = await _mailRu.AuthenticateAsync(login, passwordForClient);
+            WriteAuthDiagnostics(result, login);
 
             if (!result.Success && IsInteractiveAuthState(result))
             {
                 AuthStatusText.Text = "Mail.ru запросил дополнительную проверку";
-                var retry = await TryHandleInteractiveAuthAsync(login, password, result);
+                var retry = await TryHandleInteractiveAuthAsync(login, passwordForClient, result);
                 if (retry is not null)
-                    result = retry;
+                {
+                    result = retry.Value.Result;
+                    passwordForClient = retry.Value.Password;
+                }
             }
 
             if (!result.Success)
@@ -497,8 +501,10 @@ public partial class MainWindow : Window
                 return;
             }
 
+            // A server-issued token is only persisted after a real folder read.
+            await _mailRu.GetFolderThreadsAsync(result.AccessToken, 0, limit: 1);
             ApplyAuthorization(login, result);
-            SaveAuthorization(login);
+            SaveAuthorization(login, passwordForClient);
             RefreshSavedLogins();
             RefreshAccountRail(login);
 
@@ -537,7 +543,7 @@ public partial class MainWindow : Window
         _activeLogin = login;
     }
 
-    private void SaveAuthorization(string login)
+    private void SaveAuthorization(string login, string passwordForClient)
     {
         _authStore.Save(
             login,
@@ -546,7 +552,8 @@ public partial class MainWindow : Window
             null,
             null,
             null,
-            null);
+            null,
+            passwordForClient);
     }
 
     private void ClearRuntimeAuthorization()
