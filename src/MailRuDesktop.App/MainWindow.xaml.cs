@@ -2106,6 +2106,28 @@ public partial class MainWindow : Window
         }
     }
 
+    private static void TraceRefreshRequest(string account, string operation)
+    {
+        DiagnosticLog.Write("auth_refresh_request",
+            "flow=" + operation + "; method=POST; " +
+            "url=https://o2.mail.ru/token; grant_type=refresh_token; " +
+            "client_id=mail-android; refresh_token_supplied=true", account);
+    }
+
+    private static void TraceRefreshResponse(string account, string operation,
+        MailRuTokenRefreshResult result)
+    {
+        // Base64 preserves the server response byte-for-byte as decoded UTF-8
+        // text (including embedded line breaks and separators) in one log line.
+        // The user requested the full original response in local diagnostics.
+        DiagnosticLog.Write("auth_refresh_http",
+            "flow=" + operation + "; method=POST; url=https://o2.mail.ru/token; " +
+            "http=" + result.HttpStatusCode + "; outcome=" +
+            (result.Success ? "accepted" : "rejected") + "; raw_base64=" +
+            Convert.ToBase64String(Encoding.UTF8.GetBytes(result.RawResponse)),
+            account);
+    }
+
     private void TraceAuthToken(
         string login,
         string flow,
@@ -2139,7 +2161,9 @@ public partial class MainWindow : Window
             MailRuTokenRefreshResult refreshed;
             try
             {
+                TraceRefreshRequest(account, "active_folder");
                 refreshed = await _mailRu.RefreshAccessTokenAsync(savedRefresh);
+                TraceRefreshResponse(account, "active_folder", refreshed);
             }
             catch (Exception ex)
             {
@@ -2152,7 +2176,13 @@ public partial class MainWindow : Window
                 refreshed.Success ? "new_access_received" : "not_refreshed",
                 refreshed.HttpStatusCode);
             if (!refreshed.Success || string.IsNullOrWhiteSpace(refreshed.AccessToken))
+            {
+                DiagnosticLog.Write("auth_local_failure",
+                    "HTTP 403 создан приложением: ответ обновления ключа не принят; " +
+                    "причина и исходный ответ приведены в событии auth_refresh_http",
+                    account);
                 throw new MailRuAuthorizationException(403, "local_refresh_result");
+            }
 
             string raw;
             try
@@ -2218,7 +2248,9 @@ public partial class MainWindow : Window
             MailRuTokenRefreshResult refreshed;
             try
             {
+                TraceRefreshRequest(account.Login, "background_counter");
                 refreshed = await _mailRu.RefreshAccessTokenAsync(account.RefreshToken);
+                TraceRefreshResponse(account.Login, "background_counter", refreshed);
             }
             catch (Exception ex)
             {
@@ -2231,7 +2263,13 @@ public partial class MainWindow : Window
                 refreshed.Success ? "new_access_received" : "not_refreshed",
                 refreshed.HttpStatusCode);
             if (!refreshed.Success || string.IsNullOrWhiteSpace(refreshed.AccessToken))
+            {
+                DiagnosticLog.Write("auth_local_failure",
+                    "HTTP 403 создан приложением: ответ обновления ключа не принят; " +
+                    "причина и исходный ответ приведены в событии auth_refresh_http",
+                    account.Login);
                 throw new MailRuAuthorizationException(403, "local_refresh_result");
+            }
 
             string raw;
             try
