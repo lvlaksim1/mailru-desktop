@@ -43,6 +43,21 @@ internal sealed class AuthorizationStore
 
     public string? LastLogin => _state.LastLogin;
 
+    public bool TryGetPassword(string login, out string? savedPassword)
+    {
+        savedPassword = null;
+        var record = _state.Accounts.FirstOrDefault(account =>
+            string.Equals(account.Login, login, StringComparison.OrdinalIgnoreCase));
+        if (record?.Password is null)
+            return false;
+        try
+        {
+            savedPassword = UnprotectOptional(record.Password);
+            return !string.IsNullOrEmpty(savedPassword);
+        }
+        catch { return false; }
+    }
+
     public bool TryRestore(string login, out RestoredAuthorization? authorization)
     {
         authorization = null;
@@ -88,7 +103,8 @@ internal sealed class AuthorizationStore
         string? webToken,
         string? searchToken,
         string? webCookieHeader,
-        string? touchCookieHeader)
+        string? touchCookieHeader,
+        string? verifiedPassword = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(login);
 
@@ -98,9 +114,13 @@ internal sealed class AuthorizationStore
         var existing = _state.Accounts.FindIndex(account =>
             string.Equals(account.Login, login, StringComparison.OrdinalIgnoreCase));
 
+        var previousPassword = existing >= 0
+            ? _state.Accounts[existing].Password : null;
         var replacement = new AuthorizationRecord
         {
             Login = login,
+            Password = !string.IsNullOrEmpty(verifiedPassword)
+                ? ProtectOptional(verifiedPassword) : previousPassword,
             AccessToken = ProtectOptional(accessToken),
             RefreshToken = ProtectOptional(refreshToken),
             WebToken = null,
@@ -123,7 +143,8 @@ internal sealed class AuthorizationStore
     /// Update credentials for one known account without changing LastLogin,
     /// deleting other accounts, or invalidating their independently saved tokens.
     /// </summary>
-    public bool UpdateTokens(string login, string accessToken, string? refreshToken)
+    public bool UpdateTokens(string login, string accessToken, string? refreshToken,
+        string? verifiedPassword = null)
     {
         if (string.IsNullOrWhiteSpace(login) || string.IsNullOrWhiteSpace(accessToken))
             return false;
@@ -136,6 +157,8 @@ internal sealed class AuthorizationStore
         record.AccessToken = ProtectOptional(accessToken);
         if (!string.IsNullOrWhiteSpace(refreshToken))
             record.RefreshToken = ProtectOptional(refreshToken);
+        if (!string.IsNullOrEmpty(verifiedPassword))
+            record.Password = ProtectOptional(verifiedPassword);
         record.SavedAtUtc = DateTimeOffset.UtcNow;
         Persist();
         return true;
@@ -256,6 +279,7 @@ internal sealed class AuthorizationStore
         public string Login { get; set; } = string.Empty;
         public string? AccessToken { get; set; }
         public string? RefreshToken { get; set; }
+        public string? Password { get; set; }
         public string? WebToken { get; set; }
         public string? SearchToken { get; set; }
         public string? WebCookieHeader { get; set; }
