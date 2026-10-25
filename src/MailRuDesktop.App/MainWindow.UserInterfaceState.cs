@@ -36,8 +36,7 @@ public partial class MainWindow
             ClampFinite(state.MailListPaneWidth, 120, 1600, 455));
         ContactsListPaneColumn.Width = new GridLength(
             ClampFinite(state.ContactsListPaneWidth, 120, 1200, 390));
-        SettingsOptionsColumn.Width = new GridLength(
-            ClampFinite(state.SettingsPaneWidth, 390, 1400, 620));
+        SettingsOptionsColumn.Width = new GridLength(1, GridUnitType.Star);
         _diagnosticsExpandedHeight =
             ClampFinite(state.DiagnosticsPaneHeight, 180, 800, 320);
         UnifiedDiagnosticsExpander.IsExpanded = state.DiagnosticsExpanded;
