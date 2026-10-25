@@ -121,12 +121,12 @@ internal sealed class MailImageProxyHandler : IDisposable
                             "Content-Type: " + imageType + "\r\n" +
                             "Cache-Control: private, max-age=300\r\n");
                     DiagnosticLog.Write("mail_image_inline", 
-                        $"loaded; inlineBytes={inlineBytes.Length}; type={imageType}");
+                        $"loaded; inlineBytes={inlineBytes.Length}; type={imageType}", mailbox);
                 }
                 else
                 {
                     DiagnosticLog.Write("mail_image_inline",
-                        $"invalid-image; inlineBytes={inlineBytes.Length}");
+                        $"invalid-image; inlineBytes={inlineBytes.Length}", mailbox);
                 }
                 return;
             }
@@ -165,7 +165,7 @@ internal sealed class MailImageProxyHandler : IDisposable
             {
                 DiagnosticLog.Write(
                     "mail_image_proxy",
-                    $"http={(int)response.StatusCode}; final-host={finalHost}");
+                    $"http={(int)response.StatusCode}; final-host={finalHost}", mailbox);
                 return;
             }
 
@@ -180,7 +180,7 @@ internal sealed class MailImageProxyHandler : IDisposable
                 "mail_image_proxy",
                 $"http={(int)response.StatusCode}; final-host={finalHost}; " +
                 $"content-type={contentType}; bytes={bytes.Length}; " +
-                $"original-host={SafeHost(originalUrl)}");
+                $"original-host={SafeHost(originalUrl)}", mailbox);
 
             if (!IsImageContentType(contentType) || bytes.Length == 0)
             {
@@ -204,7 +204,7 @@ internal sealed class MailImageProxyHandler : IDisposable
         {
             DiagnosticLog.Write(
                 isInline ? "mail_image_inline" : "mail_image_proxy",
-                ex.GetType().Name);
+                ex.GetType().Name, mailbox);
         }
         finally
         {

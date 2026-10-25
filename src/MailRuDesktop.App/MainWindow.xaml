@@ -1056,6 +1056,10 @@
                                                 Margin="0,11,0,0" Padding="10,6"
                                                 HorizontalAlignment="Left"
                                                 Click="OpenPushProbeButton_Click"/>
+                                        <CheckBox x:Name="PushDiagnosticsTechnicalCheckBox"
+                                                  Content="Показывать технические коды"
+                                                  Margin="0,9,0,0"
+                                                  Click="PushDiagnosticsDisplayMode_Changed"/>
                                         <TextBox x:Name="PushDiagnosticsLogTextBox"
                                                  Margin="0,11,0,0" Height="590"
                                                  FontFamily="Consolas" FontSize="12"
@@ -1112,9 +1116,13 @@
                                 </TabItem>
                                 <TabItem Header="Приложение">
                                     <StackPanel Margin="7,10,7,6">
-                                        <local:SelectableText Text="Журнал работы приложения. При копировании личные данные скрываются."
+                                        <local:SelectableText Text="События показаны по-русски: действие, аккаунт, результат и этап ошибки. В окне адреса видны; при копировании и сохранении они скрываются по умолчанию."
                                                    Foreground="{DynamicResource AppMutedTextBrush}"
                                                    TextWrapping="Wrap"/>
+                                        <CheckBox x:Name="ApplicationDiagnosticsTechnicalCheckBox"
+                                                  Content="Показывать технические коды"
+                                                  Margin="0,9,0,0"
+                                                  Click="ApplicationDiagnosticsDisplayMode_Changed"/>
                                         <TextBox x:Name="ApplicationDiagnosticsLogTextBox"
                                                  Margin="0,10,0,0" Height="590"
                                                  FontFamily="Consolas" FontSize="11"
@@ -1122,6 +1130,13 @@
                                                  TextWrapping="NoWrap"
                                                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
                                                  ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                                        <local:SelectableText Margin="0,9,0,4"
+                                                   Text="Адреса аккаунтов при копировании и сохранении:"/>
+                                        <ComboBox x:Name="ApplicationDiagnosticsExportModeComboBox"
+                                                  SelectedIndex="0">
+                                            <ComboBoxItem Content="Скрывать адреса"/>
+                                            <ComboBoxItem Content="Сохранять адреса"/>
+                                        </ComboBox>
                                         <WrapPanel Margin="0,10,0,0">
                                             <Button Content="Обновить" Padding="9,6"
                                                     Margin="0,0,6,6"

@@ -124,11 +124,11 @@ public partial class MessageWindow : Window
             if (result.Success)
                 MailboxChanged = true;
             else
-                DiagnosticLog.Write("full_open_read", "SERVER_REJECTED");
+                DiagnosticLog.Write("full_open_read", "SERVER_REJECTED", _mailboxLogin);
         }
         catch (Exception ex)
         {
-            DiagnosticLog.Write("full_open_read", ex.GetType().Name);
+            DiagnosticLog.Write("full_open_read", ex.GetType().Name, _mailboxLogin);
         }
     }
 
@@ -199,13 +199,14 @@ public partial class MessageWindow : Window
         {
             StatusText.Text = "Не удалось загрузить полное письмо.";
             ShowBody(_summary.Snippet, html: false);
-            DiagnosticLog.Write("message_window_full", ex.GetType().Name + ": " + ex.Message);
+            DiagnosticLog.Write("message_window_full", ex.GetType().Name + ": " + ex.Message, _mailboxLogin);
         }
     }
 
     private async Task ApplyFullMessageAsync(MailRuFullMessage full)
     {
         _fullMessage = full;
+        DiagnosticLog.Write("message_window_full", "started", _mailboxLogin);
 
         Title = $"{full.Subject} — MailRu Desktop";
         SubjectText.Text = full.Subject;
@@ -237,7 +238,7 @@ public partial class MessageWindow : Window
                 }
                 catch (Exception error)
                 {
-                    DiagnosticLog.Write("detached_thread_detail", error.GetType().Name);
+                    DiagnosticLog.Write("detached_thread_detail", error.GetType().Name, _mailboxLogin);
                 }
             }
             var bodies = new Dictionary<string, MailRuFullMessage>(StringComparer.Ordinal)
@@ -258,7 +259,7 @@ public partial class MessageWindow : Window
                 catch (Exception error)
                 {
                     DiagnosticLog.Write("detached_conversation",
-                        error.GetType().Name);
+                        error.GetType().Name, _mailboxLogin);
                 }
             }
             if (_readerReady)
@@ -279,6 +280,7 @@ public partial class MessageWindow : Window
             ShowBody(full.Text, html: false);
         else
             ShowBody(_summary.Snippet, html: false);
+        DiagnosticLog.Write("message_window_full", "completed", _mailboxLogin);
     }
 
     private void ShowBody(string body, bool html)
@@ -472,7 +474,7 @@ public partial class MessageWindow : Window
             if (!result.Success)
             {
                 ComposeStatusText.Text = "Mail.ru отклонил отправку.";
-                DiagnosticLog.Write("message_window_send", result.RawResponse);
+                DiagnosticLog.Write("message_window_send", "SERVER_REJECTED", _mailboxLogin);
                 return;
             }
 
@@ -486,7 +488,7 @@ public partial class MessageWindow : Window
         catch (Exception ex)
         {
             ComposeStatusText.Text = ex.Message;
-            DiagnosticLog.Write("message_window_send", ex.GetType().Name + ": " + ex.Message);
+            DiagnosticLog.Write("message_window_send", ex.GetType().Name + ": " + ex.Message, _mailboxLogin);
         }
         finally
         {
@@ -542,7 +544,7 @@ public partial class MessageWindow : Window
             if (!result.Success)
             {
                 StatusText.Text = "Mail.ru отклонил перемещение.";
-                DiagnosticLog.Write("message_window_move", result.RawResponse);
+                DiagnosticLog.Write("message_window_move", "SERVER_REJECTED", _mailboxLogin);
                 return false;
             }
 
@@ -553,7 +555,7 @@ public partial class MessageWindow : Window
         catch (Exception ex)
         {
             StatusText.Text = "Ошибка перемещения.";
-            DiagnosticLog.Write("message_window_move", ex.GetType().Name + ": " + ex.Message);
+            DiagnosticLog.Write("message_window_move", ex.GetType().Name + ": " + ex.Message, _mailboxLogin);
             return false;
         }
     }
@@ -580,7 +582,7 @@ public partial class MessageWindow : Window
         catch (Exception ex)
         {
             StatusText.Text = "Не удалось открыть вложение.";
-            DiagnosticLog.Write("message_window_attachment_open", ex.GetType().Name);
+            DiagnosticLog.Write("message_window_attachment_open", ex.GetType().Name, _mailboxLogin);
             AppDialog.Info(this, "Открытие вложения", ex.Message);
         }
     }
@@ -626,7 +628,7 @@ public partial class MessageWindow : Window
         catch (Exception ex)
         {
             StatusText.Text = "Ошибка скачивания вложения.";
-            DiagnosticLog.Write("message_window_attachment", ex.GetType().Name + ": " + ex.Message);
+            DiagnosticLog.Write("message_window_attachment", ex.GetType().Name + ": " + ex.Message, _mailboxLogin);
         }
     }
 
