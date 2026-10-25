@@ -8,7 +8,7 @@ internal static class DiagnosticLog
 {
     private static readonly object Sync = new();
 
-    public static void Write(string category, string? reason)
+    public static void Write(string category, string? reason, string? account = null)
     {
         if (string.IsNullOrWhiteSpace(reason))
             return;
@@ -23,6 +23,15 @@ internal static class DiagnosticLog
             var path = Path.Combine(directory, "diagnostics.log");
             var safeCategory = Sanitize(category);
             var safeReason = Sanitize(reason);
+            // Store the verified operation account only when it is supplied
+            // by the caller. Never infer it from the currently selected UI account.
+            var safeAccount = account is not null &&
+                Regex.IsMatch(account, @"\A[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\z",
+                    RegexOptions.CultureInvariant)
+                ? account.ToLowerInvariant()
+                : null;
+            if (safeAccount is not null)
+                safeReason += "; account=" + safeAccount;
 
             lock (Sync)
             {
