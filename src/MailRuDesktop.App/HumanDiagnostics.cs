@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace MailRuDesktop.App;
@@ -27,6 +28,9 @@ internal static class HumanDiagnostics
     private static readonly Dictionary<string, string> AppActions = new(StringComparer.OrdinalIgnoreCase)
     {
         ["auth_token_flow"] = "Проверка авторизации",
+        ["auth_refresh_request"] = "Запрос обновления ключа доступа",
+        ["auth_refresh_http"] = "Ответ сервера обновления ключа",
+        ["auth_local_failure"] = "Локальный отказ приложения после обновления",
         ["auth_exception"] = "Вход в почту",
         ["auth_failure"] = "Дополнительная проверка входа",
         ["account_switch"] = "Переключение аккаунта",
@@ -174,7 +178,31 @@ internal static class HumanDiagnostics
             }
             string status;
             string explanation;
-            if (category == "auth_token_flow")
+            if (category == "auth_refresh_request")
+            {
+                status = "НАЧАТО";
+                var flow = Get(values, "flow");
+                action = "Авторизация — " + AuthStep(flow, "refresh_request");
+                explanation = "POST https://o2.mail.ru/token; grant_type=refresh_token; " +
+                    "client_id=mail-android; запрос отправляется с сохранённым ключом обновления";
+            }
+            else if (category == "auth_refresh_http")
+            {
+                var flow = Get(values, "flow");
+                action = "Авторизация — " + AuthStep(flow, "refresh_response");
+                var http = Get(values, "http");
+                var outcome = Get(values, "outcome");
+                status = outcome == "accepted" ? "УСПЕШНО" : "ОШИБКА";
+                explanation = "POST https://o2.mail.ru/token; действительный HTTP " + http +
+                    "; " + InspectRefreshPayload(Get(values, "raw_base64"));
+            }
+            else if (category == "auth_local_failure")
+            {
+                status = "ОШИБКА";
+                action = "Авторизация — проверка ответа внутри приложения";
+                explanation = reason + "; это не HTTP-код нового ответа сервера";
+            }
+            else if (category == "auth_token_flow")
             {
                 var flow = Get(values, "flow");
                 var stage = Get(values, "stage");
@@ -286,6 +314,78 @@ internal static class HumanDiagnostics
         if (shown == 0)
             result.AppendLine("Записей пока нет.");
         return result.ToString();
+    }
+
+    private static string InspectRefreshPayload(string base64)
+    {
+        if (string.IsNullOrEmpty(base64))
+            return "исходный ответ не записан";
+        string raw;
+        try
+        {
+            raw = Encoding.UTF8.GetString(Convert.FromBase64String(base64));
+        }
+        catch (FormatException)
+        {
+            return "не удалось восстановить исходный ответ: неверная кодировка записи";
+        }
+
+        var description = new StringBuilder();
+        try
+        {
+            using var document = JsonDocument.Parse(raw);
+            var root = document.RootElement;
+            description.Append("JSON: ").Append(root.ValueKind);
+            if (root.ValueKind == JsonValueKind.Object)
+            {
+                var fields = root.EnumerateObject().Select(p => p.Name).ToArray();
+                description.Append("; поля корня: [").Append(string.Join(", ", fields)).Append(']');
+                var rootToken = root.TryGetProperty("access_token", out var field) &&
+                    field.ValueKind == JsonValueKind.String &&
+                    !string.IsNullOrWhiteSpace(field.GetString());
+                description.Append("; access_token в корне: ")
+                    .Append(rootToken ? "найден" : "отсутствует или пуст");
+                var nested = new List<string>();
+                FindNestedToken(root, "$", nested, 0);
+                if (nested.Count > 0)
+                    description.Append("; вложенные пути access_token: ")
+                        .Append(string.Join(", ", nested));
+                foreach (var name in new[] { "error", "error_description", "message", "status" })
+                {
+                    if (root.TryGetProperty(name, out var error))
+                        description.Append("; ").Append(name).Append('=').Append(error.ToString());
+                }
+            }
+        }
+        catch (JsonException ex)
+        {
+            description.Append("разбор JSON не выполнен: ").Append(ex.Message);
+        }
+        description.Append("; исходный ответ сервера без сокращений: ")
+            .Append(raw.Length == 0 ? "(пустой ответ)" : raw);
+        return description.ToString();
+    }
+
+    private static void FindNestedToken(JsonElement node, string path,
+        List<string> paths, int depth)
+    {
+        if (depth > 12) return;
+        if (node.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var property in node.EnumerateObject())
+            {
+                var next = path + "." + property.Name;
+                if (property.Name == "access_token" && depth > 0)
+                    paths.Add(next);
+                FindNestedToken(property.Value, next, paths, depth + 1);
+            }
+        }
+        else if (node.ValueKind == JsonValueKind.Array)
+        {
+            var i = 0;
+            foreach (var item in node.EnumerateArray())
+                FindNestedToken(item, path + "[" + i++ + "]", paths, depth + 1);
+        }
     }
 
     private static string Time(string value) =>
