@@ -204,7 +204,7 @@ internal static class PushDiagnostics
         Record("WORKER", "CONNECT_ATTEMPT", number);
     }
 
-    internal static void Failure(string stage, Exception failure)
+    internal static void Failure(string stage, Exception failure, string? account = null)
     {
         var category = FailureCategory(failure);
         var safeStage = SafeCode(stage);
@@ -216,7 +216,10 @@ internal static class PushDiagnostics
                 _lastFailure == "NONE")
                 _lastFailure = safeStage + ":" + category;
         }
-        Record("ERROR", safeStage + "_" + category);
+        if (!string.IsNullOrWhiteSpace(account))
+            RecordAccount("ERROR", safeStage + "_" + category, account);
+        else
+            Record("ERROR", safeStage + "_" + category);
     }
 
     internal static string LastFailure
