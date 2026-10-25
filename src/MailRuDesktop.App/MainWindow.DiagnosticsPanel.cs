@@ -52,8 +52,6 @@ public partial class MainWindow
             if (!File.Exists(path)) return string.Empty;
             using var reader = new FileStream(path, FileMode.Open, FileAccess.Read,
                 FileShare.ReadWrite | FileShare.Delete);
-            if (reader.Length > 300_000)
-                reader.Seek(-300_000, SeekOrigin.End);
             using var textReader = new StreamReader(reader, Encoding.UTF8);
             return textReader.ReadToEnd();
         }
