@@ -353,7 +353,7 @@ public partial class MainWindow
                 {
                     PushDiagnostics.RecordAccount("PUSHME", "GROUP_MEMBER_REMOVE_UNCONFIRMED",
                         account, group.Id, index + 1, group.Accounts.Length);
-                    PushDiagnostics.Failure("GROUP_ACCOUNT_REMOVE", error);
+                    PushDiagnostics.Failure("GROUP_ACCOUNT_REMOVE", error, account);
                 }
                 finally
                 {
