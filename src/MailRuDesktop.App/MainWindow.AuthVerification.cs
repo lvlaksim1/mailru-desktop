@@ -16,7 +16,7 @@ public partial class MainWindow
         string password,
         MailRuAuthResult result)
     {
-        WriteAuthDiagnostics(result);
+        WriteAuthDiagnostics(result, login);
 
         var verificationName = result.State switch
         {
@@ -99,7 +99,7 @@ public partial class MainWindow
                 verificationWindow.SessionCookieHeader);
         }
 
-        WriteAuthDiagnostics(retry);
+        WriteAuthDiagnostics(retry, login);
 
         if (!retry.Success && IsInteractiveAuthState(retry))
         {
@@ -114,7 +114,7 @@ public partial class MainWindow
         return retry;
     }
 
-    private void WriteAuthDiagnostics(MailRuAuthResult result)
+    private void WriteAuthDiagnostics(MailRuAuthResult result, string? login = null)
     {
         var lines = new List<string>();
 
@@ -128,6 +128,6 @@ public partial class MainWindow
             return;
 
         ResponseTextBox.Text = string.Join(Environment.NewLine, lines);
-        DiagnosticLog.Write("auth_failure", string.Join(" | ", lines));
+        DiagnosticLog.Write("auth_failure", string.Join(" | ", lines), login);
     }
 }
