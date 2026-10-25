@@ -385,6 +385,61 @@ internal static class Program
                 new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher));
             // Formatting survives signature changes; a selection must replace
             // rather than append the same signature twice.
+            // A readable diagnostic must expose the exact action, stage and
+            // known account. It must never attribute older anonymous entries
+            // to whatever mailbox happens to be selected in the UI.
+            var sampleAppLog =
+                "2026-10-25T22:25:24.3230000+03:00\tauth_token_flow\t" +
+                "account=ACCOUNT_011; flow=background_counter; stage=initial_access; " +
+                "result=rejected; http=403; account=one@example.org\n" +
+                "2026-10-25T22:25:56.3400000+03:00\tmail_image_inline\t" +
+                "loaded; inlineBytes=38475; type=image/png; account=two@example.org\n" +
+                "2026-10-25T22:25:57.3400000+03:00\tfolder_load\t" +
+                "MailRuAuthorizationException: код 403\n";
+            var appFriendly = HumanDiagnostics.Application(sampleAppLog, true);
+            Check(appFriendly.Contains("one@example.org", StringComparison.Ordinal) &&
+                  appFriendly.Contains("two@example.org", StringComparison.Ordinal) &&
+                  appFriendly.Contains("обновление счётчиков", StringComparison.Ordinal) &&
+                  appFriendly.Contains("проверка действующего ключа", StringComparison.Ordinal) &&
+                  appFriendly.Contains("HTTP 403", StringComparison.Ordinal) &&
+                  appFriendly.Contains("Загрузка встроенного изображения", StringComparison.Ordinal) &&
+                  appFriendly.Contains("Аккаунт не указан", StringComparison.Ordinal),
+                "human diagnostics show action, actual account and failed stage without guessing");
+            var appExport = HumanDiagnostics.Application(sampleAppLog, false);
+            Check(!appExport.Contains("one@example.org", StringComparison.Ordinal) &&
+                  !appExport.Contains("two@example.org", StringComparison.Ordinal) &&
+                  appExport.Contains("Аккаунт №001", StringComparison.Ordinal) &&
+                  appExport.Contains("Аккаунт №002", StringComparison.Ordinal),
+                "shared application report redacts distinct account addresses by default");
+            var appTechnical = HumanDiagnostics.Application(sampleAppLog, false, true);
+            Check(appTechnical.Contains("auth_token_flow", StringComparison.Ordinal) &&
+                  !appTechnical.Contains("one@example.org", StringComparison.Ordinal),
+                "technical diagnostics remain available and safe for anonymous export");
+            var oldAlias = HumanDiagnostics.Application(
+                "2026-10-25T22:25:24+03:00\tauth_token_flow\t" +
+                "account=ACCOUNT_030; flow=background_counter; stage=result; " +
+                "result=unverified; http=not_available\n", true);
+            Check(oldAlias.Contains("старый журнал", StringComparison.Ordinal) &&
+                  !oldAlias.Contains("one@example.org", StringComparison.Ordinal),
+                "historical numeric account aliases are never mapped to new mailboxes");
+            var samplePush = "MailRu Desktop — диагностика Google / PushMe\n" +
+                "2026-10-25 22:30:01.000 +03:00 #1 [PUSHME] " +
+                "ACCOUNT_SUBSCRIBE_QUEUED account=one@example.org item=1/2\n" +
+                "2026-10-25 22:30:05.000 +03:00 #2 [ERROR] " +
+                "GROUP_ACCOUNT_REMOVE_HTTP_403 account=two@example.org\n";
+            var readablePush = HumanDiagnostics.Push(samplePush, true);
+            Check(readablePush.Contains("one@example.org", StringComparison.Ordinal) &&
+                  readablePush.Contains("two@example.org", StringComparison.Ordinal) &&
+                  readablePush.Contains("поставлен в очередь", StringComparison.Ordinal) &&
+                  readablePush.Contains("ОШИБКА", StringComparison.Ordinal) &&
+                  readablePush.Contains("Удаление аккаунта из группы", StringComparison.Ordinal),
+                "PushMe diagnostics show each mailbox, phase and explicit failure");
+            Check(!HumanDiagnostics.Push(samplePush, false).Contains(
+                      "one@example.org", StringComparison.Ordinal),
+                "PushMe export hides mailboxes by default");
+            Check(HumanDiagnostics.Application("", true).Contains("Записей пока нет") &&
+                  HumanDiagnostics.Push("", true).Contains("Записей пока нет"),
+                "empty diagnostic journals present a readable message");
             var previewTestGrid = new Grid();
             previewTestGrid.RowDefinitions.Add(new RowDefinition());
             var previewTestPlain = new TextBox();
