@@ -150,6 +150,7 @@ internal static class HumanDiagnostics
     internal static string Application(string report, bool includeAccounts, bool technical = false)
     {
         var aliases = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        if (technical && includeAccounts) return report;
         if (technical) return Protect(report, includeAccounts, aliases);
         var result = new StringBuilder("Журнал приложения — действия и результаты\n");
         result.AppendLine("Указан только достоверно установленный аккаунт. Старые записи могут не содержать адрес.");
@@ -243,6 +244,7 @@ internal static class HumanDiagnostics
     internal static string Push(string report, bool includeAccounts, bool technical = false)
     {
         var aliases = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        if (technical && includeAccounts) return report;
         if (technical) return Protect(report, includeAccounts, aliases);
         var result = new StringBuilder("Google / PushMe — история подключений и уведомлений\n");
         result.AppendLine("События без аккаунта относятся к общему соединению или группе.");
