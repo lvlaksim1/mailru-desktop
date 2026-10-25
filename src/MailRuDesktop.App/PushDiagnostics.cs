@@ -20,8 +20,8 @@ internal static class PushDiagnostics
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "MailRuDesktop");
     private static readonly string LogPath = Path.Combine(LogDirectory, "push-diagnostics.log");
-    private const int MaxLogBytes = 256 * 1024;
-    private const int RetainLines = 900;
+    private const int MaxLogBytes = 2 * 1024 * 1024;
+    private const int RetainLines = 6000;
     private static long _sequence;
     private static string _lastFailure = "NONE";
     internal static event Action? Changed;
