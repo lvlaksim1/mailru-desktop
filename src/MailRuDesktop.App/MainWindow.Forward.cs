@@ -19,8 +19,15 @@ public partial class MainWindow
     {
         var html = full.Html;
         html = Regex.Replace(html, @"(?is)<(script|style|iframe|object)\b[^>]*>.*?</\1>", "");
+        // Keep the same explicit empty paragraphs that the ordinary reply
+        // editor already preserves. An empty HTML div containing <br> is one
+        // blank line, not two; non-empty <p> blocks have paragraph spacing.
+        // Never collapse repeated blank lines from the original message.
+        html = Regex.Replace(html,
+            @"(?is)<\s*div\b[^>]*>\s*<\s*br\b[^>]*>\s*</\s*div\s*>", "\n");
         html = Regex.Replace(html, @"(?is)<\s*br\b[^>]*>", "\n");
-        html = Regex.Replace(html, @"(?is)</\s*(p|div|section|article|h[1-6]|tr|li)\s*>", "\n");
+        html = Regex.Replace(html, @"(?is)</\s*(p|section|article|h[1-6])\s*>", "\n\n");
+        html = Regex.Replace(html, @"(?is)</\s*(div|tr|li)\s*>", "\n");
         html = Regex.Replace(html, @"(?is)<\s*li\b[^>]*>", "- ");
         html = Regex.Replace(html, @"(?is)<\s*(strong|b)\b[^>]*>", "**");
         html = Regex.Replace(html, @"(?is)</\s*(strong|b)\s*>", "**");
@@ -37,7 +44,7 @@ public partial class MainWindow
         // rich-text importer recognizes their exact forms.
         html = WebUtility.HtmlDecode(Regex.Replace(html,
             @"(?s)<(?!/?(?:u|s)\s*>)[^>]+>", ""));
-        html = Regex.Replace(html, @"\n{3,}", "\n\n").Trim();
+        html = html.Trim('\r', '\n');
         var header = "---------- Пересланное сообщение ----------\n" +
             "От: " + full.SenderDisplay + "\n" +
             "Кому: " + string.Join(", ", full.To) + "\n" +

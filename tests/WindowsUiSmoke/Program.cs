@@ -181,6 +181,24 @@ internal static class Program
                   markdownForward.Contains("*условие*") &&
                   markdownForward.Contains("От: " + richForwardSource.SenderDisplay),
                 "forwarded HTML retains common bold and italic styles and original sender");
+            var spacedForward = richForwardSource with
+            {
+                Html = "<div>Добрый день.</div><div><br></div>" +
+                       "<div>Прошу предоставить сведения.</div><div><br></div>" +
+                       "<div><br></div><div>С уважением, <strong>Имя</strong></div>" +
+                       "<p>Первый абзац.</p><p>Второй абзац.</p>",
+                Text = "Добрый день.\n\nПрошу предоставить сведения.\n\n\n" +
+                       "С уважением, Имя\nПервый абзац.\n\nВторой абзац."
+            };
+            var spacedForwardMarkdown = MainWindow.BuildForwardMarkdown(spacedForward);
+            Check(spacedForwardMarkdown.Contains(
+                      "Добрый день.\n\nПрошу предоставить сведения.", StringComparison.Ordinal) &&
+                  spacedForwardMarkdown.Contains(
+                      "Прошу предоставить сведения.\n\n\nС уважением, **Имя**",
+                      StringComparison.Ordinal) &&
+                  spacedForwardMarkdown.Contains(
+                      "Первый абзац.\n\nВторой абзац.", StringComparison.Ordinal),
+                "forward conversion retains original blank divs, repeated empty lines and paragraph spacing");
 
             var replyAddresses = ConversationReplyAddresses.Collect(
                 threadMessages, "ME@example.test");
@@ -350,6 +368,27 @@ internal static class Program
             previewTestGrid.Children.Add(previewTestPlain);
             var previewTestWindow = new Window { Content = previewTestGrid };
             var previewTestRich = RichComposeEditor.Attach(previewTestPlain, previewTestWindow);
+            // Both conversation commands use the existing reply-history editor.
+            // Earlier reply fixes protect blank Enter paragraphs through HTML
+            // generation; forwarded HTML must reach that path without collapse.
+            previewTestRich.LoadReplyQuotedMarkdown(spacedForwardMarkdown);
+            var forwardedSentHtml = previewTestRich.ToHtml();
+            var forwardedEditorText = new TextRange(
+                previewTestRich.TextControl.Document.ContentStart,
+                previewTestRich.TextControl.Document.ContentEnd).Text;
+            Check(forwardedEditorText.Contains(
+                      "Добрый день.\r\n\r\nПрошу предоставить сведения.",
+                      StringComparison.Ordinal) &&
+                  forwardedSentHtml.Contains("<br></p>", StringComparison.Ordinal) &&
+                  forwardedSentHtml.Contains("font-weight:bold", StringComparison.Ordinal),
+                "forward history preserves visible empty lines and rich formatting in sent HTML");
+            previewTestRich.LoadReplyQuotedText(
+                "----- Исходное письмо -----\n\nДобрый день.\n\nПрошу сведения.");
+            var replySentHtml = previewTestRich.ToHtml();
+            Check(replySentHtml.Contains("Добрый день.", StringComparison.Ordinal) &&
+                  replySentHtml.Contains("Прошу сведения.", StringComparison.Ordinal) &&
+                  replySentHtml.Contains("<br></p>", StringComparison.Ordinal),
+                "ordinary and per-message replies retain existing blank paragraph behavior");
             var checkEditor = previewTestRich.TextControl;
             Check(checkEditor is not null, "rich editor surface exists for spell checking");
             Check(string.Equals(checkEditor!.Language.IetfLanguageTag, "ru-RU",
