@@ -258,8 +258,7 @@ public partial class ExcelMailingWindow
                         accepted++;
                         AppendRunLog($"Строка {row.RowNumber}: данные подтверждённой отправки записаны в Excel.");
                     }
-                    else if (job.Status == MailingJobStatus.Rejected &&
-                             job.ErrorCode.StartsWith("recipient_", StringComparison.Ordinal))
+                    else if (MailingSubmissionEngine.IsSkippableRecipientRefusal(job))
                     {
                         rejected++;
                         session.ReleaseRecipientRefusal(job.Sender);
