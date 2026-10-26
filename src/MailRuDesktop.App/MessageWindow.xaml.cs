@@ -34,6 +34,7 @@ public partial class MessageWindow : Window
     private MailRuFullMessage? _requestedActionSource;
     private string? _conversationActionNonce;
     private MailImageProxyHandler? _mailImageHandler;
+    private WebView2NetworkJournal? _readerNetworkJournal;
     private MailRuConversation? _loadedConversation;
     private Dictionary<string, MailRuFullMessage>? _loadedConversationBodies;
     public MailRuFullMessage? ReplySource =>
@@ -165,6 +166,9 @@ public partial class MessageWindow : Window
                         ? new[] { mail.Id }
                         : Array.Empty<string>());
             _mailImageHandler.Attach();
+            _readerNetworkJournal = new WebView2NetworkJournal(
+                MessageWebView.CoreWebView2, _mailboxLogin ?? "(неизвестен)");
+            await _readerNetworkJournal.StartAsync();
             MessageWebView.CoreWebView2.Settings.AreDevToolsEnabled = false;
             MessageWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
             _readerReady = true;
@@ -671,6 +675,7 @@ public partial class MessageWindow : Window
         if (MessageWebView.CoreWebView2 is not null)
             MessageWebView.CoreWebView2.NavigationStarting -= ConversationAction_NavigationStarting;
         _mailImageHandler?.Dispose();
+        _readerNetworkJournal?.Dispose();
         try
         {
             MessageWebView.Dispose();
