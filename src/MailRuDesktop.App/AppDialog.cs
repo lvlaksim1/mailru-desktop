@@ -66,7 +66,7 @@ internal static class AppDialog
     {
         var window = new Window
         {
-            Owner = owner,
+            Owner = ResolveDialogOwner(owner),
             Title = title,
             Width = 460,
             SizeToContent = SizeToContent.Height,
@@ -162,6 +162,29 @@ internal static class AppDialog
         window.Tag = buttons;
         ThemeManager.AttachWindowChrome(window);
         return window;
+    }
+
+    private static Window ResolveDialogOwner(Window owner)
+    {
+        // A confirmation requested from Settings must belong to that visible
+        // window. Otherwise a modal window owned by MainWindow can stay behind
+        // Settings and appear to freeze the application.
+        var windows = Application.Current?.Windows.OfType<Window>();
+        var activeChild = windows?.FirstOrDefault(window =>
+            window.IsVisible && window.IsActive && ReferenceEquals(window.Owner, owner));
+        if (activeChild is not null)
+            return activeChild;
+
+        if (owner is MainWindow main)
+        {
+            var settings = windows?.FirstOrDefault(window =>
+                window.IsVisible && ReferenceEquals(window.Owner, main) &&
+                ReferenceEquals(window.Content, main.SettingsWorkspace));
+            if (settings is not null)
+                return settings;
+        }
+
+        return owner;
     }
 
     private static Button CreateButton(string text)
