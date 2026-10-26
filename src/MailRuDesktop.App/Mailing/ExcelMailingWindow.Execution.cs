@@ -75,10 +75,8 @@ public partial class ExcelMailingWindow
         var skipped = 0;
         var previouslyScheduled = 0;
         var employerFallbacks = 0;
-        var stoppedForUncertain = false;
         var currentRow = 0;
         var currentSender = "";
-        var currentRunStarted = false;
         try
         {
             var profile = SnapshotProfile();
@@ -108,7 +106,6 @@ public partial class ExcelMailingWindow
                 .ToHashSet(StringComparer.Ordinal);
             _stopMailing = false;
             _sendCancellation = new CancellationTokenSource();
-            currentRunStarted = true;
             ExecutionLogTextBox.Clear();
             AppendRunLog($"Начало рассылки. Книга: {book.Name}; лист: {sheet}; дата: {profile.StartDate:dd.MM.yyyy}.");
             var cancellation = _sendCancellation.Token;
@@ -244,7 +241,6 @@ public partial class ExcelMailingWindow
                     else
                     {
                         if (job.Status == MailingJobStatus.Rejected) rejected++;
-                        stoppedForUncertain = job.Status != MailingJobStatus.Rejected;
                         var message = $"Строка {row.RowNumber}, аккаунт {job.Sender}: " +
                             $"отправка остановлена. Результат {job.Status}; причина {job.ErrorCode}.";
                         AppendRunLog(message);
@@ -263,6 +259,9 @@ public partial class ExcelMailingWindow
                     $"отказов: {rejected}; пропущено: {skipped}; " +
                     $"ранее учтено: {previouslyScheduled}; названий из Excel: {employerFallbacks}. " +
                     "Сохраните книгу средствами Excel.");
+            else if (_stopMailing)
+                AppendRunLog($"Рассылка прервана. Подтверждено и отмечено: {accepted}; " +
+                    "ранее принятые сервером задания не отменены.");
         }
         catch (OperationCanceledException)
         {
