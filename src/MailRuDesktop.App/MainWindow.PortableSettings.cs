@@ -140,7 +140,7 @@ public partial class MainWindow
         // Closing Settings persists its geometry. Do this before taking the
         // rollback snapshot and importing, never during the final app shutdown.
         settingsWindow?.Close();
-        if (settingsWindow is { IsLoaded: true })
+        if (IsSettingsWindowOpenForImport(settingsWindow))
         {
             MessageBox.Show(this,
                 "Не удалось закрыть окно настроек. Закройте его и повторите импорт.",
@@ -149,6 +149,12 @@ public partial class MainWindow
         }
         return true;
     }
+
+    // WPF keeps IsLoaded true even after Window.Close(). Only a window still
+    // registered in Application.Windows can block the import.
+    private static bool IsSettingsWindowOpenForImport(Window? settingsWindow) =>
+        settingsWindow is not null && Application.Current.Windows.Cast<Window>()
+            .Any(window => ReferenceEquals(window, settingsWindow));
 
     private bool IsWindowBlockingSettingsImport(Window window) =>
         window != this && window != _settingsWindow && window.IsLoaded;
