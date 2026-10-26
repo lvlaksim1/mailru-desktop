@@ -128,7 +128,7 @@ public partial class MainWindow
         // The settings window is safe to close now, before replacing the files.
         var settingsWindow = _settingsWindow;
         if (Application.Current.Windows.Cast<Window>()
-            .Any(window => window != this && window != settingsWindow && window.IsLoaded))
+            .Any(IsWindowBlockingSettingsImport))
         {
             MessageBox.Show(this,
                 "Перед импортом закройте открытые окна писем и рассылки Excel, " +
@@ -149,6 +149,9 @@ public partial class MainWindow
         }
         return true;
     }
+
+    private bool IsWindowBlockingSettingsImport(Window window) =>
+        window != this && window != _settingsWindow && window.IsLoaded;
 
     // A one-shot queue: no passwords are serialized here, and only accounts
     // without computer-specific AJ tokens are submitted to Mail.ru.
