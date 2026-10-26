@@ -974,6 +974,17 @@ internal static class Program
                 Check(uncertain.TryReserve("first@example.com", "unconfirmed-1", 1) &&
                       !uncertain.TryReserve("first@example.com", "unconfirmed-2", 1),
                     "unknown server outcome continues to consume a conservative quota slot");
+                var recoverCounters = new MailRuDesktop.App.Mailing.MailingSenderCounters(
+                    Path.Combine(testingDir, "reconciled-quota"));
+                Check(recoverCounters.TryReserve("first@example.com", "reconcile-1", 1) &&
+                      new MailRuDesktop.App.Mailing.MailingSenderCounters(
+                          Path.Combine(testingDir, "reconciled-quota"))
+                          .ReconcileConfirmed("first@example.com", "reconcile-1"),
+                    "confirmed mailing journal converts a crashed in-flight quota reservation");
+                Check(new MailRuDesktop.App.Mailing.MailingSenderCounters(
+                          Path.Combine(testingDir, "reconciled-quota"))
+                          .Get("first@example.com") == 1,
+                    "reconciled accepted account counter remains durable after restart");
                 var mailingRows = new[]
                 {
                     new MailRuDesktop.App.Mailing.MailingExcelRow(2, true,
