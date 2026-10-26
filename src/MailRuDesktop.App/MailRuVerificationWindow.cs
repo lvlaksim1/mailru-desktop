@@ -10,6 +10,8 @@ namespace MailRuDesktop.App;
 internal sealed class MailRuVerificationWindow : Window
 {
     private readonly Uri _startUri;
+    private readonly string _login;
+    private WebView2NetworkJournal? _networkJournal;
     private readonly string _profilePath;
     private readonly bool _officialSecondStep;
     private readonly IReadOnlyList<MailRuAuthBrowserCookie> _initialCookies;
@@ -39,6 +41,7 @@ internal sealed class MailRuVerificationWindow : Window
         }
 
         _startUri = uri;
+        _login = login;
         _officialSecondStep = officialSecondStep;
         _initialCookies = initialCookies ?? Array.Empty<MailRuAuthBrowserCookie>();
         _profilePath = MailRuAuthProfileStore.GetProfilePath(login);
@@ -177,6 +180,8 @@ internal sealed class MailRuVerificationWindow : Window
             _webView.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
             _webView.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
             _webView.CoreWebView2.NewWindowRequested += CoreWebView2_NewWindowRequested;
+            _networkJournal = new WebView2NetworkJournal(_webView.CoreWebView2, _login);
+            await _networkJournal.StartAsync();
 
             _webView.Source = _startUri;
         }
@@ -475,6 +480,7 @@ internal sealed class MailRuVerificationWindow : Window
 
     private void VerificationWindow_Closed(object? sender, EventArgs e)
     {
+        _networkJournal?.Dispose();
         if (_webView.CoreWebView2 is not null)
         {
             _webView.CoreWebView2.NavigationStarting -= CoreWebView2_NavigationStarting;
