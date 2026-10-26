@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
 
 namespace MailRuDesktop.App;
@@ -73,7 +72,13 @@ internal static class AppDialog
             MaxHeight = 560,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             ResizeMode = ResizeMode.NoResize,
-            WindowStyle = WindowStyle.None,
+            // An opaque native frame avoids partially painted borderless WPF
+            // dialogs on some Windows/DWM configurations (especially over Settings).
+            WindowStyle = WindowStyle.SingleBorderWindow,
+            AllowsTransparency = false,
+            UseLayoutRounding = true,
+            SnapsToDevicePixels = true,
+            Icon = owner.Icon,
             ShowInTaskbar = false
         };
         window.SetResourceReference(Window.BackgroundProperty, "AppDialogBrush");
@@ -83,7 +88,7 @@ internal static class AppDialog
         {
             BorderThickness = new Thickness(1),
             Padding = new Thickness(0),
-            CornerRadius = new CornerRadius(8)
+            CornerRadius = new CornerRadius(0)
         };
         root.SetResourceReference(Border.BorderBrushProperty, "AppBorderBrush");
         root.SetResourceReference(Border.BackgroundProperty, "AppDialogBrush");
@@ -91,48 +96,6 @@ internal static class AppDialog
         var grid = new Grid();
         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-
-        var header = new Grid
-        {
-            Height = 42,
-            Margin = new Thickness(0)
-        };
-        header.SetResourceReference(Panel.BackgroundProperty, "AppControlBrush");
-        header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-
-        var titleText = new TextBlock
-        {
-            Text = title,
-            Margin = new Thickness(14, 0, 8, 0),
-            VerticalAlignment = VerticalAlignment.Center,
-            FontWeight = FontWeights.SemiBold,
-            FontSize = 14
-        };
-        titleText.SetResourceReference(TextBlock.ForegroundProperty, "AppTextBrush");
-
-        var closeButton = new Button
-        {
-            Content = "×",
-            Width = 42,
-            Height = 42,
-            Padding = new Thickness(0),
-            BorderThickness = new Thickness(0),
-            Background = Brushes.Transparent,
-            FontSize = 18
-        };
-        closeButton.SetResourceReference(Control.ForegroundProperty, "AppMutedTextBrush");
-        closeButton.Click += (_, _) => window.DialogResult = false;
-
-        Grid.SetColumn(closeButton, 1);
-        header.Children.Add(titleText);
-        header.Children.Add(closeButton);
-        header.MouseLeftButtonDown += (_, e) =>
-        {
-            if (e.ButtonState == MouseButtonState.Pressed)
-                window.DragMove();
-        };
 
         var messageText = new TextBlock
         {
@@ -151,10 +114,8 @@ internal static class AppDialog
             Margin = new Thickness(18, 0, 18, 16)
         };
 
-        Grid.SetRow(header, 0);
-        Grid.SetRow(messageText, 1);
-        Grid.SetRow(buttons, 2);
-        grid.Children.Add(header);
+        Grid.SetRow(messageText, 0);
+        Grid.SetRow(buttons, 1);
         grid.Children.Add(messageText);
         grid.Children.Add(buttons);
         root.Child = grid;

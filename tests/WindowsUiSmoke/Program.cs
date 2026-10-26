@@ -2452,7 +2452,12 @@ internal static class Program
             Check(notice is not null &&
                   ReferenceEquals(notice.Owner, mail),
                 "Main-window confirmations remain owned by MainWindow when Settings is closed");
-            ((StackPanel)notice!.Tag).Children.Add(new Button { Content = "Понятно",
+            Check(notice!.WindowStyle == WindowStyle.SingleBorderWindow &&
+                  !notice.AllowsTransparency &&
+                  notice.Content is Border dialogFrame &&
+                  dialogFrame.Background is SolidColorBrush { Color.A: 255 },
+                "Modal confirmations use a fully opaque native window frame");
+            ((StackPanel)notice.Tag).Children.Add(new Button { Content = "Понятно",
                 Padding = new Thickness(14, 7, 14, 7) });
             notice.Show();
             notice.UpdateLayout();
