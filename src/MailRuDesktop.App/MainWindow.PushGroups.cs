@@ -432,8 +432,11 @@ public partial class MainWindow
             _pushManagerWindow.Activate();
             return;
         }
+        var authorizedLogins = _authStore.Logins
+            .Where(login => _authStore.TryRestore(login, out var auth) &&
+                !string.IsNullOrWhiteSpace(auth?.AccessToken)).ToArray();
         var window = new PushSubscriptionManagerWindow(
-            _authStore.Logins, () => _pushGroups.Load(), RegisteredGoogleIds,
+            authorizedLogins, () => _pushGroups.Load(), RegisteredGoogleIds,
             RegisterGooglePushAsync, DeleteGooglePushAsync,
             RegisterPushGroupAsync, DeletePushGroupAsync,
             () => StartAllMcsListening(), StopMcsListening, () => _googleMcsState,
