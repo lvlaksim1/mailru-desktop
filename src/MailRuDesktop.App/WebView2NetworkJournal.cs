@@ -8,7 +8,7 @@ namespace MailRuDesktop.App;
 internal sealed class WebView2NetworkJournal : IDisposable
 {
     private readonly CoreWebView2 _browser;
-    private readonly string _login;
+    private readonly Func<string?> _login;
     private readonly List<(CoreWebView2DevToolsProtocolEventReceiver Receiver,
         EventHandler<CoreWebView2DevToolsProtocolEventReceivedEventArgs> Handler)> _hooks = [];
     private static readonly object Sync = new();
@@ -26,6 +26,9 @@ internal sealed class WebView2NetworkJournal : IDisposable
     ];
 
     internal WebView2NetworkJournal(CoreWebView2 browser, string login)
+        : this(browser, () => login) { }
+
+    internal WebView2NetworkJournal(CoreWebView2 browser, Func<string?> login)
     {
         _browser = browser;
         _login = login;
@@ -108,7 +111,7 @@ internal sealed class WebView2NetworkJournal : IDisposable
                 "-webview2.jsonl");
             var line = JsonSerializer.Serialize(new
             {
-                time = now, account = _login, category, raw
+                time = now, account = _login() ?? "(неизвестен)", category, raw
             });
             lock (Sync)
             {
