@@ -84,6 +84,13 @@ internal sealed class MailingSenderCounters
         }
     }
 
+    internal bool ReconcileConfirmed(string login, string messageId)
+    {
+        if (!_reserved.ContainsKey(messageId)) return false;
+        ConfirmReserved(login, messageId);
+        return true;
+    }
+
     internal void ReleaseRejected(string messageId)
     {
         if (!_reserved.Remove(messageId, out var login)) return;
