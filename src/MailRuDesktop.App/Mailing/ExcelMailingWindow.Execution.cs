@@ -75,7 +75,8 @@ public partial class ExcelMailingWindow
         var skipped = 0;
         var previouslyScheduled = 0;
         var employerFallbacks = 0;
-        var stoppedForUncertain = false;
+        var currentRow = 0;
+        var currentSender = "";
         try
         {
             var profile = SnapshotProfile();
@@ -105,9 +106,12 @@ public partial class ExcelMailingWindow
                 .ToHashSet(StringComparer.Ordinal);
             _stopMailing = false;
             _sendCancellation = new CancellationTokenSource();
+            ExecutionLogTextBox.Clear();
+            AppendRunLog($"Начало рассылки. Книга: {book.Name}; лист: {sheet}; дата: {profile.StartDate:dd.MM.yyyy}.");
             var cancellation = _sendCancellation.Token;
             SendButton.IsEnabled = false;
-            FindBooksButton.IsEnabled = false;
+            StopButton.IsEnabled = true;
+            ResetSenderCountersButton.IsEnabled = false;
             BookCombo.IsEnabled = false;
             SheetCombo.IsEnabled = false;
             ProfileControls.IsEnabled = false;
@@ -129,6 +133,7 @@ public partial class ExcelMailingWindow
                     old.Status = MailingJobStatus.CompletedRecord;
                     old.ErrorCode = "";
                     _runStore.Save(previous);
+                    AppendRunLog($"Строка {old.RowNumber}: восстановлена отметка Excel без повторной отправки.");
                 }
             }
 
@@ -145,11 +150,16 @@ public partial class ExcelMailingWindow
                 {
                     cancellation.ThrowIfCancellationRequested();
                     if (_stopMailing || !IsVisible || session.IsFull) break;
+                    currentRow = row.RowNumber;
+                    currentSender = "";
+                    reader.ActivateRow(row.RowNumber);
+                    AppendRunLog($"Строка {row.RowNumber}: обработка {row.Email}.");
 
                     var key = MailingRunStore.RowKey(row.RowNumber, row.Email, row.Inn);
                     if (session.NeedsOrganization(row) && reserved.Contains(key))
                     {
                         previouslyScheduled++;
+                        AppendRunLog($"Строка {row.RowNumber}: пропущена — уже учтена журналом.");
                         continue;
                     }
 
@@ -158,9 +168,7 @@ public partial class ExcelMailingWindow
                     {
                         if (!names.TryGetValue(row.Inn, out name))
                         {
-                            StatusText.Text =
-                                $"Строка {row.RowNumber}: поиск организации по ИНН {row.Inn}. " +
-                                $"Принято Mail.ru: {accepted}; квота {session.ReadyCount}/{session.Quota}.";
+                            AppendRunLog($"Строка {row.RowNumber}: определение названия по ИНН {row.Inn}.");
                             try
                             {
                                 name = await lookup.ResolveAsync(row.Inn, cancellation);
@@ -168,8 +176,8 @@ public partial class ExcelMailingWindow
                             catch (OperationCanceledException) { throw; }
                             catch (Exception ex)
                             {
-                                DiagnosticLog.Write("mailing_org_lookup",
-                                    ex.GetType().Name + ": " + ex.Message);
+                                throw new InvalidOperationException(
+                                    $"Ошибка определения организации по ИНН {row.Inn}: {ex.Message}", ex);
                             }
                             names[row.Inn] = name;
                         }
@@ -182,6 +190,7 @@ public partial class ExcelMailingWindow
                     if (planned.Status != "Ready")
                     {
                         skipped++;
+                        AppendRunLog($"Строка {row.RowNumber}: пропущена — {planned.Reason}.");
                         continue;
                     }
                     MailingJobRecord job;
@@ -205,23 +214,38 @@ public partial class ExcelMailingWindow
                         // Durable journal reservation BEFORE network traffic.
                         reserved.Add(key);
                     }
-                    StatusText.Text =
-                        $"Строка {row.RowNumber}: постановка письма {session.ReadyCount}/{session.Quota}. " +
-                        $"Принято Mail.ru: {accepted}.";
+                    currentSender = job.Sender;
+                    AppendRunLog($"Строка {row.RowNumber}: отправитель {job.Sender}; " +
+                        $"постановка {session.ReadyCount}/{session.Quota} на {job.ScheduledAt:dd.MM.yyyy HH:mm:ss}.");
                     await engine.ExecuteAsync(currentRun, SubmitOneAsync,
                         current => WriteOneExcelAsync(currentRun, current),
                         () => cancellation.IsCancellationRequested ||
                               _stopMailing || !IsVisible,
                         persist: journalEnabled);
+                    if (job.ConfirmedAtUtc is not null)
+                    {
+                        if (_senderCounters.RecordAccepted(job.Sender, job.MessageId))
+                        {
+                            var counter = _senders.FirstOrDefault(x =>
+                                string.Equals(x.Login, job.Sender, StringComparison.OrdinalIgnoreCase));
+                            if (counter is not null) counter.SentCount = _senderCounters.Get(job.Sender);
+                        }
+                        AppendRunLog($"Строка {row.RowNumber}: Mail.ru подтвердил постановку; " +
+                            $"аккаунт {job.Sender}, всего {_senderCounters.Get(job.Sender)}.");
+                    }
                     if (job.Status == MailingJobStatus.CompletedRecord)
+                    {
                         accepted++;
-                    else if (job.Status == MailingJobStatus.Rejected)
-                        rejected++;
+                        AppendRunLog($"Строка {row.RowNumber}: данные подтверждённой отправки записаны в Excel.");
+                    }
                     else
                     {
-                        // Unknown reply or Excel write failure: the journal
-                        // protects this row, but do not submit further letters.
-                        stoppedForUncertain = true;
+                        if (job.Status == MailingJobStatus.Rejected) rejected++;
+                        var message = $"Строка {row.RowNumber}, аккаунт {job.Sender}: " +
+                            $"отправка остановлена. Результат {job.Status}; причина {job.ErrorCode}.";
+                        AppendRunLog(message);
+                        MessageBox.Show(this, message, "Ошибка рассылки",
+                            MessageBoxButton.OK, MessageBoxImage.Error);
                         mustStop = true;
                         break;
                     }
@@ -230,44 +254,38 @@ public partial class ExcelMailingWindow
                     await Task.Yield(); // Excel COM stays on this WPF STA thread
             }
 
-            StatusText.Text = stoppedForUncertain
-                ? $"Отправка приостановлена: неопределённый ответ Mail.ru либо ошибка записи Excel. " +
-                  $"Принято и отмечено: {accepted}, отказов: {rejected}. " +
-                  (journalEnabled
-                      ? "Повторная постановка спорного письма исключена журналом."
-                      : "Журнал отключён: сведения об этом письме не сохранены.")
-                : $"Проход завершён. Принято и отмечено в Excel: {accepted}; " +
-                  $"отказов: {rejected}; пропущено: {skipped}; " +
-                  $"ранее учтено журналом: {previouslyScheduled}; " +
-                  $"названий взято из Excel: {employerFallbacks}. " +
-                  (journalEnabled ? "" : "Журнал отключён. ") +
-                  "Сохраните книгу средствами Excel.";
+            if (!mustStop && !_stopMailing)
+                AppendRunLog($"Проход завершён. Принято и отмечено: {accepted}; " +
+                    $"отказов: {rejected}; пропущено: {skipped}; " +
+                    $"ранее учтено: {previouslyScheduled}; названий из Excel: {employerFallbacks}. " +
+                    "Сохраните книгу средствами Excel.");
+            else if (_stopMailing)
+                AppendRunLog($"Рассылка прервана. Подтверждено и отмечено: {accepted}; " +
+                    "ранее принятые сервером задания не отменены.");
         }
         catch (OperationCanceledException)
         {
-            StatusText.Text =
-                $"Обработка прервана. Ранее принятые Mail.ru задания не отменены. " +
-                $"Подтверждено: {accepted}; " +
-                (JournalEnabledCheck.IsChecked == true
-                    ? "неопределённые результаты защищены журналом."
-                    : "журнал отключён, неопределённые результаты не сохранены.");
+            AppendRunLog($"Обработка прервана пользователем. " +
+                $"Ранее принятые задания не отменены. Подтверждено и отмечено: {accepted}.");
         }
         catch (Exception ex)
         {
             DiagnosticLog.Write("excel_mailing_direct_send",
                 ex.GetType().Name + ": " + ex.Message);
-            StatusText.Text =
-                $"Ошибка: {ex.Message}. Уже подтверждённые отправки: {accepted}. " +
-                (JournalEnabledCheck.IsChecked == true
-                    ? "Проверьте журнал и отметки Excel перед следующим запуском."
-                    : "Журнал отключён. Проверьте отметки Excel и письма Mail.ru.");
+            var detail = $"Строка {currentRow}, аккаунт " +
+                $"{(currentSender.Length > 0 ? currentSender : "не выбран")}: {ex.Message}. " +
+                $"Ранее подтверждено и отмечено: {accepted}.";
+            AppendRunLog("ОШИБКА. " + detail);
+            MessageBox.Show(this, detail, "Ошибка рассылки",
+                MessageBoxButton.OK, MessageBoxImage.Error);
         }
         finally
         {
             _sendCancellation?.Dispose();
             _sendCancellation = null;
             SendButton.IsEnabled = true;
-            FindBooksButton.IsEnabled = true;
+            StopButton.IsEnabled = false;
+            ResetSenderCountersButton.IsEnabled = true;
             BookCombo.IsEnabled = true;
             SheetCombo.IsEnabled = true;
             ProfileControls.IsEnabled = true;

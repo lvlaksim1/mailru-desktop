@@ -800,6 +800,20 @@ internal static class Program
                 Check(mailingStore.Load().Single().Senders.Count == 2 &&
                       mailingStore.Load().Single().IntervalSeconds == 65,
                     "independent mailing profiles persist account quotas and 65-second interval");
+                var counts = new MailRuDesktop.App.Mailing.MailingSenderCounters(testingDir);
+                Check(counts.Get("test-account@example.com") == 0 &&
+                      counts.RecordAccepted("test-account@example.com", "letter-1") &&
+                      !counts.RecordAccepted("test-account@example.com", "letter-1") &&
+                      counts.RecordAccepted("TEST-ACCOUNT@example.com", "letter-2") &&
+                      counts.Get("test-account@example.com") == 2,
+                    "confirmed sends count once by message identifier per account");
+                var restoredCounts = new MailRuDesktop.App.Mailing.MailingSenderCounters(testingDir);
+                Check(restoredCounts.Get("test-account@example.com") == 2,
+                    "account send counters persist across application launches");
+                restoredCounts.Reset();
+                Check(new MailRuDesktop.App.Mailing.MailingSenderCounters(testingDir)
+                      .Get("test-account@example.com") == 0,
+                    "counter reset is persisted");
                 var mailingRows = new[]
                 {
                     new MailRuDesktop.App.Mailing.MailingExcelRow(2, true,
@@ -912,6 +926,7 @@ internal static class Program
                 AddExcelRow(74213, "third-visible@example.com");
                 AddExcelRow(145000, "after@example.com");
                 var fakeBook = new FakeExcelWorkbook { Application = fakeExcel };
+                fakeSheet.Parent = fakeBook;
                 fakeBook.Worksheets = new FakeExcelWorksheets { Sheet = fakeSheet };
                 fakeExcel.ActiveWorkbook = fakeBook;
                 fakeExcel.ActiveSheet = fakeSheet;
@@ -982,6 +997,22 @@ internal static class Program
                     .OpenReader(discovered, "Компании");
                 Check(excelBatchReader.StartRow == 74210 && excelBatchReader.LastRow == 145000,
                     "Excel uses active cell row and data boundary even above 100000");
+                excelBatchReader.ActivateRow(74210);
+                Check(fakeBook.ActivationCount > 0 &&
+                      fakeSheet.ActiveAddress == (74210, 4),
+                    "Excel activates the current row in the originally selected column");
+                excelBatchReader.ActivateRow(74212);
+                Check(fakeSheet.ActiveAddress == (74212, 4),
+                    "Excel follows the next visible data row with its active cell");
+                Check(MailRuDesktop.App.Mailing.ExcelInteropService
+                      .IsEligibleWorkbook("report.xlsx", false, true) &&
+                      !MailRuDesktop.App.Mailing.ExcelInteropService
+                      .IsEligibleWorkbook("addin.xlam", false, true) &&
+                      !MailRuDesktop.App.Mailing.ExcelInteropService
+                      .IsEligibleWorkbook("report.xlsx", true, true) &&
+                      !MailRuDesktop.App.Mailing.ExcelInteropService
+                      .IsEligibleWorkbook("hidden.xlsx", false, false),
+                    "discovery excludes hidden books and Excel add-ins");
                 var visibleBatch = excelBatchReader.ReadNext();
                 Check(visibleBatch.Select(x => x.RowNumber)
                           .SequenceEqual(new[] { 74210, 74212, 74213 }),
@@ -1273,8 +1304,15 @@ internal static class Program
                 "drag handle changes account-table height and shifts remaining layout");
             mailingWindow.SaveSenderGridHeight();
             Check(Require<CheckBox>(mailingWindow, "JournalEnabledCheck").IsChecked == true &&
-                  Require<Button>(mailingWindow, "OpenJournalButton") is not null,
-                "mailing form provides the journal opt-out checkbox and editor button");
+                  Require<Button>(mailingWindow, "OpenJournalButton") is not null &&
+                  Require<Button>(mailingWindow, "StopButton").IsEnabled == false &&
+                  Require<Button>(mailingWindow, "ResetSenderCountersButton") is not null &&
+                  Require<TextBox>(mailingWindow, "ExecutionLogTextBox").IsReadOnly &&
+                  mailingWindow.FindName("FindBooksButton") is null,
+                "mailing form has stop, reset, multi-line log and automatic workbook discovery");
+            Check(Require<DatePicker>(mailingWindow, "StartDatePicker").SelectedDate
+                      == DateTime.Today.AddDays(1),
+                "Excel mailing start date defaults to tomorrow");
             // Instantiate the actual editor, modify one displayed message,
             // save it through the UI and verify protected journal round-trip.
             var editorPath = Path.Combine(Path.GetTempPath(),

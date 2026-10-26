@@ -12,6 +12,13 @@ public sealed class FakeExcelApplication
 public sealed class FakeExcelWorkbook
 {
     public string Name { get; init; } = "mailing.xlsx";
+    public bool IsAddin { get; set; }
+    public int ActivationCount { get; private set; }
+    public void Activate()
+    {
+        ActivationCount++;
+        Application.ActiveWorkbook = this;
+    }
     private string _fullName = @"C:\fixture\mailing.xlsx";
     public bool IsDisconnected { get; set; }
     public string FullName
@@ -29,6 +36,7 @@ public sealed class FakeExcelWorkbook
 public sealed class FakeExcelWindow
 {
     public int Hwnd { get; set; }
+    public bool Visible { get; set; } = true;
     public FakeExcelSheet ActiveSheet { get; set; } = null!;
     public FakeExcelCell ActiveCell { get; set; } = null!;
 }
@@ -60,6 +68,11 @@ public sealed class FakeExcelSheet
     private readonly Dictionary<(int Row, int Col), object> _values = [];
     private readonly HashSet<int> _hidden = [];
     public string Name { get; set; } = "Рабочий лист";
+    public FakeExcelWorkbook? Parent { get; set; }
+    public int ActivationCount { get; private set; }
+    public (int Row, int Column)? ActiveAddress { get; private set; }
+    public void Activate() => ActivationCount++;
+    internal void MarkActive(int row, int column) => ActiveAddress = (row, column);
     public FakeExcelCells Cells => new(this);
     public FakeExcelRows Rows => new(this);
     public FakeExcelColumns Columns => new();
@@ -98,6 +111,7 @@ public sealed class FakeExcelCell(FakeExcelSheet sheet, int row, int col)
 {
     public int Row => row;
     public int Column => col;
+    public void Activate() => sheet.MarkActive(row, col);
     public object? Value2
     {
         get => sheet.Get(row, col);
