@@ -23,6 +23,7 @@
                     <ColumnDefinition Width="28"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Border Grid.Column="0"
                         Width="{DynamicResource AppAvatarSize}" Height="{DynamicResource AppAvatarSize}"
@@ -44,7 +45,13 @@
                            VerticalAlignment="Center"
                            TextTrimming="CharacterEllipsis"
                            Text="{Binding Login}"/>
-                <Border Grid.Column="2"
+                <Ellipse Grid.Column="2"
+                         Width="10" Height="10" Margin="6,0,0,0"
+                         VerticalAlignment="Center"
+                         Fill="#C62832"
+                         ToolTip="Требуется повторная авторизация"
+                         Visibility="{Binding IsAuthorizationInvalid, Converter={StaticResource BoolToVisibility}}"/>
+                <Border Grid.Column="3"
                         MinWidth="24" Height="20"
                         Margin="6,0,0,0"
                         Padding="5,0"
@@ -260,14 +267,18 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="84"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <StackPanel Grid.Row="0">
-                    <local:SelectableText Text="MailRu Desktop" Margin="4,2,4,12" FontSize="{DynamicResource AppFontHeadingSize}" FontWeight="SemiBold"/>
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="4,2,4,12" VerticalAlignment="Center">
+                    <Ellipse x:Name="ActiveAccountLamp" Width="12" Height="12"
+                             Margin="0,0,8,0" Fill="ForestGreen" Visibility="Collapsed"/>
+                    <local:SelectableText x:Name="ActiveAccountAddressText"
+                                          Text="Аккаунт не выбран"
+                                          FontSize="{DynamicResource AppFontHeadingSize}" FontWeight="SemiBold"/>
                 </StackPanel>
 
                 <!-- Mail remains the default workspace; choose contacts in compose. -->
@@ -323,6 +334,7 @@
                             Click="ShowSettingsButton_Click" Content="⚙  Настройки"/>
                 </StackPanel>
                 <local:SelectableText x:Name="AuthStatusText"
+                           Visibility="Collapsed"
                            Grid.Row="4"
                            Margin="8,8,8,2"
                            TextWrapping="Wrap"

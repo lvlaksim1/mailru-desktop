@@ -83,16 +83,16 @@ public partial class MainWindow
         var passwordForClient = password;
         if (verificationWindow.MailboxReached)
         {
-            // A browser login proves neither client-token issuance nor that
-            // the original password is still valid after account recovery.
-            // Ask for the CURRENT password instead of extracting browser forms.
-            var currentPasswordDialog = new AddAccountWindow(
-                login, recoveryPassword: true) { Owner = this };
-            if (currentPasswordDialog.ShowDialog() != true)
-                return null;
-            passwordForClient = currentPasswordDialog.Password;
+            // The browser has completed recovery, but client access is NOT
+            // confirmed yet. Use the password observed during the recovery
+            // confirmation, if it was changed, without opening another dialog.
+            // Verification of the newly issued client token happens upstream.
+            if (!string.IsNullOrEmpty(verificationWindow.RecoveredPassword))
+                passwordForClient = verificationWindow.RecoveredPassword;
             DiagnosticLog.Write("auth_recovery",
-                "mailbox-browser-stage-completed; new-client-password-provided", login);
+                string.IsNullOrEmpty(verificationWindow.RecoveredPassword)
+                    ? "mailbox-browser-stage-completed; original-password-retry"
+                    : "mailbox-browser-stage-completed; updated-password-retry", login);
         }
 
         MailRuAuthResult retry;

@@ -103,6 +103,7 @@ public partial class MainWindow
 
         if (changed)
             SaveAccountRailLayout();
+        UpdateActiveAccountHeader();
     }
 
     private bool ReconcileStoredAccountLayout(IReadOnlyList<string> logins)

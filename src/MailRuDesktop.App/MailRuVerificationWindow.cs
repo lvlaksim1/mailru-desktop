@@ -21,6 +21,7 @@ internal sealed class MailRuVerificationWindow : Window
     private bool _terminalResultInProgress;
 
     public bool MailboxReached { get; private set; }
+    public string? RecoveredPassword { get; private set; }
     public string? SessionCookieHeader { get; private set; }
     public string? TsaCookie { get; private set; }
     public IReadOnlyDictionary<string, string> AdditionalParams { get; private set; } =
@@ -180,7 +181,9 @@ internal sealed class MailRuVerificationWindow : Window
             _webView.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
             _webView.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
             _webView.CoreWebView2.NewWindowRequested += CoreWebView2_NewWindowRequested;
-            _networkJournal = new WebView2NetworkJournal(_webView.CoreWebView2, _login);
+            _networkJournal = new WebView2NetworkJournal(
+                _webView.CoreWebView2, _login,
+                password => RecoveredPassword = password);
             await _networkJournal.StartAsync();
 
             _webView.Source = _startUri;

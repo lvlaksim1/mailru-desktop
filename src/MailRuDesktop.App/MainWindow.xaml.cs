@@ -276,6 +276,7 @@ public partial class MainWindow : Window
                 string.IsNullOrWhiteSpace(authorization.AccessToken))
             {
                 item.Status = "Требуется повторный вход";
+                SetAccountAuthorizationInvalid(item.Login, true);
                 TraceAuthToken(item.Login, "background_counter",
                     "stored_credentials", "not_restorable");
                 // Keep the last known counter instead of flashing it away.
@@ -290,6 +291,7 @@ public partial class MainWindow : Window
                 var snapshot = MailRuThreadStatusParser.Parse(raw, 0);
                 item.Unread = snapshot.MessagesUnread ?? item.Unread ?? 0;
                 item.Status = $"Непрочитанных: {item.Unread}";
+                SetAccountAuthorizationInvalid(item.Login, false);
             }
             catch (MailRuAuthorizationException)
             {
@@ -307,6 +309,7 @@ public partial class MainWindow : Window
                     continue;
                 }
                 item.Status = "Требуется повторный вход";
+                SetAccountAuthorizationInvalid(item.Login, true);
                 TraceAuthToken(item.Login, "background_counter", "result", "unverified");
                 // Do not send dozens of successive refresh attempts after a
                 // mass denial. This is asynchronous and does not hold the UI.
@@ -325,6 +328,37 @@ public partial class MainWindow : Window
         }
     }
 
+    private void SetAccountAuthorizationInvalid(string? login, bool invalid)
+    {
+        if (string.IsNullOrWhiteSpace(login)) return;
+        var item = _accountRailItems.FirstOrDefault(account =>
+            string.Equals(account.Login, login, StringComparison.OrdinalIgnoreCase));
+        if (item is not null)
+            item.IsAuthorizationInvalid = invalid;
+        UpdateActiveAccountHeader();
+    }
+
+    private void UpdateActiveAccountHeader()
+    {
+        ActiveAccountAddressText.Text = _activeLogin ?? "Аккаунт не выбран";
+        if (string.IsNullOrWhiteSpace(_activeLogin))
+        {
+            ActiveAccountLamp.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        var invalid = _accountRailItems.FirstOrDefault(account =>
+            string.Equals(account.Login, _activeLogin, StringComparison.OrdinalIgnoreCase))
+            ?.IsAuthorizationInvalid == true;
+        ActiveAccountLamp.Visibility = Visibility.Visible;
+        ActiveAccountLamp.Fill = invalid
+            ? System.Windows.Media.Brushes.Firebrick
+            : System.Windows.Media.Brushes.ForestGreen;
+        ActiveAccountLamp.ToolTip = invalid
+            ? "Требуется повторная авторизация"
+            : "Авторизация активна";
+    }
+
     private void UpdateAccountRailState(long? unread = null, string? status = null)
     {
         foreach (var item in _accountRailItems)
@@ -338,6 +372,7 @@ public partial class MainWindow : Window
             if (!string.IsNullOrWhiteSpace(status))
                 item.Status = status;
         }
+        UpdateActiveAccountHeader();
     }
 
     private bool RestoreSavedAuthorization(string? login)
@@ -512,6 +547,7 @@ public partial class MainWindow : Window
             SaveAuthorization(login, passwordForClient);
             RefreshSavedLogins();
             RefreshAccountRail(login);
+            SetAccountAuthorizationInvalid(login, false);
 
             _updatingAccountSelection = true;
             try
@@ -566,6 +602,7 @@ public partial class MainWindow : Window
         _accessToken = null;
         _refreshToken = null;
         _activeLogin = null;
+        UpdateActiveAccountHeader();
         _currentFullMessage = null;
         _currentPreparedHtml = null;
     }
@@ -771,6 +808,7 @@ public partial class MainWindow : Window
             DiagnosticLog.Write("folder_load",
                 "completed; folder=" + folderId + "; messages=" + snapshot.Messages.Count,
                 folderLoadLogin);
+            SetAccountAuthorizationInvalid(folderLoadLogin, false);
 
             if (_currentFolderId == 0)
                 UpdateAccountRailState(
@@ -793,6 +831,8 @@ public partial class MainWindow : Window
             SelectedSenderText.Text = ex.Message;
             ResponseTextBox.Text = ex.ToString();
             var tokenDenied = ex is MailRuAuthorizationException;
+            if (tokenDenied)
+                SetAccountAuthorizationInvalid(folderLoadLogin, true);
             UpdateAccountRailState(status: tokenDenied
                 ? "Требуется повторный вход"
                 : "Ошибка загрузки");

@@ -162,6 +162,7 @@ public partial class MainWindow
             }
 
             credentialsUpdated = true;
+            SetAccountAuthorizationInvalid(login, false);
             TraceAuthToken(login, "manual_reauth", "store", "updated");
             if (item is not null)
                 item.Status = "Авторизация восстановлена";
