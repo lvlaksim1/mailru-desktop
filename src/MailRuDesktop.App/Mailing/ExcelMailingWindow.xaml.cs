@@ -16,6 +16,12 @@ internal sealed class MailingSenderChoice : INotifyPropertyChanged
 {
     public required string Login { get; init; }
     public string Availability { get; init; } = "Авторизован";
+    private int _sentCount;
+    public int SentCount
+    {
+        get => _sentCount;
+        set { _sentCount = value; PropertyChanged?.Invoke(this, new(nameof(SentCount))); }
+    }
     private bool _selected;
     public bool IsSelected
     {
@@ -34,6 +40,7 @@ internal sealed class MailingSenderChoice : INotifyPropertyChanged
 public partial class ExcelMailingWindow : Window
 {
     private readonly MailingProfileStore _store = new();
+    private readonly MailingSenderCounters _senderCounters = new();
     private readonly AuthorizationStore _authorizations;
     private readonly AppSettingsStore _settings;
     private readonly ObservableCollection<MailingProfile> _profiles = [];
@@ -193,12 +200,14 @@ public partial class ExcelMailingWindow : Window
                 {
                     Login = login, IsSelected = existing is not null,
                     Quantity = existing?.Quantity ?? 50,
+                    SentCount = _senderCounters.Get(login),
                     Availability = loginSet.Contains(login) ? "Авторизован" : "Нет авторизации"
                 };
                 row.PropertyChanged += (_, _) => MarkDirty();
                 _senders.Add(row);
             }
-            StartDatePicker.SelectedDate = profile.StartDate;
+            StartDatePicker.SelectedDate = profile.StartDate.Date > DateTime.Today
+                ? profile.StartDate.Date : DateTime.Today.AddDays(1);
             StartTimeBox.Text = profile.StartTime;
             IntervalBox.Text = profile.IntervalSeconds.ToString();
             JournalEnabledCheck.IsChecked = profile.JournalEnabled;
@@ -385,7 +394,7 @@ public partial class ExcelMailingWindow : Window
         MarkDirty();
     }
 
-    private void FindBooks_Click(object sender, RoutedEventArgs e)
+    private void BookCombo_DropDownOpened(object sender, EventArgs e)
     {
         try
         {
@@ -434,6 +443,38 @@ public partial class ExcelMailingWindow : Window
         BookPathText.Text = book.FullName == book.Name
             ? "Книга ещё не сохранена — сохраните её в Excel перед отправкой."
             : book.FullName;
+    }
+
+    private void ResetSenderCounters_Click(object sender, RoutedEventArgs e)
+    {
+        if (_sendCancellation is not null) return;
+        if (MessageBox.Show(this, "Обнулить сохранённые счётчики всех аккаунтов?",
+                "Рассылки Excel", MessageBoxButton.YesNo, MessageBoxImage.Question)
+            != MessageBoxResult.Yes) return;
+        try
+        {
+            _senderCounters.Reset();
+            foreach (var account in _senders) account.SentCount = 0;
+            AppendRunLog("Счётчики отправленных писем всех аккаунтов обнулены.");
+        }
+        catch (Exception ex) { ShowError(ex); }
+    }
+
+    private void AppendRunLog(string message)
+    {
+        var record = DateTime.Now.ToString("HH:mm:ss") + "  " + message;
+        ExecutionLogTextBox.AppendText(record + Environment.NewLine);
+        ExecutionLogTextBox.ScrollToEnd();
+        StatusText.Text = message;
+    }
+
+    private void StopMailing_Click(object sender, RoutedEventArgs e)
+    {
+        if (_sendCancellation is null || _stopMailing) return;
+        _stopMailing = true;
+        _sendCancellation.Cancel();
+        StopButton.IsEnabled = false;
+        AppendRunLog("Запрошено прерывание. Новые письма отправляться не будут.");
     }
 
     private void ShowError(Exception ex)
