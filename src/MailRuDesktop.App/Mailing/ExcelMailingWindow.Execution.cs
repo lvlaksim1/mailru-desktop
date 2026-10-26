@@ -146,6 +146,19 @@ public partial class ExcelMailingWindow
             // recover the two Excel marks without any repeated server POST.
             foreach (var previous in priorRuns)
             {
+                foreach (var confirmed in previous.Jobs.Where(x =>
+                             x.ConfirmedAtUtc is not null))
+                {
+                    if (_senderCounters.ReconcileConfirmed(
+                            confirmed.Sender, confirmed.MessageId))
+                    {
+                        var sender = _senders.FirstOrDefault(x =>
+                            string.Equals(x.Login, confirmed.Sender,
+                                StringComparison.OrdinalIgnoreCase));
+                        if (sender is not null)
+                            sender.SentCount = _senderCounters.Get(confirmed.Sender);
+                    }
+                }
                 foreach (var old in previous.Jobs.Where(x =>
                              x.Status == MailingJobStatus.ExcelWritePending))
                 {
