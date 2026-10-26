@@ -151,7 +151,7 @@ internal sealed class BackupImportSelectionWindow : Window
         var header = new CheckBox
         {
             Content = items is null ? name : $"{name} ({items.Count})",
-            IsChecked = true, IsThreeState = items is not null,
+            IsChecked = true, IsThreeState = false,
             FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 3, 0, 4)
         };
         _sections[id] = header;

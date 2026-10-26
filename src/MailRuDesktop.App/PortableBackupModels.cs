@@ -10,11 +10,6 @@ namespace MailRuDesktop.App;
 
 // Credentials are included ONLY in encrypted portable exports. Tokens and cookies
 // remain private to each installation. No diagnostics are added to this file.
-internal sealed class PortableAccount
-{
-    public string Login { get; set; } = "";
-    public string? Password { get; set; }
-}
 internal sealed class PortableAttachment
 {
     public string Name { get; set; } = "";

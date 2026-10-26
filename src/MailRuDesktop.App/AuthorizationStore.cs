@@ -14,6 +14,12 @@ public sealed record RestoredAuthorization(
     string? WebCookieHeader,
     string? TouchCookieHeader);
 
+internal sealed class PortableAccount
+{
+    public string Login { get; set; } = "";
+    public string? Password { get; set; }
+}
+
 internal sealed class AuthorizationStore
 {
     private static readonly JsonSerializerOptions JsonOptions = new()

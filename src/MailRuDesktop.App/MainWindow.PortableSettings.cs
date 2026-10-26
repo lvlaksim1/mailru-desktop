@@ -91,11 +91,20 @@ public partial class MainWindow
                 return;
             }
 
-            Process.Start(new ProcessStartInfo(executable)
+            // The app is single-instance. Launching a second copy before exit
+            // would only activate the first copy and abort the restart.
+            // A detached short-lived cmd child launches AFTER mutex release.
+            var restart = new ProcessStartInfo(Path.Combine(Environment.SystemDirectory, "cmd.exe"))
             {
-                WorkingDirectory = Path.GetDirectoryName(executable)!,
-                UseShellExecute = true
-            });
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                UseShellExecute = false,
+                WorkingDirectory = Path.GetDirectoryName(executable)!
+            };
+            restart.ArgumentList.Add("/d");
+            restart.ArgumentList.Add("/c");
+            restart.ArgumentList.Add("ping 127.0.0.1 -n 4 >nul && start \"\" \"" + executable + "\"");
+            Process.Start(restart);
             _restartingAfterSettingsImport = true;
             Application.Current.Shutdown();
         }

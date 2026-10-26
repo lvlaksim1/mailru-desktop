@@ -70,6 +70,11 @@ public partial class MainWindow
                 : new AccountRailItem(login));
         }
 
+        // An imported account without a local token is visible but requires login.
+        foreach (var entry in reconciled)
+            if (!_authStore.TryRestore(entry.Login, out _))
+                entry.IsAuthorizationInvalid = true;
+
         _accountRailItems.Clear();
         _accountRailItems.AddRange(reconciled);
 
