@@ -101,12 +101,66 @@ internal sealed class MailingSubmissionEngine(MailingRunStore store)
         }
     }
 
+    // A failed scheduling request may be repeated ONLY when Mail.ru explicitly
+    // rejected its access token. The same message identity is held by the
+    // submit delegate; never repeat a successful or uncertain POST.
+    internal static async Task<MailRuCommandResult> SubmitWithTokenRecoveryAsync(
+        string accessToken,
+        Func<string, Task<MailRuCommandResult>> submit,
+        Func<Task<string?>> recoverVerifiedAccess,
+        Action<string>? onStage = null)
+    {
+        var first = await submit(accessToken);
+        if (first.Success || !IsTokenRejection(first.RawResponse))
+            return first;
+
+        onStage?.Invoke("token_rejected");
+        string? replacement;
+        try
+        {
+            replacement = await recoverVerifiedAccess();
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            onStage?.Invoke("refresh_failed_" + ex.GetType().Name);
+            return first;
+        }
+        if (string.IsNullOrWhiteSpace(replacement) ||
+            string.Equals(replacement, accessToken, StringComparison.Ordinal))
+        {
+            onStage?.Invoke("refresh_unavailable");
+            return first;
+        }
+
+        onStage?.Invoke("retry_with_verified_token");
+        // One retry at most. If the second POST is uncertain, propagate that
+        // uncertainty and keep its durable quota reservation.
+        return await submit(replacement);
+    }
+
+    internal static bool IsTokenRejection(string response)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(response);
+            var root = document.RootElement;
+            return root.ValueKind == JsonValueKind.Object &&
+                   root.TryGetProperty("status", out var status) &&
+                   int.TryParse(status.ToString(), out var code) && code == 403 &&
+                   root.TryGetProperty("body", out var body) &&
+                   body.ValueKind == JsonValueKind.String &&
+                   string.Equals(body.GetString(), "token", StringComparison.OrdinalIgnoreCase);
+        }
+        catch (JsonException) { return false; }
+    }
+
     internal static bool IsSkippableRecipientRefusal(MailingJobRecord job) =>
         job.Status == MailingJobStatus.Rejected &&
         job.ErrorCode.StartsWith("recipient_", StringComparison.Ordinal);
 
     private static string ExplainRefusal(string response)
     {
+        if (IsTokenRejection(response)) return "auth_token_rejected";
         try
         {
             using var document = JsonDocument.Parse(response);

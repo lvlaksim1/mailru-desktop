@@ -40,21 +40,99 @@ public partial class ExcelMailingWindow
             return new MailRuCommandResult(false,
                 "{\"status\":400,\"body\":{\"error\":\"sender_quota_reached\"}}");
 
-        var result = await _mailRu.SendMessageAsync(auth.AccessToken,
-            new MailRuOutgoingMessage(
-                To: job.Email,
-                Subject: job.Subject,
-                Text: rendered.PlainText,
-                Html: rendered.Html,
-                SendDate: job.ScheduledAt.ToUnixTimeSeconds()
-                    .ToString(CultureInfo.InvariantCulture),
-                MessageId: job.MessageId));
+        // Both POSTs (when token recovery is required) must use the same
+        // scheduled message and MessageId, under ONE reserved quota slot.
+        var outgoing = new MailRuOutgoingMessage(
+            To: job.Email,
+            Subject: job.Subject,
+            Text: rendered.PlainText,
+            Html: rendered.Html,
+            SendDate: job.ScheduledAt.ToUnixTimeSeconds()
+                .ToString(CultureInfo.InvariantCulture),
+            MessageId: job.MessageId);
+        var result = await MailingSubmissionEngine.SubmitWithTokenRecoveryAsync(
+            auth.AccessToken,
+            token => _mailRu.SendMessageAsync(token, outgoing),
+            () => RecoverMailingAccessTokenAsync(job.Sender, auth.AccessToken),
+            stage => AppendRunLog($"Строка {job.RowNumber}, аккаунт {job.Sender}: " +
+                (stage switch
+                {
+                    "token_rejected" => "Mail.ru отклонил токен при отправке; " +
+                        "проверяем автоматическое обновление.",
+                    "retry_with_verified_token" => "Новый токен проверен; " +
+                        "повторяем постановку того же письма без нового расхода квоты.",
+                    "refresh_unavailable" => "Не удалось получить новый подтверждённый токен; " +
+                        "рассылка будет остановлена.",
+                    _ => "Ошибка обновления токена (" + stage + "); " +
+                        "рассылка будет остановлена."
+                })));
         if (result.Success)
             _senderCounters.ConfirmReserved(job.Sender, job.MessageId);
         else if (MailingSubmissionEngine.IsExplicitRejection(result.RawResponse))
             _senderCounters.ReleaseRejected(job.MessageId);
         // If the server response is uncertain, retain the durable quota slot.
         return result;
+    }
+
+    private async Task<string?> RecoverMailingAccessTokenAsync(
+        string login, string rejectedAccessToken)
+    {
+        if (!_authorizations.TryRestore(login, out var stored) || stored is null)
+            return null;
+
+        // A background folder refresh can update this shared authorization
+        // store while the scheduling request is in flight.
+        if (!string.Equals(stored.AccessToken, rejectedAccessToken,
+                StringComparison.Ordinal))
+        {
+            if (string.IsNullOrWhiteSpace(stored.AccessToken))
+                return null;
+            await _mailRu.GetFolderThreadsAsync(stored.AccessToken, 0, limit: 1);
+            AppendRunLog($"Аккаунт {login}: уже обновлённый токен подтверждён чтением почты.");
+            return stored.AccessToken;
+        }
+
+        if (string.IsNullOrWhiteSpace(stored.RefreshToken))
+        {
+            AppendRunLog($"Аккаунт {login}: отсутствует сохранённый refresh_token.");
+            return null;
+        }
+
+        var refresh = await _mailRu.RefreshAccessTokenAsync(stored.RefreshToken);
+        if (!refresh.Success || string.IsNullOrWhiteSpace(refresh.AccessToken))
+        {
+            AppendRunLog($"Аккаунт {login}: обновление токена отклонено; " +
+                $"HTTP {refresh.HttpStatusCode}.");
+            return null;
+        }
+
+        // A fresh token is not trusted until the server accepts a read-only
+        // folder request; never POST mail with an unverified token.
+        await _mailRu.GetFolderThreadsAsync(refresh.AccessToken, 0, limit: 1);
+        var replacementRefresh = refresh.RefreshToken ?? stored.RefreshToken;
+        if (_authorizations.UpdateTokensIfCurrent(
+                login, rejectedAccessToken, refresh.AccessToken, replacementRefresh))
+        {
+            if (Owner is MainWindow main)
+                main.ApplyVerifiedMailingToken(
+                    login, rejectedAccessToken, refresh.AccessToken, replacementRefresh);
+            AppendRunLog($"Аккаунт {login}: токен обновлён, проверен и сохранён.");
+            return refresh.AccessToken;
+        }
+
+        // A newer background/manual refresh won the race. Never overwrite it
+        // with tokens from this older operation.
+        if (_authorizations.TryRestore(login, out var current) &&
+            current is not null &&
+            !string.IsNullOrWhiteSpace(current.AccessToken) &&
+            !string.Equals(current.AccessToken, rejectedAccessToken,
+                StringComparison.Ordinal))
+        {
+            await _mailRu.GetFolderThreadsAsync(current.AccessToken, 0, limit: 1);
+            AppendRunLog($"Аккаунт {login}: используется более новый подтверждённый токен.");
+            return current.AccessToken;
+        }
+        return null;
     }
 
     private Task WriteOneExcelAsync(MailingRunRecord run, MailingJobRecord job)
