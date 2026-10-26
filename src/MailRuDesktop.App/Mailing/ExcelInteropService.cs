@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 
@@ -46,6 +47,25 @@ internal static class ExcelInteropService
             string name = workbook.Name;
             string path = workbook.FullName;
             dynamic excel = workbook.Application;
+            var extension = Path.GetExtension(name);
+            if (extension.Equals(".xlam", StringComparison.OrdinalIgnoreCase) ||
+                extension.Equals(".xla", StringComparison.OrdinalIgnoreCase) ||
+                extension.Equals(".xll", StringComparison.OrdinalIgnoreCase) ||
+                Convert.ToBoolean(workbook.IsAddin, CultureInfo.InvariantCulture))
+                return;
+            dynamic windows = workbook.Windows;
+            int windowCount = Convert.ToInt32(windows.Count, CultureInfo.InvariantCulture);
+            var anyVisible = false;
+            for (var windowIndex = 1; windowIndex <= windowCount; windowIndex++)
+            {
+                if (Convert.ToBoolean(windows.Item[windowIndex].Visible,
+                        CultureInfo.InvariantCulture))
+                {
+                    anyVisible = true;
+                    break;
+                }
+            }
+            if (!anyVisible) return;
             int hwnd = Convert.ToInt32(excel.Hwnd, CultureInfo.InvariantCulture);
             var key = hwnd.ToString(CultureInfo.InvariantCulture) + "|" + path;
             if (!identities.Add(key)) return;
@@ -261,8 +281,10 @@ internal static class ExcelInteropService
             CultureInfo.InvariantCulture);
         var lastRow = Math.Max(LastNonempty(Idx("ИНН работодателя")),
                                LastNonempty(Idx("E-mail работодателя")));
+        int activeColumn = Convert.ToInt32(activeCell.Column,
+            CultureInfo.InvariantCulture);
         return new ExcelRowReader(sheet, columns, startRow, lastRow, lastColumn,
-            RowsPerBatch);
+            RowsPerBatch, activeColumn);
     }
 
     /// <summary>
@@ -335,6 +357,7 @@ internal static class ExcelInteropService
     internal sealed class ExcelRowReader
     {
         private readonly dynamic _sheet;
+        private readonly int _activeColumn;
         private readonly Dictionary<string, int> _columns;
         private readonly int _lastColumn;
         private readonly int _batchSize;
@@ -346,15 +369,29 @@ internal static class ExcelInteropService
         internal IReadOnlyDictionary<string, int> Columns => _columns;
 
         internal ExcelRowReader(object sheet, Dictionary<string, int> columns,
-            int startRow, int lastRow, int lastColumn, int batchSize)
+            int startRow, int lastRow, int lastColumn, int batchSize,
+            int activeColumn = 1)
         {
             _sheet = sheet;
+            _activeColumn = Math.Max(1, activeColumn);
             _columns = columns;
             StartRow = startRow;
             LastRow = lastRow;
             _nextRow = startRow;
             _lastColumn = lastColumn;
             _batchSize = batchSize;
+        }
+
+        internal void ActivateRow(int row)
+        {
+            if (row < StartRow || row > LastRow)
+                throw new ArgumentOutOfRangeException(nameof(row));
+            // The worksheet is activated in its own Excel instance. Preserve
+            // the originally selected column while moving down the mailing rows.
+            dynamic workbook = _sheet.Parent;
+            workbook.Activate();
+            _sheet.Activate();
+            _sheet.Cells[row, _activeColumn].Activate();
         }
 
         internal List<MailingExcelRow> ReadNext(CancellationToken cancellationToken = default)
