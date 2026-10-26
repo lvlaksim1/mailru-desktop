@@ -152,11 +152,11 @@ public partial class ExcelMailingWindow
                     if (_senderCounters.ReconcileConfirmed(
                             confirmed.Sender, confirmed.MessageId))
                     {
-                        var sender = _senders.FirstOrDefault(x =>
+                        var senderRow = _senders.FirstOrDefault(x =>
                             string.Equals(x.Login, confirmed.Sender,
                                 StringComparison.OrdinalIgnoreCase));
-                        if (sender is not null)
-                            sender.SentCount = _senderCounters.Get(confirmed.Sender);
+                        if (senderRow is not null)
+                            senderRow.SentCount = _senderCounters.Get(confirmed.Sender);
                     }
                 }
                 foreach (var old in previous.Jobs.Where(x =>
