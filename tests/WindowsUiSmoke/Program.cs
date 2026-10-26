@@ -2013,6 +2013,29 @@ internal static class Program
                   ReferenceEquals(settingsWindow.Content,
                       Require<Grid>(mail, "SettingsWorkspace")),
                 "Settings open in one independent owned window");
+
+            // Confirmations invoked from a detached Settings window must be
+            // visible above it, even when their call site passes MainWindow.
+            settingsWindow!.Activate();
+            var dialogTypeWithSettings = typeof(MainWindow).Assembly.GetType(
+                "MailRuDesktop.App.AppDialog");
+            var confirmWithSettings = dialogTypeWithSettings?.GetMethod(
+                "Confirm", BindingFlags.Static | BindingFlags.Public);
+            Window? observedDeleteConfirmation = null;
+            mail.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                var modal = Application.Current.Windows.OfType<Window>()
+                    .FirstOrDefault(w => w.Title == "Удаление подписи (проверка)");
+                observedDeleteConfirmation = modal;
+                modal?.Close();
+            }), System.Windows.Threading.DispatcherPriority.Background);
+            var deleteConfirmed = (bool)confirmWithSettings!.Invoke(null,
+                new object[] { mail, "Удаление подписи (проверка)",
+                    "Удалить подпись?", "Удалить", "Отмена" })!;
+            Check(!deleteConfirmed && observedDeleteConfirmation is not null &&
+                  ReferenceEquals(observedDeleteConfirmation.Owner, settingsWindow),
+                "Signature deletion confirmation is displayed above the detached Settings window");
+
             var settingsGrid = Require<Grid>(mail, "SettingsWorkspace");
             Check(settingsGrid.ColumnDefinitions.Count == 1,
                 "settings no longer contain the diagnostic panel or its splitter");
@@ -2417,7 +2440,9 @@ internal static class Program
             Check(createNotice is not null, "shared notification window factory exists");
             notice = createNotice!.Invoke(null,
                 new object[] { mail, "Тест", "Короткое сообщение" }) as Window;
-            Check(notice is not null, "short notification is created");
+            Check(notice is not null &&
+                  ReferenceEquals(notice.Owner, mail),
+                "Main-window confirmations remain owned by MainWindow when Settings is closed");
             ((StackPanel)notice!.Tag).Children.Add(new Button { Content = "Понятно",
                 Padding = new Thickness(14, 7, 14, 7) });
             notice.Show();
