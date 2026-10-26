@@ -316,8 +316,7 @@ internal sealed class MailRuVerificationWindow : Window
         if (_officialSecondStep)
         {
             var page = _webView.Source;
-            if (page is not null && page.Host == "e.mail.ru" &&
-                page.AbsolutePath.StartsWith("/inbox", StringComparison.OrdinalIgnoreCase))
+            if (IsMailboxLanding(page))
             {
                 MailboxReached = true;
                 _ = HandleMailboxLandingAsync();
@@ -328,6 +327,18 @@ internal sealed class MailRuVerificationWindow : Window
         }
 
         _continueButton.IsEnabled = true;
+    }
+
+    internal static bool IsMailboxLanding(Uri? page)
+    {
+        if (page is null ||
+            page.Scheme != Uri.UriSchemeHttps ||
+            !page.Host.Equals("e.mail.ru", StringComparison.OrdinalIgnoreCase))
+            return false;
+        return page.AbsolutePath.Equals("/inbox", StringComparison.OrdinalIgnoreCase) ||
+            page.AbsolutePath.StartsWith("/inbox/", StringComparison.OrdinalIgnoreCase) ||
+            page.AbsolutePath.Equals("/sent", StringComparison.OrdinalIgnoreCase) ||
+            page.AbsolutePath.StartsWith("/sent/", StringComparison.OrdinalIgnoreCase);
     }
 
     private async Task HandleMailboxLandingAsync()
