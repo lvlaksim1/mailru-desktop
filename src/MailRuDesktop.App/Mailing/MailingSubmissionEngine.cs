@@ -101,6 +101,10 @@ internal sealed class MailingSubmissionEngine(MailingRunStore store)
         }
     }
 
+    internal static bool IsSkippableRecipientRefusal(MailingJobRecord job) =>
+        job.Status == MailingJobStatus.Rejected &&
+        job.ErrorCode.StartsWith("recipient_", StringComparison.Ordinal);
+
     private static string ExplainRefusal(string response)
     {
         try
