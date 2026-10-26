@@ -26,6 +26,28 @@ internal static class Program
             var app = new App();
             app.InitializeComponent();
 
+            // Portable backups: authenticated archives, but no tokens in payload.
+            {
+                var model = new PortablePackage
+                {
+                    Accounts = [new PortableAccount { Login = "test@example.invalid", Password = "a secret" }]
+                };
+                var encrypted = PortableBackupCrypto.Encrypt(model, "correct-password");
+                var restored = PortableBackupCrypto.Decrypt(encrypted, "correct-password");
+                if (restored.Accounts.Count != 1 ||
+                    restored.Accounts[0].Password != "a secret" ||
+                    restored.Accounts[0].Login != "test@example.invalid")
+                    throw new InvalidOperationException("Encrypted backup round-trip failed.");
+                var wrongPasswordRejected = false;
+                try { PortableBackupCrypto.Decrypt(encrypted, "wrong-password"); }
+                catch (InvalidDataException) { wrongPasswordRejected = true; }
+                if (!wrongPasswordRejected)
+                    throw new InvalidOperationException("Encrypted backup accepted a wrong password.");
+                PortableSettingsService.Validate(restored);
+                Console.WriteLine("PASS encrypted settings backup round-trip");
+            }
+
+
             // Browser password-reset capture: only the exact confirmation POST is used.
             {
                 var resetEvent = System.Text.Json.JsonSerializer.Serialize(new

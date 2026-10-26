@@ -34,12 +34,50 @@ internal sealed class AuthorizationStore
         _state = LoadState();
     }
 
+    // Include imported accounts awaiting their first computer-specific token.
     public IReadOnlyList<string> Logins =>
         _state.Accounts
-            .Where(account => !string.IsNullOrWhiteSpace(account.AccessToken))
             .Select(account => account.Login)
+            .Where(login => !string.IsNullOrWhiteSpace(login))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(login => login, StringComparer.CurrentCultureIgnoreCase)
             .ToArray();
+
+    internal IReadOnlyList<PortableAccount> ExportPortableAccounts() =>
+        Logins.Select(login =>
+        {
+            TryGetPassword(login, out var password);
+            return new PortableAccount { Login = login, Password = password };
+        }).ToArray();
+
+    // Existing authenticated sessions survive the reset, even when not selected.
+    // Imported passwords are DPAPI-encrypted on THIS computer; no source tokens
+    // or browser data are ever accepted from the portable archive.
+    internal void ReplaceForImport(IReadOnlyList<PortableAccount> imported)
+    {
+        var preserved = _state.Accounts.Where(a => !string.IsNullOrWhiteSpace(a.AccessToken))
+            .ToList();
+        var known = preserved.Select(a => a.Login).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (var entry in imported)
+        {
+            var login = entry.Login.Trim();
+            if (!known.Add(login)) continue;
+            preserved.Add(new AuthorizationRecord
+            {
+                Login = login,
+                Password = ProtectOptional(entry.Password),
+                SavedAtUtc = DateTimeOffset.UtcNow
+            });
+        }
+        _state.Accounts = preserved;
+        if (_state.LastLogin is null ||
+            !_state.Accounts.Any(a => a.Login.Equals(_state.LastLogin,
+                StringComparison.OrdinalIgnoreCase)))
+            _state.LastLogin = preserved.FirstOrDefault()?.Login;
+        Persist();
+    }
+
+    internal void ReloadFromDisk() => _state = LoadState();
 
     public string? LastLogin => _state.LastLogin;
 

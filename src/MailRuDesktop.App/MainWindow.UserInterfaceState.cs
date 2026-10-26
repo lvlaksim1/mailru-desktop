@@ -18,7 +18,8 @@ public partial class MainWindow
 
     protected override void OnClosing(CancelEventArgs e)
     {
-        SaveUserInterfaceState();
+        if (!_restartingAfterSettingsImport)
+            SaveUserInterfaceState();
         base.OnClosing(e);
     }
 

@@ -134,6 +134,7 @@ public partial class MainWindow : Window
         PushMailToastService.Attach(
             mail => _ = NavigateToPushMailAsync(mail),
             mail => _ = DeletePushMailAsync(mail));
+        await AuthenticateNewlyImportedAccountsAsync();
     }
 
     private async Task InitializeReaderAsync()
