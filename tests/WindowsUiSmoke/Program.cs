@@ -1486,6 +1486,79 @@ internal static class Program
                           .IsSkippableRecipientRefusal(refused.Jobs[0]),
                     "disabled recipient exposes useful server reason and alone qualifies for skip");
 
+                // Only an explicit 403/token may cause ONE resend of the
+                // SAME message after the replacement token has been verified.
+                var tokenRefusalJson = "{\"status\":403,\"body\":\"token\"}";
+                Check(MailRuDesktop.App.Mailing.MailingSubmissionEngine
+                          .IsTokenRejection(tokenRefusalJson) &&
+                      !MailRuDesktop.App.Mailing.MailingSubmissionEngine
+                          .IsTokenRejection("{\"status\":403,\"body\":\"blocked\"}") &&
+                      !MailRuDesktop.App.Mailing.MailingSubmissionEngine
+                          .IsTokenRejection("{\"status\":429,\"body\":\"token\"}") &&
+                      !MailRuDesktop.App.Mailing.MailingSubmissionEngine
+                          .IsTokenRejection("{\"status\":403,\"body\":{}}"),
+                    "mailing refresh triggers exclusively for the explicit 403 token response");
+                var refreshedPosts = 0;
+                var refreshCalls = 0;
+                var messageIds = new List<string>();
+                var stableMessageId = "stable-schedule-message-id";
+                var afterRefresh = MailRuDesktop.App.Mailing.MailingSubmissionEngine
+                    .SubmitWithTokenRecoveryAsync("expired",
+                        token =>
+                        {
+                            refreshedPosts++;
+                            messageIds.Add(stableMessageId);
+                            return Task.FromResult(new MailRuDesktop.Protocol.MailRuCommandResult(
+                                token == "renewed",
+                                token == "renewed" ? "{\"status\":200}" : tokenRefusalJson));
+                        },
+                        () =>
+                        {
+                            refreshCalls++;
+                            return Task.FromResult<string?>("renewed");
+                        }).GetAwaiter().GetResult();
+                Check(afterRefresh.Success && refreshedPosts == 2 && refreshCalls == 1 &&
+                      messageIds.Count == 2 && messageIds.All(id => id == stableMessageId),
+                    "expired token is recovered once; retry keeps the original message ID");
+                var unavailablePosts = 0;
+                var unavailableRefresh = MailRuDesktop.App.Mailing.MailingSubmissionEngine
+                    .SubmitWithTokenRecoveryAsync("expired", _ =>
+                    {
+                        unavailablePosts++;
+                        return Task.FromResult(new MailRuDesktop.Protocol.MailRuCommandResult(
+                            false, tokenRefusalJson));
+                    }, () => Task.FromResult<string?>(null)).GetAwaiter().GetResult();
+                Check(!unavailableRefresh.Success && unavailablePosts == 1 &&
+                      MailRuDesktop.App.Mailing.MailingSubmissionEngine
+                          .IsTokenRejection(unavailableRefresh.RawResponse),
+                    "failed token refresh never repeats an unverified mailing POST");
+                var doubleRefusalPosts = 0;
+                var secondRefusal = MailRuDesktop.App.Mailing.MailingSubmissionEngine
+                    .SubmitWithTokenRecoveryAsync("expired", _ =>
+                    {
+                        doubleRefusalPosts++;
+                        return Task.FromResult(new MailRuDesktop.Protocol.MailRuCommandResult(
+                            false, tokenRefusalJson));
+                    }, () => Task.FromResult<string?>("renewed")).GetAwaiter().GetResult();
+                Check(!secondRefusal.Success && doubleRefusalPosts == 2,
+                    "second 403 token refusal stops without an unlimited refresh loop");
+                var otherRefusalPosts = 0;
+                var otherRefreshCalls = 0;
+                var otherRefusal = MailRuDesktop.App.Mailing.MailingSubmissionEngine
+                    .SubmitWithTokenRecoveryAsync("expired", _ =>
+                    {
+                        otherRefusalPosts++;
+                        return Task.FromResult(new MailRuDesktop.Protocol.MailRuCommandResult(
+                            false, "{\"status\":400,\"body\":\"invalid_recipient\"}"));
+                    }, () =>
+                    {
+                        otherRefreshCalls++;
+                        return Task.FromResult<string?>("renewed");
+                    }).GetAwaiter().GetResult();
+                Check(!otherRefusal.Success && otherRefusalPosts == 1 &&
+                      otherRefreshCalls == 0,
+                    "recipient rejection does not trigger refresh or a repeated POST");
+
                 var ambiguous = journal.Create(journalProfile, @"C:\mailing\source.xlsx",
                     "Лист1", [nextTask with { RowNumber = 5, Email = "ambiguous@example.test" }]);
                 engine.ExecuteAsync(ambiguous, _ => Task.FromResult(
