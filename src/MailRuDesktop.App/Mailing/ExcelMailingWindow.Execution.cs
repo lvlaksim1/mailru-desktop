@@ -32,12 +32,14 @@ public partial class ExcelMailingWindow
             string.IsNullOrWhiteSpace(auth?.AccessToken))
             throw new InvalidOperationException("Отсутствует авторизация выбранного аккаунта.");
 
+        // Build the body before reserving capacity; a local formatting
+        // failure must not leave an unsent message consuming a quota slot.
+        var rendered = MailingMarkdownFormatting.Render(job.Body);
         if (!senderQuotas.TryGetValue(job.Sender, out var quota) ||
             !_senderCounters.TryReserve(job.Sender, job.MessageId, quota))
             return new MailRuCommandResult(false,
                 "{\"status\":400,\"body\":{\"error\":\"sender_quota_reached\"}}");
 
-        var rendered = MailingMarkdownFormatting.Render(job.Body);
         var result = await _mailRu.SendMessageAsync(auth.AccessToken,
             new MailRuOutgoingMessage(
                 To: job.Email,
