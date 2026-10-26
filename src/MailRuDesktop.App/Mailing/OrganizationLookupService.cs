@@ -1,3 +1,4 @@
+using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -42,7 +43,9 @@ internal sealed class OrganizationLookupService : IDisposable
         };
         request.Headers.UserAgent.ParseAdd("MailRuDesktop/ExcelMailingPreparation");
         using var response = await _http.SendAsync(request, cancellationToken);
-        if (!response.IsSuccessStatusCode) return null;
+        if (!response.IsSuccessStatusCode)
+            throw new HttpRequestException(
+                $"Справочник организаций вернул HTTP {(int)response.StatusCode}.");
         using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
         using var json = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
         var root = json.RootElement;
@@ -50,7 +53,9 @@ internal sealed class OrganizationLookupService : IDisposable
             root.TryGetProperty("body", out var body) &&
             body.ValueKind == JsonValueKind.Object) root = body;
         if (!root.TryGetProperty("suggestions", out var suggestions) ||
-            suggestions.ValueKind != JsonValueKind.Array) return null;
+            suggestions.ValueKind != JsonValueKind.Array)
+            throw new InvalidDataException(
+                "Справочник организаций вернул неожиданный формат ответа.");
         var matches = new HashSet<string>(StringComparer.Ordinal);
         foreach (var suggestion in suggestions.EnumerateArray())
         {
