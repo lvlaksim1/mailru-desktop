@@ -55,7 +55,7 @@ public partial class ExcelMailingWindow
             token => _mailRu.SendMessageAsync(token, outgoing),
             () => RecoverMailingAccessTokenAsync(job.Sender, auth.AccessToken),
             stage => AppendRunLog($"Строка {job.RowNumber}, аккаунт {job.Sender}: " +
-                stage switch
+                (stage switch
                 {
                     "token_rejected" => "Mail.ru отклонил токен при отправке; " +
                         "проверяем автоматическое обновление.",
@@ -65,7 +65,7 @@ public partial class ExcelMailingWindow
                         "рассылка будет остановлена.",
                     _ => "Ошибка обновления токена (" + stage + "); " +
                         "рассылка будет остановлена."
-                }));
+                })));
         if (result.Success)
             _senderCounters.ConfirmReserved(job.Sender, job.MessageId);
         else if (MailingSubmissionEngine.IsExplicitRejection(result.RawResponse))
