@@ -1494,6 +1494,64 @@ internal static class Program
                   (string)((MenuItem)accountMenu.Items[2]).Header == "Удалить",
                 "account context menu copies address and keeps existing commands");
 
+            var credentialTestRoot = Path.Combine(Path.GetTempPath(),
+                "MailRuDesktop-DpapiSmoke-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                var credentialStore = new AuthorizationStore(credentialTestRoot);
+                credentialStore.Save("password-test@example.invalid", "access-1",
+                    "refresh-1", null, null, null, null, "test-first-pass");
+                Check(credentialStore.TryGetPassword("password-test@example.invalid",
+                          out var storedPassword) &&
+                      storedPassword == "test-first-pass",
+                    "verified password is restored using per-user DPAPI");
+                Check(!File.ReadAllText(Path.Combine(credentialTestRoot, "auth.json"))
+                          .Contains("test-first-pass", StringComparison.Ordinal),
+                    "saved authorization does not expose a plaintext password");
+                Check(credentialStore.UpdateTokens("password-test@example.invalid",
+                          "access-2", "refresh-2", "test-new-pass") &&
+                      credentialStore.TryGetPassword("password-test@example.invalid",
+                          out var updatedPassword) &&
+                      updatedPassword == "test-new-pass",
+                    "password is atomically replaced with verified refreshed tokens");
+                Check(credentialStore.UpdateTokens("password-test@example.invalid",
+                          "access-3", "refresh-3") &&
+                      credentialStore.TryGetPassword("password-test@example.invalid",
+                          out var retainedPassword) &&
+                      retainedPassword == "test-new-pass",
+                    "background token refresh retains the current stored password");
+            }
+            finally
+            {
+                if (Directory.Exists(credentialTestRoot))
+                    Directory.Delete(credentialTestRoot, recursive: true);
+            }
+            Check(MailRuVerificationWindow.IsMailboxLanding(
+                      new Uri("https://e.mail.ru/inbox/12345")) &&
+                  MailRuVerificationWindow.IsMailboxLanding(
+                      new Uri("https://e.mail.ru/sent")) &&
+                  !MailRuVerificationWindow.IsMailboxLanding(
+                      new Uri("https://e.mail.ru.evil.example/inbox/12345")) &&
+                  !MailRuVerificationWindow.IsMailboxLanding(
+                      new Uri("http://e.mail.ru/inbox/12345")) &&
+                  !MailRuVerificationWindow.IsMailboxLanding(
+                      new Uri("https://e.mail.ru/inbox-mock")),
+                "mailbox navigation marks browser stage done only on trusted pages");
+
+            var knownPasswordDialog = new AddAccountWindow(
+                "other@example.invalid", knownPassword: "test-saved-password");
+            Check(knownPasswordDialog.Password == "test-saved-password",
+                "saved Windows DPAPI password is prefilled for requested reauthorization");
+            knownPasswordDialog.Close();
+            var recoveryPasswordDialog = new AddAccountWindow(
+                "other@example.invalid", recoveryPassword: true);
+            Check(recoveryPasswordDialog.Title.Contains("Действующий пароль",
+                    StringComparison.Ordinal) &&
+                  (string)Require<Button>(recoveryPasswordDialog, "ConfirmButton").Content
+                     == "Продолжить",
+                "after browser account recovery the user can supply the actual new password");
+            recoveryPasswordDialog.Close();
+
             var reauthDialog = new AddAccountWindow("other@example.invalid");
             Check(reauthDialog.Title == "Повторная авторизация Mail.ru" &&
                   Require<TextBox>(reauthDialog, "LoginTextBox").Text == "other@example.invalid" &&
