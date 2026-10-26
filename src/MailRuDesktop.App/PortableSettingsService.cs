@@ -230,7 +230,8 @@ internal sealed class PortableSettingsService
         var selectedSignatures = choice.Signatures
             ? package.Signatures.Where(x => choice.SignatureNames.Contains(x.Name)).ToArray()
             : [];
-        var layout = BuildLayout(package.Layout, selectedNames, preserved);
+        var layout = BuildLayout(choice.Accounts ? package.Layout : [],
+            selectedNames, preserved);
         // Parse everything before taking a snapshot or changing existing files.
         var settings = choice.Appearance
             ? JsonNode.Parse(package.SettingsJson) as JsonObject ??
@@ -327,34 +328,54 @@ internal sealed class PortableSettingsService
     {
         var output = new List<AccountRailLayoutEntryState>();
         var added = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        // Accounts retained from this computer but absent from the archive remain
-        // outside sections. Place them BEFORE all imported section headers.
+        // Preserve authenticated-but-unselected accounts outside the archive's sections.
         foreach (var login in preserved.Where(login => !selected.Contains(login))
                      .OrderBy(login => login, StringComparer.OrdinalIgnoreCase))
         {
             output.Add(new AccountRailLayoutEntryState { Kind = "account", Login = login });
             added.Add(login);
         }
-        foreach (var entry in source)
+        var listed = source.Where(e => e.Kind == "account" && e.Login is not null)
+            .Select(e => e.Login!)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (var login in selected.Where(login => !listed.Contains(login)))
         {
+            output.Add(new AccountRailLayoutEntryState { Kind = "account", Login = login });
+            added.Add(login);
+        }
+        for (var index = 0; index < source.Count; index++)
+        {
+            var entry = source[index];
             if (entry.Kind == "section")
             {
-                output.Add(new AccountRailLayoutEntryState
+                // Do not import empty groups when the user selected only
+                // a subset of their accounts.
+                var next = index + 1;
+                var containsSelected = false;
+                while (next < source.Count && source[next].Kind != "section")
                 {
-                    Kind = "section", Id = entry.Id, Title = entry.Title,
-                    IsCollapsed = entry.IsCollapsed
-                });
+                    if (source[next].Login is { } login && selected.Contains(login))
+                    {
+                        containsSelected = true;
+                        break;
+                    }
+                    next++;
+                }
+                if (containsSelected)
+                    output.Add(new AccountRailLayoutEntryState
+                    {
+                        Kind = "section", Id = entry.Id, Title = entry.Title,
+                        IsCollapsed = entry.IsCollapsed
+                    });
                 continue;
             }
-            if (entry.Kind == "account" && entry.Login is not null &&
-                selected.Contains(entry.Login) && added.Add(entry.Login))
+            if (entry.Kind == "account" && entry.Login is { } account &&
+                selected.Contains(account) && added.Add(account))
                 output.Add(new AccountRailLayoutEntryState
                 {
-                    Kind = "account", Id = entry.Id, Login = entry.Login
+                    Kind = "account", Id = entry.Id, Login = account
                 });
         }
-        foreach (var login in selected.Where(login => !added.Contains(login)))
-            output.Add(new AccountRailLayoutEntryState { Kind = "account", Login = login });
         return output;
     }
 

@@ -68,6 +68,17 @@ public partial class MainWindow
                 MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (answer != MessageBoxResult.Yes) return;
 
+            // Other open compose/mailing windows may still write old settings
+            // when they close. Refuse import until those windows are closed.
+            if (Application.Current.Windows.Cast<Window>()
+                .Any(window => window != this && window.IsLoaded))
+            {
+                MessageBox.Show(this,
+                    "Перед импортом закройте все остальные окна программы, " +
+                    "включая рассылку Excel и окна писем, затем повторите импорт.",
+                    "Импорт настроек", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
             // Include current, still unsaved column/window sizes in the mandatory
             // local rollback backup before the configuration is replaced.
             SaveUserInterfaceState();
