@@ -2272,14 +2272,14 @@ internal static class Program
                     Application.Current.Windows.OfType<Window>()
                         .FirstOrDefault(w => w.Title == "Настройки — MailRu Desktop")),
                 "Repeated settings click reactivates the same window");
-            var prepareImportWindows = typeof(MainWindow).GetMethod(
-                "TryCloseSettingsWindowForImport",
+            var importWindowGuard = typeof(MainWindow).GetMethod(
+                "IsWindowBlockingSettingsImport",
                 System.Reflection.BindingFlags.Instance |
                 System.Reflection.BindingFlags.NonPublic);
-            Check(prepareImportWindows is not null &&
-                  Equals(prepareImportWindows.Invoke(mail, null), true) &&
-                  !settingsWindow!.IsLoaded,
-                "Portable settings import can close the open Settings window automatically");
+            Check(importWindowGuard is not null &&
+                  Equals(importWindowGuard.Invoke(mail, new object[] { settingsWindow! }), false),
+                "An open Settings window is not considered a blocker for portable import");
+            settingsWindow!.Close();
             mail.UpdateLayout();
             Check(Require<Grid>(mail, "SettingsWorkspace").Visibility == Visibility.Collapsed &&
                   Require<Grid>(mail, "MailWorkspace").Visibility == Visibility.Visible,
