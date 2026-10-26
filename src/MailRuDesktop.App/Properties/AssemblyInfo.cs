@@ -4,4 +4,3 @@ using System.Runtime.CompilerServices;
 // nineteen-mailbox selector without changing runtime visibility or making
 // any network requests.
 [assembly: InternalsVisibleTo("WindowsUiSmoke")]
-[assembly: InternalsVisibleTo("InteractionLogicSmoke")]

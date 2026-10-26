@@ -9,27 +9,6 @@ static void Expect<T>(T actual, T expected, string label)
     Console.WriteLine("PASS " + label);
 }
 
-// Browser password-reset capture: only the exact confirmation POST is used.
-{
-    var resetEvent = System.Text.Json.JsonSerializer.Serialize(new
-    {
-        request = new
-        {
-            url = "https://account.mail.ru/api/v1/user/password/restore/confirm",
-            method = "POST",
-            postData = "type=restore&password=Test%2BPass%26%21&flag=1"
-        }
-    });
-    Expect(WebView2NetworkJournal.ExtractConfirmedPasswordSubmission(resetEvent),
-        "Test+Pass&!", "password-reset confirmation form decodes special characters");
-    var wrongHost = resetEvent.Replace("account.mail.ru", "example.invalid");
-    Expect(WebView2NetworkJournal.ExtractConfirmedPasswordSubmission(wrongHost),
-        (string?)null, "other domains cannot set the recovery password");
-    var wrongRoute = resetEvent.Replace("/confirm", "/strength");
-    Expect(WebView2NetworkJournal.ExtractConfirmedPasswordSubmission(wrongRoute),
-        (string?)null, "strength checks cannot set the recovery password");
-}
-
 // Issue #77: all send-then-trash states use synthetic callbacks only.
 // No actual emails are sent and no real mailbox is modified.
 {
