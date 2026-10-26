@@ -8621,8 +8621,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MailRuVerificationWindow/runtime/src/MailRuDesktop.App/MailRuVerificationWindow.cs:108:StackPanel",
-      "line": 108,
+      "id": "MailRuVerificationWindow/runtime/src/MailRuDesktop.App/MailRuVerificationWindow.cs:112:StackPanel",
+      "line": 112,
       "location": {
         "HorizontalAlignment": "HorizontalAlignment.Right",
         "Orientation": "Orientation.Horizontal",
@@ -8640,8 +8640,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MailRuVerificationWindow/runtime/src/MailRuDesktop.App/MailRuVerificationWindow.cs:123:Button",
-      "line": 123,
+      "id": "MailRuVerificationWindow/runtime/src/MailRuDesktop.App/MailRuVerificationWindow.cs:127:Button",
+      "line": 127,
       "location": {
         "Margin": "new Thickness(8",
         "Padding": "new Thickness(14"
@@ -8657,8 +8657,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MailRuVerificationWindow/runtime/src/MailRuDesktop.App/MailRuVerificationWindow.cs:64:Grid",
-      "line": 64,
+      "id": "MailRuVerificationWindow/runtime/src/MailRuDesktop.App/MailRuVerificationWindow.cs:68:Grid",
+      "line": 68,
       "location": {
         "Height": "GridLength.Auto",
         "Padding": "new Thickness(14"
@@ -8674,8 +8674,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MailRuVerificationWindow/runtime/src/MailRuDesktop.App/MailRuVerificationWindow.cs:69:Border",
-      "line": 69,
+      "id": "MailRuVerificationWindow/runtime/src/MailRuDesktop.App/MailRuVerificationWindow.cs:73:Border",
+      "line": 73,
       "location": {
         "Padding": "new Thickness(14"
       },
@@ -8693,8 +8693,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MailRuVerificationWindow/runtime/src/MailRuDesktop.App/MailRuVerificationWindow.cs:75:TextBlock",
-      "line": 75,
+      "id": "MailRuVerificationWindow/runtime/src/MailRuDesktop.App/MailRuVerificationWindow.cs:79:TextBlock",
+      "line": 79,
       "location": {
         "Margin": "new Thickne"
       },
@@ -8712,8 +8712,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MailRuVerificationWindow/runtime/src/MailRuDesktop.App/MailRuVerificationWindow.cs:91:Grid",
-      "line": 91,
+      "id": "MailRuVerificationWindow/runtime/src/MailRuDesktop.App/MailRuVerificationWindow.cs:95:Grid",
+      "line": 95,
       "location": {
         "Margin": "new Thickness(12",
         "Width": "new GridLength(1"
@@ -9505,8 +9505,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow.xaml/window@2510/runtime/src/MailRuDesktop.App/MainWindow.xaml.cs:2510:Window",
-      "line": 2510,
+      "id": "MainWindow.xaml/window@2522/runtime/src/MailRuDesktop.App/MainWindow.xaml.cs:2522:Window",
+      "line": 2522,
       "location": {
         "Height": "810",
         "MinHeight": "530",
@@ -9515,13 +9515,13 @@
         "WindowStartupLocation": "WindowStartupLocation.CenterOwner"
       },
       "name": null,
-      "parent": "MainWindow.xaml/window@2510/runtime",
+      "parent": "MainWindow.xaml/window@2522/runtime",
       "source": "src/MailRuDesktop.App/MainWindow.xaml.cs",
       "states": null,
       "style": null,
       "type": "Window",
       "typography": {},
-      "window": "MainWindow.xaml/window@2510"
+      "window": "MainWindow.xaml/window@2522"
     },
     {
       "color_roles_and_values": {},
@@ -22923,7 +22923,7 @@
       "source": "src/MailRuDesktop.App/MainWindow.ComposeWindow.cs",
       "typography": {}
     },
-    "MainWindow.xaml/window@2510": {
+    "MainWindow.xaml/window@2522": {
       "colors": {},
       "declared_as": "C# runtime Window",
       "element_count": 1,
@@ -22934,7 +22934,7 @@
         "Width": "1130",
         "WindowStartupLocation": "WindowStartupLocation.CenterOwner"
       },
-      "id": "MainWindow.xaml/window@2510",
+      "id": "MainWindow.xaml/window@2522",
       "source": "src/MailRuDesktop.App/MainWindow.xaml.cs",
       "typography": {}
     },
