@@ -1097,10 +1097,10 @@ internal static class Program
                       partialSession.IsFull && partialSession.Quota == 1,
                     "51 already sent against quota 50 is skipped; only remaining capacity is allocated");
                 partialSession.ReleaseRecipientRefusal("second@example.com");
-                var replacement = partialSession.Accept(mailingRows[1], "ООО Проверка");
-                Check(replacement.Status == "Ready" &&
-                      replacement.Sender == "second@example.com" &&
-                      replacement.ScheduledAt == available.ScheduledAt &&
+                var nextQuotaRow = partialSession.Accept(mailingRows[1], "ООО Проверка");
+                Check(nextQuotaRow.Status == "Ready" &&
+                      nextQuotaRow.Sender == "second@example.com" &&
+                      nextQuotaRow.ScheduledAt == available.ScheduledAt &&
                       partialSession.IsFull,
                     "definitive recipient refusal lets next row reuse one unsent slot");
 
