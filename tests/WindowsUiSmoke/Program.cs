@@ -949,6 +949,31 @@ internal static class Program
                 Check(new MailRuDesktop.App.Mailing.MailingSenderCounters(testingDir)
                       .Get("test-account@example.com") == 0,
                     "counter reset is persisted");
+
+                // Quota reservations survive a restart before a server reply.
+                var quotaDir = Path.Combine(testingDir, "quota");
+                var quotas = new MailRuDesktop.App.Mailing.MailingSenderCounters(quotaDir);
+                Check(quotas.TryReserve("first@example.com", "quota-1", 1) &&
+                      quotas.Get("first@example.com") == 0 &&
+                      quotas.GetUsed("first@example.com") == 1 &&
+                      !quotas.TryReserve("first@example.com", "quota-overflow", 1) &&
+                      new MailRuDesktop.App.Mailing.MailingSenderCounters(quotaDir)
+                          .GetUsed("first@example.com") == 1,
+                    "durable pre-send reservation prevents quota overrun across restarts");
+                quotas.ReleaseRejected("quota-1");
+                Check(quotas.GetUsed("first@example.com") == 0 &&
+                      quotas.TryReserve("first@example.com", "quota-2", 1),
+                    "definitive server refusal frees the reserved quota slot");
+                quotas.ConfirmReserved("first@example.com", "quota-2");
+                Check(quotas.Get("first@example.com") == 1 &&
+                      quotas.GetUsed("first@example.com") == 1 &&
+                      !quotas.TryReserve("first@example.com", "quota-3", 1),
+                    "confirmed sends cannot exceed configured account quota");
+                var uncertain = new MailRuDesktop.App.Mailing.MailingSenderCounters(
+                    Path.Combine(testingDir, "uncertain-quota"));
+                Check(uncertain.TryReserve("first@example.com", "unconfirmed-1", 1) &&
+                      !uncertain.TryReserve("first@example.com", "unconfirmed-2", 1),
+                    "unknown server outcome continues to consume a conservative quota slot");
                 var mailingRows = new[]
                 {
                     new MailRuDesktop.App.Mailing.MailingExcelRow(2, true,
@@ -1036,6 +1061,38 @@ internal static class Program
                 Check(streamed.Status == "Ready" && streamSession.ReadyCount == 1 &&
                       streamSession.Result.Rows.Count == 0,
                     "direct mailing plans one row without accumulating a preview table");
+                // Quotas are remaining capacity, not a fresh allotment per run.
+                // A legacy count above the quota stays visible but permits no POST.
+                var partialProfile = new MailRuDesktop.App.Mailing.MailingProfile
+                {
+                    StartDate = DateTime.Today.AddDays(4),
+                    StartTime = "09:00",
+                    Senders =
+                    [
+                        new() { Login = "first@example.com", Quantity = 50 },
+                        new() { Login = "second@example.com", Quantity = 2 }
+                    ]
+                };
+                var partialSession = MailRuDesktop.App.Mailing.MailingPlanner.CreateSession(
+                    partialProfile, "Привет, {Название_организации}",
+                    new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+                    new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                    { "first@example.com", "second@example.com" },
+                    usedSenderCounts: new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+                    { ["first@example.com"] = 51, ["second@example.com"] = 1 });
+                var available = partialSession.Accept(mailingRows[0], "ООО Проверка");
+                Check(available.Status == "Ready" &&
+                      available.Sender == "second@example.com" &&
+                      partialSession.IsFull && partialSession.Quota == 1,
+                    "51 already sent against quota 50 is skipped; only remaining capacity is allocated");
+                partialSession.ReleaseRecipientRefusal("second@example.com");
+                var replacement = partialSession.Accept(mailingRows[1], "ООО Проверка");
+                Check(replacement.Status == "Ready" &&
+                      replacement.Sender == "second@example.com" &&
+                      replacement.ScheduledAt == available.ScheduledAt &&
+                      partialSession.IsFull,
+                    "definitive recipient refusal lets next row reuse one unsent slot");
+
                 // Fake Excel COM object: start from its actual active cell,
                 // skip AutoFilter-hidden rows, do not read >100000 rows at once.
                 var fakeExcel = new FakeExcelApplication();
@@ -1401,6 +1458,22 @@ internal static class Program
                 Check(refused.Jobs[0].Status ==
                       MailRuDesktop.App.Mailing.MailingJobStatus.Rejected,
                     "an explicit server refusal is never marked as accepted");
+                var recipientRefusal = journal.Create(journalProfile,
+                    @"C:\mailing\source.xlsx", "Лист1",
+                    [nextTask with { RowNumber = 6, Email = "disabled@example.test" }]);
+                engine.ExecuteAsync(recipientRefusal, _ => Task.FromResult(
+                    new MailRuDesktop.Protocol.MailRuCommandResult(false,
+                        "{\"body\":{\"correspondents.to\":[{\"error\":\"disabled\"," +
+                        "\"value\":\"disabled@example.test\"}]},\"status\":400}")),
+                    _ => throw new Exception("Rejected mail must not be written to Excel"),
+                    () => false).GetAwaiter().GetResult();
+                Check(MailRuDesktop.App.Mailing.MailingSubmissionEngine
+                      .IsSkippableRecipientRefusal(recipientRefusal.Jobs[0]) &&
+                      recipientRefusal.Jobs[0].ErrorCode ==
+                          "recipient_disabled: disabled@example.test" &&
+                      !MailRuDesktop.App.Mailing.MailingSubmissionEngine
+                          .IsSkippableRecipientRefusal(refused.Jobs[0]),
+                    "disabled recipient exposes useful server reason and alone qualifies for skip");
 
                 var ambiguous = journal.Create(journalProfile, @"C:\mailing\source.xlsx",
                     "Лист1", [nextTask with { RowNumber = 5, Email = "ambiguous@example.test" }]);
