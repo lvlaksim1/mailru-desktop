@@ -5,7 +5,7 @@
     <UseWPF>true</UseWPF>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <VersionPrefix>0.3.102</VersionPrefix>
+    <VersionPrefix>0.3.103</VersionPrefix>
     <ApplicationIcon>app.ico</ApplicationIcon>
   </PropertyGroup>
 

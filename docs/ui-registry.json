@@ -429,8 +429,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "AppDialog/runtime/src/MailRuDesktop.App/AppDialog.cs:169:Button",
-      "line": 169,
+      "id": "AppDialog/runtime/src/MailRuDesktop.App/AppDialog.cs:192:Button",
+      "line": 192,
       "location": {
         "Margin": "new Thickness(8",
         "MinWidth": "96",
