@@ -16,6 +16,7 @@ namespace MailRuDesktop.App;
 public partial class MainWindow : Window
 {
     private readonly MailRuClient _mailRu = new();
+    private WebView2NetworkJournal? _readerNetworkJournal;
     private readonly AuthorizationStore _authStore = new();
     private readonly AppSettingsStore _settingsStore = new();
     private readonly List<string> _attachmentPaths = [];
@@ -102,6 +103,7 @@ public partial class MainWindow : Window
                 MessageWebView.CoreWebView2.FrameNavigationStarting -= ConversationAction_FrameNavigationStarting;
             }
             _mailImageHandler?.Dispose();
+            _readerNetworkJournal?.Dispose();
             _mailRu.Dispose();
         };
     }
@@ -155,6 +157,9 @@ public partial class MainWindow : Window
             MessageWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
             MessageWebView.CoreWebView2.FrameNavigationStarting += ConversationAction_FrameNavigationStarting;
             ConfigureMailImageProxy();
+            _readerNetworkJournal = new WebView2NetworkJournal(
+                MessageWebView.CoreWebView2, () => _activeLogin);
+            await _readerNetworkJournal.StartAsync();
 
             // Navigate the top-level WebView2 ONCE. All future letters are
             // published inside this permanent browser document.
