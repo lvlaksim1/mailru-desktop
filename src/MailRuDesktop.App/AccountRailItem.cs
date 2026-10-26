@@ -8,6 +8,7 @@ public sealed class AccountRailItem : INotifyPropertyChanged
     private long? _unread;
     private string _status = "Ожидание";
     private bool _isActive;
+    private bool _isAuthorizationInvalid;
 
     public AccountRailItem(string login)
     {
@@ -53,6 +54,18 @@ public sealed class AccountRailItem : INotifyPropertyChanged
             if (_isActive == value) return;
             _isActive = value;
             OnPropertyChanged();
+        }
+    }
+
+    public bool IsAuthorizationInvalid
+    {
+        get => _isAuthorizationInvalid;
+        set
+        {
+            if (_isAuthorizationInvalid == value) return;
+            _isAuthorizationInvalid = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(ToolTipText));
         }
     }
 

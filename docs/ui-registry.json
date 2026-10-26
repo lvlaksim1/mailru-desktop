@@ -200,7 +200,7 @@
       "id": "AddAccountWindow/src/MailRuDesktop.App/AddAccountWindow.xaml/Window[0]/Grid[0]/Grid[4]/PasswordBox",
       "location": {
         "Grid.Row": "0",
-        "Margin": "0,0,0,14",
+        "Margin": "0,0,40,14",
         "Padding": "8"
       },
       "name": "PasswordBox",
@@ -214,7 +214,27 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "AddAccountWindow/src/MailRuDesktop.App/AddAccountWindow.xaml/Window[0]/Grid[0]/Grid[4]/StackPanel[2]",
+      "id": "AddAccountWindow/src/MailRuDesktop.App/AddAccountWindow.xaml/Window[0]/Grid[0]/Grid[4]/PasswordVisibilityButton",
+      "location": {
+        "Grid.Row": "0",
+        "Height": "32",
+        "HorizontalAlignment": "Right",
+        "Margin": "0,0,0,14",
+        "VerticalAlignment": "Top",
+        "Width": "34"
+      },
+      "name": "PasswordVisibilityButton",
+      "parent": "AddAccountWindow/src/MailRuDesktop.App/AddAccountWindow.xaml/Window[0]/Grid[0]/Grid[4]",
+      "source": "src/MailRuDesktop.App/AddAccountWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Button",
+      "typography": {},
+      "window": "AddAccountWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "AddAccountWindow/src/MailRuDesktop.App/AddAccountWindow.xaml/Window[0]/Grid[0]/Grid[4]/StackPanel[4]",
       "location": {
         "Grid.Row": "1",
         "HorizontalAlignment": "Right",
@@ -231,14 +251,14 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "AddAccountWindow/src/MailRuDesktop.App/AddAccountWindow.xaml/Window[0]/Grid[0]/Grid[4]/StackPanel[2]/Button[0]",
+      "id": "AddAccountWindow/src/MailRuDesktop.App/AddAccountWindow.xaml/Window[0]/Grid[0]/Grid[4]/StackPanel[4]/Button[0]",
       "location": {
         "Margin": "0,0,8,0",
         "Padding": "10,7",
         "Width": "100"
       },
       "name": null,
-      "parent": "AddAccountWindow/src/MailRuDesktop.App/AddAccountWindow.xaml/Window[0]/Grid[0]/Grid[4]/StackPanel[2]",
+      "parent": "AddAccountWindow/src/MailRuDesktop.App/AddAccountWindow.xaml/Window[0]/Grid[0]/Grid[4]/StackPanel[4]",
       "source": "src/MailRuDesktop.App/AddAccountWindow.xaml",
       "states": null,
       "style": null,
@@ -248,17 +268,35 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "AddAccountWindow/src/MailRuDesktop.App/AddAccountWindow.xaml/Window[0]/Grid[0]/Grid[4]/StackPanel[2]/ConfirmButton",
+      "id": "AddAccountWindow/src/MailRuDesktop.App/AddAccountWindow.xaml/Window[0]/Grid[0]/Grid[4]/StackPanel[4]/ConfirmButton",
       "location": {
         "Padding": "10,7",
         "Width": "120"
       },
       "name": "ConfirmButton",
-      "parent": "AddAccountWindow/src/MailRuDesktop.App/AddAccountWindow.xaml/Window[0]/Grid[0]/Grid[4]/StackPanel[2]",
+      "parent": "AddAccountWindow/src/MailRuDesktop.App/AddAccountWindow.xaml/Window[0]/Grid[0]/Grid[4]/StackPanel[4]",
       "source": "src/MailRuDesktop.App/AddAccountWindow.xaml",
       "states": null,
       "style": null,
       "type": "Button",
+      "typography": {},
+      "window": "AddAccountWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "AddAccountWindow/src/MailRuDesktop.App/AddAccountWindow.xaml/Window[0]/Grid[0]/Grid[4]/VisiblePasswordTextBox",
+      "location": {
+        "Grid.Row": "0",
+        "Margin": "0,0,40,14",
+        "Padding": "8",
+        "Visibility": "Collapsed"
+      },
+      "name": "VisiblePasswordTextBox",
+      "parent": "AddAccountWindow/src/MailRuDesktop.App/AddAccountWindow.xaml/Window[0]/Grid[0]/Grid[4]",
+      "source": "src/MailRuDesktop.App/AddAccountWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "TextBox",
       "typography": {},
       "window": "AddAccountWindow"
     },
@@ -8798,8 +8836,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MailRuVerificationWindow/runtime/src/MailRuDesktop.App/MailRuVerificationWindow.cs:112:StackPanel",
-      "line": 112,
+      "id": "MailRuVerificationWindow/runtime/src/MailRuDesktop.App/MailRuVerificationWindow.cs:113:StackPanel",
+      "line": 113,
       "location": {
         "HorizontalAlignment": "HorizontalAlignment.Right",
         "Orientation": "Orientation.Horizontal",
@@ -8817,8 +8855,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MailRuVerificationWindow/runtime/src/MailRuDesktop.App/MailRuVerificationWindow.cs:127:Button",
-      "line": 127,
+      "id": "MailRuVerificationWindow/runtime/src/MailRuDesktop.App/MailRuVerificationWindow.cs:128:Button",
+      "line": 128,
       "location": {
         "Margin": "new Thickness(8",
         "Padding": "new Thickness(14"
@@ -8834,8 +8872,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MailRuVerificationWindow/runtime/src/MailRuDesktop.App/MailRuVerificationWindow.cs:68:Grid",
-      "line": 68,
+      "id": "MailRuVerificationWindow/runtime/src/MailRuDesktop.App/MailRuVerificationWindow.cs:69:Grid",
+      "line": 69,
       "location": {
         "Height": "GridLength.Auto",
         "Padding": "new Thickness(14"
@@ -8851,8 +8889,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MailRuVerificationWindow/runtime/src/MailRuDesktop.App/MailRuVerificationWindow.cs:73:Border",
-      "line": 73,
+      "id": "MailRuVerificationWindow/runtime/src/MailRuDesktop.App/MailRuVerificationWindow.cs:74:Border",
+      "line": 74,
       "location": {
         "Padding": "new Thickness(14"
       },
@@ -8870,8 +8908,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MailRuVerificationWindow/runtime/src/MailRuDesktop.App/MailRuVerificationWindow.cs:79:TextBlock",
-      "line": 79,
+      "id": "MailRuVerificationWindow/runtime/src/MailRuDesktop.App/MailRuVerificationWindow.cs:80:TextBlock",
+      "line": 80,
       "location": {
         "Margin": "new Thickne"
       },
@@ -8889,8 +8927,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MailRuVerificationWindow/runtime/src/MailRuDesktop.App/MailRuVerificationWindow.cs:95:Grid",
-      "line": 95,
+      "id": "MailRuVerificationWindow/runtime/src/MailRuDesktop.App/MailRuVerificationWindow.cs:96:Grid",
+      "line": 96,
       "location": {
         "Margin": "new Thickness(12",
         "Width": "new GridLength(1"
@@ -9682,8 +9720,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow.xaml/window@2522/runtime/src/MailRuDesktop.App/MainWindow.xaml.cs:2522:Window",
-      "line": 2522,
+      "id": "MainWindow.xaml/window@2562/runtime/src/MailRuDesktop.App/MainWindow.xaml.cs:2562:Window",
+      "line": 2562,
       "location": {
         "Height": "810",
         "MinHeight": "530",
@@ -9692,13 +9730,13 @@
         "WindowStartupLocation": "WindowStartupLocation.CenterOwner"
       },
       "name": null,
-      "parent": "MainWindow.xaml/window@2522/runtime",
+      "parent": "MainWindow.xaml/window@2562/runtime",
       "source": "src/MailRuDesktop.App/MainWindow.xaml.cs",
       "states": null,
       "style": null,
       "type": "Window",
       "typography": {},
-      "window": "MainWindow.xaml/window@2522"
+      "window": "MainWindow.xaml/window@2562"
     },
     {
       "color_roles_and_values": {},
@@ -11743,7 +11781,8 @@
       "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Border[1]/Grid[0]/AuthStatusText",
       "location": {
         "Grid.Row": "4",
-        "Margin": "8,8,8,2"
+        "Margin": "8,8,8,2",
+        "Visibility": "Collapsed"
       },
       "name": "AuthStatusText",
       "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Border[1]/Grid[0]",
@@ -11788,7 +11827,7 @@
       "color_roles_and_values": {},
       "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Border[1]/Grid[0]/Grid.RowDefinitions[0]/RowDefinition[1]",
       "location": {
-        "Height": "Auto"
+        "Height": "84"
       },
       "name": null,
       "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Border[1]/Grid[0]/Grid.RowDefinitions[0]",
@@ -12085,7 +12124,10 @@
       "color_roles_and_values": {},
       "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Border[1]/Grid[0]/StackPanel[1]",
       "location": {
-        "Grid.Row": "0"
+        "Grid.Row": "0",
+        "Margin": "4,2,4,12",
+        "Orientation": "Horizontal",
+        "VerticalAlignment": "Center"
       },
       "name": null,
       "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Border[1]/Grid[0]",
@@ -12098,11 +12140,9 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Border[1]/Grid[0]/StackPanel[1]/SelectableText[0]",
-      "location": {
-        "Margin": "4,2,4,12"
-      },
-      "name": null,
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Border[1]/Grid[0]/StackPanel[1]/ActiveAccountAddressText",
+      "location": {},
+      "name": "ActiveAccountAddressText",
       "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Border[1]/Grid[0]/StackPanel[1]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
@@ -12112,6 +12152,26 @@
         "FontSize": "{DynamicResource AppFontHeadingSize}",
         "FontWeight": "SemiBold"
       },
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {
+        "Fill": "ForestGreen"
+      },
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Border[1]/Grid[0]/StackPanel[1]/ActiveAccountLamp",
+      "location": {
+        "Height": "12",
+        "Margin": "0,0,8,0",
+        "Visibility": "Collapsed",
+        "Width": "12"
+      },
+      "name": "ActiveAccountLamp",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Grid[1]/Border[1]/Grid[0]/StackPanel[1]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Ellipse",
+      "typography": {},
       "window": "MainWindow"
     },
     {
@@ -18748,9 +18808,9 @@
       "color_roles_and_values": {
         "Background": "{DynamicResource AppAccentBrush}"
       },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Window.Resources[0]/DataTemplate[5]/Grid[0]/Border[3]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Window.Resources[0]/DataTemplate[5]/Grid[0]/Border[4]",
       "location": {
-        "Grid.Column": "2",
+        "Grid.Column": "3",
         "Height": "20",
         "Margin": "6,0,0,0",
         "MinWidth": "24",
@@ -18770,13 +18830,13 @@
       "color_roles_and_values": {
         "Foreground": "{DynamicResource AppAccentTextBrush}"
       },
-      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Window.Resources[0]/DataTemplate[5]/Grid[0]/Border[3]/TextBlock[0]",
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Window.Resources[0]/DataTemplate[5]/Grid[0]/Border[4]/TextBlock[0]",
       "location": {
         "HorizontalAlignment": "Center",
         "VerticalAlignment": "Center"
       },
       "name": null,
-      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Window.Resources[0]/DataTemplate[5]/Grid[0]/Border[3]",
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Window.Resources[0]/DataTemplate[5]/Grid[0]/Border[4]",
       "source": "src/MailRuDesktop.App/MainWindow.xaml",
       "states": null,
       "style": null,
@@ -18785,6 +18845,28 @@
         "FontSize": "{DynamicResource AppFontTinySize}",
         "FontWeight": "SemiBold"
       },
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {
+        "Fill": "#C62832"
+      },
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Window.Resources[0]/DataTemplate[5]/Grid[0]/Ellipse[3]",
+      "location": {
+        "Grid.Column": "2",
+        "Height": "10",
+        "Margin": "6,0,0,0",
+        "VerticalAlignment": "Center",
+        "Visibility": "{Binding IsAuthorizationInvalid, Converter={StaticResource BoolToVisibility}}",
+        "Width": "10"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Window.Resources[0]/DataTemplate[5]/Grid[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "Ellipse",
+      "typography": {},
       "window": "MainWindow"
     },
     {
@@ -18833,6 +18915,21 @@
     {
       "color_roles_and_values": {},
       "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Window.Resources[0]/DataTemplate[5]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[2]",
+      "location": {
+        "Width": "Auto"
+      },
+      "name": null,
+      "parent": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Window.Resources[0]/DataTemplate[5]/Grid[0]/Grid.ColumnDefinitions[0]",
+      "source": "src/MailRuDesktop.App/MainWindow.xaml",
+      "states": null,
+      "style": null,
+      "type": "ColumnDefinition",
+      "typography": {},
+      "window": "MainWindow"
+    },
+    {
+      "color_roles_and_values": {},
+      "id": "MainWindow/src/MailRuDesktop.App/MainWindow.xaml/Window[0]/Window.Resources[0]/DataTemplate[5]/Grid[0]/Grid.ColumnDefinitions[0]/ColumnDefinition[3]",
       "location": {
         "Width": "Auto"
       },
@@ -22979,7 +23076,7 @@
         "Foreground": "{DynamicResource AppTextBrush}"
       },
       "declared_as": "XAML",
-      "element_count": 18,
+      "element_count": 20,
       "geometry": {
         "ResizeMode": "NoResize",
         "WindowStartupLocation": "CenterOwner"
@@ -23057,7 +23154,7 @@
         "Foreground": "{DynamicResource AppTextBrush}"
       },
       "declared_as": "XAML",
-      "element_count": 684,
+      "element_count": 687,
       "geometry": {
         "Height": "900",
         "MinHeight": "720",
@@ -23100,7 +23197,7 @@
       "source": "src/MailRuDesktop.App/MainWindow.ComposeWindow.cs",
       "typography": {}
     },
-    "MainWindow.xaml/window@2522": {
+    "MainWindow.xaml/window@2562": {
       "colors": {},
       "declared_as": "C# runtime Window",
       "element_count": 1,
@@ -23111,7 +23208,7 @@
         "Width": "1130",
         "WindowStartupLocation": "WindowStartupLocation.CenterOwner"
       },
-      "id": "MainWindow.xaml/window@2522",
+      "id": "MainWindow.xaml/window@2562",
       "source": "src/MailRuDesktop.App/MainWindow.xaml.cs",
       "typography": {}
     },

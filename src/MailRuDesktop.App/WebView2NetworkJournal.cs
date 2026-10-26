@@ -9,6 +9,7 @@ internal sealed class WebView2NetworkJournal : IDisposable
 {
     private readonly CoreWebView2 _browser;
     private readonly Func<string?> _login;
+    private readonly Action<string>? _onPasswordRestorationSubmitted;
     private readonly List<(CoreWebView2DevToolsProtocolEventReceiver Receiver,
         EventHandler<CoreWebView2DevToolsProtocolEventReceivedEventArgs> Handler)> _hooks = [];
     private static readonly object Sync = new();
@@ -25,13 +26,58 @@ internal sealed class WebView2NetworkJournal : IDisposable
         "webSocketFrameError", "eventSourceMessageReceived"
     ];
 
-    internal WebView2NetworkJournal(CoreWebView2 browser, string login)
-        : this(browser, () => login) { }
+    internal WebView2NetworkJournal(CoreWebView2 browser, string login,
+        Action<string>? onPasswordRestorationSubmitted = null)
+        : this(browser, () => login, onPasswordRestorationSubmitted) { }
 
     internal WebView2NetworkJournal(CoreWebView2 browser, Func<string?> login)
+        : this(browser, login, null) { }
+
+    private WebView2NetworkJournal(CoreWebView2 browser, Func<string?> login,
+        Action<string>? onPasswordRestorationSubmitted)
     {
         _browser = browser;
         _login = login;
+        _onPasswordRestorationSubmitted = onPasswordRestorationSubmitted;
+    }
+
+    // Only the account.mail.ru password-reset confirmation is eligible.
+    // Data is read from the already observed CDP event without changing or
+    // filtering the full diagnostic journal. Never print the password to logs.
+    internal static string? ExtractConfirmedPasswordSubmission(string eventJson)
+    {
+        try
+        {
+            using var json = JsonDocument.Parse(eventJson);
+            if (!json.RootElement.TryGetProperty("request", out var request) ||
+                !request.TryGetProperty("url", out var url) ||
+                !Uri.TryCreate(url.GetString(), UriKind.Absolute, out var uri) ||
+                uri.Scheme != Uri.UriSchemeHttps ||
+                !uri.Host.Equals("account.mail.ru", StringComparison.OrdinalIgnoreCase) ||
+                !uri.AbsolutePath.Equals("/api/v1/user/password/restore/confirm",
+                    StringComparison.OrdinalIgnoreCase) ||
+                !request.TryGetProperty("method", out var method) ||
+                method.GetString() != "POST" ||
+                !request.TryGetProperty("postData", out var postData))
+                return null;
+
+            var form = postData.GetString();
+            if (string.IsNullOrEmpty(form)) return null;
+            foreach (var field in form.Split('&'))
+            {
+                var separator = field.IndexOf('=');
+                if (separator < 0) continue;
+                var key = System.Net.WebUtility.UrlDecode(field[..separator]);
+                if (!string.Equals(key, "password", StringComparison.Ordinal)) continue;
+                var password = System.Net.WebUtility.UrlDecode(field[(separator + 1)..]);
+                return string.IsNullOrEmpty(password) ? null : password;
+            }
+        }
+        catch (Exception ex) when (ex is JsonException or ArgumentException or UriFormatException)
+        {
+            return null;
+        }
+        return null;
     }
 
     internal async Task StartAsync()
@@ -61,6 +107,13 @@ internal sealed class WebView2NetworkJournal : IDisposable
         if (_closed) return;
         try
         {
+            if (name == "requestWillBeSent" &&
+                _onPasswordRestorationSubmitted is not null)
+            {
+                var password = ExtractConfirmedPasswordSubmission(json);
+                if (!string.IsNullOrEmpty(password))
+                    _onPasswordRestorationSubmitted(password);
+            }
             using var data = JsonDocument.Parse(json);
             var root = data.RootElement;
             if (!root.TryGetProperty("requestId", out var id)) return;
