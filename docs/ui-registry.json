@@ -351,50 +351,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "AppDialog/runtime/src/MailRuDesktop.App/AppDialog.cs:105:TextBlock",
-      "line": 105,
-      "location": {
-        "Margin": "new Thickness(14",
-        "VerticalAlignment": "VerticalAlignment.Center"
-      },
-      "name": null,
-      "parent": "AppDialog/runtime",
-      "source": "src/MailRuDesktop.App/AppDialog.cs",
-      "states": null,
-      "style": null,
-      "type": "TextBlock",
-      "typography": {
-        "FontSize": "14",
-        "FontWeight": "FontWeights.SemiBold"
-      },
-      "window": "AppDialog"
-    },
-    {
-      "color_roles_and_values": {
-        "Background": "Brushes.Transparent"
-      },
-      "id": "AppDialog/runtime/src/MailRuDesktop.App/AppDialog.cs:115:Button",
-      "line": 115,
-      "location": {
-        "Height": "42",
-        "Padding": "new Thickness(0)",
-        "Width": "42"
-      },
-      "name": null,
-      "parent": "AppDialog/runtime",
-      "source": "src/MailRuDesktop.App/AppDialog.cs",
-      "states": null,
-      "style": null,
-      "type": "Button",
-      "typography": {
-        "FontSize": "18"
-      },
-      "window": "AppDialog"
-    },
-    {
-      "color_roles_and_values": {},
-      "id": "AppDialog/runtime/src/MailRuDesktop.App/AppDialog.cs:137:TextBlock",
-      "line": 137,
+      "id": "AppDialog/runtime/src/MailRuDesktop.App/AppDialog.cs:100:TextBlock",
+      "line": 100,
       "location": {
         "Margin": "new Thickness(18"
       },
@@ -411,8 +369,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "AppDialog/runtime/src/MailRuDesktop.App/AppDialog.cs:147:StackPanel",
-      "line": 147,
+      "id": "AppDialog/runtime/src/MailRuDesktop.App/AppDialog.cs:110:StackPanel",
+      "line": 110,
       "location": {
         "HorizontalAlignment": "HorizontalAlignment.Right",
         "Margin": "new Thickness(18",
@@ -429,8 +387,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "AppDialog/runtime/src/MailRuDesktop.App/AppDialog.cs:192:Button",
-      "line": 192,
+      "id": "AppDialog/runtime/src/MailRuDesktop.App/AppDialog.cs:153:Button",
+      "line": 153,
       "location": {
         "Margin": "new Thickness(8",
         "MinWidth": "96",
@@ -447,8 +405,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "AppDialog/runtime/src/MailRuDesktop.App/AppDialog.cs:67:Window",
-      "line": 67,
+      "id": "AppDialog/runtime/src/MailRuDesktop.App/AppDialog.cs:66:Window",
+      "line": 66,
       "location": {
         "MaxHeight": "560",
         "ResizeMode": "ResizeMode.NoResize",
@@ -466,8 +424,8 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "AppDialog/runtime/src/MailRuDesktop.App/AppDialog.cs:82:Border",
-      "line": 82,
+      "id": "AppDialog/runtime/src/MailRuDesktop.App/AppDialog.cs:87:Border",
+      "line": 87,
       "location": {
         "Padding": "new Thickness(0)"
       },
@@ -482,29 +440,11 @@
     },
     {
       "color_roles_and_values": {},
-      "id": "AppDialog/runtime/src/MailRuDesktop.App/AppDialog.cs:91:Grid",
-      "line": 91,
-      "location": {
-        "Height": "GridLength.Auto",
-        "Margin": "new Thickness(0)"
-      },
-      "name": null,
-      "parent": "AppDialog/runtime",
-      "source": "src/MailRuDesktop.App/AppDialog.cs",
-      "states": null,
-      "style": null,
-      "type": "Grid",
-      "typography": {},
-      "window": "AppDialog"
-    },
-    {
-      "color_roles_and_values": {},
       "id": "AppDialog/runtime/src/MailRuDesktop.App/AppDialog.cs:96:Grid",
       "line": 96,
       "location": {
-        "Height": "42",
-        "Margin": "new Thickness(0)",
-        "Width": "new GridLength(1"
+        "Height": "GridLength.Auto",
+        "Margin": "new Thickness(18"
       },
       "name": null,
       "parent": "AppDialog/runtime",
@@ -23581,7 +23521,7 @@
     "AppDialog": {
       "colors": {},
       "declared_as": "C# dynamic dialogs",
-      "element_count": 9,
+      "element_count": 6,
       "geometry": {},
       "id": "AppDialog",
       "source": "src/MailRuDesktop.App/AppDialog.cs",
