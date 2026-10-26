@@ -2302,7 +2302,16 @@ internal static class Program
             Check(importWindowGuard is not null &&
                   Equals(importWindowGuard.Invoke(mail, new object[] { settingsWindow! }), false),
                 "An open Settings window is not considered a blocker for portable import");
+            var settingsStillOpen = typeof(MainWindow).GetMethod(
+                "IsSettingsWindowOpenForImport",
+                System.Reflection.BindingFlags.Static |
+                System.Reflection.BindingFlags.NonPublic);
+            Check(settingsStillOpen is not null &&
+                  Equals(settingsStillOpen.Invoke(null, new object?[] { settingsWindow }), true),
+                "Import detects Settings while it is still open");
             settingsWindow!.Close();
+            Check(Equals(settingsStillOpen!.Invoke(null, new object?[] { settingsWindow }), false),
+                "Import does not mistake a closed WPF Settings window for an open window");
             mail.UpdateLayout();
             Check(Require<Grid>(mail, "SettingsWorkspace").Visibility == Visibility.Collapsed &&
                   Require<Grid>(mail, "MailWorkspace").Visibility == Visibility.Visible,
