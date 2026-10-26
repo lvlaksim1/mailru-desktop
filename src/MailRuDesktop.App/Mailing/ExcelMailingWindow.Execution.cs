@@ -89,8 +89,10 @@ public partial class ExcelMailingWindow
                 ?? throw new InvalidOperationException("Выберите существующий шаблон.");
             var reader = ExcelInteropService.OpenReader(book, sheet);
             var excluded = _store.ReadExclusions();
-            var authorized = _authorizations.Logins.ToHashSet(
-                StringComparer.OrdinalIgnoreCase);
+            var authorized = _authorizations.Logins
+                .Where(login => _authorizations.TryRestore(login, out var auth) &&
+                    !string.IsNullOrWhiteSpace(auth?.AccessToken))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
             // No intermediate table: one prepared result is returned at a time.
             var session = MailingPlanner.CreateSession(profile, template.Body,
                 excluded, authorized, collectRows: false);

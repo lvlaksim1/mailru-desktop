@@ -44,7 +44,97 @@ internal static class Program
                 if (!wrongPasswordRejected)
                     throw new InvalidOperationException("Encrypted backup accepted a wrong password.");
                 PortableSettingsService.Validate(restored);
+
                 Console.WriteLine("PASS encrypted settings backup round-trip");
+            }
+
+            // The import MUST preserve on-computer AJ tokens and local passwords,
+            // but give imported accounts no token. All files live under a test root.
+            {
+                var root = Path.Combine(Path.GetTempPath(),
+                    "mailru-import-smoke-" + Guid.NewGuid().ToString("N"));
+                Directory.CreateDirectory(root);
+                try
+                {
+                    var auth = new AuthorizationStore(root);
+                    auth.Save("authorized@example.invalid", "local-aj-token",
+                        "local-refresh-token", null, null, null, null, "original-local-password");
+                    var local = new AppSettingsStore(root);
+                    local.SaveTheme(AppThemeMode.Light);
+                    var package = new PortablePackage
+                    {
+                        SettingsJson = "{\"Theme\":\"Dark\"}",
+                        Accounts =
+                        [
+                            new PortableAccount { Login = "authorized@example.invalid",
+                                Password = "different-backup-password" },
+                            new PortableAccount { Login = "imported@example.invalid",
+                                Password = "imported-password" }
+                        ],
+                        Layout =
+                        [
+                            new AccountRailLayoutEntryState { Kind = "section",
+                                Title = "Рассылки" },
+                            new AccountRailLayoutEntryState { Kind = "account",
+                                Login = "authorized@example.invalid" },
+                            new AccountRailLayoutEntryState { Kind = "account",
+                                Login = "imported@example.invalid" }
+                        ],
+                        Templates = [new PortableTemplate { Name = "Приветствие",
+                            Body = "Текст шаблона" }],
+                        Signatures = [new SavedSignature { Name = "Основная",
+                            Body = "Подпись" }]
+                    };
+                    var selection = new PortableSelection();
+                    selection.AccountNames.UnionWith(package.Accounts.Select(a => a.Login));
+                    selection.TemplateNames.Add("Приветствие");
+                    selection.SignatureNames.Add("Основная");
+                    var service = new PortableSettingsService(auth, local, root);
+                    var missing = service.Apply(package, selection);
+                    Check(missing.Count == 1 && missing[0] == "imported@example.invalid",
+                        "import queues only new account");
+                    Check(auth.TryRestore("authorized@example.invalid", out var preserved) &&
+                        preserved?.AccessToken == "local-aj-token",
+                        "import retains pre-existing computer-specific token");
+                    Check(auth.TryGetPassword("authorized@example.invalid", out var oldPass) &&
+                        oldPass == "original-local-password",
+                        "import retains existing verified password");
+                    Check(!auth.TryRestore("imported@example.invalid", out _) &&
+                        auth.TryGetPassword("imported@example.invalid", out var newPass) &&
+                        newPass == "imported-password",
+                        "import re-encrypts password, imports no token");
+                    Check(auth.Logins.Count == 2 &&
+                        local.LoadTheme() == AppThemeMode.Dark,
+                        "import creates accounts and replaces appearance");
+                    Check(new MarkdownSignatureStore(Path.Combine(root, "Signatures"))
+                        .LoadAll().Count == 1 &&
+                        new MarkdownTemplateStore(Path.Combine(root, "Templates"))
+                        .LoadAll().Count == 1,
+                        "import restores chosen signatures and Markdown templates");
+                    Check(Directory.EnumerateDirectories(Path.Combine(root, "Backups")).Any(
+                        d => File.Exists(Path.Combine(d, "manifest.json"))),
+                        "full rollback snapshot created before replacement");
+
+                    // Deliberate corrupt attachment fails after prior writes;
+                    // the snapshot restores original settings and authorization.
+                    var invalid = new PortablePackage
+                    {
+                        Accounts = [new PortableAccount { Login = "bad@example.invalid" }],
+                        Templates = [new PortableTemplate { Name = "Bad",
+                            Attachments = [new PortableAttachment { Name = "file.txt",
+                                Content = "not-base64" }] }]
+                    };
+                    selection.AccountNames.Add("bad@example.invalid");
+                    selection.TemplateNames.Add("Bad");
+                    var rejected = false;
+                    try { service.Apply(invalid, selection); }
+                    catch (FormatException) { rejected = true; }
+                    Check(rejected && auth.Logins.Count == 2 &&
+                        local.LoadTheme() == AppThemeMode.Dark &&
+                        !auth.Logins.Contains("bad@example.invalid"),
+                        "failed import rolls back all current settings");
+                }
+                finally { Directory.Delete(root, recursive: true); }
             }
 
 

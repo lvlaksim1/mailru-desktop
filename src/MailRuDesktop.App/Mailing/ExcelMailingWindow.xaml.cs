@@ -188,7 +188,11 @@ public partial class ExcelMailingWindow : Window
         {
             _current = profile;
             _senders.Clear();
-            var loginSet = _authorizations.Logins.ToHashSet(StringComparer.OrdinalIgnoreCase);
+            // Imported logins without a local AJ token must not be marked authorized.
+            var loginSet = _authorizations.Logins
+                .Where(login => _authorizations.TryRestore(login, out var auth) &&
+                    !string.IsNullOrWhiteSpace(auth?.AccessToken))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
             var all = profile.Senders.Select(x => x.Login)
                 .Concat(_authorizations.Logins)
                 .Distinct(StringComparer.OrdinalIgnoreCase);

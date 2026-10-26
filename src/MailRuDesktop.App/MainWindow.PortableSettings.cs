@@ -68,6 +68,9 @@ public partial class MainWindow
                 MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (answer != MessageBoxResult.Yes) return;
 
+            // Include current, still unsaved column/window sizes in the mandatory
+            // local rollback backup before the configuration is replaced.
+            SaveUserInterfaceState();
             var service = new PortableSettingsService(_authStore, _settingsStore);
             var pending = service.Apply(package, selectionWindow.Selection);
             MessageBox.Show(this,

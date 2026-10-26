@@ -18,11 +18,12 @@ internal sealed class PortableSettingsService
     private readonly string _signaturesDir;
     private readonly string _mailingDir;
 
-    internal PortableSettingsService(AuthorizationStore auth, AppSettingsStore settings)
+    internal PortableSettingsService(AuthorizationStore auth, AppSettingsStore settings,
+        string? rootOverride = null)
     {
         _auth = auth;
         _settings = settings;
-        _root = Path.Combine(Environment.GetFolderPath(
+        _root = rootOverride ?? Path.Combine(Environment.GetFolderPath(
             Environment.SpecialFolder.LocalApplicationData), "MailRuDesktop");
         _templatesDir = Path.Combine(_root, "Templates");
         _signaturesDir = Path.Combine(_root, "Signatures");
@@ -37,7 +38,7 @@ internal sealed class PortableSettingsService
             SettingsJson = ReadOptional(Path.Combine(_root, "settings.json"), "{}"),
             Accounts = _auth.ExportPortableAccounts().ToList(),
             Layout = _settings.LoadAccountRailLayout(),
-            Signatures = new MarkdownSignatureStore().LoadAll().ToList(),
+            Signatures = new MarkdownSignatureStore(_signaturesDir).LoadAll().ToList(),
             MailingProfiles = new MailingProfileStore().Load().ToList(),
             MailingExclusions = ReadOptional(Path.Combine(_mailingDir, "excluded-addresses.txt"), "")
         };
