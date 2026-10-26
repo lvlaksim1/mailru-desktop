@@ -7,9 +7,12 @@ public partial class AddAccountWindow : Window
     public string Login => LoginTextBox.Text.Trim();
     public string Password => PasswordBox.Password;
 
-    public AddAccountWindow(string? existingLogin = null)
+    public AddAccountWindow(string? existingLogin = null, string? knownPassword = null,
+        bool recoveryPassword = false)
     {
         InitializeComponent();
+        if (!string.IsNullOrEmpty(knownPassword))
+            PasswordBox.Password = knownPassword;
         if (!string.IsNullOrWhiteSpace(existingLogin))
         {
             Title = "Повторная авторизация Mail.ru";
@@ -21,6 +24,11 @@ public partial class AddAccountWindow : Window
         else
         {
             Loaded += (_, _) => LoginTextBox.Focus();
+        }
+        if (recoveryPassword)
+        {
+            Title = "Действующий пароль после проверки Mail.ru";
+            ConfirmButton.Content = "Продолжить";
         }
     }
 

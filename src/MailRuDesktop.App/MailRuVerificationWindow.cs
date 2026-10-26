@@ -10,6 +10,8 @@ namespace MailRuDesktop.App;
 internal sealed class MailRuVerificationWindow : Window
 {
     private readonly Uri _startUri;
+    private readonly string _login;
+    private WebView2NetworkJournal? _networkJournal;
     private readonly string _profilePath;
     private readonly bool _officialSecondStep;
     private readonly IReadOnlyList<MailRuAuthBrowserCookie> _initialCookies;
@@ -18,6 +20,7 @@ internal sealed class MailRuVerificationWindow : Window
     private readonly Button _continueButton = new();
     private bool _terminalResultInProgress;
 
+    public bool MailboxReached { get; private set; }
     public string? SessionCookieHeader { get; private set; }
     public string? TsaCookie { get; private set; }
     public IReadOnlyDictionary<string, string> AdditionalParams { get; private set; } =
@@ -38,6 +41,7 @@ internal sealed class MailRuVerificationWindow : Window
         }
 
         _startUri = uri;
+        _login = login;
         _officialSecondStep = officialSecondStep;
         _initialCookies = initialCookies ?? Array.Empty<MailRuAuthBrowserCookie>();
         _profilePath = MailRuAuthProfileStore.GetProfilePath(login);
@@ -176,6 +180,8 @@ internal sealed class MailRuVerificationWindow : Window
             _webView.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
             _webView.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
             _webView.CoreWebView2.NewWindowRequested += CoreWebView2_NewWindowRequested;
+            _networkJournal = new WebView2NetworkJournal(_webView.CoreWebView2, _login);
+            await _networkJournal.StartAsync();
 
             _webView.Source = _startUri;
         }
@@ -309,12 +315,44 @@ internal sealed class MailRuVerificationWindow : Window
 
         if (_officialSecondStep)
         {
-            _statusText.Text =
-                "Пройдите проверку и нажмите штатную кнопку «Войти» на странице Mail.ru.";
+            var page = _webView.Source;
+            if (IsMailboxLanding(page))
+            {
+                MailboxReached = true;
+                _ = HandleMailboxLandingAsync();
+                return;
+            }
+            _statusText.Text = "Завершите проверку на странице Mail.ru.";
             return;
         }
 
         _continueButton.IsEnabled = true;
+    }
+
+    internal static bool IsMailboxLanding(Uri? page)
+    {
+        if (page is null ||
+            page.Scheme != Uri.UriSchemeHttps ||
+            !page.Host.Equals("e.mail.ru", StringComparison.OrdinalIgnoreCase))
+            return false;
+        return page.AbsolutePath.Equals("/inbox", StringComparison.OrdinalIgnoreCase) ||
+            page.AbsolutePath.StartsWith("/inbox/", StringComparison.OrdinalIgnoreCase) ||
+            page.AbsolutePath.Equals("/sent", StringComparison.OrdinalIgnoreCase) ||
+            page.AbsolutePath.StartsWith("/sent/", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private async Task HandleMailboxLandingAsync()
+    {
+        if (_terminalResultInProgress) return;
+        _terminalResultInProgress = true;
+        try
+        {
+            TsaCookie = await ReadTsaCookieAsync();
+            DiagnosticLog.Write("auth_browser_landed", "mailbox-opened; client-token-pending");
+            DialogResult = true;
+        }
+        catch (Exception ex) { _statusText.Text = ex.Message; }
+        finally { _terminalResultInProgress = false; }
     }
 
     private async Task HandleMobileAuthResultAsync(Uri uri)
@@ -453,6 +491,7 @@ internal sealed class MailRuVerificationWindow : Window
 
     private void VerificationWindow_Closed(object? sender, EventArgs e)
     {
+        _networkJournal?.Dispose();
         if (_webView.CoreWebView2 is not null)
         {
             _webView.CoreWebView2.NavigationStarting -= CoreWebView2_NavigationStarting;

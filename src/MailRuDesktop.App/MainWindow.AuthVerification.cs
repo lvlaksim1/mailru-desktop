@@ -11,7 +11,7 @@ public partial class MainWindow
             MailRuAuthState.TwoFactor or
             MailRuAuthState.RecoveryRequired;
 
-    private async Task<MailRuAuthResult?> TryHandleInteractiveAuthAsync(
+    private async Task<(MailRuAuthResult Result, string Password)?> TryHandleInteractiveAuthAsync(
         string login,
         string password,
         MailRuAuthResult result)
@@ -80,23 +80,33 @@ public partial class MainWindow
         AuthStatusText.Text =
             "Продолжение исходной авторизации после проверки Mail.ru...";
 
+        var passwordForClient = password;
+        if (verificationWindow.MailboxReached)
+        {
+            // A browser login proves neither client-token issuance nor that
+            // the original password is still valid after account recovery.
+            // Ask for the CURRENT password instead of extracting browser forms.
+            var currentPasswordDialog = new AddAccountWindow(
+                login, recoveryPassword: true) { Owner = this };
+            if (currentPasswordDialog.ShowDialog() != true)
+                return null;
+            passwordForClient = currentPasswordDialog.Password;
+            DiagnosticLog.Write("auth_recovery",
+                "mailbox-browser-stage-completed; new-client-password-provided", login);
+        }
+
         MailRuAuthResult retry;
         if (isOfficialSecondStep)
         {
             retry = await _mailRu.CompleteSecondStepAsync(
-                login,
-                localSessionId!,
-                verificationWindow.TsaCookie,
-                verificationWindow.AdditionalParams);
+                login, localSessionId!, verificationWindow.TsaCookie,
+                verificationWindow.AdditionalParams, passwordForClient,
+                verificationWindow.SessionCookieHeader);
         }
         else
         {
-            // This fallback is retained for challenge forms other than the
-            // Status=ok + Continue second-step contract confirmed in the APK.
             retry = await _mailRu.AuthenticateWithSessionCookiesAsync(
-                login,
-                password,
-                verificationWindow.SessionCookieHeader);
+                login, passwordForClient, verificationWindow.SessionCookieHeader);
         }
 
         WriteAuthDiagnostics(retry, login);
@@ -111,7 +121,7 @@ public partial class MainWindow
                     : "Mail.ru снова запросил дополнительную проверку. Диагностика обновлена.");
         }
 
-        return retry;
+        return (retry, passwordForClient);
     }
 
     private void WriteAuthDiagnostics(MailRuAuthResult result, string? login = null)

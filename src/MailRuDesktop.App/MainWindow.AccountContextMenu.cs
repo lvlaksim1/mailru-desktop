@@ -98,7 +98,8 @@ public partial class MainWindow
             !_authStore.Logins.Contains(login, StringComparer.OrdinalIgnoreCase))
             return;
 
-        var dialog = new AddAccountWindow(login) { Owner = this };
+        _authStore.TryGetPassword(login, out var knownPassword);
+        var dialog = new AddAccountWindow(login, knownPassword) { Owner = this };
         if (dialog.ShowDialog() != true)
             return;
 
@@ -113,17 +114,21 @@ public partial class MainWindow
 
         try
         {
-            var result = await _mailRu.AuthenticateAsync(login, dialog.Password);
+            var passwordForClient = dialog.Password;
+            var result = await _mailRu.AuthenticateAsync(login, passwordForClient);
             if (!result.Success && IsInteractiveAuthState(result))
             {
-                var retry = await TryHandleInteractiveAuthAsync(login, dialog.Password, result);
+                var retry = await TryHandleInteractiveAuthAsync(login, passwordForClient, result);
                 if (retry is not null)
-                    result = retry;
+                {
+                    result = retry.Value.Result;
+                    passwordForClient = retry.Value.Password;
+                }
             }
 
             if (!result.Success || string.IsNullOrWhiteSpace(result.AccessToken))
             {
-                WriteAuthDiagnostics(result);
+                WriteAuthDiagnostics(result, login);
                 TraceAuthToken(login, "manual_reauth", "new_credentials", "not_received",
                     kind: result.State.ToString());
                 if (item is not null)
@@ -147,7 +152,8 @@ public partial class MainWindow
                 throw;
             }
 
-            if (!_authStore.UpdateTokens(login, result.AccessToken, result.RefreshToken))
+            if (!_authStore.UpdateTokens(login, result.AccessToken, result.RefreshToken,
+                    passwordForClient))
             {
                 TraceAuthToken(login, "manual_reauth", "store", "account_missing");
                 if (item is not null)
