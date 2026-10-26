@@ -64,7 +64,8 @@ internal sealed class MailingSubmissionEngine(MailingRunStore store)
                     var explicitRefusal = IsExplicitRejection(result.RawResponse);
                     job.Status = explicitRefusal
                         ? MailingJobStatus.Rejected : MailingJobStatus.Indeterminate;
-                    job.ErrorCode = explicitRefusal ? "server_rejected" : "unconfirmed_server_reply";
+                    job.ErrorCode = explicitRefusal
+                        ? ExplainRefusal(result.RawResponse) : "unconfirmed_server_reply";
                     if (persist) store.Save(run);
                     onChanged?.Invoke(job);
                     if (!explicitRefusal) break;
@@ -100,7 +101,45 @@ internal sealed class MailingSubmissionEngine(MailingRunStore store)
         }
     }
 
-    private static bool IsExplicitRejection(string response)
+    internal static bool IsSkippableRecipientRefusal(MailingJobRecord job) =>
+        job.Status == MailingJobStatus.Rejected &&
+        job.ErrorCode.StartsWith("recipient_", StringComparison.Ordinal);
+
+    private static string ExplainRefusal(string response)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(response);
+            var root = document.RootElement;
+            if (root.TryGetProperty("body", out var body) &&
+                body.ValueKind == JsonValueKind.Object &&
+                body.TryGetProperty("correspondents.to", out var toErrors) &&
+                toErrors.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in toErrors.EnumerateArray())
+                {
+                    if (item.ValueKind != JsonValueKind.Object ||
+                        !item.TryGetProperty("error", out var code) ||
+                        code.ValueKind != JsonValueKind.String)
+                        continue;
+                    var error = code.GetString() ?? "";
+                    if (error.Length is < 1 or > 48 ||
+                        !error.All(ch => char.IsAsciiLetterOrDigit(ch) || ch == '_'))
+                        continue;
+                    var address = item.TryGetProperty("value", out var value) &&
+                        value.ValueKind == JsonValueKind.String
+                        ? value.GetString() ?? "" : "";
+                    if (address.Length > 254 || address.Any(char.IsControl))
+                        address = "";
+                    return "recipient_" + error + (address.Length > 0 ? ": " + address : "");
+                }
+            }
+        }
+        catch (JsonException) { }
+        return "server_rejected";
+    }
+
+    internal static bool IsExplicitRejection(string response)
     {
         try
         {

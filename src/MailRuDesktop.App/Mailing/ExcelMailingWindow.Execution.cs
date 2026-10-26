@@ -25,14 +25,22 @@ public partial class ExcelMailingWindow
         return book;
     }
 
-    private async Task<MailRuCommandResult> SubmitOneAsync(MailingJobRecord job)
+    private async Task<MailRuCommandResult> SubmitOneAsync(
+        MailingJobRecord job, IReadOnlyDictionary<string, int> senderQuotas)
     {
         if (!_authorizations.TryRestore(job.Sender, out var auth) ||
             string.IsNullOrWhiteSpace(auth?.AccessToken))
             throw new InvalidOperationException("Отсутствует авторизация выбранного аккаунта.");
 
+        // Build the body before reserving capacity; a local formatting
+        // failure must not leave an unsent message consuming a quota slot.
         var rendered = MailingMarkdownFormatting.Render(job.Body);
-        return await _mailRu.SendMessageAsync(auth.AccessToken,
+        if (!senderQuotas.TryGetValue(job.Sender, out var quota) ||
+            !_senderCounters.TryReserve(job.Sender, job.MessageId, quota))
+            return new MailRuCommandResult(false,
+                "{\"status\":400,\"body\":{\"error\":\"sender_quota_reached\"}}");
+
+        var result = await _mailRu.SendMessageAsync(auth.AccessToken,
             new MailRuOutgoingMessage(
                 To: job.Email,
                 Subject: job.Subject,
@@ -41,6 +49,12 @@ public partial class ExcelMailingWindow
                 SendDate: job.ScheduledAt.ToUnixTimeSeconds()
                     .ToString(CultureInfo.InvariantCulture),
                 MessageId: job.MessageId));
+        if (result.Success)
+            _senderCounters.ConfirmReserved(job.Sender, job.MessageId);
+        else if (MailingSubmissionEngine.IsExplicitRejection(result.RawResponse))
+            _senderCounters.ReleaseRejected(job.MessageId);
+        // If the server response is uncertain, retain the durable quota slot.
+        return result;
     }
 
     private Task WriteOneExcelAsync(MailingRunRecord run, MailingJobRecord job)
@@ -94,8 +108,14 @@ public partial class ExcelMailingWindow
                     !string.IsNullOrWhiteSpace(auth?.AccessToken))
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
             // No intermediate table: one prepared result is returned at a time.
+            var senderQuotas = profile.Senders.ToDictionary(
+                x => x.Login, x => x.Quantity, StringComparer.OrdinalIgnoreCase);
+            var usedCounts = profile.Senders.ToDictionary(
+                x => x.Login, x => _senderCounters.GetUsed(x.Login),
+                StringComparer.OrdinalIgnoreCase);
             var session = MailingPlanner.CreateSession(profile, template.Body,
-                excluded, authorized, collectRows: false);
+                excluded, authorized, collectRows: false,
+                usedSenderCounts: usedCounts);
             // Checkbox applies to this entire send, not only the UI display.
             // Disabled means no journal access, no DPAPI files, no recovery.
             var journalEnabled = profile.JournalEnabled;
@@ -126,6 +146,19 @@ public partial class ExcelMailingWindow
             // recover the two Excel marks without any repeated server POST.
             foreach (var previous in priorRuns)
             {
+                foreach (var confirmed in previous.Jobs.Where(x =>
+                             x.ConfirmedAtUtc is not null))
+                {
+                    if (_senderCounters.ReconcileConfirmed(
+                            confirmed.Sender, confirmed.MessageId))
+                    {
+                        var senderRow = _senders.FirstOrDefault(x =>
+                            string.Equals(x.Login, confirmed.Sender,
+                                StringComparison.OrdinalIgnoreCase));
+                        if (senderRow is not null)
+                            senderRow.SentCount = _senderCounters.Get(confirmed.Sender);
+                    }
+                }
                 foreach (var old in previous.Jobs.Where(x =>
                              x.Status == MailingJobStatus.ExcelWritePending))
                 {
@@ -219,26 +252,36 @@ public partial class ExcelMailingWindow
                     currentSender = job.Sender;
                     AppendRunLog($"Строка {row.RowNumber}: отправитель {job.Sender}; " +
                         $"постановка {session.ReadyCount}/{session.Quota} на {job.ScheduledAt:dd.MM.yyyy HH:mm:ss}.");
-                    await engine.ExecuteAsync(currentRun, SubmitOneAsync,
+                    await engine.ExecuteAsync(currentRun,
+                        current => SubmitOneAsync(current, senderQuotas),
                         current => WriteOneExcelAsync(currentRun, current),
                         () => cancellation.IsCancellationRequested ||
                               _stopMailing || !IsVisible,
                         persist: journalEnabled);
                     if (job.ConfirmedAtUtc is not null)
                     {
-                        if (_senderCounters.RecordAccepted(job.Sender, job.MessageId))
-                        {
-                            var counter = _senders.FirstOrDefault(x =>
-                                string.Equals(x.Login, job.Sender, StringComparison.OrdinalIgnoreCase));
-                            if (counter is not null) counter.SentCount = _senderCounters.Get(job.Sender);
-                        }
+                        var counter = _senders.FirstOrDefault(x =>
+                            string.Equals(x.Login, job.Sender, StringComparison.OrdinalIgnoreCase));
+                        if (counter is not null)
+                            counter.SentCount = _senderCounters.Get(job.Sender);
                         AppendRunLog($"Строка {row.RowNumber}: Mail.ru подтвердил постановку; " +
-                            $"аккаунт {job.Sender}, всего {_senderCounters.Get(job.Sender)}.");
+                            $"аккаунт {job.Sender}, всего {_senderCounters.Get(job.Sender)} " +
+                            $"из квоты {senderQuotas[job.Sender]}.");
                     }
                     if (job.Status == MailingJobStatus.CompletedRecord)
                     {
                         accepted++;
                         AppendRunLog($"Строка {row.RowNumber}: данные подтверждённой отправки записаны в Excel.");
+                    }
+                    else if (MailingSubmissionEngine.IsSkippableRecipientRefusal(job))
+                    {
+                        rejected++;
+                        session.ReleaseRecipientRefusal(job.Sender);
+                        AppendRunLog($"Строка {row.RowNumber}, адрес {job.Email}, " +
+                            $"аккаунт {job.Sender}: сервер отказал получателю " +
+                            $"({job.ErrorCode}); письмо не поставлено в отправку. " +
+                            "Квота не израсходована, продолжаем со следующей строки.");
+                        continue;
                     }
                     else
                     {
