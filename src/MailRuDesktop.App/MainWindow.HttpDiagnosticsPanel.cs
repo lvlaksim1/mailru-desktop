@@ -8,10 +8,13 @@ namespace MailRuDesktop.App;
 
 public partial class MainWindow
 {
+    private static string FullProtocolReport() =>
+        MailRuHttpWireLog.CurrentHourReport() +
+        WebView2NetworkJournal.CurrentHourReport();
     private void RefreshProtocolDiagnosticsView()
     {
         if (HttpProtocolLogTextBox is null) return;
-        HttpProtocolLogTextBox.Text = MailRuHttpWireLog.CurrentHourReport();
+        HttpProtocolLogTextBox.Text = FullProtocolReport();
         HttpProtocolLogTextBox.ScrollToEnd();
     }
 
@@ -25,7 +28,7 @@ public partial class MainWindow
     {
         try
         {
-            Clipboard.SetText(MailRuHttpWireLog.CurrentHourReport());
+            Clipboard.SetText(FullProtocolReport());
             HttpProtocolStatusText.Text = "Полный отчёт за текущий час скопирован.";
         }
         catch (System.Runtime.InteropServices.ExternalException)
@@ -47,7 +50,7 @@ public partial class MainWindow
         if (dialog.ShowDialog(this) != true) return;
         try
         {
-            File.WriteAllText(dialog.FileName, MailRuHttpWireLog.CurrentHourReport(),
+            File.WriteAllText(dialog.FileName, FullProtocolReport(),
                 new UTF8Encoding(false));
             HttpProtocolStatusText.Text = "Отчёт за текущий час сохранён.";
         }
