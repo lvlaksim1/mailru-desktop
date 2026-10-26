@@ -119,6 +119,52 @@ internal sealed class WebView2NetworkJournal : IDisposable
         catch { }
     }
 
+    internal static string CurrentHourReport()
+    {
+        var now = DateTimeOffset.Now;
+        var folder = Path.Combine(Environment.GetFolderPath(
+            Environment.SpecialFolder.LocalApplicationData),
+            "MailRuDesktop", "http-traffic");
+        var file = Path.Combine(folder, now.ToString("yyyyMMdd-HH") +
+            "-webview2.jsonl");
+        var output = new StringBuilder();
+        output.AppendLine().AppendLine("=== WebView2: сетевые события браузера за текущий час ===");
+        try
+        {
+            if (!File.Exists(file))
+                return output.AppendLine("Сетевых событий WebView2 пока нет.").ToString();
+
+            foreach (var line in File.ReadLines(file, Encoding.UTF8))
+            {
+                try
+                {
+                    using var document = JsonDocument.Parse(line);
+                    var e = document.RootElement;
+                    output.AppendLine().Append("Время: ")
+                        .Append(e.GetProperty("time").ToString())
+                        .Append("; Аккаунт: ")
+                        .Append(e.GetProperty("account").GetString())
+                        .Append("; Событие: ")
+                        .AppendLine(e.GetProperty("category").GetString());
+                    output.AppendLine(e.GetProperty("raw").GetString());
+                }
+                catch (JsonException)
+                {
+                    output.AppendLine("Строка не разобрана: " + line);
+                }
+            }
+        }
+        catch (IOException error)
+        {
+            output.AppendLine("Ошибка чтения: " + error.Message);
+        }
+        catch (UnauthorizedAccessException error)
+        {
+            output.AppendLine("Нет доступа: " + error.Message);
+        }
+        return output.ToString();
+    }
+
     public void Dispose()
     {
         _closed = true;
