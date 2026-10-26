@@ -159,8 +159,10 @@ internal static class MailingPlanner
     internal static MailingPlanSession CreateSession(
         MailingProfile profile, string templateBody,
         IReadOnlySet<string> excluded, IReadOnlySet<string> authorized,
-        DateTimeOffset? now = null, bool collectRows = true) =>
-        new(profile, templateBody, excluded, authorized, now, collectRows);
+        DateTimeOffset? now = null, bool collectRows = true,
+        IReadOnlyDictionary<string, int>? usedSenderCounts = null) =>
+        new(profile, templateBody, excluded, authorized, now, collectRows,
+            usedSenderCounts);
 
     internal static MailingPreparationResult Prepare(
         MailingProfile profile, IReadOnlyList<MailingExcelRow> rows,
@@ -194,11 +196,13 @@ internal sealed class MailingPlanSession
     internal MailingPreparationResult Result { get; } = new();
     internal int Quota => _totalQuota;
     internal int ReadyCount => _readyCount;
-    internal bool IsFull => _readyCount >= _totalQuota;
+    internal bool IsFull => _readyCount >= _totalQuota ||
+        _quotas.All(x => x.Used >= x.Quantity);
 
     internal MailingPlanSession(MailingProfile profile, string templateBody,
         IReadOnlySet<string> excluded, IReadOnlySet<string> authorized,
-        DateTimeOffset? now, bool collectRows)
+        DateTimeOffset? now, bool collectRows,
+        IReadOnlyDictionary<string, int>? usedSenderCounts = null)
     {
         _collectRows = collectRows;
         _profile = profile;
@@ -222,8 +226,35 @@ internal sealed class MailingPlanSession
         if (_start <= _now.AddMinutes(2))
             throw new InvalidOperationException(
                 "Начало рассылки должно быть минимум через 2 минуты.");
-        _quotas = profile.Senders.Select(x => (x.Login, x.Quantity, Used: 0)).ToArray();
-        _totalQuota = _quotas.Sum(x => x.Quantity);
+        // Quotas include sends already accepted in earlier runs and pending
+        // reservations whose outcome is unknown; a new run starts with the
+        // remaining capacity, not a fresh full quota.
+        _quotas = profile.Senders.Select(x =>
+        {
+            var used = usedSenderCounts is not null &&
+                usedSenderCounts.TryGetValue(x.Login, out var previous)
+                    ? Math.Clamp(previous, 0, x.Quantity) : 0;
+            return (x.Login, x.Quantity, Used: used);
+        }).ToArray();
+        _totalQuota = _quotas.Sum(x => x.Quantity - x.Used);
+    }
+
+    // A definite recipient refusal did not consume a server send: return
+    // the slot to the same sender so the next valid row can use that quota.
+    internal void ReleaseRecipientRefusal(string login)
+    {
+        for (var i = 0; i < _quotas.Length; i++)
+        {
+            if (!string.Equals(_quotas[i].Login, login,
+                    StringComparison.OrdinalIgnoreCase))
+                continue;
+            if (_quotas[i].Used <= 0 || _readyCount <= 0)
+                throw new InvalidOperationException("Квота задания не была зарезервирована.");
+            _quotas[i].Used--;
+            _readyCount--;
+            return;
+        }
+        throw new InvalidOperationException("Неизвестный отправитель рассылки.");
     }
 
     internal bool NeedsOrganization(MailingExcelRow row) =>
