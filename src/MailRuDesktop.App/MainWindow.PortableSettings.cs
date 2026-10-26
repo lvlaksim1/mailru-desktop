@@ -68,17 +68,8 @@ public partial class MainWindow
                 MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (answer != MessageBoxResult.Yes) return;
 
-            // Other open compose/mailing windows may still write old settings
-            // when they close. Refuse import until those windows are closed.
-            if (Application.Current.Windows.Cast<Window>()
-                .Any(window => window != this && window.IsLoaded))
-            {
-                MessageBox.Show(this,
-                    "Перед импортом закройте все остальные окна программы, " +
-                    "включая рассылку Excel и окна писем, затем повторите импорт.",
-                    "Импорт настроек", MessageBoxButton.OK, MessageBoxImage.Warning);
+            if (!TryCloseSettingsWindowForImport())
                 return;
-            }
             // Include current, still unsaved column/window sizes in the mandatory
             // local rollback backup before the configuration is replaced.
             SaveUserInterfaceState();
@@ -129,6 +120,34 @@ public partial class MainWindow
                 "из автоматически созданной местной резервной копии.",
                 "Ошибка импорта", MessageBoxButton.OK, MessageBoxImage.Error);
         }
+    }
+
+    private bool TryCloseSettingsWindowForImport()
+    {
+        // Compose and mailing windows may save their old settings on close.
+        // The settings window is safe to close now, before replacing the files.
+        var settingsWindow = _settingsWindow;
+        if (Application.Current.Windows.Cast<Window>()
+            .Any(window => window != this && window != settingsWindow && window.IsLoaded))
+        {
+            MessageBox.Show(this,
+                "Перед импортом закройте открытые окна писем и рассылки Excel, " +
+                "затем повторите импорт.",
+                "Импорт настроек", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        // Closing Settings persists its geometry. Do this before taking the
+        // rollback snapshot and importing, never during the final app shutdown.
+        settingsWindow?.Close();
+        if (settingsWindow is { IsLoaded: true })
+        {
+            MessageBox.Show(this,
+                "Не удалось закрыть окно настроек. Закройте его и повторите импорт.",
+                "Импорт настроек", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+        return true;
     }
 
     // A one-shot queue: no passwords are serialized here, and only accounts
