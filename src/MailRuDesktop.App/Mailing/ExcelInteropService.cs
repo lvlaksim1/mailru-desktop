@@ -36,6 +36,16 @@ internal static class ExcelInteropService
     [DllImport("ole32.dll", PreserveSig = true)]
     private static extern int CreateBindCtx(uint reserved, out IBindCtx ctx);
 
+    internal static bool IsEligibleWorkbook(string name, bool isAddin,
+        bool hasVisibleWindow)
+    {
+        var extension = Path.GetExtension(name);
+        return hasVisibleWindow && !isAddin &&
+            !extension.Equals(".xlam", StringComparison.OrdinalIgnoreCase) &&
+            !extension.Equals(".xla", StringComparison.OrdinalIgnoreCase) &&
+            !extension.Equals(".xll", StringComparison.OrdinalIgnoreCase);
+    }
+
     internal static List<OpenExcelBook> Discover()
     {
         var books = new List<OpenExcelBook>();
@@ -47,12 +57,8 @@ internal static class ExcelInteropService
             string name = workbook.Name;
             string path = workbook.FullName;
             dynamic excel = workbook.Application;
-            var extension = Path.GetExtension(name);
-            if (extension.Equals(".xlam", StringComparison.OrdinalIgnoreCase) ||
-                extension.Equals(".xla", StringComparison.OrdinalIgnoreCase) ||
-                extension.Equals(".xll", StringComparison.OrdinalIgnoreCase) ||
-                Convert.ToBoolean(workbook.IsAddin, CultureInfo.InvariantCulture))
-                return;
+            var isAddin = Convert.ToBoolean(workbook.IsAddin,
+                CultureInfo.InvariantCulture);
             dynamic windows = workbook.Windows;
             int windowCount = Convert.ToInt32(windows.Count, CultureInfo.InvariantCulture);
             var anyVisible = false;
@@ -65,7 +71,7 @@ internal static class ExcelInteropService
                     break;
                 }
             }
-            if (!anyVisible) return;
+            if (!IsEligibleWorkbook(name, isAddin, anyVisible)) return;
             int hwnd = Convert.ToInt32(excel.Hwnd, CultureInfo.InvariantCulture);
             var key = hwnd.ToString(CultureInfo.InvariantCulture) + "|" + path;
             if (!identities.Add(key)) return;
