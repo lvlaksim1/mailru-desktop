@@ -188,7 +188,11 @@ public partial class MainWindow
         var quoted = BuildQuotedReply(full, source);
         if (_composeRichEditor is not null)
         {
-            _composeRichEditor.LoadReplyQuotedText(quoted);
+            if (!string.IsNullOrWhiteSpace(full?.Html))
+                _composeRichEditor.LoadReplyQuotedHtml(full.Html,
+                    BuildReplyHtmlHeader(full, source));
+            else
+                _composeRichEditor.LoadReplyQuotedText(quoted);
             _composeRichEditor.EnsureOpeningGreeting();
         }
         else
@@ -321,6 +325,12 @@ public partial class MainWindow
     private static string ReplySubject(string subject) =>
         subject.StartsWith("Re:", StringComparison.OrdinalIgnoreCase)
             ? subject : "Re: " + subject;
+
+    private static string BuildReplyHtmlHeader(
+        MailRuFullMessage full, MailRuMessageSummary source) =>
+        "----- Исходное письмо -----\n" +
+        "От: " + full.SenderDisplay + "\n" +
+        "Тема: " + (full.Subject ?? source.Subject);
 
     private static string BuildQuotedReply(
         MailRuFullMessage? full, MailRuMessageSummary summary)

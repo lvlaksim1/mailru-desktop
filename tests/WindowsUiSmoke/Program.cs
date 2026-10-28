@@ -853,6 +853,45 @@ internal static class Program
             Check(greetingPlain.Text.Split("Добрый день").Length == 2,
                 "template beginning with greeting does not duplicate it");
 
+            // New mail, reply, reply-all, forwarding and template editing all
+            // use the same rich editor. Preserve safe HTML through its export.
+            var incomingHtml = "<p style='text-align:center;font-size:18px'>" +
+                "<strong>Заголовок</strong></p>" +
+                "<blockquote><p><em>Цитата</em> <a href='https://example.org'>ссылка</a></p></blockquote>" +
+                "<ul><li>Пункт один</li><li>Пункт два</li></ul>" +
+                "<table><tr><td>Ячейка</td><td><u>Подчёркнуто</u></td></tr></table>" +
+                "<p><span style='color:#123456;font-size:16px'>Цвет и размер</span></p>" +
+                "<script>alert('unsafe')</script>";
+            greetingEditor.LoadReplyQuotedHtml(incomingHtml, "От: пример@example.invalid");
+            var preservedHtml = greetingEditor.ToHtml();
+            Check(preservedHtml.Contains("<blockquote", StringComparison.Ordinal) &&
+                  preservedHtml.Contains("<table", StringComparison.Ordinal) &&
+                  preservedHtml.Contains("<ul", StringComparison.Ordinal) &&
+                  preservedHtml.Contains("font-size:18", StringComparison.Ordinal) &&
+                  preservedHtml.Contains("color:#123456", StringComparison.OrdinalIgnoreCase) &&
+                  preservedHtml.Contains("href=\"https://example.org", StringComparison.Ordinal) &&
+                  !preservedHtml.Contains("unsafe", StringComparison.Ordinal) &&
+                  !preservedHtml.Contains("<script", StringComparison.Ordinal),
+                "quoted HTML preserves safe structure, formatting and links");
+            greetingEditor.ApplyTemplateMarkdown("Текст ответа", Array.Empty<string>());
+            greetingEditor.ApplyMarkdownSignature("Подпись", Array.Empty<string>());
+            Check(greetingEditor.ToHtml().Contains("<table", StringComparison.Ordinal) &&
+                  greetingEditor.ToHtml().Contains("Цитата", StringComparison.Ordinal) &&
+                  greetingEditor.ToHtml().Contains("Текст ответа", StringComparison.Ordinal),
+                "reply and reply-all signatures/templates preserve quoted HTML");
+            var pasteHost = new Grid();
+            var pastePlain = new TextBox();
+            pasteHost.Children.Add(pastePlain);
+            var pasteEditor = RichComposeEditor.Attach(pastePlain, mail);
+            pasteEditor.TextControl.Document.Blocks.Clear();
+            pasteEditor.TextControl.Document.Blocks.Add(new Paragraph(new Run("до вставки")));
+            pasteEditor.TextControl.CaretPosition = pasteEditor.TextControl.Document.ContentEnd;
+            pasteEditor.TextControl.Selection.Text = " и после вставки";
+            Check(pasteEditor.TextControl.CanUndo, "rich editor records insertion in undo stack");
+            pasteEditor.TextControl.Undo();
+            Check(!pastePlain.Text.Contains("после вставки", StringComparison.Ordinal),
+                "Ctrl+Z restores editor text after insertion");
+
             // Regression: a previous bold signature/heading must not become
             // the typing format of a fresh reply or a fresh new message.
             var formattedPlain = new TextBox { MinHeight = 120 };

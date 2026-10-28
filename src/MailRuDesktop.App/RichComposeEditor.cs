@@ -67,6 +67,8 @@ internal sealed class RichComposeEditor
             Document = new FlowDocument(new Paragraph()),
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             AcceptsTab = true,
+            IsUndoEnabled = true,
+            UndoLimit = 1000,
             // The visible outline belongs to the shared editor frame.
             BorderThickness = new Thickness(0),
             FocusVisualStyle = null,
@@ -104,18 +106,20 @@ internal sealed class RichComposeEditor
         ComposeSpellChecking.Register(rich);
         var editor = new RichComposeEditor(plain, rich);
         editor.CreateToolbar(toolbar, owner);
-        // Finish a typed URL at a word boundary, or after a paste. Never
-        // rewrite an incomplete address while the user is still typing it.
+        // No asynchronous link insertion after paste or a keystroke: that
+        // modified the document outside the user's edit and invalidated Undo.
+        // Existing ToHtml/ToMarkdown linkify before the message is serialized.
         rich.PreviewKeyDown += (_, args) =>
         {
-            if (args.Key is Key.Space or Key.Return or Key.Tab)
-                _ = rich.Dispatcher.BeginInvoke(new Action(editor.AutoLinkUrls),
-                    DispatcherPriority.Background);
+            if ((Keyboard.Modifiers & ModifierKeys.Control) == 0 ||
+                (Keyboard.Modifiers & ModifierKeys.Shift) != 0 || args.Key != Key.Z)
+                return;
+            if (rich.CanUndo)
+            {
+                rich.Undo();
+                args.Handled = true;
+            }
         };
-        DataObject.AddPastingHandler(rich, (_, _) =>
-            _ = rich.Dispatcher.BeginInvoke(new Action(editor.AutoLinkUrls),
-                DispatcherPriority.Background));
-        rich.LostKeyboardFocus += (_, _) => editor.AutoLinkUrls();
         host.Children.Add(toolbar);
         host.Children.Add(textFrame);
 
@@ -307,6 +311,32 @@ internal sealed class RichComposeEditor
     /// the signature/template boundaries used by the reply editor.
     /// MarkdownRichLoader converts supported bold, italic, underline and links.
     /// </summary>
+    /// <summary>
+    /// Import the safe formatted original without replacing the user's
+    /// reply or signature. Shared by reply, reply-all and forwarding.
+    /// </summary>
+    public void LoadReplyQuotedHtml(string html, string header)
+    {
+        LoadReplyQuotedText("");
+        _syncing = true;
+        try
+        {
+            if (_replyHistory is null)
+                throw new InvalidOperationException("Reply history was not initialized.");
+            foreach (var line in header.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n'))
+                _replyHistory.Blocks.Add(new Paragraph(new Run(line))
+                {
+                    Margin = new Thickness(0)
+                });
+            _replyHistory.Blocks.Add(new Paragraph { Margin = new Thickness(0) });
+            MailHtmlRichLoader.Append(_replyHistory.Blocks, html);
+            _rich.Document.Blocks.Add(_replyHistory);
+        }
+        finally { _syncing = false; }
+        SyncFromRich();
+        _rich.CaretPosition = _replyBody!.ContentStart;
+    }
+
     public void LoadReplyQuotedMarkdown(string markdown)
     {
         LoadReplyQuotedText("");
@@ -768,7 +798,29 @@ internal sealed class RichComposeEditor
                     output.Append("</").Append(tag).Append('>');
                     break;
                 case Section section:
+                    if (Equals(section.Tag, "mail-html-quote"))
+                        output.Append("<blockquote style=\"border-left:2px solid #888;margin:5px 0 5px 9px;padding-left:9px;\">");
                     RenderBlocks(section.Blocks, output);
+                    if (Equals(section.Tag, "mail-html-quote")) output.Append("</blockquote>");
+                    break;
+                case Table table:
+                    output.Append("<table style=\"border-collapse:collapse;border:1px solid #888;\">");
+                    foreach (var group in table.RowGroups)
+                        foreach (var row in group.Rows)
+                        {
+                            output.Append("<tr>");
+                            foreach (var cell in row.Cells)
+                            {
+                                output.Append("<td style=\"border:1px solid #888;padding:4px;\"");
+                                if (cell.ColumnSpan > 1)
+                                    output.Append(" colspan=\"").Append(cell.ColumnSpan).Append('\"');
+                                output.Append('>');
+                                RenderBlocks(cell.Blocks, output);
+                                output.Append("</td>");
+                            }
+                            output.Append("</tr>");
+                        }
+                    output.Append("</table>");
                     break;
             }
         }
@@ -796,6 +848,10 @@ internal sealed class RichComposeEditor
                     styles.Add("text-decoration:line-through");
                 if (run.ReadLocalValue(TextElement.ForegroundProperty) is SolidColorBrush brush)
                     styles.Add($"color:#{brush.Color.R:X2}{brush.Color.G:X2}{brush.Color.B:X2}");
+                if (run.ReadLocalValue(TextElement.FontSizeProperty) is double fontSize)
+                    styles.Add("font-size:" + fontSize.ToString(System.Globalization.CultureInfo.InvariantCulture) + "px");
+                if (run.ReadLocalValue(TextElement.BackgroundProperty) is SolidColorBrush fill)
+                    styles.Add($"background-color:#{fill.Color.R:X2}{fill.Color.G:X2}{fill.Color.B:X2}");
                 if (styles.Count > 0)
                     output.Append("<span style=\"").Append(string.Join(";", styles)).Append("\">");
                 output.Append(value);
@@ -803,6 +859,11 @@ internal sealed class RichComposeEditor
             }
             else if (inline is LineBreak)
                 output.Append("<br>");
+            else if (inline is InlineUIContainer container &&
+                     container.Tag is MailHtmlRichLoader.ForwardedImage image)
+                output.Append("<img src=\"").Append(WebUtility.HtmlEncode(image.Source))
+                    .Append("\" alt=\"").Append(WebUtility.HtmlEncode(image.Alternative))
+                    .Append("\">");
             else if (inline is Hyperlink link && link.NavigateUri is not null)
             {
                 var url = link.NavigateUri.ToString();
@@ -812,10 +873,26 @@ internal sealed class RichComposeEditor
             }
             else if (inline is Span span)
             {
-                // Structural Bold/Italic/Underline can outlive a formatting
-                // reset; effective child properties are the source of truth.
+                var styles = new List<string>();
+                if (span.ReadLocalValue(TextElement.FontSizeProperty) is double fontSize)
+                    styles.Add("font-size:" + fontSize.ToString(System.Globalization.CultureInfo.InvariantCulture) + "px");
+                if (span.ReadLocalValue(TextElement.ForegroundProperty) is SolidColorBrush brush)
+                    styles.Add($"color:#{brush.Color.R:X2}{brush.Color.G:X2}{brush.Color.B:X2}");
+                if (span.ReadLocalValue(TextElement.BackgroundProperty) is SolidColorBrush fill)
+                    styles.Add($"background-color:#{fill.Color.R:X2}{fill.Color.G:X2}{fill.Color.B:X2}");
+                if (span.ReadLocalValue(TextElement.FontWeightProperty) is FontWeight weight &&
+                    weight == FontWeights.Bold) styles.Add("font-weight:bold");
+                if (span.ReadLocalValue(TextElement.FontStyleProperty) is FontStyle fontStyle &&
+                    fontStyle == FontStyles.Italic) styles.Add("font-style:italic");
+                if (span.TextDecorations?.Contains(TextDecorations.Underline[0]) == true)
+                    styles.Add("text-decoration:underline");
+                if (span.TextDecorations?.Contains(TextDecorations.Strikethrough[0]) == true)
+                    styles.Add("text-decoration:line-through");
+                if (styles.Count > 0)
+                    output.Append("<span style=\"").Append(string.Join(";", styles)).Append("\">");
                 RenderInlines(span.Inlines, output,
                     inheritedUnderline || span is Underline);
+                if (styles.Count > 0) output.Append("</span>");
             }
         }
     }
