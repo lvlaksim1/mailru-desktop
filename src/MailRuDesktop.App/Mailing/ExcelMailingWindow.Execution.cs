@@ -12,6 +12,38 @@ public partial class ExcelMailingWindow
     private CancellationTokenSource? _sendCancellation;
     private bool _stopMailing;
     private static int _activeDirectMailing;
+    private int _diagnosticMailingRow;
+    private string _diagnosticMailingSender = "";
+    private string _diagnosticMailingStage = "не запущена";
+
+    // Diagnostics only: this method must not alter mailing or recovery logic.
+    // Persist the reason even when the UI log is lost on window closure.
+    private void RecordMailingState(string eventName, MailingJobRecord? job = null)
+    {
+        try
+        {
+            if (_sendCancellation is null) return;
+            var row = job?.RowNumber ?? _diagnosticMailingRow;
+            var sender = job?.Sender ?? _diagnosticMailingSender;
+            var state = job is null ? "—" : job.Status.ToString();
+            var error = job?.ErrorCode ?? "";
+            var snapshot =
+                $"событие={eventName}; этап={_diagnosticMailingStage}; строка={row}; " +
+                $"задание={state}; причина_задания={error}; " +
+                $"прерывание_запрошено={_stopMailing}; " +
+                $"отмена_запрошена={_sendCancellation.IsCancellationRequested}; " +
+                $"окно_видимо={IsVisible}; Visibility={Visibility}; " +
+                $"окно_загружено={IsLoaded}; состояние_окна={WindowState}; " +
+                $"окно_активно={IsActive}; владелец_активен={Owner?.IsActive}; " +
+                $"кнопка_прерывания_доступна={StopButton.IsEnabled}";
+            DiagnosticLog.Write("excel_mailing_state", snapshot,
+                string.IsNullOrWhiteSpace(sender) ? null : sender);
+        }
+        catch
+        {
+            // A diagnostic failure must not affect a mailing operation.
+        }
+    }
 
     private OpenExcelBook RequireCurrentWorkbook(MailingRunRecord run)
     {
@@ -28,6 +60,7 @@ public partial class ExcelMailingWindow
     private async Task<MailRuCommandResult> SubmitOneAsync(
         MailingJobRecord job, IReadOnlyDictionary<string, int> senderQuotas)
     {
+        _diagnosticMailingStage = "вызван SubmitOneAsync";
         if (!_authorizations.TryRestore(job.Sender, out var auth) ||
             string.IsNullOrWhiteSpace(auth?.AccessToken))
             throw new InvalidOperationException("Отсутствует авторизация выбранного аккаунта.");
@@ -50,6 +83,7 @@ public partial class ExcelMailingWindow
             SendDate: job.ScheduledAt.ToUnixTimeSeconds()
                 .ToString(CultureInfo.InvariantCulture),
             MessageId: job.MessageId);
+        _diagnosticMailingStage = "обращение к Mail.ru";
         var result = await MailingSubmissionEngine.SubmitWithTokenRecoveryAsync(
             auth.AccessToken,
             token => _mailRu.SendMessageAsync(token, outgoing),
@@ -71,6 +105,7 @@ public partial class ExcelMailingWindow
         else if (MailingSubmissionEngine.IsExplicitRejection(result.RawResponse))
             _senderCounters.ReleaseRejected(job.MessageId);
         // If the server response is uncertain, retain the durable quota slot.
+        _diagnosticMailingStage = "получен результат от Mail.ru";
         return result;
     }
 
@@ -206,6 +241,10 @@ public partial class ExcelMailingWindow
                 .ToHashSet(StringComparer.Ordinal);
             _stopMailing = false;
             _sendCancellation = new CancellationTokenSource();
+            _diagnosticMailingRow = 0;
+            _diagnosticMailingSender = "";
+            _diagnosticMailingStage = "инициализация рассылки";
+            RecordMailingState("рассылка_начата");
             ExecutionLogTextBox.Clear();
             AppendRunLog($"Начало рассылки. Книга: {book.Name}; лист: {sheet}; дата: {profile.StartDate:dd.MM.yyyy}.");
             var cancellation = _sendCancellation.Token;
@@ -257,14 +296,25 @@ public partial class ExcelMailingWindow
             while (reader.HasMore && !session.IsFull && !mustStop)
             {
                 cancellation.ThrowIfCancellationRequested();
-                if (_stopMailing || !IsVisible) break;
+                if (_stopMailing || !IsVisible)
+                {
+                    RecordMailingState("остановка_перед_чтением_пакета");
+                    break;
+                }
                 var rows = reader.ReadNext(cancellation);
                 foreach (var row in rows)
                 {
                     cancellation.ThrowIfCancellationRequested();
-                    if (_stopMailing || !IsVisible || session.IsFull) break;
+                    if (_stopMailing || !IsVisible || session.IsFull)
+                    {
+                        RecordMailingState("остановка_перед_строкой");
+                        break;
+                    }
                     currentRow = row.RowNumber;
                     currentSender = "";
+                    _diagnosticMailingRow = currentRow;
+                    _diagnosticMailingSender = "";
+                    _diagnosticMailingStage = "чтение строки Excel";
                     reader.ActivateRow(row.RowNumber);
                     AppendRunLog($"Строка {row.RowNumber}: обработка {row.Email}.");
 
@@ -342,14 +392,30 @@ public partial class ExcelMailingWindow
                         reserved.Add(key);
                     }
                     currentSender = job.Sender;
+                    _diagnosticMailingSender = job.Sender;
+                    _diagnosticMailingStage = "подготовлено, перед ExecuteAsync";
                     AppendRunLog($"Строка {row.RowNumber}: отправитель {job.Sender}; " +
                         $"постановка {session.ReadyCount}/{session.Quota} на {job.ScheduledAt:dd.MM.yyyy HH:mm:ss}.");
                     await engine.ExecuteAsync(currentRun,
                         current => SubmitOneAsync(current, senderQuotas),
                         current => WriteOneExcelAsync(currentRun, current),
-                        () => cancellation.IsCancellationRequested ||
-                              _stopMailing || !IsVisible,
+                        () =>
+                        {
+                            var cancelled = cancellation.IsCancellationRequested;
+                            var stopped = _stopMailing;
+                            var hidden = !IsVisible;
+                            if (cancelled || stopped || hidden)
+                                RecordMailingState("ExecuteAsync: стоп перед отправкой", job);
+                            return cancelled || stopped || hidden;
+                        },
                         persist: journalEnabled);
+                    _diagnosticMailingStage = "возврат из ExecuteAsync";
+                    if (job.Status == MailingJobStatus.Prepared)
+                    {
+                        RecordMailingState("ExecuteAsync вернул Prepared без отправки", job);
+                        AppendRunLog($"Диагностика строки {job.RowNumber}: задание осталось " +
+                            "подготовленным; причина остановки записана в протокол приложения.");
+                    }
                     if (job.ConfirmedAtUtc is not null)
                     {
                         var counter = _senders.FirstOrDefault(x =>
@@ -402,11 +468,13 @@ public partial class ExcelMailingWindow
         }
         catch (OperationCanceledException)
         {
+            RecordMailingState("OperationCanceledException");
             AppendRunLog($"Обработка прервана пользователем. " +
                 $"Ранее принятые задания не отменены. Подтверждено и отмечено: {accepted}.");
         }
         catch (Exception ex)
         {
+            RecordMailingState("исключение: " + ex.GetType().Name);
             DiagnosticLog.Write("excel_mailing_direct_send",
                 ex.GetType().Name + ": " + ex.Message);
             var detail = $"Строка {currentRow}, аккаунт " +
@@ -418,6 +486,8 @@ public partial class ExcelMailingWindow
         }
         finally
         {
+            _diagnosticMailingStage = "завершение рассылки";
+            RecordMailingState("рассылка_завершена");
             _sendCancellation?.Dispose();
             _sendCancellation = null;
             SendButton.IsEnabled = true;
