@@ -87,8 +87,15 @@ public partial class ExcelMailingWindow : Window
             _profiles.Add(new MailingProfile());
         if (_profiles.Count > 0)
             ProfileCombo.SelectedIndex = 0;
-        Closed += (_, _) => { _sendCancellation?.Cancel(); _stopMailing = true; };
         Closing += Window_Closing;
+        Closed += (_, _) =>
+        {
+            RecordMailingState("окно_закрыто_до_отмены");
+            _sendCancellation?.Cancel();
+            _stopMailing = true;
+        };
+        IsVisibleChanged += (_, _) => RecordMailingState("видимость_окна_изменилась");
+        StateChanged += (_, _) => RecordMailingState("состояние_окна_изменилось");
     }
 
     internal static double NormalizeSenderGridHeight(double desired) =>
@@ -130,6 +137,7 @@ public partial class ExcelMailingWindow : Window
 
     private void Window_Closing(object? sender, CancelEventArgs e)
     {
+        RecordMailingState("окно_закрывается");
         SaveSenderGridHeight();
         if (!_dirty || _sendCancellation is not null) return;
         var answer = MessageBox.Show(this,
@@ -475,8 +483,10 @@ public partial class ExcelMailingWindow : Window
     private void StopMailing_Click(object sender, RoutedEventArgs e)
     {
         if (_sendCancellation is null || _stopMailing) return;
+        RecordMailingState("нажата_кнопка_Прервать_до_отмены");
         _stopMailing = true;
         _sendCancellation.Cancel();
+        RecordMailingState("кнопка_Прервать_выполнила_отмену");
         StopButton.IsEnabled = false;
         AppendRunLog("Запрошено прерывание. Новые письма отправляться не будут.");
     }
