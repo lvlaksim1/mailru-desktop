@@ -6,6 +6,7 @@ using System.Windows.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Documents;
 using System.Windows.Data;
 using System.Windows.Media;
@@ -852,6 +853,62 @@ internal static class Program
             greetingEditor.EnsureOpeningGreeting();
             Check(greetingPlain.Text.Split("Добрый день").Length == 2,
                 "template beginning with greeting does not duplicate it");
+
+            // New mail, reply, reply-all, forwarding and template editing all
+            // use the same rich editor. Preserve safe HTML through its export.
+            var incomingHtml = "<p style='text-align:center;font-size:18px'>" +
+                "<strong>Заголовок</strong></p>" +
+                "<blockquote><p><em>Цитата</em> <a href='https://example.org'>ссылка</a></p></blockquote>" +
+                "<ul><li>Пункт один</li><li>Пункт два</li></ul>" +
+                "<table><tr><td>Ячейка</td><td><u>Подчёркнуто</u></td></tr></table>" +
+                "<p><span style='font-family:Georgia;color:#123456;font-size:16px'>Цвет и размер</span></p>" +
+                "<script>alert('unsafe')</script>";
+            greetingEditor.LoadReplyQuotedHtml(incomingHtml, "От: пример@example.invalid");
+            var preservedHtml = greetingEditor.ToHtml();
+            Check(preservedHtml.Contains("<blockquote", StringComparison.Ordinal) &&
+                  preservedHtml.Contains("<table", StringComparison.Ordinal) &&
+                  preservedHtml.Contains("<ul", StringComparison.Ordinal) &&
+                  preservedHtml.Contains("font-size:18", StringComparison.Ordinal) &&
+                  preservedHtml.Contains("color:#123456", StringComparison.OrdinalIgnoreCase) &&
+                  preservedHtml.Contains("font-family:georgia", StringComparison.OrdinalIgnoreCase) &&
+                  preservedHtml.Contains("href=\"https://example.org", StringComparison.Ordinal) &&
+                  !preservedHtml.Contains("unsafe", StringComparison.Ordinal) &&
+                  !preservedHtml.Contains("<script", StringComparison.Ordinal),
+                "quoted HTML preserves safe structure, formatting and links");
+            greetingEditor.ApplyTemplateMarkdown("Текст ответа", Array.Empty<string>());
+            greetingEditor.ApplyMarkdownSignature("Подпись", Array.Empty<string>());
+            Check(greetingEditor.ToHtml().Contains("<table", StringComparison.Ordinal) &&
+                  greetingEditor.ToHtml().Contains("Цитата", StringComparison.Ordinal) &&
+                  greetingEditor.ToHtml().Contains("Текст ответа", StringComparison.Ordinal),
+                "reply and reply-all signatures/templates preserve quoted HTML");
+            greetingEditor.LoadHtml(incomingHtml);
+            Check(greetingEditor.ToHtml().Contains("<table", StringComparison.Ordinal) &&
+                  greetingEditor.ToHtml().Contains("<blockquote", StringComparison.Ordinal),
+                "resend and HTML draft bodies retain original quote and table");
+            var pasteHost = new Grid();
+            var pastePlain = new TextBox();
+            pasteHost.Children.Add(pastePlain);
+            var pasteEditor = RichComposeEditor.Attach(pastePlain, mail);
+            var pasteWindow = new Window
+            {
+                Content = pasteHost, Width = 330, Height = 210,
+                ShowInTaskbar = false, WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = mail
+            };
+            pasteWindow.Show();
+            pasteWindow.UpdateLayout();
+            pasteEditor.LoadMarkdown("до вставки");
+            pasteEditor.TextControl.CaretPosition = pasteEditor.TextControl.Document.ContentEnd;
+            pasteEditor.TextControl.Focus();
+            Clipboard.SetText(" и после вставки");
+            ApplicationCommands.Paste.Execute(null, pasteEditor.TextControl);
+            Check(pastePlain.Text.Contains("после вставки", StringComparison.Ordinal) &&
+                  pasteEditor.TextControl.CanUndo,
+                "real Ctrl+V paste records one undoable edit in a visible rich editor");
+            ApplicationCommands.Undo.Execute(null, pasteEditor.TextControl);
+            Check(!pastePlain.Text.Contains("после вставки", StringComparison.Ordinal),
+                "Ctrl+Z restores text after a real paste");
+            pasteWindow.Close();
 
             // Regression: a previous bold signature/heading must not become
             // the typing format of a fresh reply or a fresh new message.

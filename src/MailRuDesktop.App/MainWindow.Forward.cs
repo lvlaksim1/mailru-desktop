@@ -53,6 +53,13 @@ public partial class MainWindow
         return header + (string.IsNullOrWhiteSpace(html) ? full.Text : html);
     }
 
+    private static string BuildForwardHeader(MailRuFullMessage full) =>
+        "---------- Пересланное сообщение ----------\n" +
+        "От: " + full.SenderDisplay + "\n" +
+        "Кому: " + string.Join(", ", full.To) + "\n" +
+        "Дата: " + full.DateDisplay + "\n" +
+        "Тема: " + full.Subject;
+
     private void OpenForwardComposeWindow(
         MailRuMessageSummary selected, MailRuFullMessage? full)
     {
@@ -115,8 +122,7 @@ public partial class MainWindow
         {
             if (!string.IsNullOrWhiteSpace(full.Html))
             {
-                var formatted = BuildForwardMarkdown(full);
-                _composeRichEditor.LoadReplyQuotedMarkdown(formatted);
+                _composeRichEditor.LoadReplyQuotedHtml(full.Html, BuildForwardHeader(full));
             }
             else
                 _composeRichEditor.LoadReplyQuotedText(quote);

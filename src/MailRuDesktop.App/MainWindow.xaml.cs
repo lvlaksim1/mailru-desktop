@@ -875,30 +875,38 @@ public partial class MainWindow : Window
         var folders = (FolderListBox.ItemsSource as IEnumerable<MailRuFolderSummary>)?.ToArray()
             ?? Array.Empty<MailRuFolderSummary>();
 
+        var openedLogin = _activeLogin;
+        var openedFolderId = _currentFolderId;
         var window = new MessageWindow(
             _mailRu,
             message,
             _accessToken,
-            _currentFolderId,
+            openedFolderId,
             folders,
             _currentFullMessage?.Id == message.Id ? _currentFullMessage : null,
             _conversationIndex.TryGetValue(message.Id, out var thread)
                 ? thread : null,
-            _activeLogin)
+            openedLogin)
         {
             Owner = this
         };
 
-        window.ShowDialog();
-
-        if (window.MailboxChanged)
-            await LoadFolderAsync(_currentFolderId);
-        if (window.ReplyRequested && window.ReplySource is { } reply)
-            OpenReplyComposeWindow(ConversationSourceSummary(message, reply), reply);
-        if (window.ForwardRequested && window.ForwardSource is { } forward)
-            OpenForwardComposeWindow(ConversationSourceSummary(message, forward), forward);
-        if (window.ResendRequested)
-            OpenResendComposeWindow(message, window.ResendSource);
+        // A separate reader is modeless: the account list and its context
+        // menu remain usable while this letter is open.
+        window.Closed += async (_, _) =>
+        {
+            if (!string.Equals(openedLogin, _activeLogin, StringComparison.OrdinalIgnoreCase))
+                return; // Never use another account after a switch.
+            if (window.MailboxChanged)
+                await LoadFolderAsync(openedFolderId);
+            if (window.ReplyRequested && window.ReplySource is { } reply)
+                OpenReplyComposeWindow(ConversationSourceSummary(message, reply), reply);
+            if (window.ForwardRequested && window.ForwardSource is { } forward)
+                OpenForwardComposeWindow(ConversationSourceSummary(message, forward), forward);
+            if (window.ResendRequested)
+                OpenResendComposeWindow(message, window.ResendSource);
+        };
+        window.Show();
     }
 
     private void MessagesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
