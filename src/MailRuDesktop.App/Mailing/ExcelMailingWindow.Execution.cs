@@ -284,7 +284,22 @@ public partial class ExcelMailingWindow
                             AppendRunLog($"Строка {row.RowNumber}: определение названия по ИНН {row.Inn}.");
                             try
                             {
-                                name = await lookup.ResolveAsync(row.Inn, cancellation);
+                                var result = await lookup.ResolveWithNetworkRetryAsync(
+                                    row.Inn,
+                                    message => AppendRunLog($"Строка {row.RowNumber}: {message}"),
+                                    cancellation);
+                                name = result.Name;
+                                if (result.NetworkFallback)
+                                {
+                                    if (string.IsNullOrWhiteSpace(row.EmployerName))
+                                        throw new InvalidOperationException(
+                                            "Справочник недоступен после двух запросов, " +
+                                            "а столбец «Наименование работодателя» в Excel пуст.");
+                                    // Do not cache an unverified worksheet label by INN.
+                                    // Each affected row retains its own employer name.
+                                }
+                                else
+                                    names[row.Inn] = name;
                             }
                             catch (OperationCanceledException) { throw; }
                             catch (Exception ex)
@@ -292,7 +307,6 @@ public partial class ExcelMailingWindow
                                 throw new InvalidOperationException(
                                     $"Ошибка определения организации по ИНН {row.Inn}: {ex.Message}", ex);
                             }
-                            names[row.Inn] = name;
                         }
                         if (string.IsNullOrWhiteSpace(name) &&
                             !string.IsNullOrWhiteSpace(row.EmployerName))
