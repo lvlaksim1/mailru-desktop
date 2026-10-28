@@ -879,6 +879,10 @@ internal static class Program
                   greetingEditor.ToHtml().Contains("Цитата", StringComparison.Ordinal) &&
                   greetingEditor.ToHtml().Contains("Текст ответа", StringComparison.Ordinal),
                 "reply and reply-all signatures/templates preserve quoted HTML");
+            greetingEditor.LoadHtml(incomingHtml);
+            Check(greetingEditor.ToHtml().Contains("<table", StringComparison.Ordinal) &&
+                  greetingEditor.ToHtml().Contains("<blockquote", StringComparison.Ordinal),
+                "resend and HTML draft bodies retain original quote and table");
             var pasteHost = new Grid();
             var pastePlain = new TextBox();
             pasteHost.Children.Add(pastePlain);

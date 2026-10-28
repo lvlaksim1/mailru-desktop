@@ -13,7 +13,7 @@ public partial class MainWindow
         new(StringComparer.Ordinal);
 
     /// <summary>
-    /// Called only after the modal source reader closes; reuse the full normal
+    /// Called after the separate source reader closes; reuse the full normal
     /// compose window and its ordinary immediate/scheduled send paths.
     /// </summary>
     private void OpenResendComposeWindow(
@@ -73,7 +73,10 @@ public partial class MainWindow
             ComposeStatusText.Text =
                 "Редактируемая копия исходящего письма. Оригинал останется до подтверждения отправки.";
 
-        ComposeBodyTextBox.Text = text ?? "";
+        if (_composeRichEditor is not null && !string.IsNullOrWhiteSpace(full.Html))
+            _composeRichEditor.LoadHtml(full.Html);
+        else
+            ComposeBodyTextBox.Text = text ?? "";
         ScheduleSendCheckBox.IsChecked = false;
         RequestReadReceiptCheckBox.IsChecked = false;
         _attachmentPaths.Clear();

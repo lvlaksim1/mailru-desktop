@@ -166,6 +166,29 @@ internal sealed class RichComposeEditor
             ?? _rich.Document.ContentStart;
     }
 
+    /// <summary>
+    /// Editable HTML source for resend and re-opened drafts. Unlike the
+    /// quote importer, this replaces the whole body without adding history.
+    /// </summary>
+    public void LoadHtml(string html)
+    {
+        _replyBody = null;
+        _replySignature = null;
+        _replyHistory = null;
+        _syncing = true;
+        try
+        {
+            _rich.Document.Blocks.Clear();
+            MailHtmlRichLoader.Append(_rich.Document.Blocks, html);
+            if (_rich.Document.Blocks.FirstBlock is null)
+                _rich.Document.Blocks.Add(new Paragraph { Margin = new Thickness(0) });
+            _plain.Text = new TextRange(_rich.Document.ContentStart, _rich.Document.ContentEnd)
+                .Text.TrimEnd('\r', '\n');
+        }
+        finally { _syncing = false; }
+        PlaceCaretAtStart();
+    }
+
     public void LoadMarkdown(string markdown)
     {
         _replyBody = null;
