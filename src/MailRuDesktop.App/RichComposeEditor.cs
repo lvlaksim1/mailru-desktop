@@ -793,6 +793,8 @@ internal sealed class RichComposeEditor
                     };
                     output.Append("<p style=\"margin:0;line-height:normal;text-align:")
                         .Append(align);
+                    if (paragraph.ReadLocalValue(TextElement.FontFamilyProperty) is FontFamily paragraphFamily)
+                        output.Append(";font-family:").Append(WebUtility.HtmlEncode(paragraphFamily.Source));
                     if (paragraph.ReadLocalValue(TextElement.FontSizeProperty) is double fontSize)
                         output.Append(";font-size:").Append(fontSize.ToString(
                             System.Globalization.CultureInfo.InvariantCulture)).Append("px");
@@ -871,6 +873,8 @@ internal sealed class RichComposeEditor
                     styles.Add("text-decoration:line-through");
                 if (run.ReadLocalValue(TextElement.ForegroundProperty) is SolidColorBrush brush)
                     styles.Add($"color:#{brush.Color.R:X2}{brush.Color.G:X2}{brush.Color.B:X2}");
+                if (run.ReadLocalValue(TextElement.FontFamilyProperty) is FontFamily runFamily)
+                    styles.Add("font-family:" + WebUtility.HtmlEncode(runFamily.Source));
                 if (run.ReadLocalValue(TextElement.FontSizeProperty) is double fontSize)
                     styles.Add("font-size:" + fontSize.ToString(System.Globalization.CultureInfo.InvariantCulture) + "px");
                 if (run.ReadLocalValue(TextElement.BackgroundProperty) is SolidColorBrush fill)
@@ -897,6 +901,8 @@ internal sealed class RichComposeEditor
             else if (inline is Span span)
             {
                 var styles = new List<string>();
+                if (span.ReadLocalValue(TextElement.FontFamilyProperty) is FontFamily spanFamily)
+                    styles.Add("font-family:" + WebUtility.HtmlEncode(spanFamily.Source));
                 if (span.ReadLocalValue(TextElement.FontSizeProperty) is double fontSize)
                     styles.Add("font-size:" + fontSize.ToString(System.Globalization.CultureInfo.InvariantCulture) + "px");
                 if (span.ReadLocalValue(TextElement.ForegroundProperty) is SolidColorBrush brush)

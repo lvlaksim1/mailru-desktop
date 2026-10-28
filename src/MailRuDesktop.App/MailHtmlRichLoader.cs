@@ -226,6 +226,11 @@ internal static class MailHtmlRichLoader
                 case "text-decoration" or "text-decoration-line" when value.Contains("line-through"):
                     if (element is Inline strike) strike.TextDecorations = TextDecorations.Strikethrough;
                     break;
+                case "font-family":
+                    var family = value.Split(',')[0].Trim('\'', '"', ' ');
+                    if (Regex.IsMatch(family, @"^[\p{L}\p{N} _-]{1,80}$"))
+                        element.FontFamily = new FontFamily(family);
+                    break;
                 case "font-size":
                     var size = Regex.Match(value, @"^(\d+(?:\.\d+)?)(px|pt)?$");
                     if (size.Success && double.TryParse(size.Groups[1].Value,

@@ -860,7 +860,7 @@ internal static class Program
                 "<blockquote><p><em>Цитата</em> <a href='https://example.org'>ссылка</a></p></blockquote>" +
                 "<ul><li>Пункт один</li><li>Пункт два</li></ul>" +
                 "<table><tr><td>Ячейка</td><td><u>Подчёркнуто</u></td></tr></table>" +
-                "<p><span style='color:#123456;font-size:16px'>Цвет и размер</span></p>" +
+                "<p><span style='font-family:Georgia;color:#123456;font-size:16px'>Цвет и размер</span></p>" +
                 "<script>alert('unsafe')</script>";
             greetingEditor.LoadReplyQuotedHtml(incomingHtml, "От: пример@example.invalid");
             var preservedHtml = greetingEditor.ToHtml();
@@ -869,6 +869,7 @@ internal static class Program
                   preservedHtml.Contains("<ul", StringComparison.Ordinal) &&
                   preservedHtml.Contains("font-size:18", StringComparison.Ordinal) &&
                   preservedHtml.Contains("color:#123456", StringComparison.OrdinalIgnoreCase) &&
+                  preservedHtml.Contains("font-family:georgia", StringComparison.OrdinalIgnoreCase) &&
                   preservedHtml.Contains("href=\"https://example.org", StringComparison.Ordinal) &&
                   !preservedHtml.Contains("unsafe", StringComparison.Ordinal) &&
                   !preservedHtml.Contains("<script", StringComparison.Ordinal),
