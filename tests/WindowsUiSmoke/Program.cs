@@ -1125,7 +1125,7 @@ internal static class Program
             Task.Run(async () =>
             {
                 const string inn = "7707083893";
-                const string apiResult = "{\\"suggestions\\":[{\\"data\\":{\\"inn\\":\\"7707083893\\",\\"name\\":{\\"short_with_opf\\":\\"ООО Проверка\\"}}}]}";
+                const string apiResult = "{\"suggestions\":[{\"data\":{\"inn\":\"7707083893\",\"name\":{\"short_with_opf\":\"ООО Проверка\"}}}]}";
                 var messages = new List<string>();
                 var oneFailure = new MailingLookupHandler(n => n == 1
                     ? throw new HttpRequestException("connection reset")
