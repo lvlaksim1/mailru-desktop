@@ -887,14 +887,26 @@ internal static class Program
             var pastePlain = new TextBox();
             pasteHost.Children.Add(pastePlain);
             var pasteEditor = RichComposeEditor.Attach(pastePlain, mail);
-            pasteEditor.TextControl.Document.Blocks.Clear();
-            pasteEditor.TextControl.Document.Blocks.Add(new Paragraph(new Run("до вставки")));
+            var pasteWindow = new Window
+            {
+                Content = pasteHost, Width = 330, Height = 210,
+                ShowInTaskbar = false, WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = mail
+            };
+            pasteWindow.Show();
+            pasteWindow.UpdateLayout();
+            pasteEditor.LoadMarkdown("до вставки");
             pasteEditor.TextControl.CaretPosition = pasteEditor.TextControl.Document.ContentEnd;
-            pasteEditor.TextControl.Selection.Text = " и после вставки";
-            Check(pasteEditor.TextControl.CanUndo, "rich editor records insertion in undo stack");
-            pasteEditor.TextControl.Undo();
+            pasteEditor.TextControl.Focus();
+            Clipboard.SetText(" и после вставки");
+            ApplicationCommands.Paste.Execute(null, pasteEditor.TextControl);
+            Check(pastePlain.Text.Contains("после вставки", StringComparison.Ordinal) &&
+                  pasteEditor.TextControl.CanUndo,
+                "real Ctrl+V paste records one undoable edit in a visible rich editor");
+            ApplicationCommands.Undo.Execute(null, pasteEditor.TextControl);
             Check(!pastePlain.Text.Contains("после вставки", StringComparison.Ordinal),
-                "Ctrl+Z restores editor text after insertion");
+                "Ctrl+Z restores text after a real paste");
+            pasteWindow.Close();
 
             // Regression: a previous bold signature/heading must not become
             // the typing format of a fresh reply or a fresh new message.
