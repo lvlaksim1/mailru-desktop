@@ -11,23 +11,66 @@ namespace MailRuDesktop.App.Mailing;
 /// </summary>
 internal sealed class OrganizationLookupService : IDisposable
 {
-    private readonly HttpClient _http = new()
+    private readonly HttpClient _http;
+
+    internal OrganizationLookupService(HttpMessageHandler? handler = null)
     {
-        Timeout = TimeSpan.FromSeconds(15)
-    };
+        _http = handler is null ? new HttpClient() : new HttpClient(handler);
+        _http.Timeout = TimeSpan.FromSeconds(15);
+    }
     private readonly Dictionary<string, string> _cache =
         new(StringComparer.Ordinal);
     private DateTimeOffset? _previousRequest;
     private const string Url =
         "https://www.tinkoff.ru/api/common/dadata/suggestions/api/4_1/rs/suggest/party?appName=company-pages";
 
+    // Keep normal lookups spaced by five seconds. The single recovery attempt
+    // is explicitly allowed after a two-second delay from a failed request.
+    internal async Task<(string? Name, bool NetworkFallback)> ResolveWithNetworkRetryAsync(
+        string inn, Action<string> log, CancellationToken cancellationToken = default,
+        TimeSpan? testDelay = null)
+    {
+        try
+        {
+            return (await ResolveAsync(inn, cancellationToken), false);
+        }
+        catch (Exception ex) when (IsRetryableNetworkFailure(ex, cancellationToken))
+        {
+            log($"Сбой запроса справочника ({ex.Message}). Повтор через 2 секунды.");
+            await Task.Delay(testDelay ?? TimeSpan.FromSeconds(2), cancellationToken);
+            try
+            {
+                return (await ResolveAsync(inn, cancellationToken, immediateRetry: true), false);
+            }
+            catch (Exception retryError) when (
+                IsRetryableNetworkFailure(retryError, cancellationToken))
+            {
+                log($"Повторный запрос справочника не удался ({retryError.Message}). " +
+                    "Используем «Наименование работодателя» из Excel.");
+                return (null, true);
+            }
+        }
+    }
+
+    private static bool IsRetryableNetworkFailure(
+        Exception ex, CancellationToken cancellationToken)
+    {
+        if (ex is OperationCanceledException)
+            return !cancellationToken.IsCancellationRequested;
+        if (ex is IOException) return true;
+        if (ex is not HttpRequestException httpError) return false;
+        if (httpError.StatusCode is null) return true;
+        var status = (int)httpError.StatusCode.Value;
+        return status is 408 or 429 || status >= 500;
+    }
+
     internal async Task<string?> ResolveAsync(string inn,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default, bool immediateRetry = false)
     {
         if (!MailingPlanner.IsValidInn(inn)) return null;
         if (_cache.TryGetValue(inn, out var known)) return known;
-        // Minimum 5 sec between outbound lookup calls; one at a time.
-        if (_previousRequest is DateTimeOffset previous)
+        // Ordinary lookup requests remain at least five seconds apart.
+        if (!immediateRetry && _previousRequest is DateTimeOffset previous)
         {
             var remaining = TimeSpan.FromSeconds(5) -
                 (DateTimeOffset.UtcNow - previous);
@@ -45,7 +88,8 @@ internal sealed class OrganizationLookupService : IDisposable
         using var response = await _http.SendAsync(request, cancellationToken);
         if (!response.IsSuccessStatusCode)
             throw new HttpRequestException(
-                $"Справочник организаций вернул HTTP {(int)response.StatusCode}.");
+                $"Справочник организаций вернул HTTP {(int)response.StatusCode}.",
+                null, response.StatusCode);
         using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
         using var json = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
         var root = json.RootElement;

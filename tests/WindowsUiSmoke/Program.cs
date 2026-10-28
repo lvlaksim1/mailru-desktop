@@ -1119,6 +1119,68 @@ internal static class Program
                       fallbackPlan.Rows[0].Organization == "ООО Работодатель из Excel" &&
                       fallbackPlan.Rows[0].Body.Contains("ООО Работодатель из Excel"),
                     "Excel employer name is used when INN lookup has no organization");
+
+            // No real HTTP: the organization lookup retries one transport failure
+            // immediately after its separate two-second recovery delay.
+            Task.Run(async () =>
+            {
+                const string inn = "7707083893";
+                const string apiResult = "{\"suggestions\":[{\"data\":{\"inn\":\"7707083893\",\"name\":{\"short_with_opf\":\"ООО Проверка\"}}}]}";
+                var messages = new List<string>();
+                var oneFailure = new MailingLookupHandler(n => n == 1
+                    ? throw new HttpRequestException("connection reset")
+                    : new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+                      { Content = new StringContent(apiResult) });
+                using (var service = new MailRuDesktop.App.Mailing.OrganizationLookupService(oneFailure))
+                {
+                    var result = await service.ResolveWithNetworkRetryAsync(
+                        inn, messages.Add, testDelay: TimeSpan.Zero);
+                    Check(oneFailure.RequestCount == 2 &&
+                          result.Name == "ООО Проверка" && !result.NetworkFallback &&
+                          messages.Count == 1,
+                        "organization lookup retries once after a transient transport failure");
+                }
+
+                messages.Clear();
+                var twoFailures = new MailingLookupHandler(_ =>
+                    throw new HttpRequestException("connection reset"));
+                using (var service = new MailRuDesktop.App.Mailing.OrganizationLookupService(twoFailures))
+                {
+                    var result = await service.ResolveWithNetworkRetryAsync(
+                        inn, messages.Add, testDelay: TimeSpan.Zero);
+                    var fallback = MailRuDesktop.App.Mailing.MailingPlanner.Prepare(
+                        localProfile, [fallbackSource],
+                        new Dictionary<string, string>(),
+                        "Привет, {Название_организации}",
+                        new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+                        new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                        { "first@example.com", "second@example.com" });
+                    Check(twoFailures.RequestCount == 2 &&
+                          result.NetworkFallback && result.Name is null &&
+                          messages.Count == 2 && fallback.ReadyCount == 1 &&
+                          fallback.Rows[0].Organization == fallbackSource.EmployerName,
+                        "two network failures use the exact worksheet employer");
+                }
+
+                var httpClientError = new MailingLookupHandler(_ =>
+                    new HttpResponseMessage(System.Net.HttpStatusCode.Forbidden)
+                    { Content = new StringContent("{}") });
+                using (var service = new MailRuDesktop.App.Mailing.OrganizationLookupService(httpClientError))
+                {
+                    var refused = false;
+                    try
+                    {
+                        await service.ResolveWithNetworkRetryAsync(
+                            inn, _ => { }, testDelay: TimeSpan.Zero);
+                    }
+                    catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                    {
+                        refused = true;
+                    }
+                    Check(refused && httpClientError.RequestCount == 1,
+                        "non-transient HTTP refusal is not hidden by Excel fallback");
+                }
+            }).GetAwaiter().GetResult();
                 var streamSession = MailRuDesktop.App.Mailing.MailingPlanner.CreateSession(
                     localProfile, "Привет, {Название_организации}",
                     new HashSet<string>(StringComparer.OrdinalIgnoreCase),
@@ -1865,6 +1927,20 @@ internal static class Program
                 "single WebView2 stays visible; loading occurs inside browser");
             Check(mail.FindName("ReaderLoadingOverlay") is null,
                 "no WPF overlay can create WebView2 airspace flashes");
+
+            var accountHeading = Require<SelectableText>(mail, "ActiveAccountAddressText");
+            var headingViewbox = FindParent<Viewbox>(accountHeading);
+            var previousHeading = accountHeading.Text;
+            accountHeading.Text = "sout.informator13@mail.ru";
+            mail.UpdateLayout();
+            Check(headingViewbox is not null &&
+                  accountHeading.FontSize <= 13 &&
+                  headingViewbox.ActualWidth > 0 &&
+                  accountHeading.TransformToAncestor(headingViewbox)
+                      .TransformBounds(new Rect(accountHeading.RenderSize)).Right <=
+                  headingViewbox.ActualWidth + 1,
+                "account header fits its original navigation width without clipping");
+            accountHeading.Text = previousHeading;
 
             // Account context command applies to the clicked account, not
             // the currently active mailbox. The login is fixed in its dialog.
@@ -2940,6 +3016,15 @@ internal static class Program
     private static void Expect<T>(T actual, T expected, string label)
     {
         Check(EqualityComparer<T>.Default.Equals(actual, expected), label);
+    }
+
+    private sealed class MailingLookupHandler(Func<int, HttpResponseMessage> respond)
+        : HttpMessageHandler
+    {
+        internal int RequestCount { get; private set; }
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request, CancellationToken cancellationToken) =>
+            Task.FromResult(respond(++RequestCount));
     }
 
     private sealed class MailingWireRecorder : HttpMessageHandler
