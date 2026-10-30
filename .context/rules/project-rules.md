@@ -17,3 +17,8 @@ No project-specific rules have been captured yet.
 - Сокращения и специальные обозначения при первом употреблении расшифровывать по-русски, если их смысл не очевиден из контекста.
 - Приоритет — понятное русское объяснение сути, а не профессиональный жаргон или калька с английского.
 
+
+
+## Owner development standards (OWNER-LOCAL-FIRST-2026-10-30; OWNER-BATCH-EXECUTION-2026-10-30)
+
+Default development is on DOMKAT at D:\Dev\mailru-desktop, with the capsule beside this project. GitHub remains the versioned remote, with justified direct development permitted. Model plans one bounded scenario, DOMKAT executes predefined operations as one batch, then returns a substantive report. Consecutive GUI controls: about one second apart; PowerShell, CMD, file, Git, build and test operations: no artificial delay. Unexpected error: local batch reports affected work and diagnostics to the model; the model evaluates whether to repair, adjust the plan or consult Owner. The entire development does not stop automatically. Detailed requirements: .context/rules/batch-development-standard.md and .context/rules/local-first-workspace.md.

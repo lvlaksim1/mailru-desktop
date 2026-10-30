@@ -346,3 +346,8 @@ Owner подтвердил: экспорт/импорт 34 аккаунтов к
 
 ## 28.10.2026 — handoff manager generation 136 / официальный v0.3.109
 Стабильная идентичность project-manager, Project Manager 2.1.0, Context Capsule Core 1.3.1 не менялись. Владелец поручил две локальные доработки: (1) при временной сетевой ошибке внешнего справочника компаний для Excel-писем выждать 2 секунды и выполнить один новый запрос, при повторном отказе брать «Наименование работодателя» из текущей строки без остановки рассылки, если пусто и в Excel — явная остановка; (2) уменьшить и вписать адрес активного аккаунта в верхней части левой панели, сохранив размеры и индикатор авторизации. PR #247 merged main 43af3cb3cadb56cd09e24e7d807b3bc8f1daf51b. PR CI 40724553673 SUCCESS, main CI 40724962599 SUCCESS, официальный релиз v0.3.109 с Setup/Update опубликован. Настоящая пользовательская приёмка этих двух исправлений ещё не получена. Предыдущая приёмка v0.3.108 и рабочих Excel-рассылок сохранена. Следующая работа — конкретная обратная связь владельца.
+
+
+## 30.10.2026 local-first policy and manager seal repair
+
+Repair of generation 136 goals.md marker with content preserved; generation 137 revalidates all eight coupled paths. See decisions/2026-10-30-manager-seal-repair.md. Default development is on DOMKAT, batch actions governed by rules/batch-development-standard.md.

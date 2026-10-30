@@ -337,3 +337,8 @@ main: 1c1245af8942431fa28d454ab835af54cff1fd35 (PR #245 merged); официал�
 
 ## 28.10.2026 — v0.3.109: исправления готовы и официально опубликованы
 В main объединён PR #247 / commit 43af3cb3cadb56cd09e24e7d807b3bc8f1daf51b. Исправлено: после одного временного сетевого сбоя внешнего справочника организаций Excel-рассылка повторяет запрос через 2 с, после повторной ошибки подставляет название из столбца «Наименование работодателя» конкретной строки; если и там пусто, останавливается с сообщением. Обычный интервал справочника 5 с сохранён. Шрифт адреса активного аккаунта уменьшен до 13; Viewbox ограничивает полную строку шириной левой панели. PR Windows CI 40724553673 SUCCESS, main CI 40724962599 SUCCESS. Официальный выпуск v0.3.109 содержит обычные Setup/Update. Приёмка владельцем на рабочем компьютере ещё открыта. Ранее принятая v0.3.108 остаётся исторической базой; код Excel Mail.ru transport, авторизации и квот не изменялся.
+
+
+## 30.10.2026 manager-state repair and execution policy
+
+Sealed generation 136 contained a stale or invalid digest for goals.md. Existing goals preserved; generation 137 validates the actual Git blob. See decisions/2026-10-30-manager-seal-repair.md. Adopted DOMKAT local-first and batched execution policy in rules/.
