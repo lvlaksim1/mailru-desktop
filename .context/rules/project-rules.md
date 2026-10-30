@@ -22,3 +22,8 @@ No project-specific rules have been captured yet.
 ## Owner development standards (OWNER-LOCAL-FIRST-2026-10-30; OWNER-BATCH-EXECUTION-2026-10-30)
 
 Default development is on DOMKAT at D:\Dev\mailru-desktop, with the capsule beside this project. GitHub remains the versioned remote, with justified direct development permitted. Model plans one bounded scenario, DOMKAT executes predefined operations as one batch, then returns a substantive report. Consecutive GUI controls: about one second apart; PowerShell, CMD, file, Git, build and test operations: no artificial delay. Unexpected error: local batch reports affected work and diagnostics to the model; the model evaluates whether to repair, adjust the plan or consult Owner. The entire development does not stop automatically. Detailed requirements: .context/rules/batch-development-standard.md and .context/rules/local-first-workspace.md.
+
+
+## Принцип приоритета возможностей (OWNER-POSSIBILITY-FIRST-2026-10-30)
+
+Сначала исследовать способы достижения цели Владельца, включая комбинации механизмов, протоколов, API и локальных инструментов; незнание способа, отсутствие готовой функции или чужой неподтверждённый отрицательный опыт не являются доказательствами невозможности. Приоритет имеют спецификации, исходники и собственные воспроизводимые эксперименты. Не объявлять задачу невозможной до предметного анализа применимых вариантов и проверок. Чётко отличать гипотезу от подтверждённой реализации. Соблюдать безопасность, полномочия и целостность данных. Полный стандарт: .context/rules/possibility-first-research.md.
