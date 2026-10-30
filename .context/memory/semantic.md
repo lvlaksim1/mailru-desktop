@@ -9,6 +9,8 @@
 - Static APK evidence proves official-client contract/token flow but does not substitute for live validation before product enablement.
 - Evidence base: branch `research/mail-apk-15.107.0.148045`.
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## v0.2.0 live-validation findings — 2026-10-07
 
 - Release-set run `37539371650` passed with zero failures for folder list, address book, fast recipients, classic search, flag/pin with restoration, folder CRUD/clear, draft save, move-to-trash and permanent remove.
@@ -16,6 +18,8 @@
 - New search on `go.mail.ru` remains in scope statically but returned HTTP 520 in controlled live calls and is therefore not enabled in v0.2.0.
 - Classic `/api/v1/messages/search` is the released server-search mechanism.
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## Stable product facts
 
 - Native Windows client: .NET 8 + WPF, protocol isolated in `MailRuDesktop.Protocol`.
@@ -30,6 +34,8 @@ Current user-gated release: v0.3.32 staged reader (PR #100, Windows CI passed); 
 New product branch (2026-10-09): v0.3.32 / PR #102, one WebView2 persistent browser-shell DOM staging (zero per-letter top-level navigation, no WPF overlay/Visibility flip), branch and main CI passed, Owner visual acceptance pending. Issue #77 Send Now blocked.
 
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 2026-10-09 — входящие уведомления оригинального APK и закрытие v0.3.32
 
 Владелец сообщил о решении задач 1–3 (мерцание, встроенные изображения, скорость); считать их закрытыми на основании сообщения владельца, не повторять исправление без нового дефекта.
@@ -39,46 +45,67 @@ New product branch (2026-10-09): v0.3.32 / PR #102, one WebView2 persistent brow
 Наш Windows-клиент в `MainWindow.FolderCounters.cs` проверяет счётчики активного аккаунта раз в 90 с. Проверка числа непрочитанных сама по себе не распознаёт новое письмо и не является уведомлением Windows.
 
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 2026-10-09 — доказанная цепочка сигналов в Android APK Mail.ru
 
 Повторно распакован оригинальный APK 15.107.0.148045, SHA-256 PASS, Github Actions 37870637190 PASS; сохранено 380 выбранных классов, 2.51 МБ, исследовательская ветка коммит 2ef598f7b58ec2e4371cdc4bbaa49484e958a4c3. PushFactoryCreatorKt маршрутизирует GCM/HMS/VKPNS; RuStore MailMessagingService получает onMessageReceived, onNewToken, onDeletedMessages; CopyPushTokensToPushMeSDK передаёт токены провайдера в PushMeSdk; NewMailPush содержит ID и метаданные нового письма; PushMessageServiceVisitor вызывает NotificationHandler.showNotification. Эта статическая проверка **не устанавливает** путь независимой доставки Windows или точный HTTP-договор регистрации: большие методы PushMeApiImpl декомпилированы неполно. Первичные сведения от разработчиков VK подтверждают RuStore как Android-доставщика, а отдельно существующий браузерный сервис Mail.ru Notifier через WebSocket (не тождественен APK транспорту). Подробности в docs/research/android-new-mail-notifications-2026-10-09.md.
 
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 2026-10-09 — исходный Google FCM и независимый Windows-приёмник
 
 Владелец подтвердил работу оригинальной Почты Mail на телефоне без RuStore/VK. APK выборочно декомпилирован снова: 37872182332 PASS, коммит research 7d5de6c41af591c0e4eaca30ee601bba4a2ea004, 93 файла. SetUpPushComponent предпочитает Google GCM при доступности системных Google Play Services, иначе HMS, опционально VKPNS. GcmPushKitWrapper получает FCM токен через FirebaseInfoProvider.getToken(push_sender_id), GCMAvailabilityChecker требует Google Play Services, MailMessagingService extends FirebaseMessagingService onMessageReceived→PushMeSdk и уведомитель, onNewToken→PushMeSdk. SetUpPushMeSdk извлекает для каждого аккаунта ru.mail.oauth2.access; PushMeSDKPusherTransport регистрирует аккаунты и токены в PushMe. Документ docs/research/android-new-mail-notifications-2026-10-09.md. Независимый настольный Google FCM приёмник Superhuman/push-receiver v2.1.7 использует Firebase Installations/Registrations, TLS mtalk.google.com:5228, устранение дублей; проект активно исправлял реальные пакеты Google в июне-июле 2026. Однако прямое получение Mail.ru сигналов в Windows и принятие собственного FCM токена ещё не доказаны. Не подменять таймерным опросом и не копировать чужие токены.
 
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 09.10.2026 — два ID Firebase и точный мобильный договор
 
 По решению владельца MailRu Desktop должен использовать исходную идентичность официального мобильного приложения без создания отдельной регистрации продукта; только новый персональный адрес доставки компьютера, не копию токена телефона. Из проверенного APK через Actions 37874537322 PASS извлечены push_sender_id=1098335887158, gcm_defaultSenderId=61247752867, google_app_id=1:61247752867:android:d199c9f145040309, project_id=fluorcorpmailru, PushMe host=alt-push-me.mail.ru, api=api. GcmPushKitWrapper использует sender 1098335887158. При сериализации PushMe SDK Firebase platform=android, внутренний транспорт=fcm. Действующие аккаунты Windows уже используют мобильный access_token из AJ, но PushMe подписка Windows не подтверждена. Договор docs/research/mailru-mobile-push-contract-2026-10-09.md; FirebaseInfoProvider deep dive Actions 37874791066.
 
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 09.10.2026 — независимая выдача токена Google и MCS вход для отправителя официального APK
 
 В оригинальном APK код ru.mail.utils.FirebaseInstanceInfoProvider.java вызывает FirebaseInstanceId.getInstance().getToken(senderId,FirebaseMessaging.INSTANCE_ID_SCOPE); реальный sender=1098335887158, дефолтный 61247752867. Источник исследовательская ветка, Actions 37874791066 PASS. Выполнена живая одноразовая проверка Google без Android и без реального аккаунта: checkin OK, c2dm/register3 с app=ru.mail.mailapp и отпечатком оригинального APK выдал TOKEN_ISSUED (Actions 37875870944 PASS). Повтор в режиме проверки MCS: сервер mtalk.google.com:5228 на TLS принял логин, LOGIN_OK (Actions 37876061718 PASS). Все учётные сведения Google эфемерные, не публиковались. Это снимает гипотезу о невозможности выдачи токена Google на компьютере, но никак не доказывает события Mail.ru через PushMe, долговременную связь или совместимость с Firebase IID. В документации docs/research/mailru-mobile-push-contract-2026-10-09.md полный договор и ограничения. Исследовательское извлечение настроек PushMe Actions 37876287988; продукт не затронут.
 
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 09.10.2026 — переносимое Windows испытание PushMe и проверка DPAPI
 
 По результатам доказанного TOKEN_ISSUED Google и LOGIN_OK MCS создан отдельный исследовательский Python инструмент, способный в локальном контексте Windows прочесть уже сохранённый Mobile OAuth из %LOCALAPPDATA%\\MailRuDesktop\\auth.json через CryptUnprotectData, не выводя токены; необходимы явные --live --subscribe --login. Отдельный токен получателя Google, TLS/MCS, одна PushMe подписка, обработка event=4 и попытка отписать собственный токен в finally; на реальных почтовых аккаунтах не испытано. Смоделированные проверки на Linux/Windows PASS Actions 37877281592 и 37877932559, включая настоящий DPAPI круговой тест на вымышленной строке. PyInstaller EXE (исследовательский, 1 день retention, НЕ продуктовый релиз) собран и самопроверен Actions 37877413352 PASS. Подробный основной документ docs/research/windows-push-trial-2026-10-09.md. Для полного соответствия APK ещё требуется точный capabilities/client профиль; повторное извлечение 37877449399. Main CI 37877585319 единичная ошибка WPF smoke с успешным повтором, без изменения продукта.
 
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 09.10.2026 — получено точное построение can_mail из APK и собран Windows опыт
 
 GitHub Actions 37877449399 / 37878519042 успешно извлекли из SHA-256 оригинального APK PushMe ClientInfoProviderImpl и ru.mail.util.push.provider.impl.MailCapabilitiesProvider. Если почтовые оповещения включены, capabilities.can_mail = {Filter: {Folder:{filterList:[],enabled:false}, SocialNetwork:{excludeList:[],enabled:false},SocialService:{excludeList:[],enabled:false}}} при выбранных в опыте отсутствии исключений; при выключенной почте can_mail=0. Необязательные actual_support=0|1 и tags=[id]. Названия client: info/platform/version/name/type/lang; имя приложения ru.mail.mailapp; стандартный часовой пояс GMT+HHMM. SDK isV1(application) всегда false, значит POST /api/v2/set_settings, account.lower(), status=0, mobile OAuth. Windows испытательная программа скорректирована; 37878867912 Windows/Linux CI PASS, 37878867920 Windows portable EXE PASS, артефакт 1 день не релиз. Полное серверное получение уведомления от Mail.ru (validate_result и реальный event4) пока НЕ проверено; нужно испытание на ПК владельца с легитимным сохранённым OAuth, пароль и токены не передавать. Документ main docs/research/windows-push-trial-2026-10-09.md.
 
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 09.10.2026 — встроенный native .NET эксперимент уведомлений MailRu Desktop v0.3.33
 
 После отказа владельца от отдельного Python-архива создан постоянный код src/MailRuDesktop.App/MailRuPushProbe.cs + WPF PushProbeWindow.cs + MainWindow.PushProbe.cs и пункт Настроек. Google sender 1098335887158, cert оригинального APK, собственный Google check-in/register3, SSL/MCS, PushMe alt-push-me.mail.ru/api/v2/set_settings с can_mail, реальное событие 4 через MCS, unsubscribe_by_token только своего временного токена. Запуск строго вручную после выбора из сохранённых аккаунтов и согласия; остановка доступна из окна. Получение события вызывает однократное обновление списка, без таймерного опроса; дополнительных EXE/ручного Python и второго WebView2 нет. Версия проекта поднята 0.3.33, код на main, UI registry regenerating workflow PASS коммит 33bd848. docs/research/native-push-integration-2026-10-09.md. На реальном ящике ACCOUNT_ACCEPTED/event4 ещё неизвестны. Перед реальным тестом необходимо подтвердить CI и собрать последний full/update релиз.
 
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 09.10.2026 — штатная полная и обновляющая установка v0.3.33 с нативными уведомлениями
 
 После работы над интегрированным .NET8 экспериментальным транспортом пользователя отправили к двум реально опубликованным установщикам (вместо отдельного Python-архива): https://github.com/lvlaksim1/mailru-desktop/releases/download/v0.3.33/MailRuDesktop_Setup_v0.3.33.exe и https://github.com/lvlaksim1/mailru-desktop/releases/download/v0.3.33/MailRuDesktop_Update_v0.3.33.exe. CI 37880498382 PASS, release build 37880613099 PASS, подтверждены assets. Из Настроек встроенное окно выбирает существующий аккаунт, требует согласия, временно подписывает собственный Google token через PushMe API, ждёт до 3 минут event=4 и очищает собственный токен. В реальном Mail.ru ящике на стороне владельца событие ещё не проверяли; для дальнейшей разработки нужно собирать только статусы, никаких OAuth/паролей в чат.
 
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 09.10.2026 — first in-app PushMe network failure and v0.3.34 Prod TLS fix
 
 User screenshot from MailRu Desktop v0.3.33: Google self-registration, TOKEN_ISSUED, MCS LOGIN_OK all succeeded; subscription on Mail.ru returned network error and cleanup unconfirmed. Source APK includes AltProd alt-push-me.mail.ru and Prod push-me.mail.ru. GitHub Actions 37881120525 and 37881273739 tested no secrets: AltProd DNS works but certificate chain invalid (verify code20 missing local issuer); Prod TLS valid, unauthenticated empty POST /api/v2/set_settings HTTP200. Hypothesis for user network failure not yet directly proven. v0.3.34 now uses original Prod for subscription and own temporary token cleanup, never bypasses TLS; error states differentiate DNS/TLS/connection/HTTP without leaking secrets. Main CI 37881506882 SUCCESS, release 37881628473 SUCCESS, published full and update installers https://github.com/lvlaksim1/mailru-desktop/releases/tag/v0.3.34. Needs repeat test from integrated UI to establish real ACCOUNT_ACCEPTED and event4; never ask user for mail passwords/tokens.
+
+- source: legacy-v2-state
+- authority: legacy-unverified

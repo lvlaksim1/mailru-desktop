@@ -13,6 +13,8 @@
 
 For large APKs, retain a focused decompiled network corpus plus targeted single-class extraction for missing classes. Maintain machine-readable contract/audit reports so manual summaries can be checked for omissions.
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## Procedure — live validation of destructive mail operations
 
 - Prefer a disposable object created by the probe rather than touching an existing user message.
@@ -22,16 +24,22 @@ For large APKs, retain a focused decompiled network corpus plus targeted single-
 - Keep at least five seconds between every network request in the probe.
 
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## Procedure — include dynamically constructed windows in UI registry (2026-10-08)
 
 A source-derived catalogue that records `new Window` as an element of MainWindow but does not register it as a distinct window violates the all-window inventory. Count every runtime-created Window as an independent window, associate subsequently created controls with its runtime window and annotate any XAML subtree reparented at runtime (e.g. ComposeWorkspace) with `runtime_host_window`. Verify the generator itself as well as the checked-in generated file; passing `--check` on an incomplete generator is not evidence of complete inventory. Corrected in PR #91, after v0.3.26 code release.
 
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## Procedure — resilient GitHub update discovery (2026-10-08)
 
 For public MailRu Desktop releases, prefer https://api.github.com/repos/lvlaksim1/mailru-desktop/releases/latest metadata and an exact version-matching update installer asset. If API access fails, a GET with redirects disabled to https://github.com/lvlaksim1/mailru-desktop/releases/latest can return a trusted Location release tag; strictly validate HTTPS github.com, repository path and semver vX.Y.Z before deriving the release-policy installer address. Never accept untrusted redirect domains. On failure of both independent hosts, report sanitized per-host HTTP status/timeout class and offer an external browser release page rather than only a generic «Не удалось проверить обновления». Test against mock HTTP handlers (normal API, 403 site fallback, malicious redirect, two-host failures) to avoid live repeated probes. GitHub site/browser may still be unreachable in the Owner's environment; only local runtime evidence can resolve that. Existing installed clients without this fallback need one manual update.
 
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## Procedure — v0.3.28 sender binding, HTML resources and palette migration
 
 When detached New Mail is opened, make sender identity explicit and bind transport identity to that composition instance, not the mutable main-window current account. Display the sender address read-only; use the bound token/account for contact list, attachment uploads, drafts and sends; fail safely if no valid token remains instead of switching senders. Code PR #94 requires owner runtime acceptance.
@@ -43,6 +51,8 @@ If Owner asks to consolidate overly similar palette controls, keep old WPF resou
 Never infer that a CI pass proves an actual Windows titlebar is dark, no mail flickers, or a private image is accessible. Record owner acceptance separately.
 
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## Проверка действующего интерфейса вместо только сборки (2026-10-09)
 
 Изменение исходного кода и успешный запуск программы недостаточны для приёмки требований владельца. Для v0.3.29 добавлен tests/WindowsUiSmoke: на Windows создаются реальные окна, открываются настройки и новое письмо, проверяются расположение цветовых настроек, подписи и шаблоны, адрес отправителя, высота уведомления и реальная перерисовка битовой шкалы яркости при выборе основного цвета. Операции с реальным аккаунтом и частными HTML-изображениями по-прежнему требуют подтверждения пользователя.
@@ -50,6 +60,8 @@ Never infer that a CI pass proves an actual Windows titlebar is dark, no mail fl
 Особые выводы: при изменении размера фотографии нужно масштабировать и вложенное Image, и внешнюю рамку Border, и колонку списка; обработчик SelectionChanged не получает повторный щелчок уже выделенной папки; автоматическая перекраска при каждой активации приложения вызывает избыточные перерисовки HTML; при объединении нескольких старых ролей цвета использовать явный общий цвет или первое допустимое старое значение, а не последнее из прохода.
 
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## Процедура v0.3.30 — отделять тело письма от изображений и беречь Save As
 
 Если HTML-письмо открывается медленно, проверить не только сервер получения тела: прежний MainWindow последовательно дожидался каждой картинки в PrepareMailHtmlAsync перед ShowReaderHtml. Такой подход заставляет основной текст ждать медленного внешнего сервера. Правильный порядок: получить тело письма; передать HTML просмотрщику; показать текст по DOMContentLoaded; ресурсы загружать по запросам браузера асинхронно. При новой активной записи отменять устаревший полнотекстовый запрос. Сохранять замеры fetch-ms/body-ready-ms без содержания писем/токенов. Для afNN.mail.ru/CGI readmsg проверять точное сообщение, аккаунт, mode=attachment, numeric id, HTTPS, хост из белого списка, сигнатуру изображения и ограничение размера; использовать существующий OAuth API загрузки вложений. Внешнему прокси не пересылать Cookie текущего почтового аккаунта.
@@ -59,50 +71,76 @@ Markdown Save As: целевое имя в поле определяет цел�
 Для Send Now исходящего запланированного письма нельзя вызывать обычный send на копии письма: оно может отправиться повторно позже. Только установленная атомарная операция изменения существующего серверного расписания, с проверенным единичным результатом и поведением при тайм-ауте, позволит включить управление. Подробности в docs/protocol/scheduled-send-now-safety.md.
 
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## v0.3.31 — предотвращение видимой перестройки HTML-писем
 
 Подтверждённое видео владельца K-001.mp4 показало недостаток v0.3.30: отображение на DOMContentLoaded выдаёт сначала текст, после чего изображения меняют размеры таблицы и заставляют содержимое прыгать. DOMContentLoaded подтверждает разметку, но не готовность всех изображений. Не раскрывать видимое WebView2 только на этом событии. Держать нейтральную загрузку; сопоставлять NavigationId и поколение выбранного письма; отдельно ждать document.images[...].complete и завершения навигации. Для ленивых изображений можно запросить eager через строго постоянный скрипт, инициированный приложением, при отключённых сценариях из самого письма. Время ожидания должно быть ограничено: в v0.3.31 максимум 3 секунды с остановкой незавершённых ресурсов до раскрытия, чтобы запоздавшая картинка не перестраивала уже видимый текст. Компромисс — медленная картинка может не загрузиться вообще, что подлежит проверке владельцем; не скрывать такую потерю качества. Данные журнала reader_visual_ready: только reason=complete/limited и elapsed-ms, без личного содержимого. Прохождение сборки не заменяет испытания пользователя на том же письме.
 
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## Правило v0.3.32: один постоянный WebView2, без WPF-перекрытия
 
 При смене почтового письма запрещены циклы MessageWebView.Visibility=Hidden/Visible, перекрытие WebView2 обычным WPF Border/Grid с Loading, CoreWebView2.Stop() и повторный NavigateToString полного документа. Взаимодействие WPF и браузерной области визуализации асинхронно; предыдущее видео пользователя показывало старое содержимое под новым чеком. В v0.3.32 WebView2 и его основной документ создаются ОДИН раз; статус загрузки является обычным HTML в нём; данные письма создаются как изолированный sandboxed iframe с отключёнными сценариями. Приложение передаёт HTML через JsonSerializer.Serialize, никогда как исполняемые управляющие инструкции; лишь доверенный ExecuteScriptAsync из приложения управляет размещением. Пока готовится письмо, пользователь видит единую браузерную область загрузки; при готовности (или ограниченном ожидании с нейтрализацией поздних изображений) старый iframe заменяется новым в одной операции браузера. Сопоставлять поколение выбора, ID письма и актуальный аккаунт, отбрасывать поздние запросы. Заголовок WPF обновлять после успешной публикации тела, а не сразу при нажатии строки.
 
 В автоматическом испытании обязательно создать реальный WPF WebView2, подготовить и показать сначала тестовое письмо A с data: GIF, затем B; проверить одно активное внутреннее содержимое, 0 повторных корневых NavigationStarting и постоянно Visibility.Visible. Обычная компиляция не доказывает этого. Реальное исчезновение мерцания и полноту встроенных изображений на пользовательской авторизованной сессии подтверждает только владелец.
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 19.10.2026 — WPF автоссылки без нарушения итерации
 При испытании v0.3.75 выявлено Collection was modified при редактировании FlowDocument во время ленивого перебора EnumerateParagraphs. Перед вставкой Hyperlink материализовать абзацы через .ToArray(); также обходить снимок встроенных InlineCollection. System.Uri может нормализовать доменное имя завершающим '/', это учитывать в проверке href. Исправлено и покрыто WindowsUiSmoke, CI PR 39239908077 и main 39240270862 PASS. Для второго запуска создавать именованное событие активации до захвата Mutex, чтобы одновременный запуск не потерял сигнал.
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 19.10.2026 — без мерцания при обновлении списка и адресаты в smart-status
 Нельзя очищать ObservableCollection при обычном обновлении той же папки: список будет пустым до следующего серверного ответа, что выглядит как исчезновение после закрытия отдельного окна. При неизменном аккаунте/папке оставлять список видимым, получить snapshot, сохранять сведения уже обогащенных записей, затем по ключу ID применять Remove/Move/Insert/Replace только изменившимся строкам. Семантическое сравнение включая To/Cc позволяет не заменять ту же строку при новых JSON-массивах. Исходные From/To/Cc сохранять отдельно от вычисляемых CorrespondentDisplay/Avatar: отправитель необходим для ответа, а список должен показывать внешнюю сторону в любом разделе. Из smart-status брать только To/Cc этого же ID, не от других представлений и не из цитат; при отсутствии дозагружать GetFullMessageAsync(markRead:false), не выдумывать данные. WindowsUiSmoke обновить при изменении активного binding: в v0.3.76 прежнее ожидание AvatarUrl заменено на CorrespondentAvatarUrl. PR #178, CI 39259531892 / 39259916918.
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 19.10.2026 — добавление ZIP в отдельное окно и WPF тест
 Для независимого окна письма MessageWindow.xaml нельзя полагаться на элементы предосмотра MainWindow; отдельное меню/обработчик и привязка к _fullMessage нужны внутри MessageWindow. Наличие вложений — из ApplyFullMessageAsync, кнопка пакетной загрузки при Count>1, папка — AttachmentDownloadLocation.GetDirectory(), дубли имён различать без потери расширения, событие обработки — DownloadAllAttachmentsButton_Click. В WindowsUiSmoke не создавать и не закрывать MessageWindow до mail.Show() при ShutdownMode.OnLastWindowClose: преждевременное закрытие единственного окна может завершить WPF приложение и сломать следующие visual-tree проверки (обнаружено в CI 39270979499). Перенос теста после показа основного окна устранит проблему: PR 39271430847 PASS. При добавлении XAML контрола обновлять docs/ui-registry.json и удалять временный workflow генерации до объединения в main.
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 19.10.2026 — стандартное приветствие в RichComposeEditor и оконный отступ
 Редактор текста письма — RichComposeEditor, скрытый ComposeBodyTextBox синхронизируется через SyncFromRich. Чтобы добавить «Добрый день» и именно два переноса без порчи HTML, в начале реального FlowDocument вводятся Paragraph greeting, пустой Paragraph и редактируемый body Paragraph; для ответов Section _replyBody остаётся отдельно от _replySignature и _replyHistory. В новых письмах применять после основной подписи, reserving editable body перед первым блоком подписи, иначе каретка окажется внутри подписи. При ответах применять после LoadReplyQuotedText, до ApplyDefaultComposeSignature. При выборе шаблона повторно обеспечивать приветствие, но проверять первый Paragraph на наличие «Добрый день» без дублирования. Не добавлять при форварде. Отступ отдельного окна настроек задаётся Margin="16,0,0,0" у SettingsWorkspace, который переносится в самостоятельное окно. При изменении XAML обновлять docs/ui-registry.json и удалять временный workflow перед merge. CI ветки 39313711656, main 39314130757 SUCCESS.
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 19.10.2026 — защита начального ввода от наследования жирного в RichTextBox
 RichComposeEditor — единый форматированный редактор новых писем и ответов. Вставка приветствия и перемещение курсора внутри _replyBody, затем ApplyMarkdownSignature могут сохранить у свернутого WPF Selection начертание соседней жирной подписи. Метод PrepareInitialTypingFormat применяется лишь в начале нового письма/ответа после выбора подписи, если Selection.IsEmpty и абзац под курсором пуст; задаёт Paragraph.FontFamily из редактора, ресурс AppFontBodySize, FontWeight.Normal и FontStyle.Normal, а также свернутому выделению нормальное начертание и пустые TextDecorations. Не переписывает HTML/Markdown, не сбрасывает непустой пользовательский текст, не устанавливает обработчик на каждое нажатие клавиши. WPF smoke дополнен реальным вводом после жирной подписи, сохранением подписи/истории и ручного жирного. Изменения PR #184 и main 71d82194f0a268dfb0f8484cd7cbe2f0e23a2647, CI 39323173678 / 39323504971 SUCCESS. Генератор UI registry временный, удалён до merge.
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 20.10.2026 — реализация первой стадии MailRu Desktop Excel Mailing
 Для новой функции добавлен обособленный namespace MailRuDesktop.App.Mailing. Профили JSON хранятся в LocalAppData/MailRuDesktop/Mailing/profiles.json, exclusion text file отдельно; AuthorizationStore.Logins даёт доступные учётные записи без переноса паролей и токенов в Excel. ExcelInteropService обнаруживает живые Workbooks через Windows Running Object Table и CLSID приложения Excel, читает COM на STA WPF; Range.Value2 для пакета, Hidden для каждого ряда, .Text для восстановления отображённых ведущих нулей ИНН. Важный принцип: не открывать и не закрывать чужой Excel, не создавать отдельные книги, не менять исходные фильтры. OrganizationLookupService делает запрос на основе указанного в спецификации источника Т-Банка, подтверждает точный ИНН; отказ/несовпадение => RequiresReview. MailingPlanner как чистая функция проверяет адрес, контрольную сумму ИНН, заголовки, исключения, квоты, таймзону/DST и расчёт времени, подстановки. WPF UI в отдельном ExcelMailingWindow, навигация в MainWindow; только предпросмотр, без SendMessageAsync, без Excel writes. WindowsUiSmoke покрывает чистую логику и окно без COM/HTTP. Для WPF new xaml обновить docs/ui-registry.json; однократный workflow генерации удалён перед merge. PR #186, CI 39330459123 + 39330797808, release 39331047163 SUCCESS. Риск: действительное COM-подключение проверять на пользовательском ПК, не утверждать, что интеграция полностью принята.
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 20.10.2026 — Excel Mailing: от активной строки и безопасное прекращение по квоте
 ExcelInteropService.OpenReader проверяет, что excel.ActiveWorkbook соответствует выбранной открытой книге, excel.ActiveSheet совпадает с выбранным листом, Excel.ActiveCell.Row задаёт первую обрабатываемую строку (минимум 2); заголовки берутся из 1-й строки отдельно. Не использовать UsedRange для отказа >100000: последнюю строку определять через Cells(Rows.Count, column).End(xlUp) по email/ИНН. ReadNext читает по 192 строки; для каждой проверяет Rows[row].Hidden, включающий AutoFilter и ручное скрытие, и не создаёт кандидата на скрытой строке. MailingPlanSession обеспечивает квоты между порциями и остановку при IsFull, операции с COM только на STA, Task.Yield для обработки кнопки отмены. Resizable Thumb под SenderGrid изменяет Height с ограничениями, сохраняет в UserInterfaceState.ExcelMailingSenderGridHeight; UI registry обновлять. Автоматические тесты имитируют COM объект с активной строкой 74210 и lastRow 145000, спрятанными строками, несовпадающим листом и прекращением при заполнении квоты. Если T-bank не вернул подтверждённое имя — строка требует проверки и не расходует квоту, последующие видимые проверяются дальше. Ветка PR #190, официальный v0.3.81 код подтверждён по хэшам.
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 25.10.2026 — сохранение пустых абзацев при цитировании HTML в MailRu Desktop
 Источник: замечание владельца со снимками реальной переписки от 25.10.2026; PR #214, main commit 66784f921ab9b251edb7f899e42094856b5526e7, CI feature 40224063241/main 40224214326 PASS, официальный выпуск v0.3.93 https://github.com/lvlaksim1/mailru-desktop/releases/tag/v0.3.93 .
 
 Причина: BuildForwardMarkdown ранее заменял закрытия p/div одиночным переводом строки и затем применял `Regex.Replace(html, @"\n{3,}", "\n\n")`, уничтожая явно пустые строки. Ранее в v0.3.62 RichComposeEditor уже исправил передачу пустых WPF Paragraph в исходящий HTML как `<p><br></p>`. Не делать параллельный редактор: новые действия используют существующий механизм LoadReplyQuotedText/LoadReplyQuotedMarkdown и общий RenderDocumentHtml. Для HTML-пересылки интерпретировать пустой `<div><br></div>` как одну строку, `</p>` как границу абзаца, `</div>` как перенос и не сокращать повторные пустые строки. Проверять на исходном тексте, в редакторе WPF и в отправляемом HTML; сохранять жирный текст и ссылки, не изменять адресатов/вложения. Проверка CI не доказывает визуального совпадения произвольной внешней HTML/CSS-разметки: необходима приёмка владельцем на собственном письме. Владелец отдельно подтвердил восстановление нажатий кнопок после v0.3.92; замечание от 25.10 касается интервалов, а не выполнения действий.
 
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 25.10.2026 — общий загрузчик изображений для двух окон просмотра
 Источник: подтверждённый дефект на скриншоте пользователя и изучение v0.3.93: MailRu Desktop MainWindow.MailImages.cs содержит обработчик WebResourceRequested для proxy.imgsmail.ru и авторизованных afNN.mail.ru/cgi-bin/readmsg, но MessageWindow.InitializeReaderAsync не вызывал аналогичную конфигурацию. Исправлено в PR #216 (merged 0ec817cc9b8dfdb3e2ba06ed74d67768822812bc): логика перенесена в единый MailImageProxyHandler, вызывается из обоих экземпляров WebView2, Dispose отписывает обработчик и закрывает HttpClient. TrySelectInlineImage разрешает только фактически загруженные сервером ID в текущей переписке и точный почтовый ящик; тесты отвергают чужие аккаунты, ID и хосты. Для будущих изменений не дублировать сетевой загрузчик; при недоступности изображения проверять наличие подключения обработчика конкретного WebView2, CSP и соответствие идентификатора письма в ссылке. Не путать отдельное окно ЧТЕНИЯ с окном редактирования отправляемого ответа. Автоматическая CI ветка 40227028351, CI main 40227244285, Release v0.3.94 40227401090 — SUCCESS; реальные почтовые изображения требуют подтверждения владельца.
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 25.10.2026 — диагностика для человека, а не сырой журнал
 User request: see what action was performed, which mailbox and failure stage. In v0.3.95 use HumanDiagnostics.Application and HumanDiagnostics.Push to render human-readable Russian text and statuses, keeping original bounded logs and checkbox for technical codes. DiagnosticLog.Write now accepts an OPTIONAL explicitly known mailbox login as its third argument; this must be the operation's captured login, never UI currently selected for another async flow. AuthTokenDiagnostics.AccountLabel old ACCOUNT_NNN cannot be reliably reverse mapped after account list changes. In application and Google/PushMe view real known account, in default copy/save redact to stable aliases; explicit "С адресами" lets user export full. Tests in WindowsUiSmoke assert 403 refusal stage, two account separation, old aliases unknown, anonymization, raw view and empty state. PR #218, merged main adc370d7d4f83679576fd50f3243619977d258ed, both CI and v0.3.95 release PASS.
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 28.10.2026 — сетевой отказ справочника организаций при массовой рассылке Excel (v0.3.108)
 
 Источник: сообщение владельца со снимком окна рассылки и журналом MailRu HTTP за час; сверка исходного кода main `src/MailRuDesktop.App/Mailing/{OrganizationLookupService.cs,ExcelMailingWindow.Execution.cs,MailingPreparation.cs}`; отдельная неразрушающая проверка HTTPS с компьютера DOMKAT через ChatGPT MCP Tunnel 28.10.2026. Не хранить в публичной капсуле реальные почтовые токены, текст рассылки и сетевые дампы.
@@ -113,5 +151,10 @@ User request: see what action was performed, which mailbox and failure stage. In
 
 Восстановление без дублей: сохранить Excel; убедиться, что подтверждённые строки отмечены, а журнал включён; в исходной книге выбрать остановившуюся неотмеченную строку и запустить рассылку с неё после проверки доступности справочника, не сбрасывая счётчики и не повторяя вручную ранее подтверждённые задания. При будущей доработке отдельно согласовать ограниченные повторы только временных ошибок справочника, соблюдая минимум 5 с между запросами; после исчерпания попыток сохранять явную остановку, если владелец не изменит политику. Для диагностики логировать тип исключения и безопасные сведения о вложенных причинах без секретов.
 
+- source: legacy-v2-state
+- authority: legacy-unverified
 ## 28.10.2026 — подтверждённая процедура восстановления Excel-рассылки после сбоя справочника
 Решение владельца заменяет предложение из предыдущей диагностической заметки о паузе не менее пяти секунд для восстановления после сетевой ошибки. Для обычных последовательных обращений к справочнику интервал 5 с остаётся. Исключительно после временной сетевой ошибки текущего запроса: пауза 2 с, одна повторная попытка, далее имя работодателя только из этой строки Excel без прекращения рассылки, при отсутствии имени — остановка. Не маскировать под Excel сетевыми отказами постоянную ошибку HTTP 4xx, некорректный формат ответа или явное прерывание пользователем. После обоих неудачных запросов не записывать непроверенное название работодателя в общий кеш по ИНН. Перед возобновлением проверять отметки Excel, журнал и долговременные квоты. Verified by PR #247 and offline Windows tests; реальный двойной сбой на ПК владельца ещё не проверен.
+
+- source: legacy-v2-state
+- authority: legacy-unverified

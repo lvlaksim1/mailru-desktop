@@ -45,9 +45,14 @@
   },
   "current_state": ".context/current/state.md",
   "rules": [
-    ".context/rules/project-rules.md"
+    ".context/rules/project-rules.md",
+    ".context/rules/local-first-workspace.md",
+    ".context/rules/batch-development-standard.md"
   ],
-  "decisions": [],
+  "decisions": [
+    ".context/decisions/2026-10-30-manager-seal-repair.md",
+    ".context/decisions/2026-10-30-legacy-provenance-normalization.md"
+  ],
   "dialogues": [],
   "history": [],
   "runtime": {
