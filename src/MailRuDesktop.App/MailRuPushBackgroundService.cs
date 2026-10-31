@@ -18,6 +18,8 @@ internal sealed class MailRuPushBackgroundService : IDisposable
     private readonly Action<PushMailEvent>? _onMailEvent;
     private readonly Action<string> _onMcsState;
     private readonly Func<bool> _suppressReplays;
+    internal delegate bool ProcessedEventRecorder(string account, string? messageId, byte[] frame, out bool recorded);
+    private readonly ProcessedEventRecorder _recordProcessedEvent;
     private Dictionary<string, string> _accounts = new(StringComparer.OrdinalIgnoreCase);
     private CancellationTokenSource? _currentCancellation;
     private Task _tail = Task.CompletedTask;
@@ -34,7 +36,8 @@ internal sealed class MailRuPushBackgroundService : IDisposable
         Action<string>? onMcsState = null,
         string recipientId = SharedGooglePushIdentityStore.PrimaryRecipientId,
         Action<PushMailEvent>? onMailEvent = null,
-        Func<bool>? suppressReplays = null)
+        Func<bool>? suppressReplays = null,
+        ProcessedEventRecorder? recordProcessedEvent = null)
     {
         if (!SharedGooglePushIdentityStore.ValidRecipientId(recipientId))
             throw new ArgumentException("Invalid recipient slot.", nameof(recipientId));
@@ -44,6 +47,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
         _onMailEvent = onMailEvent;
         _onMcsState = onMcsState ?? (_ => { });
         _suppressReplays = suppressReplays ?? (() => true);
+        _recordProcessedEvent = recordProcessedEvent ?? PushProcessedEventStore.MarkDelivered;
     }
 
     internal bool Enabled
@@ -397,7 +401,7 @@ internal sealed class MailRuPushBackgroundService : IDisposable
             string? messageId = null;
             try { messageId = PushMailEvent.Parse(data)?.MessageId; }
             catch (InvalidDataException) { /* MCS hash remains a fallback. */ }
-            if (!PushProcessedEventStore.MarkDelivered(login, messageId, data,
+            if (!_recordProcessedEvent(login, messageId, data,
                     out var recorded))
             {
                 _recentMessages.Add(id);

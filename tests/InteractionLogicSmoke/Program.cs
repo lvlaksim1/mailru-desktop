@@ -235,6 +235,14 @@ Expect(PushMailEvent.Parse(PushWire.Append(
     PushKv("event", "10"), PushKv("account", "test@example.invalid"))) is null,
     true, "counter events remain unhandled");
 
+// Keep synthetic push receipts separate from persisted real mailbox state.
+var syntheticReplayKeys = new HashSet<string>(StringComparer.Ordinal);
+bool RecordSyntheticEvent(string account, string? messageId, byte[] frame, out bool recorded)
+{
+    recorded = true;
+    return syntheticReplayKeys.Add(PushProcessedEventStore.EventKey(account, messageId, frame));
+}
+
 // A live preference switch bypasses both the memory and DPAPI replay
 // suppressors but cannot bypass mailbox authorization or MCS transport ACK.
 bool replayProtectionOn = false;
@@ -246,7 +254,8 @@ var toggleFrame = PushWire.Append(
     PushWire.TextField(9, "toggle-persistent-id"));
 using (var toggleReceiver = new MailRuPushBackgroundService(
     (_, _) => { }, _ => { },
-    suppressReplays: () => replayProtectionOn))
+    suppressReplays: () => replayProtectionOn,
+    recordProcessedEvent: RecordSyntheticEvent))
 {
     var flags = System.Reflection.BindingFlags.Instance |
                 System.Reflection.BindingFlags.NonPublic;
@@ -644,7 +653,7 @@ if (ack is null || !PushWire.Parse(ack).Any(field => field.Field == 7))
 Expect(PushWire.MessageIdentifier(msgData), PushWire.MessageIdentifier(msgData),
     "stable MCS persistent message identity");
 using (var manager = new MailRuPushBackgroundService(
-    (_, _) => { }, _ => { }))
+    (_, _) => { }, _ => { }, recordProcessedEvent: RecordSyntheticEvent))
 {
     // Set state directly for offline tests: never open a real Google connection.
     var f = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;

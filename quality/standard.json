@@ -1,0 +1,58 @@
+{
+  "schema": "engineering-quality-v1",
+  "project": "lvlaksim1/mailru-desktop",
+  "quick": [
+    {
+      "id": "application_build",
+      "kind": "build",
+      "command": [
+        "dotnet",
+        "build",
+        "src/MailRuDesktop.App/MailRuDesktop.App.csproj",
+        "-c",
+        "Release",
+        "--nologo"
+      ],
+      "timeout_sec": 300
+    },
+    {
+      "id": "interaction_logic_synthetic",
+      "kind": "sandbox",
+      "command": [
+        "dotnet",
+        "run",
+        "--project",
+        "tests/InteractionLogicSmoke/InteractionLogicSmoke.csproj",
+        "-c",
+        "Release",
+        "--no-launch-profile"
+      ],
+      "timeout_sec": 240
+    }
+  ],
+  "full_additional": [
+    {
+      "id": "protocol_build",
+      "kind": "build",
+      "command": [
+        "dotnet",
+        "build",
+        "src/MailRuDesktop.Protocol/MailRuDesktop.Protocol.csproj",
+        "-c",
+        "Release",
+        "--nologo"
+      ],
+      "timeout_sec": 180
+    },
+    {
+      "id": "architecture_no_cycles",
+      "kind": "static",
+      "command": [
+        "python",
+        "scripts/architecture_explorer.py",
+        "--check"
+      ],
+      "timeout_sec": 40
+    }
+  ]
+}
